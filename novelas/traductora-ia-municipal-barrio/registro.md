@@ -42,3 +42,7 @@ Las columnas `modelo`, `pal_entrada` y `pal_salida` solo se rellenan en las fila
 | 2026-09-15 18:11 | invocacion | capitulos | 3 | 1 | opus | 5550 | 400 | revisor, intento técnico 1, resultado ok; sin ficheros escritos |
 | 2026-09-15 18:11 | veredicto | capitulos | 3 | 1 | | | | APROBADO; 0 problemas; recalculado coincide; informe: capitulos/03/informe-1.md |
 | 2026-09-15 18:11 | decision_harness | capitulos | 3 | 1 | | | | aprobar |
+| 2026-09-15 18:11 | commit | capitulos | 3 | 1 | | | | cap 03 cerrado (intento 1) |
+| 2026-09-15 18:11 | invocacion | final | – | – | opus | 6321 | | revisor (global), intento técnico 1, inicio |
+| 2026-09-15 18:14 | invocacion | final | – | – | opus | 6321 | 520 | revisor (global), intento técnico 1, resultado ok; sin ficheros escritos |
+| 2026-09-15 18:14 | veredicto | final | – | – | | | | GLOBAL informativo RECHAZADO; 1 problema; gravedad máx 1; informe: informe-global.md |
