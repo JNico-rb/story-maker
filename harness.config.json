@@ -1,0 +1,81 @@
+{
+  "_documentacion": "Todas estas variables están explicadas en specs/functional.md §7. Edita este fichero para cambiar el comportamiento del harness; no hace falta tocar nada más.",
+  "version": 1,
+
+  "perfil_activo": "relato",
+
+  "perfiles": {
+    "relato": {
+      "descripcion": "Prueba rápida y barata. Lo mínimo que ya se lee como una historia.",
+      "paginas_objetivo": null,
+      "capitulos_objetivo": 3,
+      "capitulos_min": 3,
+      "capitulos_max": 5,
+      "palabras_por_capitulo": 1500
+    },
+    "novela_corta": {
+      "descripcion": "Primera novela de verdad. El salto natural tras validar el harness con 'relato'.",
+      "paginas_objetivo": null,
+      "capitulos_objetivo": 12,
+      "capitulos_min": 8,
+      "capitulos_max": 15,
+      "palabras_por_capitulo": 2000
+    },
+    "novela": {
+      "descripcion": "Novela completa de extensión habitual.",
+      "paginas_objetivo": null,
+      "capitulos_objetivo": 30,
+      "capitulos_min": 20,
+      "capitulos_max": 40,
+      "palabras_por_capitulo": 2500
+    },
+    "saga": {
+      "descripcion": "Objetivo a largo plazo: 100 capítulos. Requiere memoria por ventana (ver 'memoria') y varias sesiones.",
+      "paginas_objetivo": null,
+      "capitulos_objetivo": 100,
+      "capitulos_min": 60,
+      "capitulos_max": 120,
+      "palabras_por_capitulo": 2500
+    }
+  },
+
+  "formato": {
+    "palabras_por_pagina": 250,
+    "palabras_min_capitulo": 800,
+    "palabras_max_capitulo": 5000,
+    "tolerancia_longitud": 0.2
+  },
+
+  "modelos": {
+    "interrogador": "sonnet",
+    "escritor": "sonnet",
+    "revisor": "sonnet",
+    "escalado": {
+      "activo": true,
+      "modelo": "opus",
+      "escritor_desde_intento": 2,
+      "revisor_desde_intento": 3,
+      "tras_fallo_tecnico": true,
+      "revision_global": true
+    }
+  },
+
+  "limites": {
+    "reescrituras_max": 2,
+    "reintentos_tecnicos": 3,
+    "escaleta_rechazos_max": 3,
+    "turnos_por_invocacion": 40,
+    "pausa_cada_capitulos": 5
+  },
+
+  "veredicto": {
+    "rechaza_con_graves": 1,
+    "rechaza_con_leves": 2
+  },
+
+  "memoria": {
+    "resumenes_completos_ultimos": null,
+    "capitulo_anterior_integro": true,
+    "digesto_por_acto": false
+  }
+}
