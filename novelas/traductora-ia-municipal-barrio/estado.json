@@ -1,13 +1,13 @@
 {
   "version": 2,
   "slug": "traductora-ia-municipal-barrio",
-  "fase": "capitulos",
+  "fase": "final",
   "modo_prueba": false,
   "fichero_respuestas": null,
   "escaleta_aprobada": true,
   "escaleta_rechazos": 0,
   "total_capitulos": 3,
-  "capitulo_actual": 3,
+  "capitulo_actual": 4,
   "intento_actual": 1,
   "capitulos": {
     "1": {
@@ -17,13 +17,17 @@
     "2": {
       "aprobado": 2,
       "por_agotamiento": false
+    },
+    "3": {
+      "aprobado": 1,
+      "por_agotamiento": false
     }
   },
   "informe_global": false,
   "invocaciones": {
     "interrogador": 1,
-    "escritor": 3,
-    "revisor": 3
+    "escritor": 4,
+    "revisor": 4
   },
   "ultima_parada": null,
   "avisos": []

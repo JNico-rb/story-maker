@@ -35,3 +35,10 @@ Las columnas `modelo`, `pal_entrada` y `pal_salida` solo se rellenan en las fila
 | 2026-09-15 18:07 | invocacion | capitulos | 2 | 2 | opus | 5047 | 380 | revisor, intento técnico 1, resultado ok; sin ficheros escritos |
 | 2026-09-15 18:07 | veredicto | capitulos | 2 | 2 | | | | APROBADO; 0 problemas; recalculado coincide; informe: capitulos/02/informe-2.md |
 | 2026-09-15 18:07 | decision_harness | capitulos | 2 | 2 | | | | aprobar |
+| 2026-09-15 18:07 | commit | capitulos | 2 | 2 | | | | cap 02 cerrado (intento 2) |
+| 2026-09-15 18:07 | invocacion | capitulos | 3 | 1 | opus | 4718 | | escritor, intento técnico 1, inicio |
+| 2026-09-15 18:09 | invocacion | capitulos | 3 | 1 | opus | 4718 | 1221 | escritor, intento técnico 1, resultado ok; zona correcta; intento-1.md 402 palabras |
+| 2026-09-15 18:09 | invocacion | capitulos | 3 | 1 | opus | 5550 | | revisor, intento técnico 1, inicio |
+| 2026-09-15 18:11 | invocacion | capitulos | 3 | 1 | opus | 5550 | 400 | revisor, intento técnico 1, resultado ok; sin ficheros escritos |
+| 2026-09-15 18:11 | veredicto | capitulos | 3 | 1 | | | | APROBADO; 0 problemas; recalculado coincide; informe: capitulos/03/informe-1.md |
+| 2026-09-15 18:11 | decision_harness | capitulos | 3 | 1 | | | | aprobar |
