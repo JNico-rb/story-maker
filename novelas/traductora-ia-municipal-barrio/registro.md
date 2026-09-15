@@ -22,3 +22,16 @@ Las columnas `modelo`, `pal_entrada` y `pal_salida` solo se rellenan en las fila
 | 2026-09-15 18:00 | invocacion | capitulos | 1 | 1 | opus | 3889 | 210 | revisor, intento técnico 1, resultado ok; sin ficheros escritos |
 | 2026-09-15 18:00 | veredicto | capitulos | 1 | 1 | | | | APROBADO; 1 problema; gravedad máx 5; recalculado coincide con revisor; informe: capitulos/01/informe-1.md |
 | 2026-09-15 18:00 | decision_harness | capitulos | 1 | 1 | | | | aprobar |
+| 2026-09-15 18:00 | commit | capitulos | 1 | 1 | | | | cap 01 cerrado (intento 1) |
+| 2026-09-15 18:00 | invocacion | capitulos | 2 | 1 | opus | 3889 | | escritor, intento técnico 1, inicio |
+| 2026-09-15 18:01 | invocacion | capitulos | 2 | 1 | opus | 3889 | 1133 | escritor, intento técnico 1, resultado ok; zona correcta; intento-1.md 356 palabras |
+| 2026-09-15 18:01 | invocacion | capitulos | 2 | 1 | opus | 4633 | | revisor, intento técnico 1, inicio |
+| 2026-09-15 18:03 | invocacion | capitulos | 2 | 1 | opus | 4633 | 330 | revisor, intento técnico 1, resultado ok; sin ficheros escritos |
+| 2026-09-15 18:03 | veredicto | capitulos | 2 | 1 | | | | RECHAZADO; 1 problema; gravedad máx 1; recalculado coincide; informe: capitulos/02/informe-1.md |
+| 2026-09-15 18:03 | decision_harness | capitulos | 2 | 1 | | | | reescribir → intento 2 |
+| 2026-09-15 18:03 | invocacion | capitulos | 2 | 2 | opus | 4587 | | escritor, intento técnico 1, inicio (reescritura) |
+| 2026-09-15 18:05 | invocacion | capitulos | 2 | 2 | opus | 4587 | 1218 | escritor, intento técnico 1, resultado ok; zona correcta; intento-2.md 359 palabras |
+| 2026-09-15 18:05 | invocacion | capitulos | 2 | 2 | opus | 5047 | | revisor, intento técnico 1, inicio |
+| 2026-09-15 18:07 | invocacion | capitulos | 2 | 2 | opus | 5047 | 380 | revisor, intento técnico 1, resultado ok; sin ficheros escritos |
+| 2026-09-15 18:07 | veredicto | capitulos | 2 | 2 | | | | APROBADO; 0 problemas; recalculado coincide; informe: capitulos/02/informe-2.md |
+| 2026-09-15 18:07 | decision_harness | capitulos | 2 | 2 | | | | aprobar |

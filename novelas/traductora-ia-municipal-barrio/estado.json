@@ -7,19 +7,23 @@
   "escaleta_aprobada": true,
   "escaleta_rechazos": 0,
   "total_capitulos": 3,
-  "capitulo_actual": 2,
+  "capitulo_actual": 3,
   "intento_actual": 1,
   "capitulos": {
     "1": {
       "aprobado": 1,
+      "por_agotamiento": false
+    },
+    "2": {
+      "aprobado": 2,
       "por_agotamiento": false
     }
   },
   "informe_global": false,
   "invocaciones": {
     "interrogador": 1,
-    "escritor": 1,
-    "revisor": 1
+    "escritor": 3,
+    "revisor": 3
   },
   "ultima_parada": null,
   "avisos": []
