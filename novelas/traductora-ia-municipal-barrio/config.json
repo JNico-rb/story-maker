@@ -1,0 +1,52 @@
+{
+  "version": 2,
+  "perfil": {
+    "nombre": "relato",
+    "descripcion": "Prueba rápida y barata. Lo mínimo que ya se lee como una historia. Es el perfil de la fase de validación.",
+    "paginas_objetivo": null,
+    "capitulos_objetivo": 3,
+    "capitulos_min": 3,
+    "capitulos_max": 5,
+    "palabras_por_capitulo": 350
+  },
+  "formato": {
+    "palabras_por_pagina": 250,
+    "palabras_min_capitulo": 200,
+    "palabras_max_capitulo": 600,
+    "tolerancia_longitud": 0.2
+  },
+  "modelos": {
+    "interrogador": "opus",
+    "escritor": "opus",
+    "revisor": "opus",
+    "escalado": {
+      "activo": false,
+      "modelo": "opus",
+      "escritor_desde_intento": 2,
+      "revisor_desde_intento": 3,
+      "tras_fallo_tecnico": true,
+      "revision_global": true
+    }
+  },
+  "limites": {
+    "reescrituras_max": 2,
+    "reintentos_tecnicos": 3,
+    "escaleta_rechazos_max": 3,
+    "turnos_por_invocacion": 40,
+    "pausa_cada_capitulos": 5
+  },
+  "veredicto": { "rechaza_con_graves": 1, "rechaza_con_leves": 2 },
+  "memoria": {
+    "resumenes_completos_ultimos": null,
+    "capitulo_anterior_integro": true,
+    "digesto_por_acto": false
+  },
+  "origen": {
+    "perfil_activo": "relato",
+    "sobreescrituras_comando": {
+      "perfil.palabras_por_capitulo": 350,
+      "formato.palabras_min_capitulo": 200,
+      "formato.palabras_max_capitulo": 600
+    }
+  }
+}
