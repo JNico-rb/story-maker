@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "slug": "",
+  "fase": "interrogatorio",
+  "modo_prueba": false,
+  "fichero_respuestas": null,
+  "escaleta_aprobada": false,
+  "escaleta_rechazos": 0,
+  "total_capitulos": null,
+  "capitulo_actual": null,
+  "intento_actual": null,
+  "capitulos": {},
+  "informe_global": false,
+  "invocaciones": { "interrogador": 0, "escritor": 0, "revisor": 0 },
+  "ultima_parada": null,
+  "avisos": []
+}
