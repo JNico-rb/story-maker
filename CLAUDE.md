@@ -1,11 +1,13 @@
 # story-maker
 
-Harness de Claude Code para escribir novelas en castellano sobre el mundo tras la revolución de la IA. **No hay código**: el harness son la skill `/novela`, tres subagentes y estas reglas. La especificación de comportamiento es `specs/functional.md`; manda sobre cualquier otro fichero.
+Harness para escribir novelas en castellano sobre el mundo tras la revolución de la IA. Tiene dos fases (`specs/functional.md` §1 y §10): **ahora**, validar el diseño en Claude Code con el modelo caro e historias de 3 capítulos; **después**, portar ese mismo diseño a un runner propio contra OpenRouter con un modelo barato para llegar a 100–200 capítulos. En esta fase **no hay código**: el harness son la skill `/novela`, tres subagentes y estas reglas. La especificación de comportamiento es `specs/functional.md`; manda sobre cualquier otro fichero.
 
 ## Cómo se usa
 
 - Si el usuario pide "genera la novela", "haz lo de las especificaciones", "escribe una historia" o similar, **invoca la skill `novela`** con su petición como argumentos. No escribas prosa de novela desde la sesión principal: eso lo hacen los subagentes a través de la skill.
-- Comandos: `/novela nueva "<idea>"` · `/novela continuar <carpeta>` · `/novela estado <carpeta>`.
+- Comandos: `/novela nueva "<idea>"` · `/novela continuar <carpeta>` · `/novela estado <carpeta>` · `/novela comparar <caso>`.
+- Qué se espera que produzca una ejecución completa: `specs/inventario.md`. Comparar dos novelas de la misma idea con distinta configuración (modelo caro/barato, Claude Code/runner): `comparativa/`.
+- Todo lo que se diseñe aquí tiene que poder portarse al runner (`specs/functional.md` §10): los agentes son prompts con contrato, no piezas de Claude Code. Si una solución solo funciona en Claude Code, se anota como tal.
 - El interrogatorio inicial (fase 1) se hace con la skill `mattpocock-skills:grilling`; las preguntas al usuario **siguen en pie** y no se saltan salvo en modo de prueba.
 - Todo lo ajustable (tamaño de la historia, modelos, reintentos, reescrituras, memoria) está en **`harness.config.json`**, explicado en `specs/functional.md` §7. Si hay que cambiar el comportamiento, se edita ahí, no en la skill ni en los subagentes.
 

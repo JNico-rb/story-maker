@@ -1,6 +1,6 @@
 # Fase 2 — Un capítulo (N)
 
-Precondición: `estado.fase == capitulos`, `git status` limpio en la carpeta. `K = estado.intento_actual` (1 si empieza). `NN` = N con dos dígitos.
+Precondición: `estado.fase == capitulos`. Al empezar un capítulo la carpeta está limpia (el anterior se commiteó al cerrarse); dentro del capítulo **no** lo está —conviven `intento-K.md`, `informe-K.md`, `estado.json`…— y eso es normal: `verificar-zona.md` fija el índice antes de cada invocación en vez de exigir limpieza. `K = estado.intento_actual` (1 si empieza). `NN` = N con dos dígitos.
 
 ## Bucle de intentos
 
@@ -24,7 +24,7 @@ Modelo: según SKILL.md §8. Construye el prompt con **exactamente** esto (rutas
 
 Para N = 1 no hay resúmenes ni capítulo anterior: dilo explícitamente en el prompt.
 
-`verificar-zona.md` con zona = {`capitulos/NN/intento-K.md`, `capitulos/NN/resumen-K.md`}. Validación: ambos existen y no están vacíos; `intento-K.md` tiene frontmatter `palabras`; `resumen-K.md` tiene frontmatter `hilos_abiertos`, `hilos_cerrados`, `personajes`. Cuenta las palabras tú mismo por encima (aprox.) para el registro; el juicio de longitud es del revisor.
+`verificar-zona.md` con zona = {`capitulos/NN/intento-K.md`, `capitulos/NN/resumen-K.md`}. Validación: ambos existen y no están vacíos; `intento-K.md` tiene frontmatter `palabras`; `resumen-K.md` tiene frontmatter `hilos_abiertos`, `hilos_cerrados`, `personajes`. Cuenta las palabras tú mismo por encima (aprox.) para el registro (`palabras_salida` de la invocación); el juicio de longitud es del revisor.
 
 ### 2. Revisor
 

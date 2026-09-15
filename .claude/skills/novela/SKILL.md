@@ -17,6 +17,7 @@ Argumentos recibidos: `$ARGUMENTS`
 | `nueva "<idea>" [carpeta: <ruta>] [modo-prueba: <fichero>] [<clave>=<valor> …]` | §1 → §2 → §3 → §4 → §5 |
 | `continuar <carpeta> [<clave>=<valor> …]` | §1 (solo comprobaciones) → §6 reanudar |
 | `estado <carpeta>` | §7 |
+| `comparar <caso>` | `procedimientos/comparar.md` (compara dos novelas del harness generadas con la misma idea y distinta configuración: modelo caro frente a barato, Claude Code frente al runner) |
 | Texto libre sin subcomando ("genera una novela sobre…", "haz lo de las especificaciones") | Trátalo como `nueva "<texto>"`. Si no hay idea reconocible, pide la idea en una frase y sigue |
 
 Las claves `<clave>=<valor>` sobreescriben `harness.config.json` para esta novela, con ruta por puntos (p. ej. `perfil_activo=novela_corta`, `limites.reescrituras_max=1`, `formato.tolerancia_longitud=0`, `modelos.escritor=opus`).
@@ -69,9 +70,11 @@ Sigue `procedimientos/capitulo.md` para cada N desde `estado.capitulo_actual` ha
 
 Sigue `procedimientos/final.md`. Termina con `procedimientos/cierre.md` en ÉXITO.
 
+Al cerrar con ÉXITO, comprueba la ejecución contra el inventario de `specs/inventario.md` §4 e incluye en el informe de cierre cualquier artefacto que falte.
+
 ## 6. Reanudar (`continuar`)
 
-1. Si `git status --porcelain novelas/<slug>` no está vacío: hay un paso a medias. `git checkout -- novelas/<slug>` y `git clean -fd novelas/<slug>`; registra `paso_descartado`.
+1. Si `git status --porcelain novelas/<slug>` no está vacío: hay un paso a medias. Ejecuta `descartar(novelas/<slug>)` de `procedimientos/verificar-zona.md` (deshace índice, working tree y ficheros nuevos hasta el último commit); registra `paso_descartado`.
 2. Lee `estado.json` y ve a la fase que indique:
    - `interrogatorio` → §3; el procedimiento sabe leer `entrevista.md` para no repetir preguntas.
    - `capitulos` → §4 desde `capitulo_actual`, `intento_actual` (el intento a medias ya se ha descartado en el paso 1; se repite con el mismo K).
@@ -100,14 +103,14 @@ modelo(subagente, intento_K, intento_tecnico, es_revision_global):
     en otro caso → base
 ```
 
-Con los valores por defecto: el primer intento de cada capítulo lo escribe Sonnet; si lo rechazan, la reescritura la hace Opus; el revisor sube a Opus en el intento 3 (el que puede acabar aceptado por agotamiento); cualquier reintento por fallo técnico y la revisión global van con Opus.
+Con los valores por defecto de la fase de validación (`specs/functional.md` §7.7, paso 1) los tres subagentes van con Opus y el escalado está apagado: se mide el techo del diseño. En la fase de abaratamiento (paso 2) se baja el modelo base y se enciende el escalado: el primer intento lo escribe el modelo barato; si lo rechazan, la reescritura la hace Opus; el revisor sube a Opus en el intento 3 (el que puede acabar aceptado por agotamiento); cualquier reintento por fallo técnico y la revisión global van con Opus.
 
 Registra el modelo usado en cada fila `invocacion` del registro.
 
 ## 9. Reglas del orquestador (siempre)
 
 - **Estado tras cada decisión**: reescribe `estado.json` completo tras aprobar, reescribir, aceptar por agotamiento, avanzar o parar.
-- **Registro**: añade una fila a `registro.md` por cada evento (ver plantilla). Textos completos no; rutas sí.
+- **Registro**: añade una fila a `registro.md` por cada evento (ver plantilla). Textos completos no; rutas sí. Cada fila `invocacion` lleva modelo, `palabras_entrada` y `palabras_salida` (`verificar-zona.md`): es el dato con el que se estima el coste de la misma novela en otro modelo o en el runner.
 - **Fallos**: cualquier subagente que falle, vuelva vacío, sin la salida esperada o con artefactos inválidos → reintento del mismo paso hasta `reintentos_tecnicos`, añadiendo el motivo al prompt. Agotados → PARADA con `FALLO_TECNICO_PERSISTENTE` (falló) o `INCUMPLE_CONTRATO` (volvió pero mal). Ver `procedimientos/cierre.md`.
 - **Interrupción**: si el usuario corta, no hagas nada más; la próxima ejecución descarta lo a medias (§6.1).
 - **Contexto**: cada `limites.pausa_cada_capitulos` capítulos cerrados (si no es `null`), y solo si notas que la sesión va cargada, haz PARADA limpia con motivo `PAUSA_PROGRAMADA` y pide al usuario `/novela continuar`; es preferible a agotar el contexto a mitad de capítulo.

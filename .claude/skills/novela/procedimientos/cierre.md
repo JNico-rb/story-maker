@@ -18,7 +18,7 @@ Se ejecuta **siempre** al terminar una ejecución de `/novela nueva` o `/novela 
 ## Pasos
 
 1. Si es PARADA: `estado.fase = parada`, `estado.ultima_parada = { motivo, fecha, detalle, fase_previa }`. Guarda `estado.json`.
-2. Escribe `informe-cierre.md` desde la plantilla con: resultado, motivo, fase y capítulo/intento en que se detuvo, capítulos cerrados (y cuáles por agotamiento), invocaciones por subagente, avisos acumulados, rutas relevantes, y la línea **Para continuar**.
+2. Escribe `informe-cierre.md` desde la plantilla con: resultado, motivo, fase y capítulo/intento en que se detuvo, capítulos cerrados (y cuáles por agotamiento), invocaciones por subagente, **volumen** (suma de `palabras_entrada` y `palabras_salida` del registro, por subagente y por modelo), avisos acumulados, rutas relevantes, y la línea **Para continuar**.
 3. Registra `fin_ejecucion(resultado, motivo)`.
 4. Commit `novela <slug>: <EXITO | PARADA motivo>`. Si el fallo es `ERROR_CONFIGURACION` sin carpeta válida, omite los pasos 1-2 y 4 y solo muestra el informe en la sesión.
 5. Muestra el informe completo en la sesión. En PARADA, la última línea es la acción exacta para continuar.

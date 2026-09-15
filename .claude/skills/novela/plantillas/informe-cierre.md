@@ -24,6 +24,12 @@ Fase · capítulo · intento.
 ## Invocaciones
 interrogador · escritor · revisor.
 
+## Volumen
+Suma de `pal_entrada` y `pal_salida` de las filas `invocacion` del registro, por subagente y por modelo. Es el dato para estimar cuánto costaría esta misma novela con otro modelo o en el runner (`specs/functional.md` §6.6).
+
+| subagente | modelo | invocaciones | pal_entrada | pal_salida |
+|---|---|---|---|---|
+
 ## Avisos
 -
 

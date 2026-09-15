@@ -2,9 +2,12 @@
 
 Generador agéntico de novelas en castellano sobre **cómo será el mundo tras la revolución de la IA**. El usuario aporta una idea; tres agentes (interrogador, escritor, revisor) coordinados por un **harness** la convierten en una novela completa.
 
-**No hay código.** El harness es **Claude Code**: una skill orquestadora, tres subagentes y un conjunto de reglas, todo en Markdown dentro del repositorio. Claude ejecuta el flujo en la sesión cuando el usuario lanza `/novela`. La carpeta de la novela es el único estado.
+El proyecto tiene **dos fases** y este documento vale para las dos:
 
-Este documento describe **qué** hace el sistema y cómo se comportan sus partes. Dónde está implementada cada pieza: §9. Qué puedes ajustar sin tocar nada del harness: §7 y [`harness.config.json`](../harness.config.json).
+1. **Validar el diseño en Claude Code, con el modelo caro.** En esta fase **no hay código**: el harness es una skill orquestadora, tres subagentes y un conjunto de reglas, todo en Markdown dentro del repositorio. Claude ejecuta el flujo en la sesión cuando el usuario lanza `/novela`. Se prueba con historias pequeñas (3 capítulos) para ver qué da el diseño cuando el modelo no es el cuello de botella.
+2. **Llevar ese mismo diseño a un runner propio contra OpenRouter, con un modelo barato,** para generar novelas de 100–200 capítulos sin sesión interactiva. El runner es código (§10); los contratos, artefactos, límites y configuración son **los mismos** que aquí. Lo que se valida en la fase 1 es lo que se porta en la 2.
+
+La carpeta de la novela es el único estado, en las dos fases. Este documento describe **qué** hace el sistema y cómo se comportan sus partes. Dónde está implementada cada pieza: §9. Qué puedes ajustar sin tocar nada del harness: §7 y [`harness.config.json`](../harness.config.json). Qué hay que reimplementar para la fase 2 y qué no: §10.
 
 Boceto original del flujo: [novela-agentica.drawio](../novela-agentica.drawio). Historial de cambios y motivos: [CHANGELOG.md](../CHANGELOG.md).
 
@@ -23,16 +26,17 @@ A partir de una idea inicial del usuario, producir una novela completa —biblia
 | Género | Fijo: ficción especulativa sobre el mundo posterior a la revolución de la IA |
 | Universo | Cada novela inventa su propio mundo post-IA. No existe canon compartido entre novelas |
 | Idioma | Castellano, en todo: interrogatorio, artefactos internos y novela |
-| Interacción | Sesión de Claude Code: comando `/novela`. Conversacional durante el interrogatorio; solo progreso después |
-| Ejecución | Claude Code con subagentes. Sin programas, librerías ni servicios propios |
+| Interacción | Fase 1: sesión de Claude Code, comando `/novela`; conversacional durante el interrogatorio, solo progreso después. Fase 2: el runner toma la entrevista de un fichero y corre desatendido (§10) |
+| Ejecución | Fase 1: Claude Code con subagentes, sin programas ni librerías propias. Fase 2: runner propio contra OpenRouter que implementa este mismo contrato |
+| Escala | Fase 1: perfil `relato` (3 capítulos). Fase 2: hasta 200 capítulos (perfil `saga`), lo que exige la memoria por ventana de §7.6 |
 
 ### 1.3 No objetivos
 
 Quedan explícitamente fuera:
 
 - Formatos de salida distintos de Markdown (sin PDF, DOCX, EPUB ni HTML). El usuario convierte el manuscrito con la herramienta que prefiera.
-- Código propio de cualquier tipo: programas, scripts, librerías, hooks con comandos.
-- Medición del coste en dinero: Claude Code no lo expone; los límites son estructurales (§6.3).
+- Código propio **en la fase 1**: programas, scripts, librerías, hooks con comandos. En la fase 2 el runner es código, pero ninguna parte de la fase 1 lo requiere.
+- Medición del coste en **dinero**: Claude Code no lo expone. Sí se mide el **volumen** (palabras de entrada y salida por invocación, §6.6), que es lo que permite estimar el coste con la tarifa de cualquier modelo.
 - Interfaz web o gráfica.
 - Ilustraciones.
 - Otros idiomas.
@@ -49,10 +53,12 @@ Quedan explícitamente fuera:
 | Actor | Tipo | Responsabilidad |
 |---|---|---|
 | **Usuario** | Persona | Aporta la idea, responde al interrogatorio, aprueba la escaleta, observa el progreso, decide qué hacer con el informe final |
-| **Harness** | Claude Code ejecutando la skill orquestadora `/novela` | Orquesta el flujo, invoca a los subagentes, guarda el estado, impone límites, verifica zonas de escritura, reanuda, ensambla |
-| **Agente interrogador** | Subagente de Claude Code | Convierte la idea en biblia y escaleta mediante preguntas al usuario (a través del orquestador) |
-| **Agente escritor** | Subagente de Claude Code | Escribe cada capítulo y su resumen |
-| **Agente revisor** | Subagente de Claude Code | Juzga cada capítulo y, al final, la novela completa. Nunca edita |
+| **Harness** | Fase 1: Claude Code ejecutando la skill orquestadora `/novela`. Fase 2: el runner (§10) | Orquesta el flujo, invoca a los subagentes, guarda el estado, impone límites, verifica zonas de escritura, reanuda, ensambla |
+| **Agente interrogador** | Fase 1: subagente de Claude Code. Fase 2: una llamada al modelo con el mismo prompt | Convierte la idea y la entrevista cerrada en biblia y escaleta |
+| **Agente escritor** | Ídem | Escribe cada capítulo y su resumen |
+| **Agente revisor** | Ídem | Juzga cada capítulo y, al final, la novela completa. Nunca edita |
+
+Los tres agentes son **prompts con un contrato** (§5), no piezas de Claude Code: por eso son lo primero que se porta al runner sin cambios.
 
 ---
 
@@ -64,15 +70,16 @@ Todos los artefactos de una novela viven en **una carpeta propia de esa novela**
 |---|---|---|---|
 | **Idea** | Texto libre inicial del usuario | Harness (al arrancar) | Todos |
 | **Configuración** | Copia congelada de `harness.config.json` con los valores efectivos de esta novela (§7) | Harness (al crear la novela) | Harness, interrogador |
+| **Entrevista** | Todas las decisiones de la fase 1 en forma pregunta → respuesta, marcando cuáles eligió el usuario y cuáles quedaron en "decide tú". Cerrada antes de lanzar al interrogador | Harness (tras la entrevista) | Interrogador |
 | **Biblia** | Premisa; tono y estilo; el mundo post-IA de esta novela (qué pasó, qué reglas rigen, qué ha cambiado); personajes con arco, motivación y voz; reglas internas que la historia no puede romper | Interrogador | Todos |
 | **Escaleta** | Estructura en tres actos (planteamiento, nudo, desenlace). Una entrada por capítulo: título provisional, acto al que pertenece, objetivo narrativo, sucesos clave, personajes presentes, gancho de cierre, **longitud objetivo en palabras**. Número total de capítulos | Interrogador | Todos |
 | **Capítulo N** | Texto del capítulo. Se conservan todas las versiones (intento 1, 2, 3), marcada la aprobada | Escritor (solo el suyo) | Todos |
 | **Resumen N** | Hechos ocurridos; cambios de estado de cada personaje; hilos abiertos y cerrados; objetos, lugares o datos introducidos que condicionan el futuro | Escritor (junto con el capítulo) | Todos |
-| **Informe N** | Veredicto APROBADO / RECHAZADO y lista de problemas concretos (ver §5.3). Uno por intento | Revisor (solo el suyo) | Todos |
+| **Informe N** | Veredicto APROBADO / RECHAZADO y lista de problemas concretos (ver §5.3). Uno por intento | **Harness**, a partir del YAML que el revisor devuelve en su mensaje. El revisor no escribe el fichero: así el veredicto que queda en disco es el que recalcula el harness (§7.5), no el que diga el agente | Todos |
 | **Estado** | Fase actual; capítulo en curso; intento en curso; capítulos aprobados; invocaciones realizadas; motivo de parada si la hubo | **Solo el harness** | Harness |
-| **Registro (log)** | Cada invocación a un subagente: quién, cuándo, con qué entradas, turnos empleados, resultado; cada decisión del harness (aprobar, reintentar, aceptar por agotamiento, revertir escritura fuera de zona, parar) | **Solo el harness** | Usuario |
+| **Registro (log)** | Cada invocación a un subagente: quién, cuándo, modelo, con qué entradas, **palabras de entrada y de salida** (§6.6), resultado; cada decisión del harness (aprobar, reintentar, aceptar por agotamiento, revertir escritura fuera de zona, parar) | **Solo el harness** | Usuario |
 | **Manuscrito** | Novela ensamblada en Markdown: título, índice, capítulos aprobados en orden | Harness (al final) | Usuario |
-| **Informe global** | Resultado de la revisión de continuidad sobre la novela completa | Revisor | Usuario |
+| **Informe global** | Resultado de la revisión de continuidad sobre la novela completa | **Harness**, a partir del YAML del revisor (igual que el Informe N) | Usuario |
 | **Informe de cierre** | Resultado de la última ejecución: ÉXITO o PARADA, motivo, qué quedó completado, acción para continuar (§6.5) | **Solo el harness** | Usuario |
 
 ### 3.1 Reglas de escritura
@@ -90,11 +97,11 @@ flowchart TD
     idea([Usuario: idea])
 
     subgraph F1["[1] Interrogatorio"]
-        preg[Interrogador pregunta en rondas]
-        prop[Propone biblia + escaleta]
+        preg[Harness entrevista al usuario<br/>y cierra la Entrevista]
+        prop[Interrogador propone biblia + escaleta]
         conf{¿Usuario confirma?}
         preg --> prop --> conf
-        conf -- "pide cambios" --> preg
+        conf -- "pide cambios" --> prop
     end
 
     subgraph F2["[2] Bucle por capítulo (N = 1..total), sin intervención humana"]
@@ -129,11 +136,13 @@ flowchart TD
 
 ### 4.1 Fase 1 — Interrogatorio
 
-1. El harness crea la carpeta de la novela, guarda la idea y lanza al interrogador.
-2. El interrogador hace preguntas al usuario en **rondas sucesivas, sin límite fijo**. Pregunta lo que cambia la novela: protagonista y antagonismo, qué versión del mundo post-IA, tono, punto de vista, tipo de final, temas que tocar o evitar, extensión deseada.
-3. Cuando el interrogador considera que no le quedan huecos, **propone el cierre**: presenta la biblia y la escaleta completas y pide confirmación.
-4. El usuario **confirma** o **pide cambios**. Si pide cambios, el interrogador reabre preguntas y vuelve a proponer cierre. Nada se escribe hasta que hay confirmación explícita.
+1. El harness crea la carpeta de la novela y guarda la idea.
+2. **Entrevista.** El harness pregunta al usuario en **rondas sucesivas, sin límite fijo** (en Claude Code, con la skill `grilling`; en el runner, la entrevista llega ya cerrada en un fichero, §10.2). Pregunta lo que cambia la novela: protagonista y antagonismo, qué versión del mundo post-IA, tono, punto de vista, tipo de final, temas que tocar o evitar, extensión deseada. El resultado se escribe en la **Entrevista**, marcando qué eligió el usuario y qué dejó en "decide tú".
+3. **Propuesta.** El harness lanza al interrogador con la idea, la entrevista y los límites. El interrogador escribe la biblia y la escaleta y **propone el cierre** con un resumen. El harness valida la escaleta contra los límites (abajo) y se la presenta al usuario.
+4. El usuario **confirma** o **pide cambios**. Si pide cambios, el harness los pasa al interrogador, que corrige solo eso y vuelve a proponer. Nada se aprueba hasta que hay confirmación explícita.
 5. Con la confirmación, el harness marca la biblia y la escaleta como aprobadas e inmutables, y pasa a la fase 2.
+
+Los subagentes **no hablan con el usuario**: toda la conversación pasa por el harness. Así la fase 1 es la misma en Claude Code y en el runner; solo cambia de dónde salen las respuestas.
 
 Restricciones que el interrogador debe respetar al proponer la escaleta, tomadas del perfil activo de `harness.config.json` (§7.1). Con el perfil por defecto (`relato`): 3–5 capítulos de ~1.500 palabras.
 
@@ -175,11 +184,11 @@ Entrega el capítulo N y su resumen N.
 
 | | |
 |---|---|
-| **Entrada** | Idea del usuario; respuestas del usuario en cada ronda; límites de tamaño del harness |
-| **Salida** | Biblia y escaleta (§3); propuesta de cierre; preguntas al usuario |
-| **Puede escribir** | Biblia, escaleta |
-| **Debe** | Preguntar solo lo que cambia la novela; proponer el cierre cuando no le queden huecos; fijar número de capítulos y longitud objetivo dentro de los límites; garantizar que la escaleta cubre los tres actos y que cada capítulo tiene un objetivo narrativo propio |
-| **No debe** | Escribir prosa de la novela; cerrar sin confirmación del usuario; tomar decisiones que el usuario ha dejado explícitamente abiertas sin marcarlas como propias |
+| **Entrada** | Idea del usuario; Entrevista cerrada (§4.1); límites de tamaño de la configuración; en una segunda vuelta, el motivo (fuera de límites o cambios pedidos por el usuario) |
+| **Salida** | Biblia y escaleta (§3); propuesta de cierre en su mensaje final |
+| **Puede escribir** | Biblia, escaleta (solo mientras no estén aprobadas) |
+| **Debe** | Respetar al pie de la letra lo que el usuario eligió en la entrevista; decidir lo que quedó en "decide tú" y anotarlo como decisión propia en la biblia; fijar número de capítulos y longitud objetivo dentro de los límites; garantizar que la escaleta cubre los tres actos y que cada capítulo tiene un objetivo narrativo propio; en una segunda vuelta, corregir solo lo indicado |
+| **No debe** | Escribir prosa de la novela; hablar con el usuario ni preguntar nada (la entrevista ya está cerrada); marcar nada como aprobado |
 
 ### 5.2 Agente escritor
 
@@ -200,7 +209,7 @@ El resumen N lo escribe el escritor **en la misma entrega** que el capítulo. Si
 | **Entrada (por capítulo)** | Capítulo N; resumen N; biblia; escaleta; resúmenes previos |
 | **Entrada (global)** | Manuscrito completo; biblia; escaleta; todos los resúmenes |
 | **Salida** | Informe con veredicto y lista de problemas |
-| **Puede escribir** | Informe N (o informe global). Nada más |
+| **Puede escribir** | Nada: devuelve el informe como YAML en su mensaje final y el harness lo guarda. Como mucho, un fichero de notas de trabajo en la ruta que le indique el harness |
 | **Debe** | Juzgar exclusivamente contra estos criterios, en este orden de gravedad: (1) contradice la biblia o los resúmenes previos; (2) no cumple la entrada N de la escaleta (objetivo, sucesos, gancho) o adelanta sucesos futuros; (3) longitud fuera de ±20 % del objetivo; (4) ruptura de voz, punto de vista o tono; (5) el resumen no refleja el capítulo. Cada problema debe ser **concreto y accionable** (dónde, qué, por qué) |
 | **No debe** | Editar el texto; rechazar por gusto sin señalar un criterio; añadir criterios propios |
 
@@ -246,7 +255,7 @@ Todos salen de `harness.config.json` (§7); aquí el comportamiento y el valor p
 | Fallo técnico de un subagente (error, respuesta vacía o que no cumple el contrato) | Reintentos del mismo paso; si persiste, parada limpia con el error en el Registro y en el Estado | `limites.reintentos_tecnicos` · 3 |
 | Pausa programada | Cada N capítulos cerrados, parada limpia opcional para no agotar el contexto de la sesión | `limites.pausa_cada_capitulos` · 5 |
 
-No hay presupuesto en dinero: Claude Code no expone el coste. Lo que acota el trabajo total son los topes de capítulos, reescrituras, reintentos y turnos, más la elección de modelo por agente (§7.3).
+No hay presupuesto en dinero: Claude Code no expone el coste. Lo que acota el trabajo total son los topes de capítulos, reescrituras, reintentos y turnos, más la elección de modelo por agente (§7.3). Lo que sí se mide es el volumen (§6.6).
 
 "Parada limpia" significa: ningún artefacto a medias marcado como válido, Estado actualizado con el motivo, mensaje claro al usuario de cómo reanudar.
 
@@ -278,6 +287,15 @@ Principio: **el programa nunca muere en silencio ni deja el estado a medias.** T
 
 Nunca se requiere borrar nada a mano ni editar el Estado para continuar. Si una carpeta quedara en un estado que el harness no reconoce, el informe de cierre lo dice explícitamente y señala el último punto consistente, en lugar de intentar adivinar.
 
+### 6.6 Volumen: el dato para decidir el modelo
+
+La decisión que motiva la fase 2 —pasar a un modelo más barato— es económica, y Claude Code no da el coste. Lo que sí puede dar el harness es el **volumen**, que multiplicado por la tarifa de cualquier modelo da el coste:
+
+- En cada fila `invocacion` del Registro: el **modelo** usado, las **palabras de entrada** (suma de los ficheros que el prompt manda leer al subagente) y las **palabras de salida** (lo que entregó). Recuentos aproximados; lo importante es que estén en todas las filas.
+- En el informe de cierre: la suma por subagente y por modelo.
+
+Con eso, tras la novela de 3 capítulos se puede proyectar el coste de 100 o 200 en cualquier modelo, y tras dos novelas con la misma idea y distinto modelo (`/novela comparar`, §8.3) se puede decidir con números si el barato aguanta.
+
 ---
 
 ## 7. Variables configurables — `harness.config.json`
@@ -295,7 +313,7 @@ Al crear una novela, el harness **congela** la configuración efectiva en `novel
 | `relato` | 3 · 3–5 | 1.500 | ~18 |
 | `novela_corta` | 12 · 8–15 | 2.000 | ~96 |
 | `novela` | 30 · 20–40 | 2.500 | ~300 |
-| `saga` | 100 · 60–120 | 2.500 | ~1.000 |
+| `saga` | 100 · 60–200 | 2.500 | ~1.000 (hasta ~2.000) |
 
 Campos de cada perfil:
 
@@ -320,21 +338,23 @@ Para añadir un perfil propio basta con añadir una entrada al objeto `perfiles`
 
 ### 7.3 Modelos
 
-Qué modelo usa cada subagente, y cuál se usa **cuando algo va mal**. Valores admitidos: `"opus"`, `"sonnet"`, `"haiku"`, `"fable"`. El orquestador pasa el modelo en cada invocación, así que puede cambiar entre un intento y el siguiente del mismo capítulo.
+Qué modelo usa cada subagente, y cuál se usa **cuando algo va mal**. Valores admitidos en la fase 1: `"opus"`, `"sonnet"`, `"haiku"`, `"fable"` (los alias que acepta la herramienta `Agent` de Claude Code). En la fase 2 el runner admite además identificadores de modelo de OpenRouter (§10). El orquestador pasa el modelo en cada invocación, así que puede cambiar entre un intento y el siguiente del mismo capítulo.
+
+Los valores por defecto corresponden a la **fase de validación** (§7.7, paso 1): todo con el modelo caro y el escalado apagado, para medir el techo del diseño. Para la fase de abaratamiento (paso 2) se baja el modelo base y se enciende el escalado, sin tocar nada más.
 
 | Variable | Por defecto | Qué hace |
 |---|---|---|
-| `modelos.interrogador` | `sonnet` | Modelo del subagente que construye biblia y escaleta |
-| `modelos.escritor` | `sonnet` | Modelo por defecto del que escribe los capítulos |
-| `modelos.revisor` | `sonnet` | Modelo por defecto del que juzga |
-| `modelos.escalado.activo` | `true` | Interruptor general del escalado. En `false` se ignora todo lo demás de esta sección |
+| `modelos.interrogador` | `opus` | Modelo del subagente que construye biblia y escaleta |
+| `modelos.escritor` | `opus` | Modelo por defecto del que escribe los capítulos |
+| `modelos.revisor` | `opus` | Modelo por defecto del que juzga |
+| `modelos.escalado.activo` | `false` | Interruptor general del escalado. En `false` se ignora todo lo demás de esta sección. Se enciende en el paso 2 |
 | `modelos.escalado.modelo` | `opus` | Modelo al que se sube cuando se cumple alguna condición de abajo |
 | `modelos.escalado.escritor_desde_intento` | 2 | A partir de ese intento, el escritor usa el modelo escalado. Con 2: el primer intento es barato; si lo rechazan, la reescritura la hace el modelo bueno |
 | `modelos.escalado.revisor_desde_intento` | 3 | Ídem para el revisor. Con 3: el juicio del último intento, el que puede acabar aceptado por agotamiento, lo hace el modelo bueno |
 | `modelos.escalado.tras_fallo_tecnico` | `true` | Si un subagente falla o incumple el contrato, el reintento se hace con el modelo escalado |
 | `modelos.escalado.revision_global` | `true` | La pasada final sobre la novela completa (§4.3) usa el modelo escalado |
 
-Poner `escalado.activo: false` y los tres modelos en `sonnet` es la configuración más barata; subir `modelos.escritor` a `opus` es lo que más cambia la calidad de la prosa.
+Configuraciones de referencia: **validación** = los tres en `opus`, `escalado.activo: false` (la de por defecto). **Abaratamiento** = los tres en `haiku` o `sonnet`, `escalado.activo: true` con `escalado.modelo: opus`. **Mínima** = los tres en `haiku`, escalado apagado. Subir `modelos.escritor` es lo que más cambia la calidad de la prosa; subir `modelos.revisor` es lo que más cambia la fiabilidad del veredicto.
 
 ### 7.4 Límites
 
@@ -367,14 +387,17 @@ Controla cuánto contexto recibe el escritor en cada capítulo (§4.2). Es la va
 
 ### 7.7 Escalar el proyecto
 
-El plan es llegar a 100 capítulos por pasos, validando en cada uno:
+El plan va de una historia pequeña con el modelo caro a 100–200 capítulos con un modelo barato, validando en cada paso. Cada paso cambia **solo configuración**, salvo los dos que están marcados como trabajo de harness.
 
-1. **`relato`** (3 capítulos) — verifica el harness completo: contratos, zonas, rechazo, reanudación, cierre. Es el perfil por defecto.
-2. **`novela_corta`** (12) — primera novela legible. Aquí se ve si la escaleta aguanta y si el revisor detecta contradicciones a media distancia. Contexto todavía manejable con `resumenes_completos_ultimos: null`.
-3. **`novela`** (30) — aparece el problema de contexto. Hay que fijar `resumenes_completos_ultimos` (p. ej. 10) y apoyarse en `pausa_cada_capitulos` para repartir el trabajo en varias sesiones.
-4. **`saga`** (100) — **requiere implementar antes `memoria.digesto_por_acto`**: sin él, el escritor del capítulo 80 no sabrá nada del capítulo 5. Es el siguiente trabajo pendiente del harness, no algo que se consiga solo cambiando `perfil_activo`.
+| Paso | Qué se hace | Configuración | Qué se aprende | Estado |
+|---|---|---|---|---|
+| 1. **Validar el diseño** | `relato` (3 capítulos) en Claude Code, los tres agentes con el modelo caro, escalado apagado | La de por defecto | Si el diseño produce una historia que se lee y cumple el contrato (§8.2) cuando el modelo no es el problema. El volumen (§6.6) da la primera proyección de coste | Listo para ejecutar |
+| 2. **Abaratar** | Misma idea, mismo harness, `modelos.*` en `haiku` o `sonnet` con escalado a `opus`. Se compara con la del paso 1 (`/novela comparar`, §8.3) | `modelos.*`, `escalado.activo: true` | Qué pierde la historia con el modelo barato y si el escalado lo compensa. Con números: volumen por modelo, capítulos aceptados por agotamiento, problemas del informe global | Listo para ejecutar |
+| 3. **Portar al runner** | Reimplementar el orquestador como código contra OpenRouter (§10), usando los mismos prompts, plantillas, `config.json` y estructura de carpeta. Se valida generando la misma idea del paso 1 y comparándola | `modelos.*` con identificadores de OpenRouter | Que el runner produce una carpeta que pasa el mismo inventario (`specs/inventario.md` §4) que la de Claude Code | **Trabajo de harness pendiente** |
+| 4. **Crecer** | `novela_corta` (12) → `novela` (30) en el runner. A partir de ~15 capítulos hay que fijar `memoria.resumenes_completos_ultimos` | `perfil_activo`, `memoria.*` | Si la escaleta aguanta y si el revisor detecta contradicciones a media distancia | Configuración |
+| 5. **`saga`** (100–200) | **Requiere implementar antes `memoria.digesto_por_acto`**: sin él, el escritor del capítulo 80 no sabe nada del capítulo 5 | `perfil_activo: saga` | La novela larga | **Trabajo de harness pendiente** |
 
-Los pasos 1 y 2 funcionan con el harness tal como está hoy. El 3 es viable con ajustes de configuración. El 4 está anotado como pendiente en el [CHANGELOG](../CHANGELOG.md).
+`pausa_cada_capitulos` existe para la fase 1 (el contexto de una sesión de Claude Code se agota); en el runner se pone a `null` y el bucle corre solo. Los dos trabajos pendientes están anotados en el [CHANGELOG](../CHANGELOG.md).
 
 ---
 
@@ -403,7 +426,13 @@ Los ejecuta **Claude Code** sobre una novela corta (3 capítulos de 1.500 palabr
 8. **Reanudación tras parada.** Tras cualquier parada limpia (criterios 5 o 6), el Estado sigue siendo reanudable y `/novela continuar` no regenera nada aprobado.
 9. **Comando de estado.** Sobre una novela a medias, `/novela estado` devuelve fase, capítulo, intento, aprobados e invocaciones coherentes con el Estado.
 
-Estas comprobaciones son las que Claude Code ejecuta por sí mismo para dar por construido el harness (ver §9 para dónde está cada pieza).
+Estas comprobaciones son las que Claude Code ejecuta por sí mismo para dar por construido el harness (ver §9 para dónde está cada pieza). Qué ficheros debe haber al final, uno a uno, y cómo comprobar en seis pasos que una ejecución está completa: [`specs/inventario.md`](inventario.md). El inventario vale igual para el runner de la fase 2: es la definición de "misma salida".
+
+### 8.3 Comparar dos ejecuciones
+
+Para decidir el paso 2 y validar el 3 (§7.7) hace falta comparar dos novelas generadas con la **misma idea** y distinta configuración: modelo caro frente a barato, o Claude Code frente al runner. Es lo que hace `/novela comparar <caso>` sobre una carpeta `comparativa/caso-NN-<slug>/` que referencia las dos novelas (no las copia: viven en `novelas/` con su historial).
+
+La comparación tiene un bloque **medible** —palabras, capítulos completos, artefactos presentes, invocaciones, volumen por modelo, aceptados por agotamiento, problemas del informe global— y un bloque de **lectura** donde cada juicio exige una cita concreta. Termina con una lista de cambios accionables para el harness. Ningún dato se estima: lo que no está disponible se escribe `desconocido`. Detalles: [`comparativa/README.md`](../comparativa/README.md).
 
 ---
 
@@ -424,5 +453,47 @@ El harness son estos ficheros; cada uno documenta su parte:
 | Formato de cada artefacto de la novela | [plantillas/](../.claude/skills/novela/plantillas/) |
 | Contratos de los tres subagentes | [.claude/agents/](../.claude/agents/) |
 | Fichero de respuestas del modo de prueba | [pruebas/respuestas-prueba.md](../pruebas/respuestas-prueba.md) |
+| Qué produce una ejecución completa y cómo comprobarlo (§8) | [specs/inventario.md](inventario.md) |
+| Comparar dos ejecuciones (§8.3) | [procedimientos/comparar.md](../.claude/skills/novela/procedimientos/comparar.md) · [comparativa/](../comparativa/README.md) |
 
 Historial de cambios del harness y sus motivos: [CHANGELOG.md](../CHANGELOG.md).
+
+---
+
+## 10. Fase 2 — El runner contra OpenRouter
+
+El destino del proyecto es generar novelas de 100–200 capítulos con un modelo barato, desatendido. Eso no puede hacerlo una sesión de Claude Code: necesita un **runner** propio (un programa) que hable con OpenRouter. Esta sección fija qué se porta tal cual, qué hay que reimplementar y qué contrato debe cumplir el runner para que todo lo anterior siga valiendo.
+
+### 10.1 Qué se porta sin cambios
+
+| Pieza | Dónde está hoy | En el runner |
+|---|---|---|
+| Contratos de los tres agentes (§5): entradas, salidas, debe/no debe, formato del mensaje final | [.claude/agents/](../.claude/agents/) | Son el *system prompt* de cada llamada. Se copian literalmente; solo se quita la referencia a herramientas de Claude Code |
+| Plantillas de artefactos (§3) | [plantillas/](../.claude/skills/novela/plantillas/) | Idénticas. El runner las rellena y las valida con los mismos campos |
+| Prompts de invocación (qué rutas se le dan a cada agente en cada paso) | [procedimientos/](../.claude/skills/novela/procedimientos/) | Mismo texto; el runner sustituye "lee la ruta X" por el contenido de X en el mensaje, porque el modelo no tiene sistema de ficheros |
+| Configuración y perfiles (§7) | [harness.config.json](../harness.config.json) | El mismo fichero, mismo `config.json` congelado por novela. `modelos.*` admite además identificadores de OpenRouter |
+| Estructura de la carpeta de la novela, `estado.json`, `registro.md`, motivos de parada (§6.5) | [plantillas/](../.claude/skills/novela/plantillas/), [cierre.md](../.claude/skills/novela/procedimientos/cierre.md) | Idénticos. Es lo que permite que `/novela estado`, `/novela comparar` y el inventario funcionen sobre una novela generada por el runner |
+| Regla de veredicto (§7.5), límites (§6.3), memoria (§7.6) | spec + config | Mismas reglas, en código |
+
+### 10.2 Qué hay que reimplementar
+
+| Pieza | Cómo lo hace Claude Code | Cómo lo hará el runner |
+|---|---|---|
+| Orquestador (fases, bucle, decisiones, reanudación) | La skill `/novela` leída por Claude en la sesión | Un bucle en código que sigue [SKILL.md](../.claude/skills/novela/SKILL.md) y los procedimientos paso a paso. La skill es la especificación del runner |
+| Invocar a un agente | Herramienta `Agent` con subagentes | Una llamada a la API de OpenRouter con el contrato como *system* y el prompt de invocación con los ficheros incrustados |
+| Zona de escritura | Los agentes escriben ficheros; el orquestador lo verifica con git | Los agentes **no escriben nada**: devuelven el contenido en su respuesta y el runner lo escribe en las rutas de la zona. La verificación con git deja de ser necesaria (se puede conservar como comprobación) |
+| Entrevista (fase 1) | Skill `grilling` en la sesión | El runner toma `entrevista.md` ya cerrada (escrita a mano o con Claude Code) o el fichero de respuestas del modo de prueba. No hace preguntas |
+| Confirmación de la escaleta | Pregunta en la sesión | Parada limpia con `escaleta.md` en `aprobada: false`; el usuario la aprueba editando el frontmatter o con una opción del runner, y relanza |
+| Commits | El orquestador commitea en `novelas/` | Ídem, con git desde el runner. Es lo que da la reanudación y la trazabilidad |
+| Pausa programada | `pausa_cada_capitulos` por el contexto de sesión | Innecesaria: `null`. El contexto lo controla `memoria.*` |
+| Volumen (§6.6) | Palabras contadas por el orquestador | Tokens reales de la respuesta de la API, que es más preciso. Se guardan en las mismas columnas del registro |
+
+### 10.3 Contrato del runner
+
+El runner está bien si, sobre la misma idea y la misma `entrevista.md`:
+
+1. Produce una carpeta `novelas/<slug>/` que pasa la comprobación de completitud de [`specs/inventario.md`](inventario.md) §4 sin ninguna adaptación.
+2. `/novela estado` y `/novela comparar` desde Claude Code funcionan sobre esa carpeta sin saber quién la generó.
+3. Los criterios de aceptación de §8.2 se cumplen (los que dependen de la sesión —turnos, interrupción manual— se traducen a su equivalente: timeout de llamada, señal de parada).
+
+Lo que **no** se decide aquí: lenguaje, librerías y estructura del runner. Se decide cuando se llegue al paso 3 de §7.7 y se anota en el CHANGELOG. Lo que sí queda fijado es que el runner no altera ninguno de los contratos de este documento: si algo del diseño no funciona en el runner, se cambia el diseño aquí primero y después en las dos implementaciones.
