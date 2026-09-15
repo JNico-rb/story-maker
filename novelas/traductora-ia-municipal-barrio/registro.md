@@ -15,3 +15,10 @@ Las columnas `modelo`, `pal_entrada` y `pal_salida` solo se rellenan en las fila
 | 2026-09-15 17:55 | invocacion | interrogatorio | – | – | opus | 777 | 2844 | interrogador, intento técnico 1, resultado ok; zona correcta (biblia.md, escaleta.md) |
 | 2026-09-15 17:55 | propuesta_cierre | interrogatorio | – | – | | | | 3 caps × 350 palabras; título "Lo que dice el expediente"; validación escaleta ok |
 | 2026-09-15 17:56 | decision_usuario | interrogatorio | – | – | | | | confirma biblia y escaleta sin cambios |
+| 2026-09-15 17:56 | commit | interrogatorio | – | – | | | | escaleta aprobada |
+| 2026-09-15 17:56 | invocacion | capitulos | 1 | 1 | opus | 2844 | | escritor, intento técnico 1, inicio |
+| 2026-09-15 17:58 | invocacion | capitulos | 1 | 1 | opus | 2844 | 1045 | escritor, intento técnico 1, resultado ok; zona correcta; intento-1.md 362 palabras |
+| 2026-09-15 17:58 | invocacion | capitulos | 1 | 1 | opus | 3889 | | revisor, intento técnico 1, inicio |
+| 2026-09-15 18:00 | invocacion | capitulos | 1 | 1 | opus | 3889 | 210 | revisor, intento técnico 1, resultado ok; sin ficheros escritos |
+| 2026-09-15 18:00 | veredicto | capitulos | 1 | 1 | | | | APROBADO; 1 problema; gravedad máx 5; recalculado coincide con revisor; informe: capitulos/01/informe-1.md |
+| 2026-09-15 18:00 | decision_harness | capitulos | 1 | 1 | | | | aprobar |
