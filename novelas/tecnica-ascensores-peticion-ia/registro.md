@@ -63,3 +63,22 @@ Las columnas `modelo`, `pal_entrada`, `pal_salida`, `tok_entrada`, `tok_salida` 
 | 2026-09-16 12:56 | decision_harness | capitulos | 1 | 03 | 3 | – | – | – | – | – | – | mejor_intento = 1 · motivo: los intentos 2 y 3 fueron rechazados por longitud (origen harness) y el 1 llego al revisor (regla SKILL.md 4.2, paso 1) |
 | 2026-09-16 12:56 | decision_harness | capitulos | 1 | 03 | 1 | – | – | – | – | – | – | cerrar por agotamiento con intento 1 · libro-estado.md adoptado de capitulos/03/libro-estado-1.md |
 | 2026-09-16 12:57 | commit | capitulos | 1 | 03 | 1 | – | – | – | – | – | – | novela tecnica-ascensores-peticion-ia: cap 03 cerrado (intento 1) |
+| 2026-09-16 13:00 | invocacion | capitulos | 1 | 04 | 1 | opus | 14499 | 1606 | – | – | – | escritor · modo capitulo · intento tecnico 1 · resultado ok · destino: capitulos/04/intento-1.md |
+| 2026-09-16 13:00 | longitud | capitulos | 1 | 04 | 1 | – | – | – | – | – | – | ok · 1606 palabras · objetivo 1500 · margen 1200-1800 |
+| 2026-09-16 13:06 | invocacion | capitulos | 1 | 04 | 1 | opus | 4987 | 5612 | – | – | – | resumidor · modo capitulo · intento tecnico 1 · resultado ok · destinos: capitulos/04/resumen-1.md, capitulos/04/libro-estado-1.md |
+| 2026-09-16 13:09 | invocacion | capitulos | 1 | 04 | 1 | opus | 16249 | – | – | – | – | revisor · modo capitulo · intento tecnico 1 · resultado ok · informe escrito por el harness |
+| 2026-09-16 13:09 | veredicto | capitulos | 1 | 04 | 1 | – | – | – | – | – | – | RECHAZADO · 3 problemas (3 graves, 0 leves) · gravedad max 1 · origen revisor · sin discrepancia |
+| 2026-09-16 13:09 | decision_harness | capitulos | 1 | 04 | 1 | – | – | – | – | – | – | reescribir → intento 2 (K=1 <= reescrituras_max=2) |
+| 2026-09-16 13:13 | invocacion | capitulos | 1 | 04 | 2 | opus | 16915 | 1687 | – | – | – | escritor · modo capitulo (reescritura) · intento tecnico 1 · resultado ok · destino: capitulos/04/intento-2.md |
+| 2026-09-16 13:13 | longitud | capitulos | 1 | 04 | 2 | – | – | – | – | – | – | ok · 1687 palabras · objetivo 1500 · margen 1200-1800 |
+| 2026-09-16 13:18 | invocacion | capitulos | 1 | 04 | 2 | opus | 4987 | 5468 | – | – | – | resumidor · modo capitulo · intento tecnico 1 · resultado ok · destinos: capitulos/04/resumen-2.md, capitulos/04/libro-estado-2.md |
+| 2026-09-16 13:22 | invocacion | capitulos | 1 | 04 | 2 | opus | 16407 | – | – | – | – | revisor · modo capitulo · intento tecnico 1 · resultado ok · informe escrito por el harness |
+| 2026-09-16 13:22 | veredicto | capitulos | 1 | 04 | 2 | – | – | – | – | – | – | RECHAZADO · 1 problema (1 grave, 0 leves) · gravedad max 1 · origen revisor · sin discrepancia |
+| 2026-09-16 13:22 | decision_harness | capitulos | 1 | 04 | 2 | – | – | – | – | – | – | reescribir → intento 3 (K=2 <= reescrituras_max=2) |
+| 2026-09-16 13:24 | invocacion | capitulos | 1 | 04 | 3 | opus | 16793 | 1661 | – | – | – | escritor · modo capitulo (reescritura) · intento tecnico 1 · resultado ok · destino: capitulos/04/intento-3.md |
+| 2026-09-16 13:24 | longitud | capitulos | 1 | 04 | 3 | – | – | – | – | – | – | ok · 1661 palabras · objetivo 1500 · margen 1200-1800 |
+| 2026-09-16 13:29 | invocacion | capitulos | 1 | 04 | 3 | opus | 4987 | 5373 | – | – | – | resumidor · modo capitulo · intento tecnico 1 · resultado ok · destinos: capitulos/04/resumen-3.md, capitulos/04/libro-estado-3.md |
+| 2026-09-16 13:33 | invocacion | capitulos | 1 | 04 | 3 | opus | 16410 | – | – | – | – | revisor · modo capitulo · intento tecnico 1 · resultado ok · informe escrito por el harness |
+| 2026-09-16 13:33 | veredicto | capitulos | 1 | 04 | 3 | – | – | – | – | – | – | APROBADO · 0 problemas · origen revisor · sin discrepancia |
+| 2026-09-16 13:33 | decision_harness | capitulos | 1 | 04 | 3 | – | – | – | – | – | – | aprobar · libro-estado.md adoptado de capitulos/04/libro-estado-3.md |
+| 2026-09-16 13:33 | commit | capitulos | 1 | 04 | 3 | – | – | – | – | – | – | novela tecnica-ascensores-peticion-ia: cap 04 cerrado (intento 3) |

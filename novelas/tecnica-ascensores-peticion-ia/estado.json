@@ -12,18 +12,21 @@
     "1": { "desde": 1, "hasta": 5, "escaleta_validada": true, "informe": false }
   },
   "arco_actual": 1,
-  "capitulo_actual": 4,
+  "capitulo_actual": 5,
   "intento_actual": 1,
   "capitulos": {
     "1": { "aprobado": 2, "por_agotamiento": false, "intentos": 2 },
     "2": { "aprobado": 2, "por_agotamiento": false, "intentos": 2 },
-    "3": { "aprobado": 1, "por_agotamiento": true, "intentos": 3 }
+    "3": { "aprobado": 1, "por_agotamiento": true, "intentos": 3 },
+    "4": { "aprobado": 3, "por_agotamiento": false, "intentos": 3 }
   },
   "informe_global": false,
-  "invocaciones": { "interrogador": 1, "escritor": 7, "resumidor": 5, "revisor": 5 },
+  "invocaciones": { "interrogador": 1, "escritor": 9, "resumidor": 8, "revisor": 8 },
   "ultima_parada": null,
   "avisos": [
     "Capítulo 3 aceptado por agotamiento (mejor intento: 1 de 3); ver capitulos/03/informe-1.md",
-    "Capítulo 3: los intentos 2 y 3 se perdieron por longitud (1940 y 1879 palabras sobre un máximo de 1800), de modo que el problema de gravedad 1 del intento 1 (cronología de \"dos semanas\") queda sin corregir en el texto cerrado"
+    "Capítulo 3: los intentos 2 y 3 se perdieron por longitud (1940 y 1879 palabras sobre un máximo de 1800), de modo que el problema de gravedad 1 del intento 1 (cronología de \"dos semanas\") queda sin corregir en el texto cerrado",
+    "Tensión de canon heredada: el libro de estado fija que Julia Bandrés dio a Reme la llave del foso en 2011, pero la biblia da a Reme 52 años y 26 de oficio (inicio hacia 2023). Los dos datos no encajan; el capítulo 4 evita pronunciarse sobre dónde estaba Reme en 2011",
+    "Sin fijar: el número de paradas del ascensor del nº 38. Se describe como de \"tres alturas\" y aparecen vecinos del primero al cuarto; el capítulo 5 lo hará visible con la parada de tres días"
   ]
 }
