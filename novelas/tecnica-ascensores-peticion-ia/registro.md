@@ -10,3 +10,9 @@ Las columnas `modelo`, `pal_entrada`, `pal_salida`, `tok_entrada`, `tok_salida` 
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | 2026-09-16 10:38 | inicio_ejecucion | interrogatorio | – | – | – | – | – | – | – | – | – | comando: `nueva modo-prueba: pruebas/referencia limites.pausa_cada_capitulos=null` · perfil: relato · sobreescrituras: limites.pausa_cada_capitulos=null · flags: modo-prueba=pruebas/referencia |
 | 2026-09-16 10:38 | commit | interrogatorio | – | – | – | – | – | – | – | – | – | novela tecnica-ascensores-peticion-ia: carpeta creada |
+| 2026-09-16 10:39 | entrevista_cerrada | interrogatorio | – | – | – | – | – | – | – | – | – | origen: fichero (pruebas/referencia/entrevista.md) · modo de prueba |
+| 2026-09-16 10:47 | invocacion | interrogatorio | 1 | – | – | opus | 1201 | 4378 | – | – | – | interrogador · modo propuesta · intento tecnico 1 · resultado ok · destinos: biblia.md, escaleta.md, arcos/arco-01.md |
+| 2026-09-16 10:47 | propuesta_cierre | interrogatorio | 1 | – | – | – | – | – | – | – | – | titulo: Contrapeso · 5 capitulos · 1 arco |
+| 2026-09-16 10:47 | decision_usuario | interrogatorio | 1 | – | – | – | – | – | – | – | – | confirma (auto, modo prueba) |
+| 2026-09-16 10:47 | escaleta_validada | interrogatorio | 1 | – | – | – | – | – | – | – | – | arco 1, capitulos 1-5 (llego con la propuesta) |
+| 2026-09-16 10:47 | commit | capitulos | 1 | – | – | – | – | – | – | – | – | novela tecnica-ascensores-peticion-ia: escaleta aprobada |
