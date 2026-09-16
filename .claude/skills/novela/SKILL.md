@@ -33,7 +33,7 @@ Antes de invocar a ningún agente:
 
 1. `git rev-parse --is-inside-work-tree` responde `true`.
 2. `config.json` de la raíz parsea, tiene `version: 3` y `perfil_activo` apunta a una entrada de `perfiles`.
-3. Existen `.claude/agents/{interrogador,escritor,resumidor,revisor}.md`, y en cada uno el `maxTurns` del frontmatter es igual a `limites.turnos_por_invocacion`. Si no coincide, es ERROR_CONFIGURACION: el límite que anuncia la config no es el que se aplica.
+3. Existen `.claude/agents/{interrogador,escritor,resumidor,revisor}.md`, y en cada uno el frontmatter coincide con la config de la raíz: `maxTurns` igual a `limites.turnos_por_invocacion`, y `model` igual a `modelos.<agente>`. Si algo no coincide, es ERROR_CONFIGURACION indicando fichero, campo, valor declarado y valor esperado: lo que anuncia la config no es lo que se aplicaría. La comparación es contra la config **de la raíz**, antes de las sobreescrituras; una sobreescritura `modelos.<agente>=<valor>` es un acto deliberado de esta ejecución y no dispara el error.
 4. Existen `procedimientos/` y `plantillas/` de esta skill.
 5. En `continuar`, `estado` y `verificar`: la carpeta existe y `estado.json` parsea con `version: 3` y una `etapa` conocida. Si no → PARADA `ESTADO_NO_RECONOCIDO` señalando el último commit de la carpeta como punto consistente.
 
