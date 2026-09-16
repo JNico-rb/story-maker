@@ -1,22 +1,25 @@
 // `pnpm dev`: levanta el servidor de lectura y la web con un solo comando.
 //
-// El servidor va dentro de este mismo proceso y Vite como proceso hijo, para no
-// depender de ningún paquete que ejecute cosas en paralelo.
+// Los dos viven en este mismo proceso: Vite se arranca por su API de Node, no
+// como proceso hijo. Así no hay que lanzar ejecutables del sistema, que en
+// Windows obliga a pasar por el shell y Node lo rechaza desde su versión 20.
 
-import { spawn } from 'node:child_process'
+import { createServer as crearServidorWeb } from 'vite'
 import { arrancar } from './index.mjs'
 
 await arrancar()
 
-// pnpm.cmd en Windows: así no hace falta shell, que Node desaconseja con argumentos.
-const pnpm = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm'
-const vite = spawn(pnpm, ['exec', 'vite'], { stdio: 'inherit' })
+const web = await crearServidorWeb()
+await web.listen()
+web.printUrls()
 
-vite.on('exit', (codigo) => process.exit(codigo ?? 0))
+async function parar() {
+  await web.close()
+  process.exit(0)
+}
 
 for (const senal of ['SIGINT', 'SIGTERM']) {
   process.on(senal, () => {
-    vite.kill()
-    process.exit(0)
+    void parar()
   })
 }
