@@ -103,3 +103,8 @@ Las columnas `modelo`, `pal_entrada`, `pal_salida`, `tok_entrada`, `tok_salida` 
 | 2026-09-16 14:16 | decision_harness | capitulos | 1 | 05 | 3 | – | – | – | – | – | – | mejor_intento = 2 · motivo: ninguno rechazado por longitud; graves 1-2: intento 1 = 2, intentos 2 y 3 = 1 cada uno; desempate por total de problemas: intento 2 = 1, intento 3 = 2 (regla SKILL.md 4.2, pasos 2 y 3) |
 | 2026-09-16 14:16 | decision_harness | capitulos | 1 | 05 | 2 | – | – | – | – | – | – | cerrar por agotamiento con intento 2 · libro-estado.md adoptado de capitulos/05/libro-estado-2.md |
 | 2026-09-16 14:16 | commit | capitulos | 1 | 05 | 2 | – | – | – | – | – | – | novela tecnica-ascensores-peticion-ia: cap 05 cerrado (intento 2) |
+| 2026-09-16 14:17 | manuscrito | final | – | – | – | – | – | 8271 | – | – | – | manuscrito.md ensamblado · 5 capitulos · nota de agotamiento para caps. 3 y 5 |
+| 2026-09-16 14:20 | invocacion | final | – | – | – | opus | 23099 | – | – | – | – | revisor · modo global · intento tecnico 1 · resultado ok · base manuscrito · informe escrito por el harness |
+| 2026-09-16 14:20 | veredicto | final | – | – | – | – | – | – | – | – | – | GLOBAL informativo · RECHAZADO · 5 problemas (5 graves, 0 leves) · gravedad max 1 · base manuscrito |
+| 2026-09-16 14:21 | fin_ejecucion | completa | 1 | 05 | 2 | – | – | – | – | – | – | EXITO · novela completa · 5/5 capitulos (2 por agotamiento) · metricas: 0/5 CUMPLE |
+| 2026-09-16 14:21 | commit | completa | – | – | – | – | – | – | – | – | – | novela tecnica-ascensores-peticion-ia: novela completa |

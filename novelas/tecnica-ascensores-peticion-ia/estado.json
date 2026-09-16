@@ -1,7 +1,7 @@
 {
   "version": 3,
   "slug": "tecnica-ascensores-peticion-ia",
-  "etapa": "final",
+  "etapa": "completa",
   "etapa_previa": null,
   "modo_prueba": true,
   "carpeta_prueba": "pruebas/referencia",
@@ -21,15 +21,16 @@
     "4": { "aprobado": 3, "por_agotamiento": false, "intentos": 3 },
     "5": { "aprobado": 2, "por_agotamiento": true, "intentos": 3 }
   },
-  "informe_global": false,
-  "invocaciones": { "interrogador": 1, "escritor": 11, "resumidor": 11, "revisor": 11 },
+  "informe_global": true,
+  "invocaciones": { "interrogador": 1, "escritor": 13, "resumidor": 11, "revisor": 12 },
   "ultima_parada": null,
   "avisos": [
     "Capítulo 3 aceptado por agotamiento (mejor intento: 1 de 3); ver capitulos/03/informe-1.md",
     "Capítulo 3: los intentos 2 y 3 se perdieron por longitud (1940 y 1879 palabras sobre un máximo de 1800), de modo que el problema de gravedad 1 del intento 1 (cronología de \"dos semanas\") queda sin corregir en el texto cerrado",
     "Capítulo 5 aceptado por agotamiento (mejor intento: 2 de 3); ver capitulos/05/informe-2.md",
-    "Capítulo 5: la regla de mejor intento eligió el intento 2, cuyo único problema es que no cierra el hilo \"Reme y el vecindario\" (gravedad 2). El intento 3 sí lo cierra, pero tenía un problema de gravedad 1 (la resina no fragua las 36 horas antes del montaje) y dos problemas en total, de modo que perdió el desempate",
+    "Capítulo 5: la regla de mejor intento eligió el intento 2, cuyo único problema es que no cierra el hilo \"Reme y el vecindario\" (gravedad 2). El intento 3 sí lo cierra, pero tenía un problema de gravedad 1 y dos problemas en total, de modo que perdió el desempate",
     "Tensión de canon heredada: el libro de estado fija que Julia Bandrés dio a Reme la llave del foso en 2011, pero la biblia da a Reme 52 años y 26 de oficio (inicio hacia 2023)",
-    "Sin fijar: el número de paradas del ascensor del nº 38. Se describe como de \"tres alturas\" y aparecen vecinos del primero al cuarto"
+    "Sin fijar: el número de paradas del ascensor del nº 38. Se describe como de \"tres alturas\" y aparecen vecinos del primero al cuarto",
+    "El recuento de invocaciones de estado.json se desincronizó durante la ejecución y se recalculó desde registro.md al cerrar; las cifras finales salen del registro"
   ]
 }
