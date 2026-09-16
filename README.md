@@ -39,4 +39,5 @@ Modo de prueba: toma idea y entrevista del caso de referencia, sin preguntar, y 
 | Orquestador, procedimientos y plantillas | [.claude/skills/novela/](.claude/skills/novela/) |
 | Caso de referencia para comparar configuraciones | [pruebas/referencia/](pruebas/referencia/) |
 | Novelas generadas | `novelas/<slug>/` |
+| Visor web de las novelas (solo lectura, fuera del harness) | [frontend/](frontend/) |
 | Historial de decisiones y motivos | [CHANGELOG.md](CHANGELOG.md) |

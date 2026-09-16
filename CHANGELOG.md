@@ -11,6 +11,36 @@ Cómo se escribe:
 
 ---
 
+## 0.6.0
+
+### Minor Changes
+
+- **Visor web de solo lectura sobre `novelas/`, explícitamente fuera del harness.**
+
+  - Motivo: una novela a medias está repartida entre `estado.json`, `registro.md`, un `informe-K.md` por intento y un fichero por capítulo. Entender por qué el revisor tumbó un intento obliga a abrir cuatro ficheros y cruzarlos a mano, y eso es justo lo que hay que hacer decenas de veces durante los pasos 1 y 2 de §7.8. El visor hace el cruce.
+  - Spec: §1.3 pasa de prohibir "interfaz web o gráfica" a prohibirla **como parte del harness**, y §9.2 define qué es el visor y qué tiene prohibido. La frontera es que **solo lee**: no invoca agentes, no decide flujo y no escribe en `novelas/`. Borrar `frontend/` entera no cambia lo que el harness produce, y por eso el visor no aparece en `specs/inventario.md` ni en los criterios de §8.2.
+  - Dos puntos más de §1.3 se ajustaron por coherencia: "código propio en el hito 1" pasa a tener dos excepciones declaradas (el hook de inmutabilidad y el visor, ninguna pieza del harness), y "formatos de salida distintos de Markdown" se precisa como "el sistema no escribe ningún artefacto que no sea Markdown o JSON", porque pintar Markdown en un navegador no produce ficheros.
+  - Reparto: un servidor local de solo lectura (`frontend/server/`, Node sin dependencias) conoce la estructura de §3, la interpreta y la sirve como JSON; la web solo pinta. Así el conocimiento de rutas y nombres de fichero vive en un único sitio, y cuando llegue el runner del hito 2 se reaprovecha en vez de reescribirse.
+  - Portabilidad al hito 2 (regla 6 de CLAUDE.md): el visor lee la estructura de carpeta, que §10.1 declara idéntica en los dos hitos. Funciona sobre una novela del runner sin saber quién la generó, igual que `/novela estado` (§10.3, punto 2). Nada del visor depende de Claude Code.
+  - Dependencias aprobadas para `frontend/`: `vite`, `react`, `tailwindcss`, `marked` y `@tailwindcss/typography`. El servidor no lleva ninguna. El harness sigue sin dependencias de ningún tipo.
+  - Descartado: **que el visor calcule las métricas de calidad de §8.3**. Tendría números también para novelas a medias, pero duplicaría una regla de la spec en dos implementaciones: si el visor y el `informe-cierre.md` dieran cifras distintas, no habría forma de saber cuál miente. El visor muestra las oficiales si existen y, si no, dice que aún no las hay.
+  - Descartado: **que el visor lance o continúe generaciones**. En el hito 1 el harness es una sesión de Claude Code y una web no puede invocarla. Tendrá sentido cuando exista el runner, y entonces el visor ya estará construido.
+  - Descartado: **volcado estático de `novelas/` a un JSON dentro del frontend**. Evita el servidor, pero hay que relanzarlo a mano y no deja ver el progreso mientras `/novela` corre, que es la mitad del valor.
+  - Descartado: **el frontend en un repositorio aparte**. El visor lee `novelas/` de este repo; separarlos obligaría a configurar rutas entre dos sitios y a mantener dos historiales para una sola cosa.
+
+## 0.5.1
+
+### Patch Changes
+
+- **El modelo de cada agente se declara también en el frontmatter, y el arranque comprueba que coincide con `config.json`.**
+
+  - Motivo: los cuatro ficheros de `.claude/agents/` no declaraban `model`. El harness sí pasa `model` en cada llamada a `Agent` (`invocar.md`), así que una ejecución normal usa el modelo de `config.json` —comprobado en la primera ejecución de referencia: las 10 invocaciones corrieron en `claude-opus-5`—, pero si el orquestador, que es prosa, omitiera ese parámetro una vez, el subagente heredaría el modelo de la sesión **en silencio** y `registro.md` seguiría anotando el de `config.json`. En un proyecto cuyo §7.8 paso 2 es una comparación entre modelos, un modelo equivocado con el log diciendo lo contrario invalidaría la comparación sin dejar rastro.
+  - Cambios: `model: opus` en los cuatro agentes; `comprobar_entorno` (SKILL.md §1, spec §6.2 y §6.5) compara `maxTurns` **y** `model` con la config de la raíz y para con `ERROR_CONFIGURACION` indicando fichero, campo, valor declarado y esperado; spec §2, §7.3 y §6.6 lo documentan.
+  - El modelo que manda sigue siendo el del parámetro `model` de la llamada: es lo que permite el escalado de §7.3. El frontmatter es solo la red de seguridad.
+  - La comparación es contra la config **de la raíz**, antes de las sobreescrituras, para que `modelos.escritor=haiku` en la línea de comando siga siendo un acto deliberado y no un error. Esa es la vía recomendada para el paso 2 de §7.8, en lugar de editar cinco ficheros.
+  - Descartado: **pinchar el modelo solo en el frontmatter** y quitar el parámetro de la llamada. Es una única fuente de verdad, pero el frontmatter es estático y mataría el escalado de §7.3, que necesita decidir el modelo por invocación.
+  - Descartado: **verificar a posteriori qué modelo respondió** leyendo los transcripts de subagente de Claude Code (`~/.claude/projects/<proyecto>/<sesión>/subagents/*.jsonl`). Funciona —así se comprobó esta incidencia— pero depende de rutas fuera del repositorio y de un formato interno que Claude Code no garantiza. Queda anotado en §6.6 como limitación conocida del hito 1; en el hito 2 la respuesta de la API dice qué modelo contestó y se acabó el problema.
+
 ## 0.5.0
 
 ### Major Changes

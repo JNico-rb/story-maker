@@ -95,10 +95,10 @@ A partir de una idea inicial del usuario, producir una novela completa —biblia
 
 Quedan explícitamente fuera:
 
-- Formatos de salida distintos de Markdown (sin PDF, DOCX, EPUB ni HTML). El usuario convierte el manuscrito con la herramienta que prefiera.
-- Código propio **en el hito 1**: programas, scripts, librerías. En el hito 2 el runner es código, pero ninguna parte del hito 1 lo requiere. Única excepción: el hook de una línea de `.claude/settings.json` que bloquea `Edit` sobre artefactos inmutables (§3.1). Es un guardarraíl, no una pieza del harness: el hito 1 funciona igual sin él.
+- Formatos de salida distintos de Markdown (sin PDF, DOCX, EPUB ni HTML): **el sistema no escribe ningún artefacto que no sea Markdown o JSON**. El usuario convierte el manuscrito con la herramienta que prefiera. Que el visor (§9.2) pinte ese Markdown en un navegador no es un formato de salida: no produce ficheros.
+- Código propio **en el hito 1**: programas, scripts, librerías. En el hito 2 el runner es código, pero ninguna parte del hito 1 lo requiere. Dos excepciones, y ninguna de las dos es una pieza del harness: el hook de una línea de `.claude/settings.json` que bloquea `Edit` sobre artefactos inmutables (§3.1), y el visor de `frontend/` (§9.2), que solo lee. El hito 1 funciona igual sin ninguno de los dos.
 - Medición del coste en **dinero en el hito 1**: Claude Code no lo expone. Sí se mide el **volumen** (§6.6). En el hito 2 el runner sí registra el coste real que devuelve OpenRouter y `presupuesto_usd_max` pasa a ser un límite.
-- Interfaz web o gráfica.
+- Interfaz web o gráfica **como parte del harness**. Ninguna pieza del sistema depende de una interfaz para funcionar, ni en el hito 1 ni en el 2. Sí se admite un **visor** externo de solo lectura sobre `novelas/` ([frontend/](../frontend/), §9.2): no genera, no decide, no escribe, y borrarlo entero no cambia lo que el harness produce.
 - Ilustraciones.
 - Otros idiomas.
 - Canon o universo compartido entre novelas. Series de novelas encadenadas: `saga` es una novela larga, no varias.
@@ -276,7 +276,9 @@ Reglas comunes a los cuatro: reciben exactamente las entradas de su contrato; de
 
 Forma de los bloques de documento (interrogador, escritor, resumidor): cada documento va entre una línea `=== ARCHIVO: <ruta relativa a la carpeta de la novela> ===` y una línea `=== FIN ===`. El harness extrae cada bloque y lo escribe en su ruta. El revisor no usa bloques: devuelve solo JSON (§5.4).
 
-En el hito 1 los cuatro se definen en `.claude/agents/` con `tools: Read, Glob, Grep` (sin escritura), `maxTurns` igual a `limites.turnos_por_invocacion` y **sin** el campo `memory`: los agentes son amnésicos entre novelas, porque una memoria persistente crearía el canon compartido que §1.2 prohíbe.
+En el hito 1 los cuatro se definen en `.claude/agents/` con `tools: Read, Glob, Grep` (sin escritura), `maxTurns` igual a `limites.turnos_por_invocacion`, `model` igual a `modelos.<agente>` y **sin** el campo `memory`: los agentes son amnésicos entre novelas, porque una memoria persistente crearía el canon compartido que §1.2 prohíbe.
+
+`maxTurns` y `model` son **estáticos**: el frontmatter no lee `config.json`, así que el valor está escrito dos veces y `comprobar_entorno` comprueba al arrancar que ambas copias coinciden (§6.2). El modelo que manda en cada llamada es el que el harness pasa en el parámetro `model` de la herramienta `Agent` (`invocar.md`), que es lo que permite el escalado de §7.3; el del frontmatter es la red de seguridad para que una llamada a la que se le olvide el parámetro caiga en el modelo declarado y no en el de la sesión.
 
 ### 5.1 Agente interrogador
 
@@ -410,7 +412,7 @@ Principio: **el programa nunca muere en silencio ni deja el estado a medias.** T
 | **Agente incumple contrato** | La salida no tiene la forma esperada (JSON inválido, falta un bloque, capítulo vacío) o agota los turnos | Se trata como fallo técnico: reintento del paso con la indicación exacta del incumplimiento | Si persiste: relanzar. Si se repite en varias novelas, es un problema de la definición del agente y se anota como incidencia en el CHANGELOG |
 | **Escaleta fuera de límites** | El interrogador propone algo fuera de los límites, en la propuesta o en un arco | Se devuelve con el motivo, hasta `escaleta_rechazos_max` veces; después parada limpia | Relajar los límites o ajustar la idea, y relanzar |
 | **Presupuesto agotado** (hito 2) | El coste acumulado supera `presupuesto_usd_max` | Parada limpia tras cerrar el paso en curso | Subir el presupuesto y relanzar |
-| **Error de configuración** | La carpeta no es válida, el repositorio no está bajo git, faltan ficheros del harness, o `maxTurns` no coincide con `config.json` | Parada inmediata antes de invocar a ningún agente, indicando qué falta | Corregir y relanzar |
+| **Error de configuración** | La carpeta no es válida, el repositorio no está bajo git, faltan ficheros del harness, o el `maxTurns` o el `model` del frontmatter de un agente no coinciden con `config.json` | Parada inmediata antes de invocar a ningún agente, indicando qué falta | Corregir y relanzar |
 | **Interrupción del usuario** | Corta la sesión o el comando | El paso en curso se descarta; el Estado queda en el último punto consistente | Relanzar cuando quiera |
 
 Nunca se requiere borrar nada a mano ni editar el Estado para continuar. Si una carpeta quedara en un estado que el harness no reconoce, el informe de cierre lo dice explícitamente y señala el último punto consistente, en lugar de intentar adivinar.
@@ -423,6 +425,8 @@ La decisión que motiva el hito 2 —pasar a un modelo más barato— es económ
 
 - **Hito 1**: `pal_entrada` (palabras de los ficheros que el prompt manda leer al agente) y `pal_salida` (palabras de lo que entregó), contadas con `wc -w`. La herramienta de subagentes de Claude Code no devuelve tokens en el resultado; si una invocación en segundo plano los expone en su notificación, se anotan en `tok_*`. `coste_usd` queda vacío.
 - **Hito 2**: `tok_*` y `coste_usd` reales de la respuesta de la API. `pal_*` se siguen rellenando para poder comparar con el hito 1.
+
+**Limitación conocida del hito 1**: la columna `modelo` registra el modelo que el harness **pidió** (`elegir_modelo`), no el que atendió la llamada, porque la herramienta `Agent` no devuelve esa información. Las dos defensas contra una divergencia silenciosa son el `model` del frontmatter (§2) y la comprobación de arranque; la verificación a posteriori solo es posible fuera del repositorio, en los transcripts de subagente de Claude Code, y no forma parte del harness. En el hito 2 desaparece: la respuesta de la API dice qué modelo respondió, y esa es la que se registra.
 
 En el informe de cierre: la suma por agente y por modelo. Con eso, tras la novela de 5 capítulos se puede proyectar el coste de 100 o 200 en cualquier modelo, y tras dos novelas con la misma idea y distinto modelo (`/novela comparar`, §8.4) se puede decidir con números si el barato aguanta.
 
@@ -488,6 +492,8 @@ Los valores por defecto corresponden a la **validación** (§7.8, paso 1): todo 
 | `modelos.escalado.revisor_desde_intento` | 3 | Ídem para el revisor. Con 3: el juicio del último intento, el que puede acabar aceptado por agotamiento, lo hace el modelo bueno |
 | `modelos.escalado.tras_fallo_tecnico` | `true` | Si un agente falla o incumple el contrato, el reintento se hace con el modelo escalado |
 | `modelos.escalado.revision_arco_y_global` | `true` | Los informes de arco y la pasada final usan el modelo escalado |
+
+Cada `modelos.<agente>` está escrito dos veces: aquí y en el `model` del frontmatter del agente (§2), porque el frontmatter no puede leer este fichero. `comprobar_entorno` compara ambos y para si difieren. Para cambiar de modelo **en una sola ejecución** sin tocar los cinco ficheros, use la sobreescritura del comando (`modelos.escritor=haiku`), que se aplica después de esa comprobación: es la vía recomendada para el paso 2 de §7.8.
 
 Configuraciones de referencia: **validación** = los cuatro en `opus`, `escalado.activo: false` (la de por defecto). **Abaratamiento** = los cuatro en `haiku` o `sonnet`, `escalado.activo: true` con `escalado.modelo: opus`. **Mínima** = los cuatro en `haiku`, escalado apagado. Subir `modelos.escritor` es lo que más cambia la calidad de la prosa; subir `modelos.revisor` es lo que más cambia la fiabilidad del veredicto; subir `modelos.resumidor` es lo que más cambia la fiabilidad de la memoria a largo plazo.
 
@@ -621,6 +627,7 @@ El harness son estos ficheros; cada uno documenta su parte. El harness se está 
 | Qué produce una ejecución completa y cómo comprobarlo (§8) | [specs/inventario.md](inventario.md) |
 | Comparar dos ejecuciones (§8.4) | [procedimientos/comparar.md](../.claude/skills/novela/procedimientos/comparar.md) · [comparativa/](../comparativa/README.md) |
 | Novelas generadas | `novelas/<slug>/` |
+| Visor de novelas (fuera del harness, §9.2) | [frontend/](../frontend/) |
 
 ### 9.1 Cómo se escribe el orquestador
 
@@ -648,6 +655,24 @@ El runner del hito 2 lo escribirá Claude Code **a partir de SKILL.md y los proc
 | `reanudar(carpeta)` | §6.2 | SKILL.md |
 | `invocar(agente, modo, modelo, entradas) → salida` | Una invocación con reintentos, validación de forma, registro de volumen | invocar.md |
 | `elegir_modelo(agente, K, intento_tecnico, modo) → modelo` | §7.3 | invocar.md |
+
+### 9.2 El visor (`frontend/`)
+
+Una novela a medias está repartida en `estado.json`, `registro.md`, un `informe-K.md` por intento y un fichero por capítulo. Leerla con un editor obliga a cruzar todo eso a mano. El **visor** es una aplicación web local que hace ese cruce y lo enseña.
+
+Qué es y qué no es:
+
+- **Solo lee.** No invoca agentes, no decide nada del flujo y no escribe un solo byte en `novelas/`. Todo lo que muestra lo escribió el harness.
+- **No es parte del harness.** Ni el hito 1 ni el hito 2 lo necesitan. Si se borra la carpeta `frontend/` entera, la generación de novelas funciona igual. Por eso no aparece en el inventario de [`specs/inventario.md`](inventario.md) ni en los criterios de aceptación de §8.2.
+- **No inventa datos.** Las métricas de calidad (§8.3) las calcula el harness y viven en `informe-cierre.md`: el visor las muestra si existen y, si no, dice que aún no las hay. No las recalcula, para que no pueda haber dos cifras distintas para la misma novela. Sí muestra lo que el Estado ya afirma (qué capítulo está aprobado y en qué intento) y el recuento de palabras de cada intento frente a su longitud objetivo.
+
+Cómo obtiene los datos: un servidor local de solo lectura (`frontend/server/`) conoce la estructura de `novelas/<slug>/` descrita en §3, la interpreta y la sirve como JSON; la web solo pinta. La estructura de carpeta es la misma la genere Claude Code o el runner (§10.1), así que el visor funciona sobre las dos sin saber quién la escribió, igual que `/novela estado` (§10.3, punto 2).
+
+Qué muestra, por novela: el texto para leerlo, el progreso (estado, capítulos con sus intentos, veredictos y problemas por gravedad), los documentos de referencia (biblia, escaletas, libro de estado) y el registro de invocaciones.
+
+Reglas de su código y de sus dependencias: [frontend/CLAUDE.md](../frontend/CLAUDE.md).
+
+---
 
 ---
 
