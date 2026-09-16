@@ -12,11 +12,13 @@
     "1": { "desde": 1, "hasta": 5, "escaleta_validada": true, "informe": false }
   },
   "arco_actual": 1,
-  "capitulo_actual": 1,
+  "capitulo_actual": 2,
   "intento_actual": 1,
-  "capitulos": {},
+  "capitulos": {
+    "1": { "aprobado": 2, "por_agotamiento": false, "intentos": 2 }
+  },
   "informe_global": false,
-  "invocaciones": { "interrogador": 1, "escritor": 0, "resumidor": 0, "revisor": 0 },
+  "invocaciones": { "interrogador": 1, "escritor": 2, "resumidor": 2, "revisor": 2 },
   "ultima_parada": null,
   "avisos": []
 }
