@@ -75,3 +75,10 @@ Las columnas `modelo`, `pal_entrada`, `pal_salida`, `tok_entrada`, `tok_salida` 
 | 2026-09-16 18:32 | invocacion | capitulos | 1 | 02 | 2 | haiku | 4300 | – | – | – | – | revisor-continuidad · modo capitulo · intento tecnico 1 · resultado: ok · APROBADO, 0 problemas |
 | 2026-09-16 18:32 | veredicto | capitulos | 1 | 02 | 2 | – | – | – | – | – | – | APROBADO · 0 problemas · origen: revisores · desglose: continuidad 0, encargo 0 |
 | 2026-09-16 18:32 | decision_harness | capitulos | 1 | 02 | 2 | – | – | – | – | – | – | aprobar |
+| 2026-09-16 18:34 | invocacion | capitulos | 1 | 03 | 1 | haiku | 5400 | 1229 | – | – | – | escritor · modo capitulo · intento tecnico 1 · resultado: ok · capitulos/03/intento-1.md |
+| 2026-09-16 18:34 | longitud | capitulos | 1 | 03 | 1 | – | – | – | – | – | – | ok · 1229 palabras · objetivo 1500 · margen 1200-1800 |
+| 2026-09-16 18:37 | invocacion | capitulos | 1 | 03 | 1 | haiku | 2700 | 2048 | – | – | – | resumidor · modo capitulo · intento tecnico 1 · resultado: ok · capitulos/03/resumen-1.md, capitulos/03/libro-estado-1.md |
+| 2026-09-16 18:39 | invocacion | capitulos | 1 | 03 | 1 | haiku | 3400 | – | – | – | – | revisor-encargo · modo capitulo · intento tecnico 1 · resultado: ok · APROBADO, 0 problemas |
+| 2026-09-16 18:39 | invocacion | capitulos | 1 | 03 | 1 | haiku | 5500 | – | – | – | – | revisor-continuidad · modo capitulo · intento tecnico 1 · resultado: ok · APROBADO, 0 problemas |
+| 2026-09-16 18:39 | veredicto | capitulos | 1 | 03 | 1 | – | – | – | – | – | – | APROBADO · 0 problemas · origen: revisores · desglose: continuidad 0, encargo 0 |
+| 2026-09-16 18:39 | decision_harness | capitulos | 1 | 03 | 1 | – | – | – | – | – | – | aprobar |
