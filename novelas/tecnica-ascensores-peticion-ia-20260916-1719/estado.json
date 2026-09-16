@@ -1,25 +1,32 @@
 {
   "version": 4,
   "slug": "tecnica-ascensores-peticion-ia-20260916-1719",
-  "etapa": "interrogatorio",
+  "etapa": "capitulos",
   "etapa_previa": null,
   "modo_prueba": true,
   "carpeta_prueba": "pruebas/referencia",
-  "escaleta_aprobada": false,
-  "escaleta_rechazos": 0,
-  "total_capitulos": null,
-  "arcos": {},
-  "arco_actual": null,
-  "capitulo_actual": null,
-  "intento_actual": null,
+  "escaleta_aprobada": true,
+  "escaleta_rechazos": 2,
+  "total_capitulos": 5,
+  "arcos": {
+    "1": {
+      "desde": 1,
+      "hasta": 5,
+      "escaleta_validada": true,
+      "informe": false
+    }
+  },
+  "arco_actual": 1,
+  "capitulo_actual": 1,
+  "intento_actual": 1,
   "capitulos": {},
   "informe_global": false,
   "invocaciones": {
-    "interrogador": 0,
+    "interrogador": 6,
     "escritor": 0,
     "resumidor": 0,
     "revisor_encargo": 0,
-    "revisor_continuidad": 0
+    "revisor_continuidad": 2
   },
   "ultima_parada": null,
   "avisos": [],

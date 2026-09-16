@@ -14,3 +14,26 @@ Las columnas `modelo`, `pal_entrada`, `pal_salida`, `tok_entrada`, `tok_salida` 
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | 2026-09-16 17:19 | inicio_ejecucion | interrogatorio | – | – | – | – | – | – | – | – | – | comando: nueva · perfil: relato · sobreescrituras: limites.pausa_cada_capitulos=null · flags: modo-prueba pruebas/referencia |
 | 2026-09-16 17:19 | entrevista_cerrada | interrogatorio | – | – | – | – | – | – | – | – | – | origen: pruebas/referencia/entrevista.md |
+| 2026-09-16 17:21 | invocacion | interrogatorio | 1 | – | – | haiku | 1391 | – | – | – | – | interrogador · modo propuesta · intento tecnico 1 · resultado: incumple · motivo: escaleta.md declara tres arcos con el mismo n:1 (1-2, 3-4, 5-5) y contradice arcos/arco-01.md (desde 1, hasta 5); con 5 capitulos y capitulos_por_arco 15 debe haber un unico arco |
+| 2026-09-16 17:21 | decision_harness | interrogatorio | 1 | – | – | – | – | – | – | – | – | reintento 1/3: arcos duplicados en escaleta.md |
+| 2026-09-16 17:30 | invocacion | interrogatorio | 1 | – | – | haiku | 1391 | 3600 | – | – | – | interrogador · modo propuesta · intento tecnico 2 · resultado: ok · biblia.md, escaleta.md, arcos/arco-01.md |
+| 2026-09-16 17:31 | invocacion | interrogatorio | 1 | – | – | haiku | 3234 | – | – | – | – | revisor-continuidad · modo canon · intento tecnico 1 · resultado: ok |
+| 2026-09-16 17:31 | veredicto | interrogatorio | 1 | – | – | – | – | – | – | – | – | CANON · RECHAZADO · 1 problema · gravedad max 1 · origen: revisor-continuidad |
+| 2026-09-16 17:31 | decision_harness | interrogatorio | 1 | – | – | – | – | – | – | – | – | reescribir propuesta (vuelta 1/3) · CANON: la escaleta situa el final en el cuarto piso y el canon solo declara planta baja, 1a, 2a y 3a |
+| 2026-09-16 17:31 | paso_descartado | interrogatorio | 1 | – | – | – | – | – | – | – | – | descartados los borradores sin commitear: biblia.md, escaleta.md, arcos/arco-01.md |
+| 2026-09-16 17:36 | invocacion | interrogatorio | 1 | – | – | haiku | 1391 | – | – | – | – | interrogador · modo propuesta (vuelta 1) · intento tecnico 1 · resultado: incumple · motivo: escaleta.md vuelve a declarar tres arcos con el mismo n:1 (1-2, 3-4, 5-5) y contradice arcos/arco-01.md (desde 1, hasta 5); el canon si quedo corregido |
+| 2026-09-16 17:36 | decision_harness | interrogatorio | 1 | – | – | – | – | – | – | – | – | reintento 1/3: arcos duplicados en escaleta.md (regresion respecto a la vuelta 0) |
+| 2026-09-16 17:38 | invocacion | interrogatorio | 1 | – | – | haiku | 1391 | – | – | – | – | interrogador · modo propuesta (vuelta 1) · intento tecnico 2 · resultado: incumple · motivo: el mensaje final describe la propuesta pero no contiene ningun bloque === ARCHIVO: … === / === FIN === |
+| 2026-09-16 17:38 | decision_harness | interrogatorio | 1 | – | – | – | – | – | – | – | – | reintento 2/3: salida sin bloques |
+| 2026-09-16 17:45 | invocacion | interrogatorio | 1 | – | – | haiku | 1391 | 4361 | – | – | – | interrogador · modo propuesta (vuelta 1) · intento tecnico 3 · resultado: ok · biblia.md, escaleta.md, arcos/arco-01.md |
+| 2026-09-16 17:46 | invocacion | interrogatorio | 1 | – | – | haiku | 2650 | – | – | – | – | revisor-continuidad · modo canon · intento tecnico 1 · resultado: ok · observacion: el JSON vino envuelto en valla de codigo, se acepto quitandola |
+| 2026-09-16 17:46 | veredicto | interrogatorio | 1 | – | – | – | – | – | – | – | – | CANON · RECHAZADO · 1 problema · gravedad max 1 · origen: revisor-continuidad |
+| 2026-09-16 17:46 | decision_harness | interrogatorio | 1 | – | – | – | – | – | – | – | – | reescribir propuesta (vuelta 2/3) · CANON: la fila del edificio declara 5 plantas + planta baja (6 niveles) y su consecuencia enumera PB + 1a + 2a + 3a + 4a (5 niveles) |
+| 2026-09-16 17:46 | paso_descartado | interrogatorio | 1 | – | – | – | – | – | – | – | – | descartados los borradores sin commitear: biblia.md, escaleta.md, arcos/arco-01.md |
+| 2026-09-16 17:53 | invocacion | interrogatorio | 1 | – | – | haiku | 1391 | 3711 | – | – | – | interrogador · modo propuesta (vuelta 2) · intento tecnico 1 · resultado: ok · observacion: acto del arco vale "planteamiento, nudo y desenlace" en vez de uno de los tres; se acepta porque el arco unico cubre los tres y estos aparecen en Estructura |
+| 2026-09-16 17:53 | paso_descartado | interrogatorio | 1 | – | – | – | – | – | – | – | – | primera escritura de la vuelta 2 descartada: el harness habia corregido texto del agente (titulo del cap 5, dia de la semana, erratas); reescrita fiel a la salida |
+| 2026-09-16 17:56 | invocacion | interrogatorio | 1 | – | – | haiku | 2458 | – | – | – | – | revisor-continuidad · modo canon · intento tecnico 1 · resultado: ok |
+| 2026-09-16 17:56 | veredicto | interrogatorio | 1 | – | – | – | – | – | – | – | – | CANON · APROBADO · 0 problemas · origen: revisor-continuidad |
+| 2026-09-16 17:56 | propuesta_cierre | interrogatorio | 1 | – | – | – | – | – | – | – | – | Corrosion · 5 capitulos · 1 arco |
+| 2026-09-16 17:56 | decision_usuario | interrogatorio | 1 | – | – | – | – | – | – | – | – | confirma (auto, modo prueba) |
+| 2026-09-16 17:58 | escaleta_validada | interrogatorio | 1 | – | – | – | – | – | – | – | – | biblia.md y escaleta.md aprobadas; arcos/arco-01.md validada |
