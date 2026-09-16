@@ -2,7 +2,7 @@
 
 Historial de cambios del harness. **Para qué sirve este fichero:** aquí se anota *qué* cambió en el harness y *por qué*, de forma que cualquiera (tú dentro de tres meses, o Claude Code en otra sesión) pueda entender una decisión sin reconstruirla del historial de git ni releer las specs enteras.
 
-Cómo se escribe, siguiendo el formato de [mattpocock/skills](https://github.com/mattpocock/skills/blob/main/CHANGELOG.md):
+Cómo se escribe:
 
 - Una sección `## <versión>` por versión, **de la más reciente a la más antigua**, con versionado semántico: **Major** = cambia el contrato del harness o rompe novelas existentes · **Minor** = capacidad nueva compatible · **Patch** = arreglo o ajuste de redacción.
 - Dentro, `### Major Changes` / `### Minor Changes` / `### Patch Changes`.
