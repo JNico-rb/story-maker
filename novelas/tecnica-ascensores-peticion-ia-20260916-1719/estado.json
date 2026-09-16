@@ -17,20 +17,32 @@
     }
   },
   "arco_actual": 1,
-  "capitulo_actual": 1,
+  "capitulo_actual": 2,
   "intento_actual": 1,
-  "capitulos": {},
+  "capitulos": {
+    "1": {
+      "aprobado": 3,
+      "por_agotamiento": false,
+      "intentos": 3,
+      "reescrituras": 1,
+      "ajustes_longitud": 1
+    }
+  },
   "informe_global": false,
   "invocaciones": {
     "interrogador": 6,
-    "escritor": 0,
-    "resumidor": 0,
-    "revisor_encargo": 0,
-    "revisor_continuidad": 2
+    "escritor": 5,
+    "resumidor": 3,
+    "revisor_encargo": 2,
+    "revisor_continuidad": 5
   },
   "ultima_parada": null,
   "avisos": [],
-  "reescrituras_usadas": {},
-  "ajustes_usados": {},
+  "reescrituras_usadas": {
+    "1": 1
+  },
+  "ajustes_usados": {
+    "1": 1
+  },
   "erratas": null
 }

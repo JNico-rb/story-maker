@@ -37,3 +37,28 @@ Las columnas `modelo`, `pal_entrada`, `pal_salida`, `tok_entrada`, `tok_salida` 
 | 2026-09-16 17:56 | propuesta_cierre | interrogatorio | 1 | – | – | – | – | – | – | – | – | Corrosion · 5 capitulos · 1 arco |
 | 2026-09-16 17:56 | decision_usuario | interrogatorio | 1 | – | – | – | – | – | – | – | – | confirma (auto, modo prueba) |
 | 2026-09-16 17:58 | escaleta_validada | interrogatorio | 1 | – | – | – | – | – | – | – | – | biblia.md y escaleta.md aprobadas; arcos/arco-01.md validada |
+| 2026-09-16 18:01 | invocacion | capitulos | 1 | 01 | 1 | haiku | 3927 | – | – | – | – | escritor · modo capitulo · intento tecnico 1 · resultado: incumple · motivo: el bloque abre con === ARCHIVO: capitulos/01/intento-1.md === pero no se cierra con === FIN === |
+| 2026-09-16 18:01 | decision_harness | capitulos | 1 | 01 | 1 | – | – | – | – | – | – | reintento 1/3: falta el delimitador de cierre |
+| 2026-09-16 18:03 | invocacion | capitulos | 1 | 01 | 1 | haiku | 3927 | – | – | – | – | escritor · modo capitulo · intento tecnico 2 · resultado: incumple · motivo: el mensaje final describe el capitulo y afirma haberlo entregado, pero no contiene ningun bloque === ARCHIVO: … === |
+| 2026-09-16 18:03 | decision_harness | capitulos | 1 | 01 | 1 | – | – | – | – | – | – | reintento 2/3: salida sin bloques (mismo patron que el interrogador en el interrogatorio) |
+| 2026-09-16 18:05 | invocacion | capitulos | 1 | 01 | 1 | haiku | 3927 | 1012 | – | – | – | escritor · modo capitulo · intento tecnico 3 · resultado: ok · capitulos/01/intento-1.md |
+| 2026-09-16 18:05 | longitud | capitulos | 1 | 01 | 1 | – | – | – | – | – | – | rechazo · 1012 palabras · objetivo 1500 · margen 1200-1800 |
+| 2026-09-16 18:05 | veredicto | capitulos | 1 | 01 | 1 | – | – | – | – | – | – | RECHAZADO · 1 problema · gravedad max 3 · origen: harness |
+| 2026-09-16 18:05 | decision_harness | capitulos | 1 | 01 | 1 | – | – | – | – | – | – | ajuste_longitud 1/2 -> intento 2 · no consume reescritura |
+| 2026-09-16 18:07 | invocacion | capitulos | 1 | 01 | 2 | haiku | 4939 | 1229 | – | – | – | escritor · modo capitulo · intento tecnico 1 · resultado: ok · capitulos/01/intento-2.md |
+| 2026-09-16 18:07 | longitud | capitulos | 1 | 01 | 2 | – | – | – | – | – | – | ok · 1229 palabras · objetivo 1500 · margen 1200-1800 |
+| 2026-09-16 18:09 | invocacion | capitulos | 1 | 01 | 2 | haiku | 1828 | – | – | – | – | resumidor · modo capitulo · intento tecnico 1 · resultado: incumple · motivo: el mensaje final describe los dos documentos ("listos para escribir en disco") pero no contiene ningun bloque === ARCHIVO: … === |
+| 2026-09-16 18:09 | decision_harness | capitulos | 1 | 01 | 2 | – | – | – | – | – | – | reintento 1/3: salida sin bloques (tercer agente distinto con el mismo patron) |
+| 2026-09-16 18:11 | invocacion | capitulos | 1 | 01 | 2 | haiku | 1828 | 924 | – | – | – | resumidor · modo capitulo · intento tecnico 2 · resultado: ok · capitulos/01/resumen-2.md, capitulos/01/libro-estado-2.md |
+| 2026-09-16 18:13 | invocacion | capitulos | 1 | 01 | 2 | haiku | 4940 | – | – | – | – | revisor-encargo · modo capitulo · intento tecnico 1 · resultado: ok · APROBADO, 0 problemas · observacion: JSON en valla de codigo |
+| 2026-09-16 18:13 | invocacion | capitulos | 1 | 01 | 2 | haiku | 3487 | – | – | – | – | revisor-continuidad · modo capitulo · intento tecnico 1 · resultado: ok · RECHAZADO, 1 problema · observacion: JSON en valla de codigo |
+| 2026-09-16 18:13 | veredicto | capitulos | 1 | 01 | 2 | – | – | – | – | – | – | RECHAZADO · 1 problema · gravedad max 1 · origen: revisores · desglose: continuidad 1, encargo 0 |
+| 2026-09-16 18:13 | discrepancia_veredicto | capitulos | 1 | 01 | 2 | – | – | – | – | – | – | revisor: encargo · suyo: APROBADO · harness: RECHAZADO |
+| 2026-09-16 18:13 | decision_harness | capitulos | 1 | 01 | 2 | – | – | – | – | – | – | reescribir 1/2 -> intento 3 · rechazo de contenido |
+| 2026-09-16 18:15 | invocacion | capitulos | 1 | 01 | 3 | haiku | 5412 | 1223 | – | – | – | escritor · modo capitulo · intento tecnico 1 · resultado: ok · capitulos/01/intento-3.md |
+| 2026-09-16 18:15 | longitud | capitulos | 1 | 01 | 3 | – | – | – | – | – | – | ok · 1223 palabras · objetivo 1500 · margen 1200-1800 |
+| 2026-09-16 18:17 | invocacion | capitulos | 1 | 01 | 3 | haiku | 1822 | 1001 | – | – | – | resumidor · modo capitulo · intento tecnico 1 · resultado: ok · capitulos/01/resumen-3.md, capitulos/01/libro-estado-3.md |
+| 2026-09-16 18:20 | invocacion | capitulos | 1 | 01 | 3 | haiku | 4934 | – | – | – | – | revisor-encargo · modo capitulo · intento tecnico 1 · resultado: ok · APROBADO, 0 problemas |
+| 2026-09-16 18:20 | invocacion | capitulos | 1 | 01 | 3 | haiku | 3563 | – | – | – | – | revisor-continuidad · modo capitulo · intento tecnico 1 · resultado: ok · APROBADO, 0 problemas |
+| 2026-09-16 18:20 | veredicto | capitulos | 1 | 01 | 3 | – | – | – | – | – | – | APROBADO · 0 problemas · origen: revisores · desglose: continuidad 0, encargo 0 |
+| 2026-09-16 18:20 | decision_harness | capitulos | 1 | 01 | 3 | – | – | – | – | – | – | aprobar |
