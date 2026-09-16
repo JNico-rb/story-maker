@@ -12,13 +12,14 @@
     "1": { "desde": 1, "hasta": 5, "escaleta_validada": true, "informe": false }
   },
   "arco_actual": 1,
-  "capitulo_actual": 2,
+  "capitulo_actual": 3,
   "intento_actual": 1,
   "capitulos": {
-    "1": { "aprobado": 2, "por_agotamiento": false, "intentos": 2 }
+    "1": { "aprobado": 2, "por_agotamiento": false, "intentos": 2 },
+    "2": { "aprobado": 2, "por_agotamiento": false, "intentos": 2 }
   },
   "informe_global": false,
-  "invocaciones": { "interrogador": 1, "escritor": 2, "resumidor": 2, "revisor": 2 },
+  "invocaciones": { "interrogador": 1, "escritor": 4, "resumidor": 4, "revisor": 4 },
   "ultima_parada": null,
   "avisos": []
 }
