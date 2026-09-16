@@ -1,108 +1,111 @@
 # Inventario de salidas
 
-Qué se espera que produzca el harness en una ejecución completa. Sirve para tres cosas:
+Qué produce el harness en una ejecución completa. Sirve para tres cosas:
 
 1. **Saber qué vas a recibir** antes de lanzarlo.
-2. **Comprobar que una ejecución está completa**: si falta algo de aquí, algo se detuvo (mira `informe-cierre.md`).
-3. **Comparar** dos ejecuciones con la misma idea y distinta configuración (ver [comparativa/](../comparativa/README.md)), y definir qué significa "la misma salida" cuando el runner de la fase 2 sustituya a Claude Code (`specs/functional.md` §10.3): una carpeta generada por el runner tiene que pasar esta misma lista.
+2. **Comprobar que una ejecución está completa**: `/novela verificar <carpeta>` ejecuta la lista de §4. Si falta algo, algo se detuvo (mira `informe-cierre.md`).
+3. **Definir "la misma salida"** para comparar dos ejecuciones ([comparativa/](../comparativa/README.md)) y para el runner del hito 2 (`specs/functional.md` §10.3): una carpeta generada por el runner tiene que pasar esta misma lista sin adaptación.
 
-Los números concretos corresponden al perfil activo de [`harness.config.json`](../harness.config.json). Las tablas usan el perfil por defecto, `relato` (3 capítulos × 1.500 palabras).
+Los números concretos dependen del perfil activo de [`config.json`](../config.json). Las tablas usan el perfil por defecto, `relato` (5 capítulos × 1.500 palabras, un arco). Vocabulario: `specs/functional.md` §0.
 
 ---
 
 ## 1. Lo que entrega, fichero a fichero
 
-Todo vive en `novelas/<slug>/`. "DdH" = definición de hecho: cuándo ese artefacto está bien.
+Todo vive en `novelas/<slug>/`. **Todo lo escribe el harness**; la columna "Contenido de" dice qué agente produjo el contenido. "DdH" = definición de hecho: cuándo ese artefacto está bien.
 
 ### Entrada y configuración
 
-| Artefacto | Cuántos | Lo escribe | DdH |
+| Artefacto | Cuántos | Contenido de | DdH |
 |---|---|---|---|
-| `idea.md` | 1 | Orquestador | Contiene la idea literal del usuario, sin reinterpretar |
-| `config.json` | 1 | Orquestador | Perfil ya resuelto + formato, modelos, límites, veredicto, memoria, y `origen` con lo sobreescrito por comando |
-| `entrevista.md` | 1 | Orquestador | `cerrada: true`; todas las decisiones en pregunta → respuesta, marcando cuáles eligió el usuario y cuáles quedaron en "decide tú" |
+| `idea.md` | 1 | Usuario | La idea literal, sin reinterpretar |
+| `config.json` | 1 | Harness | `version: 3`; perfil ya resuelto (con `nombre`) + `proveedor`, `formato`, `modelos`, `limites`, `veredicto`, `memoria`, `calidad`, y `origen` con lo sobreescrito por comando. Sin `perfiles` |
+| `entrevista.md` | 1 | Usuario (vía grilling) o fichero | `cerrada: true`, `origen: grilling | fichero`; todas las decisiones en pregunta → respuesta, cada una marcada [usuario], [recomendación aceptada] o [decide tú] |
 
 ### Plan
 
-| Artefacto | Cuántos | Lo escribe | DdH |
+| Artefacto | Cuántos | Contenido de | DdH |
 |---|---|---|---|
-| `biblia.md` | 1 | Interrogador | `aprobada: true`; premisa, mundo post-IA, **3–7 reglas inviolables numeradas**, tono/PDV/estilo, y por personaje: quién es, qué quiere, arco y voz. Más la lista de decisiones que tomó él |
-| `escaleta.md` | 1 | Interrogador | `aprobada: true`; `capitulos` dentro de límites; una entrada por capítulo con `n, titulo, acto, objetivo, sucesos (2–5), personajes, gancho, palabras_objetivo`; los tres actos presentes; sección "Hilos" con dónde abre y cierra cada uno |
+| `biblia.md` | 1 | Interrogador | `aprobada: true`; premisa, mundo post-IA, **3–7 reglas inviolables numeradas**, tono/PDV/estilo, personajes (quién es, qué quiere, arco, voz), decisiones del interrogador |
+| `escaleta.md` | 1 | Interrogador | `aprobada: true`; `capitulos` dentro de límites; `arcos` que cubren 1..`capitulos` sin huecos ni solapes, ninguno mayor que `formato.capitulos_por_arco`, cada uno con `acto, objetivo, sucesos_clave, hilos_abre, hilos_cierra`; los tres actos presentes; sección Hilos |
+| `arcos/arco-AA.md` | 1 por arco | Interrogador | `validada: true`; una entrada por capítulo del rango con `n, titulo, objetivo, sucesos, personajes, gancho, palabras_objetivo`; cada `palabras_objetivo` dentro de límites; todos los `sucesos_clave` del arco asignados a alguna entrada |
 
 ### Por capítulo (carpeta `capitulos/NN/`)
 
-| Artefacto | Cuántos por capítulo | Lo escribe | DdH |
+| Artefacto | Cuántos por capítulo | Contenido de | DdH |
 |---|---|---|---|
-| `intento-K.md` | 1 a 3 | Escritor | Frontmatter con `palabras`; cumple objetivo, sucesos y gancho de su entrada de la escaleta |
-| `resumen-K.md` | 1 por intento | Escritor | Frontmatter con `hilos_abiertos`, `hilos_cerrados`, `personajes` con estado; cuerpo con hechos, cambios, elementos nuevos y enlace |
-| `informe-K.md` | 1 por intento | Orquestador (con el YAML del revisor) | `veredicto` recalculado por el harness; cada problema con `gravedad`, `donde`, `que`, `por_que` |
-| `notas-revisor-K.md` | 0 o 1 | Revisor | Opcional; solo si necesitó apuntes |
+| `intento-K.md` | 1 a 3 | Escritor | Sin frontmatter: primera línea `# <título>`, después el texto. El aprobado cumple objetivo, sucesos y gancho de su entrada y está dentro de la tolerancia de longitud (`wc -w`) |
+| `resumen-K.md` | 1 por intento que pasó la longitud | Resumidor | Frontmatter con `capitulo, intento, hilos_abiertos, hilos_cerrados, personajes`; secciones Hechos, Cambios en personajes, Elementos introducidos, Enlace |
+| `libro-estado-K.md` | 1 por intento que pasó la longitud | Resumidor | Libro de estado completo tal como quedaría si se aprueba este intento |
+| `informe-K.md` | 1 por intento | Revisor (o harness si rechazo por longitud) | `veredicto` recalculado por el harness; `origen: revisor | harness`; cada problema con `gravedad ∈ {1,2,3,4,5}, donde, que, por_que` |
 
-Con el perfil `relato`: **mínimo 9 ficheros** de capítulo (3 capítulos aprobados al primer intento) y **máximo 27** (3 intentos cada uno). Que haya varios intentos no es un fallo: es el bucle de revisión funcionando, y los rechazados se conservan a propósito.
+Un capítulo rechazado por longitud tiene `intento-K.md` e `informe-K.md` pero no `resumen-K.md` ni `libro-estado-K.md`: no llegó al resumidor. Con el perfil `relato`: **mínimo 20 ficheros** de capítulo (5 aprobados al primer intento) y **máximo 60**. Que haya varios intentos no es un fallo: es el bucle de revisión funcionando, y los rechazados se conservan a propósito.
+
+### Memoria y revisiones intermedias
+
+| Artefacto | Cuántos | Contenido de | DdH |
+|---|---|---|---|
+| `libro-estado.md` | 1 | Resumidor (adoptado por el harness) | `hasta_capitulo` = último capítulo aprobado; copia exacta del `libro-estado-K.md` del intento aprobado de ese capítulo; secciones Personajes, Hilos abiertos, Hilos cerrados, Elementos, Reglas en vigor |
+| `arcos/informe-arco-AA.md` | 1 por arco, **solo si hay más de un arco** | Revisor | `capitulo: arco-AA`; veredicto informativo; problemas con la forma estándar |
 
 ### Salida
 
-| Artefacto | Cuántos | Lo escribe | DdH |
+| Artefacto | Cuántos | Contenido de | DdH |
 |---|---|---|---|
-| `manuscrito.md` | 1 | Orquestador | Título, índice y los capítulos **aprobados** en orden; nota final si alguno se aceptó por agotamiento |
-| `informe-global.md` | 1 | Orquestador (con el YAML del revisor) | Hilos sin cerrar, contradicciones entre capítulos lejanos, personajes desaparecidos, cambios en las reglas del mundo. Puede estar vacío de problemas: eso es buena señal |
-| `informe-cierre.md` | 1 (se reescribe cada ejecución) | Orquestador | `resultado: EXITO` o `PARADA` con motivo, qué quedó hecho y la acción para continuar |
+| `manuscrito.md` | 1 | Harness | Título, índice y los capítulos **aprobados** en orden; nota final si alguno se aceptó por agotamiento |
+| `informe-global.md` | 1 | Revisor | `capitulo: global`; `base: manuscrito | resumenes`; veredicto informativo. Puede estar vacío de problemas: eso es buena señal |
+| `informe-cierre.md` | 1 (se reescribe cada ejecución) | Harness | `resultado: EXITO | PARADA` con motivo, qué quedó hecho, volumen, **métricas de calidad** con CUMPLE / NO CUMPLE, inventario y la acción para continuar |
 
 ### Trazabilidad
 
-| Artefacto | Cuántos | Lo escribe | DdH |
+| Artefacto | Cuántos | Contenido de | DdH |
 |---|---|---|---|
-| `estado.json` | 1 | Orquestador | Refleja el último punto consistente; `fase: completa` al terminar |
-| `registro.md` | 1 | Orquestador | Una fila por evento: invocaciones (con modelo, `pal_entrada` y `pal_salida`), veredictos, decisiones, reintentos, escrituras revertidas, commits |
-| Commits en git | ≥ 3 + 1 por capítulo | Orquestador | `novela <slug>: carpeta creada` · `escaleta aprobada` · `cap NN cerrado (intento K)` · `novela completa` |
+| `estado.json` | 1 | Harness | `version: 3`; refleja el último punto consistente; `etapa: completa` al terminar; `capitulos[N]` con `aprobado, por_agotamiento, intentos` para todo N; `arcos[A]` con `escaleta_validada: true` |
+| `registro.md` | 1 | Harness | Una fila por evento; cada `invocacion` con `modelo`, `pal_entrada`, `pal_salida` y, si los hay, `tok_*` y `coste_usd` |
+| Commits en git | ≥ 3 + 1 por capítulo + 2 por arco extra | Harness | `novela <slug>: carpeta creada` · `escaleta aprobada` · `arco AA detallado` · `cap NN cerrado (intento K)` · `arco AA revisado` · `novela completa` |
 
 ---
 
 ## 2. Cuánto texto, por perfil
 
-| Perfil | Capítulos | Palabras/capítulo | Manuscrito | Páginas (250 p/pág) | Ficheros de capítulo (mín–máx) |
-|---|---|---|---|---|---|
-| `relato` | 3 | 1.500 | ~4.500 | ~18 | 9–27 |
-| `novela_corta` | 12 | 2.000 | ~24.000 | ~96 | 36–108 |
-| `novela` | 30 | 2.500 | ~75.000 | ~300 | 90–270 |
-| `saga` | 100 (hasta 200) | 2.500 | ~250.000 (hasta ~500.000) | ~1.000 (hasta ~2.000) | 300–900 (hasta 600–1.800) |
+| Perfil | Capítulos | Palabras/capítulo | Arcos | Manuscrito | Páginas (250 p/pág) | Ficheros de capítulo (mín–máx) |
+|---|---|---|---|---|---|---|
+| `relato` | 5 | 1.500 | 1 | ~7.500 | ~30 | 20–60 |
+| `novela_corta` | 12 | 2.000 | 1 | ~24.000 | ~96 | 48–144 |
+| `novela` | 30 | 2.500 | 2 | ~75.000 | ~300 | 120–360 |
+| `saga` | 100 (hasta 200) | 2.500 | 7 (hasta 14) | ~250.000 (hasta ~500.000) | ~1.000 (hasta ~2.000) | 400–1.200 (hasta 800–2.400) |
 
-Cada capítulo aprobado debe caer dentro de `palabras_objetivo ± formato.tolerancia_longitud` (±20 % por defecto). El manuscrito hereda esa tolerancia.
+Cada capítulo aprobado está dentro de `palabras_objetivo ± formato.tolerancia_longitud` (±20 % por defecto), medido con `wc -w`. A partir de `novela` la revisión global se hace sobre resúmenes e informes de arco, no sobre el manuscrito (`limites.revision_global_max_palabras`).
 
 ---
 
 ## 3. Lo que NO genera
 
-Para que no lo busques: PDF, DOCX, EPUB ni HTML (§1.3 de la funcional); ilustraciones; portada; traducciones; coste en dinero. Sí genera el **volumen** (palabras de entrada y salida por invocación y modelo, en `registro.md` y en el informe de cierre): con la tarifa del modelo que quieras, el coste sale de ahí. El manuscrito es Markdown y lo conviertes tú con lo que prefieras.
-
-Tampoco genera una novela **corregida** tras la revisión global: ese informe se entrega tal cual y decides tú qué hacer con él.
+PDF, DOCX, EPUB ni HTML (spec §1.3); ilustraciones; portada; traducciones; coste en dinero en el hito 1 (sí el **volumen**, en `registro.md` y en el informe de cierre; en el hito 2 también el coste real). Tampoco una novela **corregida** tras las revisiones de arco y global: esos informes se entregan tal cual y decides tú qué hacer con ellos.
 
 ---
 
 ## 4. Comprobar que una ejecución está completa
 
-Orden de comprobación, de lo más barato a lo más caro:
+Es lo que ejecuta `/novela verificar <carpeta>`, de lo más barato a lo más caro:
 
 1. `informe-cierre.md` dice `resultado: EXITO`.
-2. `estado.json` tiene `fase: completa`, `informe_global: true` y una entrada en `capitulos` por cada capítulo de la escaleta.
-3. Existen `manuscrito.md` e `informe-global.md`.
-4. Para cada capítulo N: existe el `intento-K.md` que `estado.capitulos[N].aprobado` señala, con su `resumen-K.md` e `informe-K.md`.
-5. El recuento de palabras de cada capítulo aprobado está dentro de la tolerancia.
-6. `git log` muestra los commits esperados y `git status` está limpio.
+2. `estado.json` tiene `version: 3`, `etapa: completa`, `informe_global: true`, una entrada en `capitulos` por cada capítulo de `escaleta.md` y `escaleta_validada: true` en todos los arcos.
+3. Existen `biblia.md` y `escaleta.md` con `aprobada: true`, un `arcos/arco-AA.md` con `validada: true` por arco, `libro-estado.md` con `hasta_capitulo` = total, `manuscrito.md` e `informe-global.md`. Si hay más de un arco, un `arcos/informe-arco-AA.md` por arco.
+4. Para cada capítulo N: existen `intento-K.md`, `resumen-K.md`, `libro-estado-K.md` e `informe-K.md` para la K que `estado.capitulos[N].aprobado` señala, y ese informe tiene `veredicto: APROBADO` o el capítulo tiene `por_agotamiento: true`.
+5. `wc -w` de cada capítulo aprobado está dentro de la tolerancia de su `palabras_objetivo`.
+6. `git log -- novelas/<slug>` muestra los commits esperados y `git status --porcelain novelas/<slug>` está vacío.
 
-Si algo falla, `informe-cierre.md` dice el motivo y la acción; nunca hay que reparar la carpeta a mano.
+Después, si la novela está completa, `calcular_metricas` (`procedimientos/final.md`). Si algo falla, `informe-cierre.md` dice el motivo y la acción; nunca hay que reparar la carpeta a mano.
 
 ---
 
-## 5. Señales de calidad (no de completitud)
+## 5. Señales de calidad
 
-Lo anterior dice si la ejecución terminó. Esto dice si salió *bien*:
+Lo anterior dice si la ejecución terminó. Las **métricas de §8.3 de la spec** dicen si salió bien, con umbrales en `config.calidad`. Además de ellas, tres señales que no tienen umbral pero conviene mirar:
 
 | Señal | Dónde se ve | Qué es buena señal |
 |---|---|---|
-| Capítulos aceptados por agotamiento | `estado.avisos`, informe de cierre | Cero. Uno o dos es tolerable; muchos indican que la escaleta o la biblia piden algo imposible |
-| Problemas de gravedad 1–2 en los informes | `capitulos/*/informe-*.md` | Que aparezcan en el intento 1 y desaparezcan en el 2: el bucle está haciendo su trabajo |
-| Problemas en el informe global | `informe-global.md` | Ninguno de gravedad 1–2. Hilos sin cerrar solo si la escaleta los dejaba abiertos a propósito |
-| Discrepancias de veredicto | `registro.md` (`discrepancia_veredicto`) | Pocas. Muchas significan que el revisor no está aplicando bien su propia regla |
-| Escrituras fuera de zona | `registro.md` | Cero. Cualquiera indica que hay que endurecer la definición de ese subagente |
-| Desviación de longitud | Frontmatter `palabras` de cada intento aprobado | Dentro de ±20 % sin necesidad de reescritura |
+| Problemas de gravedad 1–2 en los informes de capítulo | `capitulos/*/informe-*.md` | Que aparezcan en el intento 1 y desaparezcan en el 2: el bucle hace su trabajo |
+| Discrepancias de veredicto | `registro.md` (`discrepancia_veredicto`) | Pocas. Muchas significan que el revisor no aplica su propia regla |
+| Fidelidad del libro de estado | Tres hechos del capítulo 1 comprobados en `libro-estado.md` final (comparar.md) | Los tres coinciden. Si no, el resumidor está inventando o perdiendo |

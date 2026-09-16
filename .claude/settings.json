@@ -1,0 +1,49 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Edit(/novelas/**)",
+      "Write(/novelas/**)",
+      "Edit(/comparativa/**)",
+      "Write(/comparativa/**)",
+      "Bash(git status *)",
+      "Bash(git rev-parse *)",
+      "Bash(git log *)",
+      "Bash(git diff *)",
+      "Bash(git show *)",
+      "Bash(git add novelas/*)",
+      "Bash(git add -A novelas/*)",
+      "Bash(git commit -m *)",
+      "Bash(git checkout -- novelas/*)",
+      "Bash(git clean -fdq novelas/*)",
+      "Bash(wc *)",
+      "Bash(mkdir *)",
+      "Bash(cp *)",
+      "Bash(ls *)",
+      "Bash(cat *)",
+      "Bash(date*)"
+    ],
+    "deny": [
+      "Bash(git push*)",
+      "Bash(git commit --amend*)",
+      "Bash(git reset --hard*)",
+      "Bash(git rebase *)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "grep -Eq '\"file_path\":\"[^\"]*(biblia|escaleta|libro-estado|manuscrito|arco-[0-9]+|intento-[0-9]+)\\.md\"' && { echo 'story-maker: ese artefacto es inmutable una vez aprobado. El harness lo crea con Write una sola vez; nunca se edita (specs/functional.md §3.1).' >&2; exit 2; } || exit 0",
+            "statusMessage": "Comprobando inmutabilidad de artefactos aprobados"
+          }
+        ]
+      }
+    ]
+  }
+}

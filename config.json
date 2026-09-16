@@ -1,0 +1,102 @@
+{
+  "_documentacion": "Todas estas variables están explicadas en specs/functional.md §7. Edita este fichero para cambiar el comportamiento del harness; no hace falta tocar nada más. Los valores por defecto son los de la validación (§7.8 paso 1): historia pequeña, los cuatro agentes con el modelo caro, escalado apagado. Las claves marcadas 'hito 2' solo las usa el runner contra OpenRouter.",
+  "version": 3,
+
+  "proveedor": "claude-code",
+
+  "perfil_activo": "relato",
+
+  "perfiles": {
+    "relato": {
+      "descripcion": "Prueba rápida. Lo mínimo que ya se lee como una historia. Es el perfil de la validación (hito 1). Un solo arco.",
+      "paginas_objetivo": null,
+      "capitulos_objetivo": 5,
+      "capitulos_min": 3,
+      "capitulos_max": 8,
+      "palabras_por_capitulo": 1500
+    },
+    "novela_corta": {
+      "descripcion": "Primera novela de verdad. El salto natural tras validar el harness con 'relato'. Sigue siendo un solo arco.",
+      "paginas_objetivo": null,
+      "capitulos_objetivo": 12,
+      "capitulos_min": 8,
+      "capitulos_max": 15,
+      "palabras_por_capitulo": 2000
+    },
+    "novela": {
+      "descripcion": "Novela completa de extensión habitual. Aparecen los arcos. A partir de aquí conviene fijar memoria.resumenes_completos_ultimos a 10.",
+      "paginas_objetivo": null,
+      "capitulos_objetivo": 30,
+      "capitulos_min": 20,
+      "capitulos_max": 40,
+      "palabras_por_capitulo": 2500
+    },
+    "saga": {
+      "descripcion": "Objetivo final: 100-200 capítulos de una sola novela en el runner de OpenRouter. Requiere libro de estado, arcos y pausa_cada_capitulos en null.",
+      "paginas_objetivo": null,
+      "capitulos_objetivo": 100,
+      "capitulos_min": 60,
+      "capitulos_max": 200,
+      "palabras_por_capitulo": 2500
+    }
+  },
+
+  "formato": {
+    "palabras_por_pagina": 250,
+    "palabras_min_capitulo": 800,
+    "palabras_max_capitulo": 5000,
+    "tolerancia_longitud": 0.2,
+    "capitulos_por_arco": 15
+  },
+
+  "modelos": {
+    "_nota": "Validación (por defecto): los cuatro en opus, escalado apagado. Abaratamiento (§7.8 paso 2): los cuatro en haiku o sonnet, escalado.activo true. Con proveedor openrouter se usan identificadores de modelo de OpenRouter. temperatura solo la usa el runner (hito 2).",
+    "interrogador": "opus",
+    "escritor": "opus",
+    "resumidor": "opus",
+    "revisor": "opus",
+    "temperatura": {
+      "interrogador": 0.7,
+      "escritor": 0.9,
+      "resumidor": 0.0,
+      "revisor": 0.0
+    },
+    "escalado": {
+      "activo": false,
+      "modelo": "opus",
+      "escritor_desde_intento": 2,
+      "revisor_desde_intento": 3,
+      "tras_fallo_tecnico": true,
+      "revision_arco_y_global": true
+    }
+  },
+
+  "limites": {
+    "reescrituras_max": 2,
+    "reintentos_tecnicos": 3,
+    "escaleta_rechazos_max": 3,
+    "turnos_por_invocacion": 40,
+    "revision_global_max_palabras": 60000,
+    "presupuesto_usd_max": null,
+    "pausa_cada_capitulos": 5
+  },
+
+  "veredicto": {
+    "rechaza_con_graves": 1,
+    "rechaza_con_leves": 2
+  },
+
+  "memoria": {
+    "resumenes_completos_ultimos": null,
+    "capitulo_anterior_integro": true,
+    "libro_estado_max_palabras": 4000
+  },
+
+  "calidad": {
+    "max_graves_por_10_capitulos": 1,
+    "max_agotamiento_pct": 10,
+    "max_hilos_previstos_sin_cerrar": 0,
+    "min_aprobados_primer_intento_pct": 60,
+    "max_rechazos_voz_pct": 10
+  }
+}

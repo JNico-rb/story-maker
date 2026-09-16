@@ -12,15 +12,22 @@ Una o dos frases: qué historia es y por qué importa.
 - **Qué pasó**: el acontecimiento o proceso que cambió todo.
 - **Qué reglas rigen ahora**: quién decide, qué está permitido, qué se ha vuelto imposible o trivial.
 - **Vida diaria**: trabajo, casa, relaciones, ciudad. Detalles concretos que la prosa puede usar.
-- **Lo que la historia no puede romper**: 3–7 reglas del universo, numeradas. El revisor las vigila.
+
+## Reglas inviolables
+Entre 3 y 7, numeradas. Son las reglas del universo que la historia no puede romper; el revisor las vigila (criterio 1) y el libro de estado las recoge en "Reglas en vigor".
+
+1.
+2.
+3.
 
 ## Tono y voz
 - Tono y registro.
 - Punto de vista y persona narrativa.
-- Rasgos de estilo (ritmo, longitud de frase, uso del diálogo, lo que se evita).
+- Rasgos de estilo: ritmo, longitud de frase, uso del diálogo, lo que se evita.
 
 ## Personajes
-Para cada uno:
+Uno por sección:
+
 ### Nombre
 - Quién es y qué hace.
 - Qué quiere / qué le falta.
@@ -32,5 +39,5 @@ Para cada uno:
 - A tocar:
 - A evitar:
 
-## Decisiones tomadas por el interrogador
-Lo que la entrevista dejó en "decide tú" y cómo se resolvió, para que el usuario lo vea.
+## Decisiones del interrogador
+Lo que la entrevista dejó en "decide tú" y cómo se resolvió, para que el usuario lo vea antes de aprobar.

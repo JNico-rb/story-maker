@@ -11,9 +11,71 @@ Cómo se escribe:
 
 ---
 
-## 0.2.0
+## 0.5.0
 
-##### 0.4.0
+### Major Changes
+
+- **Solo el harness escribe en disco; los agentes devuelven su salida en el mensaje final.**
+
+  - `specs/functional.md` §1.2, §3.1, §5 y §6.1. Los subagentes del hito 1 se definen con `tools: Read, Glob, Grep`, sin herramientas de escritura. El harness valida la forma de cada salida y la escribe en su ruta.
+  - Motivo: es lo que §10.2 ya preveía para el runner. Hacerlo igual en los dos hitos deja los contratos de los agentes idénticos y elimina `verificar-zona.md`, la pieza con el bug más grave de la 0.4.0 (borraba el capítulo antes de revisarlo). La zona de escritura queda garantizada por construcción y desaparece el motivo de parada `ESCRITURA_FUERA_DE_ZONA`.
+  - Descartado: `permissions.deny` con patrones de ruta. Se aplica a toda la sesión, no por subagente, y bloquearía también al interrogador cuando escribe la biblia.
+
+- **Cuarto agente: `resumidor`. El escritor ya no escribe el resumen.**
+
+  - El resumidor recibe **solo** el texto del capítulo y el libro de estado vigente, y devuelve el resumen y el libro de estado actualizado. No ve la escaleta ni la biblia, para que registre lo que hay en la página y no lo que debía haber.
+  - Motivo: en la ejecución 0.4.0 el resumen del capítulo 1 afirmaba un hecho que el texto no mostraba. A 200 capítulos los resúmenes son la memoria del sistema; el escritor es parte interesada.
+
+- **Libro de estado (`libro-estado.md`) como memoria de tamaño constante.** §3, §7.6.
+
+  - Personajes (dónde, qué saben, estado), hilos abiertos con capítulo de origen y cierre previsto, hilos cerrados, objetos/lugares/datos, reglas en vigor. El resumidor propone la versión nueva en cada intento (`libro-estado-K.md`); el harness la adopta solo al aprobar. Escritor y revisor lo reciben siempre.
+  - Sustituye a `memoria.digesto_por_acto`, que nunca se implementó y no resolvía el problema: una ventana de resúmenes pierde estado, no solo texto. `memoria.libro_estado_max_palabras` (4000) acota su tamaño.
+
+- **Escaleta en dos niveles: alto nivel (arcos) + escaleta de cada arco generada al llegar a él.** §4.1, §4.2.
+
+  - `formato.capitulos_por_arco` (15). Con total ≤ 15 hay un solo arco y el comportamiento es el de antes. La escaleta de alto nivel es lo que aprueba el usuario y lo inmutable; la de cada arco la valida el harness sin intervención humana, con el libro de estado y el informe del arco anterior como entrada.
+  - Motivo: ningún modelo produce 200 entradas de capítulo coherentes de una vez, y el arco 9 debe conocer lo que realmente pasó en los arcos 1–8. `saga` es una sola novela con una sola trama, no una serie.
+
+- **La longitud la comprueba el harness, no el revisor.** §4.2, §5.4.
+
+  - `wc -w` antes de invocar a nadie más. Si se sale de la tolerancia, el harness genera el informe (gravedad 3) y consume el intento sin llamar al resumidor ni al revisor. El criterio 3 desaparece del contrato del revisor; la numeración se conserva.
+  - Motivo: los modelos no saben contar palabras, y el revisor de la 0.4.0 tenía la instrucción "cuenta tú las palabras". El criterio de aceptación 3 (tolerancia 0) pasa a ser determinista.
+
+- **Vocabulario: `hito` para las fases del proyecto, `etapa` para las del flujo.** La palabra "fase" desaparece de la spec: significaba dos cosas distintas en el mismo documento.
+
+### Minor Changes
+
+- **Revisión por arco y revisión global acotada.** Al cerrar cada arco, el revisor emite `arcos/informe-arco-AA.md`, que alimenta la escaleta del arco siguiente. La pasada global sobre el manuscrito completo solo se hace si no supera `limites.revision_global_max_palabras` (60000); por encima, se hace sobre biblia, escaleta, libro de estado, resúmenes e informes de arco. Motivo: 200 × 2500 palabras no caben en ningún contexto.
+- **El revisor devuelve JSON, no YAML**, con exactamente tres claves; el harness lo valida y cualquier otra cosa es incumplimiento de contrato. En el hito 2 se valida con esquema y se pide salida estructurada donde el modelo lo admita. Motivo: los modelos baratos rompen el YAML con más facilidad.
+- **Aceptación por agotamiento elige el mejor intento, no el último**: menos problemas de gravedad 1–2, luego menos problemas en total, luego el más reciente. Un rechazo por longitud nunca gana frente a uno que pasó al revisor.
+- **Métricas de calidad (§8.3) y umbrales `calidad.*` (§7.7)**: graves por 10 capítulos, % por agotamiento, hilos previstos sin cerrar, % aprobados en el primer intento, % rechazos por voz, desviación de longitud. El informe de cierre dice CUMPLE / NO CUMPLE por métrica. Es la traducción medible de "coherente, cohesionada y fiel a lo pedido", que es la definición del usuario de "suficientemente buena" para decidir si el modelo barato aguanta.
+- **Caso de referencia fijo en `pruebas/referencia/`** (idea + entrevista + respuestas). Todas las comparaciones de §7.8 usan esa entrada. Motivo: sin entrada fija, comparar dos configuraciones es comparar dos historias distintas. `pruebas/respuestas-prueba.md` pasa a `pruebas/referencia/respuestas.md`.
+- **`config.json` versión 3**: `proveedor` (`claude-code` | `openrouter`), `modelos.resumidor`, `modelos.temperatura.*` (hito 2), `modelos.escalado.revision_arco_y_global`, `formato.capitulos_por_arco`, `limites.revision_global_max_palabras`, `limites.presupuesto_usd_max` (hito 2), `memoria.libro_estado_max_palabras`, bloque `calidad`. Se elimina `memoria.digesto_por_acto`. `relato` pasa a 5 capítulos (3–8): la 0.4.0 se validó con capítulos de 350 palabras, así que el perfil a 1500 palabras aún no está validado.
+- **§9.1: el orquestador se escribe como pseudocódigo con nombres de función estables** (`crear_novela`, `detallar_arco`, `escribir_capitulo`, `comprobar_longitud`, `resumir`, `revisar`, `decidir`, `cerrar_capitulo`, `revisar_arco`, `invocar`, `elegir_modelo`…). Motivo: el runner del hito 2 lo escribirá Claude Code a partir de SKILL.md; así el porte es traducción, no interpretación.
+- **Volumen (§6.6)**: el registro lleva `pal_*`, `tok_*` y `coste_usd`; se rellena lo disponible en cada hito. En el hito 2 OpenRouter devuelve coste real y `presupuesto_usd_max` es un límite efectivo.
+
+### Patch Changes
+
+- **Glosario en `specs/functional.md` §0**: qué es y para qué sirve cada término del proyecto (harness, agente, hito, etapa, biblia, escaleta de alto nivel y de arco, arco, acto, hilo, gancho, intento, resumen, libro de estado, informe, veredicto, gravedad, aceptación por agotamiento, parada limpia…). Motivo: el usuario pidió un sitio único donde se defina el vocabulario antes de reconstruir la implementación.
+
+- **Reconstruida la implementación completa sobre la spec 0.5.0.** `SKILL.md` como pseudocódigo con las funciones de §9.1; procedimientos `interrogatorio`, `arco`, `capitulo`, `final`, `invocar`, `cierre`, `comparar`; plantillas (nuevas: `arco.md`, `libro-estado.md`; `estado.json` y `registro.md` pasan a versión 3 con arcos, resumidor y columnas `tok_*`/`coste_usd`); `specs/inventario.md`; `comparativa/`. Nuevo subcomando `/novela verificar <carpeta>`: inventario §4 + métricas, solo lectura. `intento-K.md` ya no lleva frontmatter: es título y texto, y `wc -w` se aplica directo.
+
+- **El modo de prueba toma `idea.md` y `entrevista.md` de una carpeta** (`modo-prueba: pruebas/referencia`) en vez de emparejar palabras clave con una tabla de respuestas. Nuevo flag `entrevista: <ruta>` para la ejecución de referencia con confirmación manual. Motivo: es exactamente el mecanismo con el que el runner recibe la entrevista, así que el hito 1 lo prueba gratis; y el caso de referencia queda escrito una vez, no reconstruido en cada ejecución. `pruebas/referencia/respuestas.md` se elimina; su contenido pasa a `entrevista.md`.
+
+- **Reconstruidos `CLAUDE.md`, `README.md`, `.claude/settings.json` y los cuatro agentes.** `CLAUDE.md` queda en seis reglas y un puntero a la spec. `settings.json` lleva la lista de permisos (lectura, escritura en `novelas/` y `comparativa/`, `git` acotado a `novelas/`, `wc`, `mkdir`, `cp`) para que el bucle corra sin confirmaciones, y deniega `git push`, `--amend`, `reset --hard` y `rebase`. Los agentes llevan `tools: Read, Glob, Grep`, `maxTurns: 40` y no llevan `memory`. La forma de los bloques de salida (`=== ARCHIVO: ruta ===` … `=== FIN ===`) queda fijada en la spec §5.
+
+- **Hook `PreToolUse` que bloquea `Edit` sobre artefactos inmutables** (`biblia.md`, `escaleta.md`, `arco-*.md`, `intento-*.md`, `libro-estado.md`, `manuscrito.md`). Una línea de shell en `.claude/settings.json`, sin `jq`. Es la única excepción a "sin código en el hito 1" y se anota como tal en la spec §1.3 y §3.1. Motivo: el harness nunca necesita `Edit` sobre esos ficheros (los crea con `Write`), así que cualquier `Edit` es un error del orquestador y se puede cortar en seco sin conocer el estado. No protege contra una sobreescritura completa; eso lo detecta el criterio 6 con git. En el hito 2 la inmutabilidad es código.
+
+- Descartado: `permissions.deny` con patrones de ruta para lo mismo. Las reglas `Edit(...)` de permisos se aplican también a `Write`, así que bloquearían la creación legítima del fichero.
+
+- **`harness.config.json` pasa a llamarse `config.json`** en la raíz. La copia congelada por novela sigue siendo `novelas/<slug>/config.json`.
+- **`limites.turnos_por_invocacion` es realmente aplicable**: `maxTurns` en el frontmatter del subagente (Claude Code ≥ 2.1.246). Como es estático, el harness comprueba al arrancar que coincide con `config.json` y para con `ERROR_CONFIGURACION` si no. Un resultado marcado como parcial se trata como incumplimiento de contrato. Verificado contra la documentación: la herramienta `Agent` no devuelve tokens en el resultado.
+- **Criterios de aceptación nuevos** (§8.2): 10, salida mal formada del revisor; 11, arcos con `capitulos_por_arco: 2`. El 6 pasa de "permisos" a "inmutabilidad".
+- **Reconstrucción**: la implementación 0.4.0 (skill, agentes, plantillas, procedimientos, inventario, comparativa) se retira del árbol de trabajo y se reconstruye sobre esta spec. Sigue en el historial de git como referencia. Se quita la referencia al `.drawio` archivado.
+
+---
+
+## 0.4.0
 
 ### Major Changes
 
@@ -56,7 +118,9 @@ Cómo se escribe:
 - **El cierre en ÉXITO comprueba la ejecución contra el inventario** y avisa en el informe de cierre de cualquier artefacto que falte.
 - **`functional.md` §9 referencia el inventario y la comparativa**; antes eran un comando y un documento que la spec que manda no conocía.
 
- Minor Changes
+## 0.2.0
+
+### Minor Changes
 
 - **Toda la configuración ajustable pasa a `harness.config.json`**, en la raíz del repositorio.
 

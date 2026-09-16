@@ -1,10 +1,12 @@
 ---
 resultado: ""          # EXITO | PARADA
-motivo: ""             # EXITO | FALLO_TECNICO_PERSISTENTE | INCUMPLE_CONTRATO | ESCALETA_FUERA_LIMITES | ERROR_CONFIGURACION | ESTADO_NO_RECONOCIDO | PAUSA_PROGRAMADA
+motivo: ""             # EXITO | FALLO_TECNICO_PERSISTENTE | INCUMPLE_CONTRATO | ESCALETA_FUERA_LIMITES | ERROR_CONFIGURACION | ESTADO_NO_RECONOCIDO | PRESUPUESTO_AGOTADO | PAUSA_PROGRAMADA
 fecha: ""
-fase: ""
+etapa: ""
+arco: null
 capitulo: null
 intento: null
+cumple_todas: null     # solo en EXITO: true si todas las métricas cumplen su umbral
 ---
 
 # Informe de cierre — <slug>
@@ -14,27 +16,44 @@ intento: null
 **Detalle:** …
 
 ## Dónde se detuvo
-Fase · capítulo · intento.
+Etapa · arco · capítulo · intento.
 
 ## Qué quedó completado
-- Escaleta aprobada: sí/no (N capítulos)
+- Escaleta aprobada: sí/no (N capítulos en A arcos)
+- Arcos detallados / revisados: … / …
 - Capítulos cerrados: … de N (por agotamiento: …)
-- Informe global: sí/no
+- Informe global: sí/no (base: manuscrito | resúmenes)
 
 ## Invocaciones
-interrogador · escritor · revisor.
+interrogador · escritor · resumidor · revisor. Reintentos técnicos: … Discrepancias de veredicto: … Rechazos por longitud: …
 
 ## Volumen
-Suma de `pal_entrada` y `pal_salida` de las filas `invocacion` del registro, por subagente y por modelo. Es el dato para estimar cuánto costaría esta misma novela con otro modelo o en el runner (`specs/functional.md` §6.6).
+Suma de las filas `invocacion` del registro, por agente y por modelo (`specs/functional.md` §6.6).
 
-| subagente | modelo | invocaciones | pal_entrada | pal_salida |
-|---|---|---|---|---|
+| agente | modelo | invocaciones | pal_entrada | pal_salida | tok_entrada | tok_salida | coste_usd |
+|---|---|---|---|---|---|---|---|
+
+## Métricas de calidad
+Solo en ÉXITO (`procedimientos/final.md` › calcular_metricas; umbrales en `config.calidad`).
+
+| métrica | valor | umbral | resultado |
+|---|---|---|---|
+| graves_por_10 | | | CUMPLE / NO CUMPLE |
+| agotamiento_pct | | | |
+| hilos_sin_cerrar | | | |
+| primer_intento_pct | | | |
+| rechazos_voz_pct | | | |
+| desviacion_longitud | | informativa | – |
 
 ## Avisos
 -
 
+## Inventario
+Solo en ÉXITO: artefactos de `specs/inventario.md` §4 que faltan, o "completo".
+
 ## Rutas
-- manuscrito.md / informe-global.md (si existen)
+- `manuscrito.md` / `informe-global.md` (si existen)
+- `registro.md`
 - último informe de capítulo relevante
 
-**Para continuar:** `/novela continuar novelas/<slug>`
+**Para continuar:** `/novela continuar novelas/<slug>` (o "nada que continuar")

@@ -1,47 +1,110 @@
-# Fase 2 — Un capítulo (N)
+# Etapa 2 — Un capítulo (N, intento K)
 
-Precondición: `estado.fase == capitulos`. Al empezar un capítulo la carpeta está limpia (el anterior se commiteó al cerrarse); dentro del capítulo **no** lo está —conviven `intento-K.md`, `informe-K.md`, `estado.json`…— y eso es normal: `verificar-zona.md` fija el índice antes de cada invocación en vez de exigir limpieza. `K = estado.intento_actual` (1 si empieza). `NN` = N con dos dígitos.
+Implementa `escribir_capitulo`, `comprobar_longitud`, `resumir`, `revisar`, `decidir`, `mejor_intento` y `cerrar_capitulo` de SKILL.md §3. `NN` = N con dos dígitos; `A` = arco que contiene N; `entrada` = la entrada nº N de `arcos/arco-AA.md`. Al empezar un capítulo la carpeta está limpia (el anterior se commiteó al cerrarse); dentro del capítulo conviven `intento-K.md`, `resumen-K.md`, `libro-estado-K.md`, `informe-K.md`, `estado.json` y `registro.md` sin commitear, y eso es normal.
 
-## Bucle de intentos
+**Qué resúmenes previos se pasan** (escritor y revisor): si `memoria.resumenes_completos_ultimos` es `null`, los resúmenes aprobados de todos los capítulos anteriores; si es un número M, los de los M últimos. Ruta de cada uno: `capitulos/XX/resumen-<estado.capitulos[X].aprobado>.md`. Para N = 1 no hay ninguno y el prompt lo dice.
+
+## escribir_capitulo(carpeta, N, K) → capitulos/NN/intento-K.md
 
 ```
-repetir:
-    1. ESCRITOR   → intento-K.md + resumen-K.md
-    2. REVISOR    → informe (YAML en su mensaje) → tú lo escribes en informe-K.md
-    3. veredicto = recalcular(problemas)          (regla en config.json: veredicto)
-    4. APROBADO                → cerrar(N, K, por_agotamiento=false)
-       RECHAZADO y K ≤ reescrituras_max → K += 1; estado.intento_actual = K; guardar estado; seguir
-       RECHAZADO y K > reescrituras_max → cerrar(N, K, por_agotamiento=true) con aviso
+entradas = [biblia.md, escaleta.md, arcos/arco-AA.md, libro-estado.md, resúmenes previos según memoria,
+            capitulos/<N-1>/intento-<aprobado>.md si memoria.capitulo_anterior_integro y N > 1,
+            capitulos/NN/informe-<K-1>.md y capitulos/NN/intento-<K-1>.md si K > 1]
+invocar(escritor, capitulo, K, entradas,
+        validacion = bloque {capitulos/NN/intento-K.md} (título + cuerpo no vacío),
+        destinos   = capitulos/NN/intento-K.md)
+progreso "[cap NN/<total>] intento K · escrito (<wc -w> palabras)"
 ```
 
-### 1. Escritor
+### Prompt del escritor
 
-Modelo: según SKILL.md §8. Construye el prompt con **exactamente** esto (rutas, no contenidos):
-
-> Carpeta: `novelas/<slug>/`. Vas a escribir el **capítulo N (intento K)**. Lee: `biblia.md`; `escaleta.md` (tu entrada es la nº N); los resúmenes aprobados según `config.json` → `memoria` (todos si `resumenes_completos_ultimos` es `null`; si no, solo los N últimos): `capitulos/01/resumen-<k1>.md` … `capitulos/<N-1>/resumen-<k>.md`; si `memoria.capitulo_anterior_integro` es `true`, el capítulo anterior aprobado íntegro `capitulos/<N-1>/intento-<k>.md`. Longitud objetivo: <palabras_objetivo> palabras (tolerancia ±<tolerancia>%). Escribe SOLO `capitulos/NN/intento-K.md` y `capitulos/NN/resumen-K.md`. Termina con `ENTREGA: intento-K.md (<palabras> palabras), resumen-K.md`. Máximo <turnos_por_invocacion> acciones.
+> Carpeta de la novela: `novelas/<slug>/`. Vas a escribir el **capítulo N, intento K**. Lee `biblia.md`; `escaleta.md`; `arcos/arco-AA.md` (tu entrada es la nº N); `libro-estado.md`; los resúmenes previos: <rutas, o "no hay: es el primer capítulo">; <el capítulo anterior íntegro: `capitulos/<N−1>/intento-<k>.md`, si procede>. Longitud objetivo: <palabras_objetivo> palabras, tolerancia ±<tolerancia×100> %: el harness cuenta las palabras con `wc -w` y rechaza sin revisar lo que se salga. Devuelve solo el capítulo en un bloque `=== ARCHIVO: capitulos/NN/intento-K.md ===` … `=== FIN ===`, empezando por una línea `# <título>`. No escribas ningún fichero ni produzcas resumen.
 >
-> (Si K > 1) Tu intento anterior fue RECHAZADO. Lee `capitulos/NN/informe-<K-1>.md` y `capitulos/NN/intento-<K-1>.md`. Corrige cada problema del informe sin introducir otros; puedes reutilizar lo que no estaba mal.
+> (K > 1) Tu intento anterior fue RECHAZADO. Lee `capitulos/NN/informe-<K−1>.md` y `capitulos/NN/intento-<K−1>.md`. Corrige cada problema del informe en el lugar que señala, sin introducir otros; conserva lo que estaba bien.
 
-Para N = 1 no hay resúmenes ni capítulo anterior: dilo explícitamente en el prompt.
+## comprobar_longitud(carpeta, N, K) → ok | informe
 
-`verificar-zona.md` con zona = {`capitulos/NN/intento-K.md`, `capitulos/NN/resumen-K.md`}. Validación: ambos existen y no están vacíos; `intento-K.md` tiene frontmatter `palabras`; `resumen-K.md` tiene frontmatter `hilos_abiertos`, `hilos_cerrados`, `personajes`. Cuenta las palabras tú mismo por encima (aprox.) para el registro (`palabras_salida` de la invocación); el juicio de longitud es del revisor.
+Lo haces **tú, sin modelo**:
 
-### 2. Revisor
+```
+palabras  = wc -w capitulos/NN/intento-K.md            # el título cuenta; es despreciable
+objetivo  = entrada.palabras_objetivo
+margen    = objetivo × config.formato.tolerancia_longitud
+si |palabras − objetivo| ≤ margen: registra longitud(ok, palabras); return ok
+informe = { veredicto: RECHAZADO,
+            problemas: [{ gravedad: 3,
+                          donde: "capítulo completo",
+                          que: "<palabras> palabras; objetivo <objetivo>, margen ±<margen>",
+                          por_que: "formato.tolerancia_longitud = <tolerancia>; entrada N de arcos/arco-AA.md" }],
+            observaciones: ["Rechazo generado por el harness; el capítulo no ha pasado por el resumidor ni el revisor"] }
+escribe capitulos/NN/informe-K.md desde plantillas/informe.md con ese contenido y `origen: harness`
+registra longitud(rechazo, palabras, objetivo); registra veredicto(RECHAZADO, 1 problema, gravedad 3, origen harness)
+progreso "[cap NN/<total>] intento K · RECHAZADO por longitud (<palabras> palabras, objetivo <objetivo> ±<tolerancia×100> %)"
+return informe
+```
 
-> (Modelo según SKILL.md §8.) Carpeta: `novelas/<slug>/`. Revisa el **capítulo N, intento K**. Lee `capitulos/NN/intento-K.md`, `capitulos/NN/resumen-K.md`, `biblia.md`, `escaleta.md` (entrada nº N) y los resúmenes aprobados anteriores: <lista de rutas>. Longitud objetivo <palabras_objetivo> ±<tolerancia>%. No escribas ningún fichero salvo, si lo necesitas, `capitulos/NN/notas-revisor-K.md`. Devuelve el informe como bloque YAML según tu definición. Máximo <turnos_por_invocacion> acciones.
+## resumir(carpeta, N, K) → resumen-K.md, libro-estado-K.md
 
-`verificar-zona.md` con zona = {`capitulos/NN/notas-revisor-K.md`}. Validación: el mensaje final contiene un bloque YAML con `veredicto` ∈ {APROBADO, RECHAZADO}, `problemas` (lista, puede estar vacía) donde cada uno tiene `gravedad` 1-5, `donde`, `que`, `por_que`; y `observaciones` (lista).
+```
+invocar(resumidor, capitulo, K,
+        entradas   = [capitulos/NN/intento-K.md, libro-estado.md, plantillas/resumen.md, plantillas/libro-estado.md],
+        validacion = bloques {capitulos/NN/resumen-K.md, capitulos/NN/libro-estado-K.md},
+        destinos   = las mismas rutas)
+```
 
-### 3. Veredicto
+El resumidor **no** recibe biblia, escaletas ni resúmenes previos. Si el libro de estado propuesto supera `memoria.libro_estado_max_palabras`, muestra un aviso en el progreso (invocar.md fija en 1,5× el punto en que pasa a ser incumplimiento).
 
-Aplica la regla de `config.json` (`veredicto.rechaza_con_graves` problemas de gravedad 1-2, o `veredicto.rechaza_con_leves` de gravedad 3-5 → RECHAZADO) a `problemas`. Si difiere del `veredicto` del revisor, manda el tuyo y registra `discrepancia_veredicto`. Escribe `capitulos/NN/informe-K.md`: el YAML como frontmatter (con el veredicto final y, si hubo discrepancia, `veredicto_revisor`), y en el cuerpo la lista de problemas en prosa legible.
+### Prompt del resumidor
 
-Registra `veredicto` (veredicto, nº problemas, gravedad máx.) y `decision_harness` (aprobar | reescribir | aceptar_por_agotamiento).
+> Carpeta de la novela: `novelas/<slug>/`. Resume el **capítulo N, intento K**. Lee solo `capitulos/NN/intento-K.md` y `libro-estado.md` (estado hasta el capítulo N−1). Plantillas: `.claude/skills/novela/plantillas/resumen.md` y `libro-estado.md`. Registra únicamente lo que está en el texto. El libro de estado actualizado debe ocupar como mucho <libro_estado_max_palabras> palabras; si se acerca, condensa entradas cerradas sin borrar hechos. Devuelve dos bloques: `=== ARCHIVO: capitulos/NN/resumen-K.md ===` y `=== ARCHIVO: capitulos/NN/libro-estado-K.md ===`, cada uno cerrado con `=== FIN ===`. No escribas ningún fichero.
 
-### 4. cerrar(N, K, por_agotamiento)
+## revisar(carpeta, N, K) → informe
 
-1. `estado.capitulos[N] = { "aprobado": K, "por_agotamiento": <bool> }`. Si por agotamiento, añade a `estado.avisos`: `"Capítulo N aceptado por agotamiento tras K intentos; ver capitulos/NN/informe-K.md"`.
-2. `estado.capitulo_actual = N + 1`, `estado.intento_actual = 1`. Si N era el último → `estado.fase = final`.
-3. Guarda `estado.json`. Commit `novela <slug>: cap NN cerrado (intento K)`.
-4. Línea de progreso en la sesión (formato en SKILL.md §4).
-5. Si `N % pausa_cada_capitulos == 0` y N no es el último y la sesión va cargada → PARADA `PAUSA_PROGRAMADA` (cierre.md), pidiendo `/novela continuar`.
+```
+salida = invocar(revisor, capitulo, K,
+        entradas   = [capitulos/NN/intento-K.md, capitulos/NN/resumen-K.md, biblia.md, escaleta.md, arcos/arco-AA.md,
+                      libro-estado.md, resúmenes previos según memoria],
+        validacion = JSON del revisor,
+        destinos   = ninguno)
+veredicto = recalcular(salida.problemas)          # abajo
+si veredicto != salida.veredicto: registra discrepancia_veredicto(revisor: <suyo>, harness: <tuyo>)
+escribe capitulos/NN/informe-K.md desde plantillas/informe.md: frontmatter con el veredicto recalculado
+    (y veredicto_revisor si hubo discrepancia), problemas y observaciones; cuerpo en prosa legible; `origen: revisor`
+registra veredicto(<veredicto>, nº problemas, gravedad máx.)
+progreso "[cap NN/<total>] intento K · <APROBADO | RECHAZADO (gravedad <máx>: <que del primer problema, recortado>)>"
+return informe
+```
+
+**recalcular(problemas)**: `graves = |{gravedad ∈ {1,2}}|`, `leves = |{gravedad ∈ {3,4,5}}|`. RECHAZADO si `graves ≥ config.veredicto.rechaza_con_graves` o `leves ≥ config.veredicto.rechaza_con_leves`; APROBADO en otro caso. El veredicto que queda en disco es siempre el recalculado.
+
+### Prompt del revisor (modo capítulo)
+
+> Carpeta de la novela: `novelas/<slug>/`. Modo **capítulo**: revisa el **capítulo N, intento K**. Lee `capitulos/NN/intento-K.md`, `capitulos/NN/resumen-K.md`, `biblia.md`, `escaleta.md`, `arcos/arco-AA.md` (entrada nº N y las posteriores, para detectar adelantos), `libro-estado.md` y los resúmenes previos: <rutas, o "no hay">. La longitud ya la ha comprobado el harness: no la juzgues. Devuelve únicamente el JSON de tu definición. No escribas ningún fichero.
+
+## decidir(carpeta, N, K, informe) → aprobar | reescribir | agotar
+
+```
+si informe.veredicto == APROBADO:                 registra decision_harness(aprobar);     return aprobar
+si K ≤ config.limites.reescrituras_max:           registra decision_harness(reescribir → intento K+1); return reescribir
+registra decision_harness(aceptar_por_agotamiento); return agotar
+```
+
+## mejor_intento(carpeta, N) → K
+
+Entre los intentos 1..K del capítulo, leyendo sus `informe-k.md`:
+
+1. Descarta los rechazados por longitud (`origen: harness`) si hay alguno que pasó al revisor.
+2. Menos problemas de gravedad 1–2.
+3. A igualdad, menos problemas en total.
+4. A igualdad, el más reciente.
+
+Si todos fueron rechazados por longitud, gana el más cercano a `palabras_objetivo`. Registra `decision_harness(mejor_intento = k, motivo)`.
+
+## cerrar_capitulo(carpeta, N, K, por_agotamiento)
+
+1. Si `por_agotamiento`: si el intento K pasó por el resumidor, sigue; si fue rechazado por longitud y no tiene `resumen-K.md`, ejecuta `resumir(carpeta, N, K)` ahora (el libro de estado necesita el capítulo que se queda).
+2. Copia `capitulos/NN/libro-estado-K.md` sobre `libro-estado.md` (escritura completa).
+3. `estado.capitulos[N] = { "aprobado": K, "por_agotamiento": <bool>, "intentos": <K máximo alcanzado> }`. Si por agotamiento, añade a `estado.avisos`: `"Capítulo N aceptado por agotamiento (mejor intento: K de <intentos>); ver capitulos/NN/informe-K.md"`.
+4. `estado.capitulo_actual = N + 1`; `estado.intento_actual = 1`; si N es el último del arco A, `estado.arco_actual = A + 1` (salvo que sea el último arco). Guarda.
+5. Commit `novela <slug>: cap NN cerrado (intento K)`.
+6. Progreso: `[cap NN/<total>] intento K · APROBADO` o `… · RECHAZADO · aceptado por agotamiento (mejor intento: K) ⚠`.
