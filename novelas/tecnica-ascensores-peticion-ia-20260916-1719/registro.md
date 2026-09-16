@@ -62,3 +62,16 @@ Las columnas `modelo`, `pal_entrada`, `pal_salida`, `tok_entrada`, `tok_salida` 
 | 2026-09-16 18:20 | invocacion | capitulos | 1 | 01 | 3 | haiku | 3563 | – | – | – | – | revisor-continuidad · modo capitulo · intento tecnico 1 · resultado: ok · APROBADO, 0 problemas |
 | 2026-09-16 18:20 | veredicto | capitulos | 1 | 01 | 3 | – | – | – | – | – | – | APROBADO · 0 problemas · origen: revisores · desglose: continuidad 0, encargo 0 |
 | 2026-09-16 18:20 | decision_harness | capitulos | 1 | 01 | 3 | – | – | – | – | – | – | aprobar |
+| 2026-09-16 18:22 | invocacion | capitulos | 1 | 02 | 1 | haiku | 5935 | 980 | – | – | – | escritor · modo capitulo · intento tecnico 1 · resultado: ok · capitulos/02/intento-1.md |
+| 2026-09-16 18:22 | longitud | capitulos | 1 | 02 | 1 | – | – | – | – | – | – | rechazo · 980 palabras · objetivo 1500 · margen 1200-1800 |
+| 2026-09-16 18:22 | veredicto | capitulos | 1 | 02 | 1 | – | – | – | – | – | – | RECHAZADO · 1 problema · gravedad max 3 · origen: harness |
+| 2026-09-16 18:22 | decision_harness | capitulos | 1 | 02 | 1 | – | – | – | – | – | – | ajuste_longitud 1/2 -> intento 2 · no consume reescritura |
+| 2026-09-16 18:23 | invocacion | capitulos | 1 | 02 | 2 | haiku | – | – | – | – | – | escritor · modo capitulo · intento tecnico 1 · resultado: incumple · motivo: el mensaje final describe la ampliacion ("ampliado de 980 a 1487 palabras") pero no contiene ningun bloque === ARCHIVO: … === |
+| 2026-09-16 18:23 | decision_harness | capitulos | 1 | 02 | 2 | – | – | – | – | – | – | reintento 1/3: salida sin bloques (5a vez en la ejecucion) |
+| 2026-09-16 18:26 | invocacion | capitulos | 1 | 02 | 2 | haiku | 3900 | 1398 | – | – | – | escritor · modo capitulo · intento tecnico 2 · resultado: ok · capitulos/02/intento-2.md |
+| 2026-09-16 18:26 | longitud | capitulos | 1 | 02 | 2 | – | – | – | – | – | – | ok · 1398 palabras · objetivo 1500 · margen 1200-1800 |
+| 2026-09-16 18:30 | invocacion | capitulos | 1 | 02 | 2 | haiku | 2100 | 1689 | – | – | – | resumidor · modo capitulo · intento tecnico 1 · resultado: ok · observacion: el delimitador de cierre del segundo bloque llego como === FIN ===" con una comilla sobrante |
+| 2026-09-16 18:32 | invocacion | capitulos | 1 | 02 | 2 | haiku | 3600 | – | – | – | – | revisor-encargo · modo capitulo · intento tecnico 1 · resultado: ok · APROBADO, 0 problemas |
+| 2026-09-16 18:32 | invocacion | capitulos | 1 | 02 | 2 | haiku | 4300 | – | – | – | – | revisor-continuidad · modo capitulo · intento tecnico 1 · resultado: ok · APROBADO, 0 problemas |
+| 2026-09-16 18:32 | veredicto | capitulos | 1 | 02 | 2 | – | – | – | – | – | – | APROBADO · 0 problemas · origen: revisores · desglose: continuidad 0, encargo 0 |
+| 2026-09-16 18:32 | decision_harness | capitulos | 1 | 02 | 2 | – | – | – | – | – | – | aprobar |

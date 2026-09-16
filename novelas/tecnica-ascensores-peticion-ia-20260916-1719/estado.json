@@ -17,7 +17,7 @@
     }
   },
   "arco_actual": 1,
-  "capitulo_actual": 2,
+  "capitulo_actual": 3,
   "intento_actual": 1,
   "capitulos": {
     "1": {
@@ -26,15 +26,22 @@
       "intentos": 3,
       "reescrituras": 1,
       "ajustes_longitud": 1
+    },
+    "2": {
+      "aprobado": 2,
+      "por_agotamiento": false,
+      "intentos": 2,
+      "reescrituras": 0,
+      "ajustes_longitud": 1
     }
   },
   "informe_global": false,
   "invocaciones": {
     "interrogador": 6,
-    "escritor": 5,
-    "resumidor": 3,
-    "revisor_encargo": 2,
-    "revisor_continuidad": 5
+    "escritor": 8,
+    "resumidor": 4,
+    "revisor_encargo": 3,
+    "revisor_continuidad": 6
   },
   "ultima_parada": null,
   "avisos": [],
@@ -42,7 +49,8 @@
     "1": 1
   },
   "ajustes_usados": {
-    "1": 1
+    "1": 1,
+    "2": 1
   },
   "erratas": null
 }
