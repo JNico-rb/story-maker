@@ -82,3 +82,14 @@ Las columnas `modelo`, `pal_entrada`, `pal_salida`, `tok_entrada`, `tok_salida` 
 | 2026-09-16 18:39 | invocacion | capitulos | 1 | 03 | 1 | haiku | 5500 | – | – | – | – | revisor-continuidad · modo capitulo · intento tecnico 1 · resultado: ok · APROBADO, 0 problemas |
 | 2026-09-16 18:39 | veredicto | capitulos | 1 | 03 | 1 | – | – | – | – | – | – | APROBADO · 0 problemas · origen: revisores · desglose: continuidad 0, encargo 0 |
 | 2026-09-16 18:39 | decision_harness | capitulos | 1 | 03 | 1 | – | – | – | – | – | – | aprobar |
+| 2026-09-17 11:20 | paso_descartado | capitulos | 1 | 04 | – | – | – | – | – | – | – | reanudar: carpeta con un paso a medias · descartadas capitulos/04/intento-1.md, capitulos/04/informe-1.md, capitulos/04/intento-2.md y los cambios sin commitear de estado.json y registro.md · vuelta al commit 1cd7b16 (cap 03 cerrado) · copia de seguridad fuera del harness en el scratchpad de la sesion |
+| 2026-09-17 11:21 | inicio_ejecucion | capitulos | 1 | 04 | 1 | – | – | – | – | – | – | comando: continuar · perfil: relato · sobreescrituras: ninguna · flags: ninguno |
+| 2026-09-17 11:21 | invocacion | capitulos | 1 | 04 | 1 | haiku | 8257 | – | – | – | – | escritor · modo capitulo · intento tecnico 1 · resultado: pendiente |
+| 2026-09-17 11:24 | invocacion | capitulos | 1 | 04 | 1 | haiku | 8257 | 1253 | – | – | – | escritor · modo capitulo · intento tecnico 1 · resultado: ok · capitulos/04/intento-1.md · cierra la fila 'pendiente' de las 11:21 (la herramienta Agent de Claude Code devolvio la salida en segundo plano; no expone run_in_background) |
+| 2026-09-17 11:24 | longitud | capitulos | 1 | 04 | 1 | – | – | – | – | – | – | ok · 1253 palabras · objetivo 1500 · margen 1200-1800 |
+| 2026-09-17 11:24 | invocacion | capitulos | 1 | 04 | 1 | haiku | 3012 | – | – | – | – | resumidor · modo capitulo · intento tecnico 1 · resultado: pendiente |
+| 2026-09-17 11:27 | invocacion | capitulos | 1 | 04 | 1 | haiku | 3012 | 3201 | – | – | – | resumidor · modo capitulo · intento tecnico 1 · resultado: ok · capitulos/04/resumen-1.md, capitulos/04/libro-estado-1.md · libro de estado 2345 palabras (max 4000, sin aviso) · cierra la fila 'pendiente' de las 11:24 |
+| 2026-09-17 11:31 | invocacion | capitulos | 1 | 04 | 1 | haiku | 4964 | – | – | – | – | revisor-encargo · modo capitulo · intento tecnico 1 · resultado: ok · APROBADO, 0 problemas |
+| 2026-09-17 11:31 | invocacion | capitulos | 1 | 04 | 1 | haiku | 7042 | – | – | – | – | revisor-continuidad · modo capitulo · intento tecnico 1 · resultado: ok · APROBADO, 0 problemas |
+| 2026-09-17 11:31 | veredicto | capitulos | 1 | 04 | 1 | – | – | – | – | – | – | APROBADO · 0 problemas · origen: revisores · desglose: continuidad 0, encargo 0 |
+| 2026-09-17 11:31 | decision_harness | capitulos | 1 | 04 | 1 | – | – | – | – | – | – | aprobar |
