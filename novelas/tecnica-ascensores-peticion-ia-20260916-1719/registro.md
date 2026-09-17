@@ -93,3 +93,21 @@ Las columnas `modelo`, `pal_entrada`, `pal_salida`, `tok_entrada`, `tok_salida` 
 | 2026-09-17 11:31 | invocacion | capitulos | 1 | 04 | 1 | haiku | 7042 | – | – | – | – | revisor-continuidad · modo capitulo · intento tecnico 1 · resultado: ok · APROBADO, 0 problemas |
 | 2026-09-17 11:31 | veredicto | capitulos | 1 | 04 | 1 | – | – | – | – | – | – | APROBADO · 0 problemas · origen: revisores · desglose: continuidad 0, encargo 0 |
 | 2026-09-17 11:31 | decision_harness | capitulos | 1 | 04 | 1 | – | – | – | – | – | – | aprobar |
+| 2026-09-17 11:32 | commit | capitulos | 1 | 04 | 1 | – | – | – | – | – | – | cap 04 cerrado (intento 1) · 2258fb0 |
+| 2026-09-17 11:33 | invocacion | capitulos | 1 | 05 | 1 | haiku | 10106 | – | – | – | – | escritor · modo capitulo · intento tecnico 1 · resultado: pendiente |
+| 2026-09-17 11:36 | invocacion | capitulos | 1 | 05 | 1 | haiku | 10106 | 821 | – | – | – | escritor · modo capitulo · intento tecnico 1 · resultado: ok · capitulos/05/intento-1.md · cierra la fila 'pendiente' de las 11:33 |
+| 2026-09-17 11:36 | longitud | capitulos | 1 | 05 | 1 | – | – | – | – | – | – | rechazo · 821 palabras · objetivo 1500 · margen 1200-1800 · faltan 379 |
+| 2026-09-17 11:36 | veredicto | capitulos | 1 | 05 | 1 | – | – | – | – | – | – | RECHAZADO · 1 problema · gravedad max 3 · origen: harness |
+| 2026-09-17 11:36 | decision_harness | capitulos | 1 | 05 | 1 | – | – | – | – | – | – | ajuste_longitud 1/2 → intento 2 · no consume reescritura |
+| 2026-09-17 11:37 | invocacion | capitulos | 1 | 05 | 2 | haiku | 821 | – | – | – | – | escritor · modo capitulo · intento tecnico 1 · resultado: pendiente · ajuste de longitud |
+| 2026-09-17 11:40 | invocacion | capitulos | 1 | 05 | 2 | haiku | 821 | 1288 | – | – | – | escritor · modo capitulo · intento tecnico 1 · resultado: ok · capitulos/05/intento-2.md · cierra la fila 'pendiente' de las 11:37 |
+| 2026-09-17 11:40 | longitud | capitulos | 1 | 05 | 2 | – | – | – | – | – | – | ok · 1288 palabras · objetivo 1500 · margen 1200-1800 |
+| 2026-09-17 11:40 | invocacion | capitulos | 1 | 05 | 2 | haiku | 4016 | – | – | – | – | resumidor · modo capitulo · intento tecnico 1 · resultado: pendiente |
+| 2026-09-17 11:44 | invocacion | capitulos | 1 | 05 | 2 | haiku | 4016 | 3492 | – | – | – | resumidor · modo capitulo · intento tecnico 1 · resultado: ok · capitulos/05/resumen-2.md, capitulos/05/libro-estado-2.md · observacion: tres vinetas del libro de estado llegaron con un '**' sobrante tras 'Relaciones que han cambiado'; corregido al escribir |
+| 2026-09-17 11:45 | invocacion | capitulos | 1 | 05 | 2 | haiku | 4016 | 2774 | – | – | – | correccion de la fila anterior: pal_salida es 2774 (resumen-2 651 + libro-estado-2 2123), no 3492; el harness registro antes de contar con wc -w |
+| 2026-09-17 11:45 | invocacion | capitulos | 1 | 05 | 2 | haiku | 4999 | – | – | – | – | revisor-encargo · modo capitulo · intento tecnico 1 · resultado: pendiente |
+| 2026-09-17 11:45 | invocacion | capitulos | 1 | 05 | 2 | haiku | 8697 | – | – | – | – | revisor-continuidad · modo capitulo · intento tecnico 1 · resultado: pendiente |
+| 2026-09-17 11:49 | invocacion | capitulos | 1 | 05 | 2 | haiku | 4999 | – | – | – | – | revisor-encargo · modo capitulo · intento tecnico 1 · resultado: ok · APROBADO, 0 problemas |
+| 2026-09-17 11:49 | invocacion | capitulos | 1 | 05 | 2 | haiku | 8697 | – | – | – | – | revisor-continuidad · modo capitulo · intento tecnico 1 · resultado: ok · APROBADO, 0 problemas, 4 observaciones |
+| 2026-09-17 11:49 | veredicto | capitulos | 1 | 05 | 2 | – | – | – | – | – | – | APROBADO · 0 problemas · 4 observaciones · origen: revisores · desglose: continuidad 0, encargo 0 |
+| 2026-09-17 11:49 | decision_harness | capitulos | 1 | 05 | 2 | – | – | – | – | – | – | aprobar |
