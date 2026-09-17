@@ -29,9 +29,9 @@ Las devoluciones por límites las gestiona `invocar` como incumplimiento de cont
 Precondición: el capítulo `estado.arcos[A].hasta` acaba de cerrarse. Se ejecuta **antes** de `pausa_programada` y solo si hay más de un arco.
 
 ```
-salida = invocar(revisor, arco, K = –,
+salida = invocar(revisor-continuidad, arco, K = –,
     entradas   = [intento aprobado de cada capítulo del arco, arcos/arco-AA.md, escaleta.md, biblia.md, libro-estado.md],
-    validacion = JSON del revisor,
+    validacion = JSON del revisor (gravedades 1 y 5),
     destinos   = ninguno (el informe lo escribes tú, abajo))
 escribe arcos/informe-arco-AA.md desde plantillas/informe.md: frontmatter con capitulo: "arco-AA", intento: –,
     el JSON (veredicto tal cual, es informativo), y el cuerpo en prosa legible
@@ -43,6 +43,6 @@ progreso "[arco A/<total>] informe de arco: <n> problemas de gravedad 1–2"
 
 Nada se reescribe. El informe alimenta `detallar_arco(A+1)` y las métricas de calidad (final.md).
 
-### Prompt del revisor (modo arco)
+### Prompt del revisor de continuidad (modo arco)
 
 > Carpeta de la novela: `novelas/<slug>/`. Modo **arco**: revisión de continuidad del **arco A** completo (capítulos <desde>–<hasta>). Lee los capítulos aprobados: <rutas `capitulos/NN/intento-K.md`>, la escaleta del arco `arcos/arco-AA.md`, `escaleta.md`, `biblia.md` y `libro-estado.md`. Busca solo lo que no se ve capítulo a capítulo: hilos que el arco debía cerrar (según `escaleta.md`) y no cerró, contradicciones entre capítulos del arco, personajes que desaparecen sin explicación, cambios de reglas del mundo. El veredicto es informativo: nadie reescribe. Devuelve únicamente el JSON de tu definición. No escribas ningún fichero.

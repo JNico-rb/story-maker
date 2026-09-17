@@ -25,7 +25,7 @@ Etapa · arco · capítulo · intento.
 - Informe global: sí/no (base: manuscrito | resúmenes)
 
 ## Invocaciones
-interrogador · escritor · resumidor · revisor. Reintentos técnicos: … Discrepancias de veredicto: … Rechazos por longitud: …
+interrogador · escritor · resumidor · revisor-encargo · revisor-continuidad. Reintentos técnicos: … Discrepancias de veredicto: … Rechazos por longitud: …
 
 ## Volumen
 Suma de las filas `invocacion` del registro, por agente y por modelo (`specs/functional.md` §6.6).
@@ -56,4 +56,4 @@ Solo en ÉXITO: artefactos de `specs/inventario.md` §4 que faltan, o "completo"
 - `registro.md`
 - último informe de capítulo relevante
 
-**Para continuar:** `/novela continuar novelas/<slug>` (o "nada que continuar")
+**Para continuar:** la acción de la tabla de motivos de `procedimientos/cierre.md` — normalmente `/novela continuar novelas/<slug>`, en `PAUSA_PROGRAMADA` **en una sesión nueva**, o "nada que continuar"

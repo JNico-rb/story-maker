@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "slug": "",
   "etapa": "interrogatorio",
   "etapa_previa": null,
@@ -14,7 +14,16 @@
   "intento_actual": null,
   "capitulos": {},
   "informe_global": false,
-  "invocaciones": { "interrogador": 0, "escritor": 0, "resumidor": 0, "revisor": 0 },
+  "invocaciones": {
+    "interrogador": 0,
+    "escritor": 0,
+    "resumidor": 0,
+    "revisor_encargo": 0,
+    "revisor_continuidad": 0
+  },
   "ultima_parada": null,
-  "avisos": []
+  "avisos": [],
+  "reescrituras_usadas": {},
+  "ajustes_usados": {},
+  "erratas": null
 }

@@ -10,7 +10,8 @@ para intento_tecnico en 1..config.limites.reintentos_tecnicos:
     pal_entrada = suma de `wc -w` sobre las rutas de `entradas`
     registra invocacion(agente, modo, modelo, intento_tecnico, inicio, pal_entrada)
     prompt = <prompt del procedimiento que llama> + (si intento_tecnico > 1) "\n\nMotivo del reintento: <motivo>. Corrige exactamente eso."
-    resultado = Agent(subagent_type = agente, model = modelo, prompt = prompt)
+    resultado = Agent(subagent_type = agente, model = modelo, prompt = prompt,
+                      run_in_background = false)          # ver abajo: el bucle es secuencial
     e.invocaciones[agente] += 1; guardar(e)
 
     si la herramienta falla o el mensaje final está vacío:
@@ -36,20 +37,26 @@ agotados:
     cerrar(carpeta, PARADA, motivo_parada, detalle = último motivo)      # cierre.md
 ```
 
+**`run_in_background = false` siempre, y explícito.** La herramienta `Agent` corre en segundo plano por defecto y devuelve un identificador en vez de la salida; el paso siguiente de `invocar` es `extraer(resultado, validacion)`, así que una invocación en segundo plano no te daría nada que validar y el bucle avanzaría sobre un resultado que no existe. Es la única excepción a la norma general de Claude Code de no bloquear la sesión: aquí la acción siguiente **siempre** depende del resultado. Nunca des por hecha la salida de un agente que aún no ha terminado. (Detalle de Claude Code: en el hito 2 el runner espera la respuesta de la API y no hay nada que declarar.)
+
 Cada agente recibe **exactamente** las rutas de su contrato (spec §5): ni una más para "dar contexto", ni una menos. En el prompt van rutas, no contenidos; el agente las lee. Todos los prompts terminan con: "Devuelve tu salida en el mensaje final con la forma exacta de tu definición. No escribas ningún fichero."
 
 ## elegir_modelo(agente, K, intento_tecnico, modo) → modelo
 
 ```
-base = config.modelos[agente]                     # interrogador | escritor | resumidor | revisor
+base = config.modelos[clave(agente)]              # interrogador | escritor | resumidor |
+                                                  # revisor_encargo | revisor_continuidad
 esc  = config.modelos.escalado
-si no esc.activo                                              → base
-si intento_tecnico > 1 y esc.tras_fallo_tecnico               → esc.modelo
-si agente == revisor y modo ∈ {arco, global} y esc.revision_arco_y_global → esc.modelo
-si agente == escritor y K >= esc.escritor_desde_intento       → esc.modelo
-si agente == revisor  y K >= esc.revisor_desde_intento        → esc.modelo
-en otro caso                                                  → base
+si no esc.activo                                                          → base
+si intento_tecnico > 1 y esc.tras_fallo_tecnico                           → esc.modelo
+si agente == revisor-continuidad y modo ∈ {canon, arco, global}
+        y esc.revision_arco_y_global                                      → esc.modelo
+si agente == escritor y K >= esc.escritor_desde_intento                   → esc.modelo
+si agente es un revisor y K >= esc.revisor_desde_intento                  → esc.modelo
+en otro caso                                                              → base
 ```
+
+`clave(agente)` traduce el nombre del fichero a la clave de `config.modelos`: los guiones pasan a guion bajo (`revisor-encargo` → `revisor_encargo`). `escritor_desde_intento` y `revisor_desde_intento` miran el intento **K del capítulo**, que cuenta también los ajustes de longitud: es deliberado, porque un capítulo que va por el intento 3 necesita el modelo bueno se haya gastado en corregir o en recortar.
 
 Con `proveedor: claude-code` el valor va tal cual al parámetro `model` de la herramienta `Agent` (`opus`, `sonnet`, `haiku`, `fable`). El modelo elegido se registra en la fila `invocacion`.
 
@@ -67,7 +74,20 @@ Con `proveedor: claude-code` el valor va tal cual al parámetro `model` de la he
   - `resumen-K.md`: frontmatter con `capitulo`, `intento`, `hilos_abiertos`, `hilos_cerrados`, `personajes`; secciones Hechos, Cambios en personajes, Elementos introducidos, Enlace.
   - `libro-estado-K.md`: secciones Personajes, Hilos abiertos, Hilos cerrados, Elementos, Reglas en vigor; `wc -w` ≤ `memoria.libro_estado_max_palabras` × 1,5 (por encima, incumplimiento: "condensa"). Entre 1,0 y 1,5 veces, aviso en el progreso.
 
-**JSON** (revisor). El mensaje final, sin vallas de código, debe parsear como un objeto con exactamente las claves `veredicto` ∈ {APROBADO, RECHAZADO}, `problemas` (lista; cada elemento con `gravedad` ∈ {1,2,4,5}, `donde`, `que`, `por_que` no vacíos) y `observaciones` (lista de cadenas). Cualquier otra cosa es incumplimiento con el motivo exacto ("falta la clave observaciones", "gravedad 3 no es del revisor", "texto fuera del JSON").
+**JSON** (los dos revisores). El mensaje final, sin vallas de código, debe parsear como un objeto con exactamente las claves `veredicto` ∈ {APROBADO, RECHAZADO}, `problemas` (lista; cada elemento con `gravedad`, `donde`, `que`, `por_que` no vacíos) y `observaciones` (lista de cadenas). La `gravedad` permitida depende de quién responde:
+
+| Agente | Gravedades que puede emitir |
+|---|---|
+| `revisor-encargo` | 2, 4 |
+| `revisor-continuidad` | 1, 5 (y solo 1 en modo `canon`) |
+
+Cualquier otra cosa es incumplimiento con el motivo exacto ("falta la clave observaciones", "gravedad 3 no la emite ningún revisor: la longitud la comprueba el harness", "gravedad 1 no es del revisor de encargo", "texto fuera del JSON").
+
+## Los dos revisores de un mismo intento
+
+Se lanzan **en el mismo mensaje**, en dos llamadas a la herramienta `Agent`, para que corran en paralelo. Las dos llevan `run_in_background = false` igual que el resto: dos llamadas en un mismo mensaje ya corren a la vez, y el paralelismo que hace falta aquí es ese, no el de segundo plano. Cada uno recibe solo las rutas de su contrato (spec §5.4, §5.5): no le des al de encargo el libro de estado ni al de continuidad la escaleta del arco. Tienen sus propias filas en el registro, con su propio `pal_entrada` y su propio modelo.
+
+Si uno falla y el otro entrega, **reintenta solo el que falló** con su propio contador de `reintentos_tecnicos`; la salida del que entregó se conserva y no se vuelve a pedir. Solo si el que falla agota sus reintentos se llega a la parada.
 
 ## descartar(carpeta)
 

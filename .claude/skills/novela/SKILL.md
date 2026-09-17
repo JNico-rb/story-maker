@@ -6,7 +6,7 @@ argument-hint: nueva "<idea>" | continuar <carpeta> | estado <carpeta> | verific
 
 # /novela — orquestador
 
-Eres el **harness** (`specs/functional.md` §6). Coordinas cuatro agentes —`interrogador`, `escritor`, `resumidor`, `revisor`—, **escribes todos los ficheros**, guardas el estado, impones los límites y tomas todas las decisiones de flujo. Tú no escribes prosa de la novela ni juzgas capítulos. La spec manda sobre este fichero; el vocabulario es su §0.
+Eres el **harness** (`specs/functional.md` §6). Coordinas cinco agentes —`interrogador`, `escritor`, `resumidor`, `revisor-encargo`, `revisor-continuidad`—, **escribes todos los ficheros**, guardas el estado, impones los límites y tomas todas las decisiones de flujo. Tú no escribes prosa de la novela ni juzgas capítulos. La spec manda sobre este fichero; el vocabulario es su §0.
 
 Este fichero es **pseudocódigo**. Cada función lleva el nombre de la spec §9.1 y su detalle está en un procedimiento de `procedimientos/`. El runner del hito 2 implementa estas mismas funciones con estos mismos nombres.
 
@@ -32,10 +32,10 @@ Argumentos recibidos: `$ARGUMENTS`
 Antes de invocar a ningún agente:
 
 1. `git rev-parse --is-inside-work-tree` responde `true`.
-2. `config.json` de la raíz parsea, tiene `version: 3` y `perfil_activo` apunta a una entrada de `perfiles`.
-3. Existen `.claude/agents/{interrogador,escritor,resumidor,revisor}.md`, y en cada uno el frontmatter coincide con la config de la raíz: `maxTurns` igual a `limites.turnos_por_invocacion`, y `model` igual a `modelos.<agente>`. Si algo no coincide, es ERROR_CONFIGURACION indicando fichero, campo, valor declarado y valor esperado: lo que anuncia la config no es lo que se aplicaría. La comparación es contra la config **de la raíz**, antes de las sobreescrituras; una sobreescritura `modelos.<agente>=<valor>` es un acto deliberado de esta ejecución y no dispara el error.
+2. `config.json` de la raíz parsea, tiene `version: 4` y `perfil_activo` apunta a una entrada de `perfiles`. En `estado` y `verificar` se acepta también `version: 3`, para poder consultar novelas del harness anterior.
+3. Existen `.claude/agents/{interrogador,escritor,resumidor,revisor-encargo,revisor-continuidad}.md`, y en cada uno el frontmatter coincide con la config de la raíz: `maxTurns` igual a `limites.turnos_por_invocacion`, y `model` igual a `modelos.<agente>` (los revisores, con guion en el fichero y con guion bajo en la clave: `revisor-encargo.md` ↔ `modelos.revisor_encargo`). Si algo no coincide, es ERROR_CONFIGURACION indicando fichero, campo, valor declarado y valor esperado: lo que anuncia la config no es lo que se aplicaría. La comparación es contra la config **de la raíz**, antes de las sobreescrituras; una sobreescritura `modelos.<agente>=<valor>` es un acto deliberado de esta ejecución y no dispara el error.
 4. Existen `procedimientos/` y `plantillas/` de esta skill.
-5. En `continuar`, `estado` y `verificar`: la carpeta existe y `estado.json` parsea con `version: 3` y una `etapa` conocida. Si no → PARADA `ESTADO_NO_RECONOCIDO` señalando el último commit de la carpeta como punto consistente.
+5. En `continuar`, `estado` y `verificar`: la carpeta existe y `estado.json` parsea con `version: 4` (o 3 en los dos de solo lectura) y una `etapa` conocida. Si no → PARADA `ESTADO_NO_RECONOCIDO` señalando el último commit de la carpeta como punto consistente.
 
 Si algo falla: muestra (y si hay carpeta, escribe) el informe de cierre con `ERROR_CONFIGURACION` y qué falta exactamente (`procedimientos/cierre.md`). No sigas.
 
@@ -75,9 +75,9 @@ si e.etapa == capitulos:
             informe = comprobar_longitud(carpeta, N, K)
             si informe == ok:
                 resumir(carpeta, N, K)
-                informe = revisar(carpeta, N, K)
-            decision = decidir(carpeta, N, K, informe)          # aprobar | reescribir | agotar
-            si decision == reescribir:
+                informe = revisar(carpeta, N, K)                 # los dos revisores, en paralelo
+            decision = decidir(carpeta, N, K, informe)          # aprobar | ajustar | reescribir | agotar
+            si decision in {ajustar, reescribir}:
                 K += 1; e.intento_actual = K; guardar(e); continuar
             K_final = K si aprobar, si no mejor_intento(carpeta, N)
             cerrar_capitulo(carpeta, N, K_final, por_agotamiento = (decision == agotar))
@@ -89,16 +89,19 @@ si e.etapa == capitulos:
 
 si e.etapa == final:                                            # procedimientos/final.md
     ensamblar(carpeta)
-    revisar_global(carpeta)
+    informe_global = revisar_global(carpeta)
+    escribir_erratas(carpeta, informe_global)
     metricas = calcular_metricas(carpeta)
     e.etapa = completa; guardar(e); commit "novela <slug>: novela completa"
     cerrar(carpeta, EXITO, metricas)                            # procedimientos/cierre.md
 
 si e.etapa == completa:
-    muestra dónde están manuscrito.md, informe-global.md e informe-cierre.md; no hagas nada más
+    muestra dónde están manuscrito.md, informe-global.md, erratas.md e informe-cierre.md; no hagas nada más
 ```
 
 `pausa_programada(N)` es cierto si `limites.pausa_cada_capitulos` no es `null`, `N % pausa_cada_capitulos == 0` y `N < total_capitulos`. Con un solo arco, `revisar_arco` y `revisar_global` son la misma pasada: se hace solo la global.
+
+**Cuando la pausa se dispara, la ejecución termina ahí de verdad**: muestras el informe de cierre y paras. No encadenes `continuar` por tu cuenta ni se lo ofrezcas al usuario para ahora mismo. La pausa existe para soltar el contexto de esta sesión, así que seguir dentro de ella gasta el paso sin recuperar nada y deja el bucle donde estaba. Quien reanuda es el usuario, en una sesión nueva (spec §6.2).
 
 Toda invocación de agente pasa por `invocar(...)` de `procedimientos/invocar.md`, que reintenta, valida la forma de la salida, la escribe y registra el volumen. Toda parada pasa por `cerrar(...)` de `procedimientos/cierre.md`.
 
@@ -108,13 +111,14 @@ Una línea por evento, en la sesión, en el momento en que ocurre:
 
 ```
 [arco 1/1] escaleta del arco validada (5 capítulos)
+[interrogatorio] canon: 1 problema · devuelto al interrogador (1/3)
 [cap 02/05] intento 1 · escrito (1.612 palabras)
-[cap 02/05] intento 1 · RECHAZADO por longitud (2.104 palabras, objetivo 1.500 ±20 %)
-[cap 02/05] intento 2 · RECHAZADO (gravedad 1: contradice libro de estado › Marta)
+[cap 02/05] intento 1 · RECHAZADO por longitud (2.104 palabras; margen 1.200-1.800) · ajuste 1/2, no gasta reescritura
+[cap 02/05] intento 2 · RECHAZADO (gravedad 1: contradice libro de estado › Marta) [continuidad 1 · encargo 0]
 [cap 02/05] intento 3 · APROBADO
-[cap 04/05] intento 3 · RECHAZADO · aceptado por agotamiento (mejor intento: 2) ⚠
+[cap 04/05] intento 3 · RECHAZADO · aceptado por agotamiento (mejor intento: 2, cierra el hilo que pedía la escaleta) ⚠
 [arco 1/1] informe de arco: 0 problemas graves
-[final] revisión global: 1 problema de gravedad 1 · métricas: 5/6 CUMPLE
+[final] revisión global: 1 problema de gravedad 1 · 3 erratas propuestas · métricas: 5/6 CUMPLE
 ```
 
 ## 5. reanudar(carpeta)
@@ -125,7 +129,9 @@ Una línea por evento, en la sesión, en el momento en que ocurre:
 
 ## 6. Qué modelo usa cada invocación
 
-`elegir_modelo(agente, K, intento_tecnico, modo)` en `procedimientos/invocar.md`, con `config.modelos`. Con la configuración por defecto (validación) los cuatro van con el modelo caro y el escalado está apagado.
+`elegir_modelo(agente, K, intento_tecnico, modo)` en `procedimientos/invocar.md`, con `config.modelos`. Con la configuración por defecto los cinco van con el modelo barato y el escalado está apagado.
+
+**Tu propio modelo no está en `config.json`.** `modelos.*` gobierna a los agentes; tú eres la sesión (spec §7.3). No lo registres como si fuera configurable ni lo cambies.
 
 ## 7. estado <carpeta>
 
@@ -141,5 +147,6 @@ Solo lectura. Ejecuta los seis pasos de `specs/inventario.md` §4 y, si la novel
 - **Estado tras cada decisión**: reescribe `estado.json` completo tras aprobar, reescribir, aceptar por agotamiento, avanzar, validar un arco o parar. Nunca al final.
 - **Registro**: una fila en `registro.md` por cada evento (plantilla). Textos completos no; rutas sí.
 - **Commits** solo dentro de `novelas/<slug>`, en estos puntos: carpeta creada · escaleta aprobada · arco AA detallado · cap NN cerrado (intento K) · arco AA revisado · novela completa · PARADA <motivo>. Siempre `git add -A novelas/<slug>` seguido de `git commit -m "novela <slug>: <punto>"`. Nunca fuera de esa carpeta, nunca `push`.
-- **Lo mecánico lo haces tú con herramientas, no con criterio**: palabras con `wc -w`, veredicto con la regla de `config.veredicto`, mejor intento con la regla de §4.2, forma de las salidas con los delimitadores exactos.
+- **Lo mecánico lo haces tú con herramientas, no con criterio**: palabras con `wc -w`, veredicto con la regla de `config.veredicto` sobre la **unión** de los problemas de los dos revisores, mejor intento con los cinco pasos de `procedimientos/capitulo.md` (los cierres de escaleta antes que el recuento), forma de las salidas con los delimitadores exactos.
+- **Nada de observabilidad dentro del bucle.** No llames a Langfuse ni a ninguna herramienta externa durante la generación: las trazas se exportan después, desde `registro.md` (spec §9.3). Tu única salida es la carpeta de la novela.
 - **Nunca terminas sin informe de cierre.** Éxito o parada, siempre `cerrar(...)`.

@@ -23,4 +23,4 @@ Implementa `cerrar(carpeta, resultado, motivo, detalle | metricas)` de SKILL.md 
 3. En ÉXITO, comprueba la carpeta contra `specs/inventario.md` §4 y anota en el informe cualquier artefacto que falte.
 4. Registra `fin_ejecucion(resultado, motivo)`.
 5. Commit `novela <slug>: <EXITO | PARADA <motivo>>`. Si es `ERROR_CONFIGURACION` sin carpeta válida, omite los pasos 1, 2 y 5 y solo muestra el informe en la sesión.
-6. Muestra el informe completo en la sesión. En PARADA, la última línea es la acción exacta para continuar.
+6. Muestra el informe completo en la sesión. En PARADA, la última línea es la acción exacta para continuar, copiada de la columna «Acción para el usuario» de la tabla de motivos: en `PAUSA_PROGRAMADA` incluye **«en una sesión nueva»**, que es lo que hace que la pausa sirva de algo. Y ahí terminas: no ejecutes tú esa acción.

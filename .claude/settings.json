@@ -16,6 +16,7 @@
       "Bash(git add novelas/*)",
       "Bash(git add -A novelas/*)",
       "Bash(git commit -m *)",
+      "Bash(git reset -q HEAD -- novelas/*)",
       "Bash(git checkout -- novelas/*)",
       "Bash(git clean -fdq novelas/*)",
       "Bash(wc *)",
@@ -35,11 +36,11 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Edit",
+        "matcher": "Edit|Write",
         "hooks": [
           {
             "type": "command",
-            "command": "grep -Eq '\"file_path\":\"[^\"]*(biblia|escaleta|libro-estado|manuscrito|arco-[0-9]+|intento-[0-9]+)\\.md\"' && { echo 'story-maker: ese artefacto es inmutable una vez aprobado. El harness lo crea con Write una sola vez; nunca se edita (specs/functional.md §3.1).' >&2; exit 2; } || exit 0",
+            "command": "sh \"${CLAUDE_PROJECT_DIR}/.claude/hooks/inmutables.sh\"",
             "statusMessage": "Comprobando inmutabilidad de artefactos aprobados"
           }
         ]
