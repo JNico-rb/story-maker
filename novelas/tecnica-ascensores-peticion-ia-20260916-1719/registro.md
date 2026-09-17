@@ -82,3 +82,9 @@ Las columnas `modelo`, `pal_entrada`, `pal_salida`, `tok_entrada`, `tok_salida` 
 | 2026-09-16 18:39 | invocacion | capitulos | 1 | 03 | 1 | haiku | 5500 | – | – | – | – | revisor-continuidad · modo capitulo · intento tecnico 1 · resultado: ok · APROBADO, 0 problemas |
 | 2026-09-16 18:39 | veredicto | capitulos | 1 | 03 | 1 | – | – | – | – | – | – | APROBADO · 0 problemas · origen: revisores · desglose: continuidad 0, encargo 0 |
 | 2026-09-16 18:39 | decision_harness | capitulos | 1 | 03 | 1 | – | – | – | – | – | – | aprobar |
+| 2026-09-16 18:41 | invocacion | capitulos | 1 | 04 | 1 | haiku | 7300 | 961 | – | – | – | escritor · modo capitulo · intento tecnico 1 · resultado: ok · capitulos/04/intento-1.md |
+| 2026-09-16 18:41 | longitud | capitulos | 1 | 04 | 1 | – | – | – | – | – | – | rechazo · 961 palabras · objetivo 1500 · margen 1200-1800 |
+| 2026-09-16 18:41 | veredicto | capitulos | 1 | 04 | 1 | – | – | – | – | – | – | RECHAZADO · 1 problema · gravedad max 3 · origen: harness |
+| 2026-09-16 18:41 | decision_harness | capitulos | 1 | 04 | 1 | – | – | – | – | – | – | ajuste_longitud 1/2 -> intento 2 · no consume reescritura |
+| 2026-09-16 18:44 | invocacion | capitulos | 1 | 04 | 2 | haiku | 4200 | 1288 | – | – | – | escritor · modo capitulo · intento tecnico 1 · resultado: ok · capitulos/04/intento-2.md |
+| 2026-09-16 18:44 | longitud | capitulos | 1 | 04 | 2 | – | – | – | – | – | – | ok · 1288 palabras · objetivo 1500 · margen 1200-1800 |

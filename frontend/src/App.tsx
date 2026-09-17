@@ -5,6 +5,7 @@ import { api } from './lib/api'
 import { leerRuta, type Ruta } from './lib/ruta'
 import { useDatos } from './lib/useDatos'
 import type { Novela, ResumenNovela } from './lib/tipos'
+import { BarraMarca } from './components/BarraMarca'
 import { CabeceraNovela } from './components/CabeceraNovela'
 import { DetalleCapitulo } from './components/DetalleCapitulo'
 import { ListaNovelas } from './components/ListaNovelas'
@@ -119,6 +120,7 @@ export function App() {
 
   return (
     <div className="min-h-screen bg-panel">
+      <BarraMarca />
       {ruta.vista === 'lista' ? (
         <Lista refrescando={refrescando} />
       ) : (

@@ -1,6 +1,6 @@
 {
-  "_documentacion": "Todas estas variables están explicadas en specs/functional.md §7. Edita este fichero para cambiar el comportamiento del harness; no hace falta tocar nada más. Los valores por defecto son los de la validación (§7.8 paso 1): historia pequeña, los cuatro agentes con el modelo caro, escalado apagado. Las claves marcadas 'hito 2' solo las usa el runner contra OpenRouter.",
-  "version": 3,
+  "_documentacion": "Todas estas variables están explicadas en specs/functional.md §7. Edita este fichero para cambiar el comportamiento del harness; no hace falta tocar nada más. Los valores por defecto son los del abaratamiento (§7.8 paso 2): historia pequeña, los cinco agentes con el modelo barato, escalado apagado. El paso 1 (todo en opus) ya está ejecutado; su resultado es la línea base de §8.5. Las claves marcadas 'hito 2' solo las usa el runner contra OpenRouter. OJO: modelos.* gobierna solo a los agentes; el orquestador es la sesión de Claude Code y su modelo no se configura aquí (§7.3).",
+  "version": 4,
 
   "proveedor": "claude-code",
 
@@ -50,16 +50,18 @@
   },
 
   "modelos": {
-    "_nota": "Validación (por defecto): los cuatro en opus, escalado apagado. Abaratamiento (§7.8 paso 2): los cuatro en haiku o sonnet, escalado.activo true. Con proveedor openrouter se usan identificadores de modelo de OpenRouter. temperatura solo la usa el runner (hito 2).",
-    "interrogador": "opus",
-    "escritor": "opus",
-    "resumidor": "opus",
-    "revisor": "opus",
+    "_nota": "Por defecto (§7.8 paso 2): los cinco en haiku, escalado apagado. Con red: lo mismo con escalado.activo true y escalado.modelo opus. Validación (§8.5): los cinco en opus. Con proveedor openrouter se usan identificadores de modelo de OpenRouter. temperatura solo la usa el runner (hito 2). Cada valor está escrito también en el frontmatter del agente y comprobar_entorno compara ambos.",
+    "interrogador": "haiku",
+    "escritor": "haiku",
+    "resumidor": "haiku",
+    "revisor_encargo": "haiku",
+    "revisor_continuidad": "haiku",
     "temperatura": {
       "interrogador": 0.7,
       "escritor": 0.9,
       "resumidor": 0.0,
-      "revisor": 0.0
+      "revisor_encargo": 0.0,
+      "revisor_continuidad": 0.0
     },
     "escalado": {
       "activo": false,
@@ -73,12 +75,13 @@
 
   "limites": {
     "reescrituras_max": 2,
+    "ajustes_longitud": 2,
     "reintentos_tecnicos": 3,
     "escaleta_rechazos_max": 3,
     "turnos_por_invocacion": 40,
     "revision_global_max_palabras": 60000,
     "presupuesto_usd_max": null,
-    "pausa_cada_capitulos": 5
+    "pausa_cada_capitulos": 3
   },
 
   "veredicto": {
@@ -93,10 +96,11 @@
   },
 
   "calidad": {
-    "max_graves_por_10_capitulos": 1,
-    "max_agotamiento_pct": 10,
+    "_nota": "Recalibrados con la ejecución de referencia (§8.5). Con 5 capítulos la resolución es gruesa: un grave vale 2,0 puntos de graves_por_10 y un capítulo por agotamiento vale 20 puntos. Los umbrales anteriores (1 y 10) exigían cero de cada cosa.",
+    "max_graves_por_10_capitulos": 2,
+    "max_agotamiento_pct": 20,
     "max_hilos_previstos_sin_cerrar": 0,
-    "min_aprobados_primer_intento_pct": 60,
-    "max_rechazos_voz_pct": 10
+    "min_aprobados_primer_intento_pct": 40,
+    "max_rechazos_voz_pct": 20
   }
 }

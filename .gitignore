@@ -1,7 +1,15 @@
+# IDE
 *.code-workspace
+
+# API keys and secrets
 .env
+
 # Visor (frontend/)
 frontend/node_modules/
 frontend/dist/
 frontend/.env
 frontend/.env.local
+
+# Credenciales locales de observabilidad (Langfuse)
+.claude/settings.local.json
+.claude/settings.local.json.*

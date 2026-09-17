@@ -18,7 +18,7 @@
   },
   "arco_actual": 1,
   "capitulo_actual": 4,
-  "intento_actual": 1,
+  "intento_actual": 2,
   "capitulos": {
     "1": {
       "aprobado": 3,
@@ -45,7 +45,7 @@
   "informe_global": false,
   "invocaciones": {
     "interrogador": 6,
-    "escritor": 9,
+    "escritor": 11,
     "resumidor": 5,
     "revisor_encargo": 4,
     "revisor_continuidad": 7
@@ -57,7 +57,8 @@
   },
   "ajustes_usados": {
     "1": 1,
-    "2": 1
+    "2": 1,
+    "4": 1
   },
   "erratas": null
 }

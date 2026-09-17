@@ -6,6 +6,7 @@ import { formatearPalabras } from '../lib/formato'
 import { useDatos } from '../lib/useDatos'
 import type { Lectura } from '../lib/tipos'
 import { Markdown } from './Markdown'
+import { Isotipo } from './ui/Marca'
 import { Cargando, Fallo, Vacio } from './ui/Estados'
 
 interface Props {
@@ -27,7 +28,9 @@ export function PestanaLeer({ slug, refrescando }: Props) {
   if (datos.fuente === 'manuscrito' && datos.cuerpo !== null) {
     return (
       <article className="mx-auto max-w-2xl bg-papel px-6 py-14 sm:px-10">
+        <Isotipo className="mx-auto mb-12 h-9 w-auto" />
         <Markdown texto={datos.cuerpo} registro="lectura" />
+        <Isotipo className="mx-auto mt-14 h-5 w-auto opacity-40" />
       </article>
     )
   }
@@ -42,6 +45,7 @@ export function PestanaLeer({ slug, refrescando }: Props) {
 
   return (
     <div className="mx-auto max-w-2xl bg-papel px-6 py-14 sm:px-10">
+      <Isotipo className="mx-auto mb-10 h-9 w-auto" />
       <p className="mb-10 rounded-md border border-borde bg-panel-hoja px-4 py-2.5 text-center text-xs text-tinta-tenue">
         El manuscrito aún no está ensamblado. Se muestran los {datos.capitulos.length} capítulos
         aprobados, en orden.

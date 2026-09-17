@@ -41,11 +41,11 @@ export function CabeceraNovela({ novela, pestana, refrescando, alCambiarRefresco
                 type="checkbox"
                 checked={refrescando}
                 onChange={(evento) => alCambiarRefresco(evento.target.checked)}
-                className="size-3.5 accent-acento"
+                className="size-3.5 accent-marca"
               />
               Refrescar cada 5 s
               {refrescando && (
-                <span aria-hidden className="size-1.5 animate-pulse rounded-full bg-acento" />
+                <span aria-hidden className="size-1.5 animate-pulse rounded-full bg-marca" />
               )}
             </label>
           </div>
@@ -70,7 +70,7 @@ export function CabeceraNovela({ novela, pestana, refrescando, alCambiarRefresco
                 aria-current={activa ? 'page' : undefined}
                 className={`border-b-2 px-4 py-2 text-sm font-medium whitespace-nowrap transition ${
                   activa
-                    ? 'border-acento text-acento'
+                    ? 'border-marca text-tinta'
                     : 'border-transparent text-tinta-tenue hover:border-borde-fuerte hover:text-tinta-suave'
                 }`}
               >

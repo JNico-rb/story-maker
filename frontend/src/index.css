@@ -5,21 +5,33 @@
   Dos registros visuales, como decidimos: papel para leer, panel para vigilar.
   Los colores se nombran por lo que significan, no por el color que son, para que
   cambiar la paleta no obligue a repasar cada componente.
+
+  Sobre esos dos registros va la marca Qaracter, sacada del propio logotipo
+  (images/qaracter-logo.png): el azul #233441 es la tinta de todo el visor y el
+  naranja #ff7932 es el único color de energía. El naranja se reserva al cromo de
+  marca —la regla de la cabecera, el subrayado de la pestaña activa, la barra de
+  progreso, el pulso del refresco— y nunca se usa para significar un estado: los
+  estados ya tienen verde, rojo y ámbar, y un cuarto color cálido los confundiría.
 */
 @theme {
   --color-papel: #fbfaf7;
   --color-papel-hoja: #ffffff;
-  --color-panel: #f4f5f7;
+  --color-panel: #f2f4f6;
   --color-panel-hoja: #ffffff;
 
-  --color-tinta: #1b1b1a;
-  --color-tinta-suave: #4b4b47;
-  --color-tinta-tenue: #7d7d76;
-  --color-borde: #e2e2dd;
-  --color-borde-fuerte: #c9c9c2;
+  --color-tinta: #233441;
+  --color-tinta-suave: #4a5b6a;
+  --color-tinta-tenue: #7c8b98;
+  --color-borde: #e0e5ea;
+  --color-borde-fuerte: #c2cbd4;
 
-  --color-acento: #2f5d50;
-  --color-acento-suave: #e6efec;
+  --color-acento: #233441;
+  --color-acento-suave: #e9eef2;
+
+  /* Marca: naranja de Qaracter. Solo cromo, nunca estado. */
+  --color-marca: #ff7932;
+  --color-marca-tinte: #fff1e8;
+  --color-marca-fuerte: #b8480e; /* el mismo naranja, legible como texto sobre claro */
 
   --color-aprobado: #2f6b45;
   --color-aprobado-fondo: #e8f3ec;

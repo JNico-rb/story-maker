@@ -13,12 +13,26 @@ Una o dos frases: qué historia es y por qué importa.
 - **Qué reglas rigen ahora**: quién decide, qué está permitido, qué se ha vuelto imposible o trivial.
 - **Vida diaria**: trabajo, casa, relaciones, ciudad. Detalles concretos que la prosa puede usar.
 
+## Cronología y datos fijos
+
+**El canon.** Los números que la historia no puede cambiar, declarados aquí y no dispersos por la prosa. Es lo que hace comprobable la coherencia interna: el revisor de continuidad los valida antes de que nadie apruebe nada, y el escritor los consulta en vez de inferirlos.
+
+- **Año en que arranca la novela**: (y mes o estación, si la trama los usa)
+
+| Dato | Valor | Año de referencia | Consecuencia |
+|---|---|---|---|
+| Edad de <personaje> | | | empezó en lo suyo hacia … |
+| <fecha concreta que la trama menciona> | | | qué pasó ese día |
+| <geometría: plantas, paradas, puertas, distancias> | | | |
+
+Antes de entregar, **haz las restas**: si alguien tiene 52 años y 26 de oficio, empezó hacia el año de arranque menos 26, y nada suyo puede ser anterior. Si hay vecinos en el cuarto, el ascensor no tiene tres paradas.
+
 ## Reglas inviolables
-Entre 3 y 7, numeradas. Son las reglas del universo que la historia no puede romper; el revisor las vigila (criterio 1) y el libro de estado las recoge en "Reglas en vigor".
+Entre 3 y 7, numeradas. Son las reglas del universo que la historia no puede romper; el revisor de continuidad las vigila (criterio 1) y el libro de estado las recoge en "Reglas en vigor".
 
 1.
 2.
-3.
+3. Si una fecha concreta no está en «Cronología y datos fijos», el texto no la ata a un día de la semana.
 
 ## Tono y voz
 - Tono y registro.

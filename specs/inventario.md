@@ -19,7 +19,7 @@ Todo vive en `novelas/<slug>/`. **Todo lo escribe el harness**; la columna "Cont
 | Artefacto | Cuántos | Contenido de | DdH |
 |---|---|---|---|
 | `idea.md` | 1 | Usuario | La idea literal, sin reinterpretar |
-| `config.json` | 1 | Harness | `version: 3`; perfil ya resuelto (con `nombre`) + `proveedor`, `formato`, `modelos`, `limites`, `veredicto`, `memoria`, `calidad`, y `origen` con lo sobreescrito por comando. Sin `perfiles` |
+| `config.json` | 1 | Harness | `version: 4`; perfil ya resuelto (con `nombre`) + `proveedor`, `formato`, `modelos`, `limites`, `veredicto`, `memoria`, `calidad`, y `origen` con lo sobreescrito por comando. Sin `perfiles` |
 | `entrevista.md` | 1 | Usuario (vía grilling) o fichero | `cerrada: true`, `origen: grilling | fichero`; todas las decisiones en pregunta → respuesta, cada una marcada [usuario], [recomendación aceptada] o [decide tú] |
 
 ### Plan
@@ -37,7 +37,7 @@ Todo vive en `novelas/<slug>/`. **Todo lo escribe el harness**; la columna "Cont
 | `intento-K.md` | 1 a 3 | Escritor | Sin frontmatter: primera línea `# <título>`, después el texto. El aprobado cumple objetivo, sucesos y gancho de su entrada y está dentro de la tolerancia de longitud (`wc -w`) |
 | `resumen-K.md` | 1 por intento que pasó la longitud | Resumidor | Frontmatter con `capitulo, intento, hilos_abiertos, hilos_cerrados, personajes`; secciones Hechos, Cambios en personajes, Elementos introducidos, Enlace |
 | `libro-estado-K.md` | 1 por intento que pasó la longitud | Resumidor | Libro de estado completo tal como quedaría si se aprueba este intento |
-| `informe-K.md` | 1 por intento | Revisor (o harness si rechazo por longitud) | `veredicto` recalculado por el harness; `origen: revisor | harness`; cada problema con `gravedad ∈ {1,2,3,4,5}, donde, que, por_que` |
+| `informe-K.md` | 1 por intento | Harness, uniendo los dos revisores (o solo el harness si rechazo por longitud) | `veredicto` recalculado sobre la unión; `origen: revisores | harness`; cada problema con `gravedad ∈ {1,2,3,4,5}, origen ∈ {encargo, continuidad, harness}, donde, que, por_que` |
 
 Un capítulo rechazado por longitud tiene `intento-K.md` e `informe-K.md` pero no `resumen-K.md` ni `libro-estado-K.md`: no llegó al resumidor. Con el perfil `relato`: **mínimo 20 ficheros** de capítulo (5 aprobados al primer intento) y **máximo 60**. Que haya varios intentos no es un fallo: es el bucle de revisión funcionando, y los rechazados se conservan a propósito.
 
@@ -53,14 +53,15 @@ Un capítulo rechazado por longitud tiene `intento-K.md` e `informe-K.md` pero n
 | Artefacto | Cuántos | Contenido de | DdH |
 |---|---|---|---|
 | `manuscrito.md` | 1 | Harness | Título, índice y los capítulos **aprobados** en orden; nota final si alguno se aceptó por agotamiento |
-| `informe-global.md` | 1 | Revisor | `capitulo: global`; `base: manuscrito | resumenes`; veredicto informativo. Puede estar vacío de problemas: eso es buena señal |
+| `informe-global.md` | 1 | Revisor de continuidad | `capitulo: global`; `base: manuscrito | resumenes`; veredicto informativo. Puede estar vacío de problemas: eso es buena señal |
+| `erratas.md` | 1 | Harness | Los problemas del informe global que se arreglan en una línea, con cita literal presente en el manuscrito y cambio propuesto. `aplicadas: 0` siempre. Puede tener cero entradas |
 | `informe-cierre.md` | 1 (se reescribe cada ejecución) | Harness | `resultado: EXITO | PARADA` con motivo, qué quedó hecho, volumen, **métricas de calidad** con CUMPLE / NO CUMPLE, inventario y la acción para continuar |
 
 ### Trazabilidad
 
 | Artefacto | Cuántos | Contenido de | DdH |
 |---|---|---|---|
-| `estado.json` | 1 | Harness | `version: 3`; refleja el último punto consistente; `etapa: completa` al terminar; `capitulos[N]` con `aprobado, por_agotamiento, intentos` para todo N; `arcos[A]` con `escaleta_validada: true` |
+| `estado.json` | 1 | Harness | `version: 4`; refleja el último punto consistente; `etapa: completa` al terminar; `capitulos[N]` con `aprobado, por_agotamiento, intentos, reescrituras, ajustes_longitud` para todo N; `arcos[A]` con `escaleta_validada: true` |
 | `registro.md` | 1 | Harness | Una fila por evento; cada `invocacion` con `modelo`, `pal_entrada`, `pal_salida` y, si los hay, `tok_*` y `coste_usd` |
 | Commits en git | ≥ 3 + 1 por capítulo + 2 por arco extra | Harness | `novela <slug>: carpeta creada` · `escaleta aprobada` · `arco AA detallado` · `cap NN cerrado (intento K)` · `arco AA revisado` · `novela completa` |
 
@@ -90,8 +91,9 @@ PDF, DOCX, EPUB ni HTML (spec §1.3); ilustraciones; portada; traducciones; cost
 Es lo que ejecuta `/novela verificar <carpeta>`, de lo más barato a lo más caro:
 
 1. `informe-cierre.md` dice `resultado: EXITO`.
-2. `estado.json` tiene `version: 3`, `etapa: completa`, `informe_global: true`, una entrada en `capitulos` por cada capítulo de `escaleta.md` y `escaleta_validada: true` en todos los arcos.
-3. Existen `biblia.md` y `escaleta.md` con `aprobada: true`, un `arcos/arco-AA.md` con `validada: true` por arco, `libro-estado.md` con `hasta_capitulo` = total, `manuscrito.md` e `informe-global.md`. Si hay más de un arco, un `arcos/informe-arco-AA.md` por arco.
+2. `estado.json` tiene `version: 4`, `etapa: completa`, `informe_global: true`, una entrada en `capitulos` por cada capítulo de `escaleta.md` y `escaleta_validada: true` en todos los arcos.
+3. Existen `biblia.md` y `escaleta.md` con `aprobada: true`, un `arcos/arco-AA.md` con `validada: true` por arco, `libro-estado.md` con `hasta_capitulo` = total, `manuscrito.md`, `informe-global.md` y `erratas.md`. Si hay más de un arco, un `arcos/informe-arco-AA.md` por arco.
+   La `biblia.md` tiene su sección «Cronología y datos fijos» con contenido, no la plantilla vacía.
 4. Para cada capítulo N: existen `intento-K.md`, `resumen-K.md`, `libro-estado-K.md` e `informe-K.md` para la K que `estado.capitulos[N].aprobado` señala, y ese informe tiene `veredicto: APROBADO` o el capítulo tiene `por_agotamiento: true`.
 5. `wc -w` de cada capítulo aprobado está dentro de la tolerancia de su `palabras_objetivo`.
 6. `git log -- novelas/<slug>` muestra los commits esperados y `git status --porcelain novelas/<slug>` está vacío.
@@ -107,5 +109,5 @@ Lo anterior dice si la ejecución terminó. Las **métricas de §8.3 de la spec*
 | Señal | Dónde se ve | Qué es buena señal |
 |---|---|---|
 | Problemas de gravedad 1–2 en los informes de capítulo | `capitulos/*/informe-*.md` | Que aparezcan en el intento 1 y desaparezcan en el 2: el bucle hace su trabajo |
-| Discrepancias de veredicto | `registro.md` (`discrepancia_veredicto`) | Pocas. Muchas significan que el revisor no aplica su propia regla |
+| Discrepancias de veredicto | `registro.md` (`discrepancia_veredicto`) | Pocas. Muchas significan que ese revisor no aplica su propia regla; la fila dice cuál de los dos |
 | Fidelidad del libro de estado | Tres hechos del capítulo 1 comprobados en `libro-estado.md` final (comparar.md) | Los tres coinciden. Si no, el resumidor está inventando o perdiendo |
