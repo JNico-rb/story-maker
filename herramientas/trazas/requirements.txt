@@ -1,0 +1,7 @@
+# Dependencias de exportar.py. Fuera del harness: el sistema genera novelas sin esto
+# (spec §9.3). Instalacion recomendada en este proyecto: `uv pip install -r requirements.txt`.
+#
+# La version se fija porque exportar.py usa la API v3+ del SDK: `propagate_attributes`
+# y el cliente `Langfuse(public_key=, secret_key=, host=)`. Con el SDK v2 el modulo se
+# importa igual y falla despues, en tiempo de ejecucion.
+langfuse==4.15.3

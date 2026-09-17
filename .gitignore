@@ -10,6 +10,9 @@ frontend/dist/
 frontend/.env
 frontend/.env.local
 
+# Herramientas (fuera del harness)
+herramientas/trazas/__pycache__/
+
 # Credenciales locales de observabilidad (Langfuse)
 .claude/settings.local.json
 .claude/settings.local.json.*

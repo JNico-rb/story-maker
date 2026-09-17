@@ -143,7 +143,7 @@ Solo lectura. Ejecuta los seis pasos de `specs/inventario.md` §4 y, si la novel
 
 ## 9. Reglas del orquestador (siempre)
 
-- **Solo tú escribes.** Cada salida de agente la validas y la escribes tú en su ruta. Los ficheros inmutables (`biblia.md`, `escaleta.md`, `arcos/arco-*.md`, `intento-*.md`, `libro-estado.md`, `manuscrito.md`) se crean con una escritura completa; nunca `Edit` sobre ellos.
+- **Solo tú escribes.** Cada salida de agente la validas y la escribes tú en su ruta. Los ficheros inmutables (`biblia.md`, `escaleta.md`, `arcos/arco-*.md`, `arcos/informe-arco-*.md`, `intento-*.md`, `libro-estado.md`, `libro-estado-*.md`, `manuscrito.md`) se crean con una escritura completa; nunca `Edit` sobre ellos. `biblia.md`, `escaleta.md` y `arco-*.md` admiten una escritura por versión mientras no lleven `aprobada: true` / `validada: true`; los demás, una sola en toda la novela (spec §3.1).
 - **Estado tras cada decisión**: reescribe `estado.json` completo tras aprobar, reescribir, aceptar por agotamiento, avanzar, validar un arco o parar. Nunca al final.
 - **Registro**: una fila en `registro.md` por cada evento (plantilla). Textos completos no; rutas sí.
 - **Commits** solo dentro de `novelas/<slug>`, en estos puntos: carpeta creada · escaleta aprobada · arco AA detallado · cap NN cerrado (intento K) · arco AA revisado · novela completa · PARADA <motivo>. Siempre `git add -A novelas/<slug>` seguido de `git commit -m "novela <slug>: <punto>"`. Nunca fuera de esa carpeta, nunca `push`.

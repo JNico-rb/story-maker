@@ -11,7 +11,7 @@ Implementa `cerrar(carpeta, resultado, motivo, detalle | metricas)` de SKILL.md 
 | `INCUMPLE_CONTRATO` | Un agente devolvió `reintentos_tecnicos` veces una salida sin la forma esperada, fuera de límites, o agotó sus turnos | `/novela continuar <carpeta>`; si se repite en varias novelas, revisar la definición del agente y anotarlo en `CHANGELOG.md` |
 | `ESCALETA_FUERA_LIMITES` | `resolver_perfil` calculó desde `paginas_objetivo` un número de capítulos fuera de rango | Ajustar el perfil o los límites y relanzar |
 | `ERROR_CONFIGURACION` | Falla una comprobación de `comprobar_entorno` (git, `config.json`, agentes, `maxTurns`, carpeta) | Corregir lo indicado y relanzar |
-| `ESTADO_NO_RECONOCIDO` | `estado.json` no parsea, no es `version: 3` o su etapa es desconocida | Revisar el último commit de la carpeta indicado en el informe; no adivinar |
+| `ESTADO_NO_RECONOCIDO` | `estado.json` no parsea, no es `version: 4` (ni `3` en `estado` y `verificar`, los dos modos de solo lectura) o su etapa es desconocida | Revisar el último commit de la carpeta indicado en el informe; no adivinar |
 | `PRESUPUESTO_AGOTADO` | Hito 2 solo: coste acumulado > `limites.presupuesto_usd_max` | Subir el presupuesto y relanzar |
 | `PAUSA_PROGRAMADA` | Cada `limites.pausa_cada_capitulos` capítulos cerrados, para no agotar el contexto de la sesión | `/novela continuar <carpeta>` en una sesión nueva |
 | `INTERRUMPIDO` | Solo se registra a posteriori, al reanudar y encontrar un paso a medias | Nada; ya se ha descartado lo a medias |
