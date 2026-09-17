@@ -1,10 +1,22 @@
 # story-maker
 
-Generador agéntico de novelas en castellano sobre **cómo será el mundo tras la revolución de la IA**. Le das una idea; un harness coordina cuatro agentes (interrogador, escritor, resumidor y revisor) que la convierten en una novela completa con continuidad verificada.
+Generador agéntico de novelas en castellano sobre **cómo será el mundo tras la revolución de la IA**. Le das una idea; un harness coordina cinco agentes (interrogador, escritor, resumidor, revisor de encargo y revisor de continuidad) que la convierten en una novela completa con continuidad verificada.
+
+## Frontend
+
+Para ejecutar:
+```bash
+cd frontend
+pnpm dev
+```
+Cuando está arrancado:
+```
+http://localhost:5173/#/
+```
 
 ## Dos hitos
 
-1. **Hito 1 — Claude Code, modelo caro.** El harness es la skill `/novela` más cuatro subagentes, todo en Markdown. Se valida con historias de 5 capítulos. **Estado: en reconstrucción sobre la spec 0.5.0.**
+1. **Hito 1 — Claude Code.** El harness es la skill `/novela` más cinco subagentes, todo en Markdown. **Estado: validado con una novela completa de 5 capítulos** (ver spec §8.5). Los agentes van por defecto en `haiku`; el orquestador es la sesión y conviene lanzarla con el modelo bueno.
 2. **Hito 2 — Runner contra OpenRouter, modelo barato.** El mismo diseño, en código, para novelas de 100–200 capítulos sin sesión interactiva. Pendiente.
 
 ## Cómo se usa (hito 1)
@@ -34,8 +46,11 @@ Modo de prueba: toma idea y entrevista del caso de referencia, sin preguntar, y 
 | Especificación (manda sobre todo lo demás) y glosario | [specs/functional.md](specs/functional.md) |
 | Variables editables: tamaño, modelos, límites, memoria, calidad | [config.json](config.json) |
 | Reglas que Claude Code aplica siempre | [CLAUDE.md](CLAUDE.md) |
-| Permisos y hook de inmutabilidad | [.claude/settings.json](.claude/settings.json) |
-| Contratos de los cuatro agentes | [.claude/agents/](.claude/agents/) |
+| Permisos del harness y registro del hook | [.claude/settings.json](.claude/settings.json) |
+| Hook de inmutabilidad de los artefactos aprobados | [.claude/hooks/inmutables.sh](.claude/hooks/inmutables.sh) |
+| Contratos de los cinco agentes | [.claude/agents/](.claude/agents/) |
+| Qué salió de la primera ejecución completa | [specs/functional.md §8.5](specs/functional.md) |
+| Trazas de una ejecución en Langfuse (fuera del harness) | [herramientas/trazas/](herramientas/trazas/) |
 | Orquestador, procedimientos y plantillas | [.claude/skills/novela/](.claude/skills/novela/) |
 | Caso de referencia para comparar configuraciones | [pruebas/referencia/](pruebas/referencia/) |
 | Novelas generadas | `novelas/<slug>/` |
