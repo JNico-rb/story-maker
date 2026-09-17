@@ -111,3 +111,10 @@ Las columnas `modelo`, `pal_entrada`, `pal_salida`, `tok_entrada`, `tok_salida` 
 | 2026-09-17 11:49 | invocacion | capitulos | 1 | 05 | 2 | haiku | 8697 | – | – | – | – | revisor-continuidad · modo capitulo · intento tecnico 1 · resultado: ok · APROBADO, 0 problemas, 4 observaciones |
 | 2026-09-17 11:49 | veredicto | capitulos | 1 | 05 | 2 | – | – | – | – | – | – | APROBADO · 0 problemas · 4 observaciones · origen: revisores · desglose: continuidad 0, encargo 0 |
 | 2026-09-17 11:49 | decision_harness | capitulos | 1 | 05 | 2 | – | – | – | – | – | – | aprobar |
+| 2026-09-17 11:52 | commit | capitulos | 1 | 05 | 2 | – | – | – | – | – | – | cap 05 cerrado (intento 2) · 525f556 |
+| 2026-09-17 11:53 | manuscrito | final | – | – | – | – | – | 6426 | – | – | – | manuscrito.md · 5 capitulos · ninguno por agotamiento |
+| 2026-09-17 11:53 | invocacion | final | 1 | – | – | haiku | 14455 | – | – | – | – | revisor-continuidad · modo global · intento tecnico 1 · resultado: pendiente · base: manuscrito (6426 <= 60000) |
+| 2026-09-17 11:56 | invocacion | final | 1 | – | – | haiku | 14455 | – | – | – | – | revisor-continuidad · modo global · intento tecnico 1 · resultado: ok · APROBADO, 0 problemas, 4 observaciones · cierra la fila 'pendiente' de las 11:53 |
+| 2026-09-17 11:56 | veredicto | final | 1 | – | – | – | – | – | – | – | – | GLOBAL informativo · APROBADO · 0 problemas · 4 observaciones · base: manuscrito |
+| 2026-09-17 11:57 | erratas | final | – | – | – | – | – | – | – | – | – | 0 erratas · el informe global no devolvio problemas; las dos observaciones mejorables exigirian reescribir capitulos aprobados |
+| 2026-09-17 11:57 | decision_harness | final | – | – | – | – | – | – | – | – | – | correccion de estado.json: invocaciones.escritor pasa de 11 a 12; el harness omitio el incremento al cerrar el capitulo 05 (intento 2). El registro, que es la fuente de verdad, tenia las 12 filas |
