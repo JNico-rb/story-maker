@@ -27,6 +27,7 @@ frontend/
 │   ├── novelas.mjs          # Interpreta novelas/<slug>/ (spec §3)
 │   ├── yaml.mjs             # El subconjunto de YAML de las plantillas
 │   └── dev.mjs              # `pnpm dev`: servidor + web de una vez
+├── public/                  # Servido tal cual en la raíz: los recursos de marca
 ├── src/
 │   ├── components/          # Un componente por fichero
 │   │   └── ui/              # Primitivos visuales reutilizables
@@ -53,6 +54,27 @@ frontend/
 - Todo el HTTP detrás de `src/lib/api.ts`.
 - Las formas de la API viven como tipos en `src/lib`; los componentes consumen tipos de dominio.
 - **Lo que puede ir mal se ve**: carga, fallo del servidor, refresco fallido, intento sin informe, novela sin capítulos. Cada vista que pide datos sabe enseñar sus tres estados (`components/ui/Estados.tsx`).
+
+## Marca
+
+El visor lleva la identidad de **Qaracter**. El original es [`images/qaracter-logo.png`](../images/qaracter-logo.png), en la raíz del repositorio y fuera del frontend: es el activo de la empresa, no un fichero de esta aplicación.
+
+De él salen los tres ficheros de `public/`, que es lo único que el navegador pide:
+
+| Fichero | Qué es | Dónde se usa |
+|---|---|---|
+| `qaracter-logo.png` | Logotipo completo, 1200 px, fondo transparente | `BarraMarca` |
+| `qaracter-isotipo.png` | Solo el símbolo, 256 px | Apertura y colofón de la pestaña Leer, icono de aplicación |
+| `favicon.png` | El símbolo a 64 px | Pestaña del navegador |
+
+Se derivaron una vez recortando el original, pasando el blanco del fondo a transparente y reduciendo; no hay que regenerarlos salvo que cambie el logotipo. Si cambia, se sustituye el original y se vuelven a derivar los tres, **sin repintarlos a mano**: el logotipo no se recolorea, no se deforma y no se le añaden efectos.
+
+Los dos colores de la marca están en los tokens de `src/index.css`:
+
+- **`--color-tinta` (`#233441`)**, el azul del logotipo, es la tinta de todo el visor.
+- **`--color-marca` (`#ff7932`)**, el naranja, es **solo cromo**: la regla de la barra de marca, el subrayado de la pestaña activa, la barra de progreso, el pulso del refresco y el foco. **Nunca significa un estado.** Aprobado, rechazado y aviso ya tienen verde, rojo y ámbar; un cuarto color cálido los volvería indistinguibles de un vistazo. Para naranja como texto está `--color-marca-fuerte`, que es el único que llega al contraste AA sobre fondo claro.
+
+La pestaña **Leer** manda sobre la marca: allí solo entra el isotipo, centrado, al principio y al final. Nada de cromo naranja sobre el papel.
 
 ## Configuración
 

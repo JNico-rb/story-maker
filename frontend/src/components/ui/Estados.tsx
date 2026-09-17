@@ -8,7 +8,7 @@ export function Cargando({ que }: { que: string }) {
     <div className="flex items-center gap-3 px-6 py-10 text-sm text-tinta-tenue">
       <span
         aria-hidden
-        className="size-3.5 animate-spin rounded-full border-2 border-borde-fuerte border-t-acento"
+        className="size-3.5 animate-spin rounded-full border-2 border-borde-fuerte border-t-marca"
       />
       Cargando {que}…
     </div>

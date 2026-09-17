@@ -27,7 +27,7 @@ function Progreso({ novela }: { novela: ResumenNovela }) {
         aria-valuemin={0}
         aria-valuemax={total}
       >
-        <div className="h-full rounded-full bg-acento" style={{ width: `${porcentaje}%` }} />
+        <div className="h-full rounded-full bg-marca" style={{ width: `${porcentaje}%` }} />
       </div>
     </div>
   )
@@ -37,7 +37,7 @@ function Tarjeta({ novela }: { novela: ResumenNovela }) {
   return (
     <a
       href={escribirRuta({ vista: 'novela', slug: novela.slug, pestana: 'leer', seleccion: null })}
-      className="block rounded-xl border border-borde bg-panel-hoja p-5 transition hover:border-borde-fuerte hover:shadow-sm"
+      className="block rounded-xl border border-borde bg-panel-hoja p-5 transition hover:border-marca/50 hover:shadow-sm"
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
@@ -97,6 +97,7 @@ export function ListaNovelas({ novelas }: { novelas: ResumenNovela[] }) {
   return (
     <div className="mx-auto max-w-4xl px-6 py-10">
       <header className="mb-8">
+        <span aria-hidden className="mb-3 block h-1 w-10 rounded-full bg-marca" />
         <h1 className="text-2xl font-semibold text-tinta">Novelas</h1>
         <p className="mt-1 text-sm text-tinta-tenue">
           Todo lo que hay en <code className="font-dato">novelas/</code>. El visor solo lee: nada de

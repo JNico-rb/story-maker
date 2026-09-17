@@ -1,6 +1,6 @@
 {
   "name": "story-maker-visor",
-  "version": "0.6.0",
+  "version": "0.7.1",
   "private": true,
   "type": "module",
   "description": "Visor de solo lectura sobre novelas/. No forma parte del harness: ver specs/functional.md §9.2.",
