@@ -118,3 +118,4 @@ Las columnas `modelo`, `pal_entrada`, `pal_salida`, `tok_entrada`, `tok_salida` 
 | 2026-09-17 11:56 | veredicto | final | 1 | – | – | – | – | – | – | – | – | GLOBAL informativo · APROBADO · 0 problemas · 4 observaciones · base: manuscrito |
 | 2026-09-17 11:57 | erratas | final | – | – | – | – | – | – | – | – | – | 0 erratas · el informe global no devolvio problemas; las dos observaciones mejorables exigirian reescribir capitulos aprobados |
 | 2026-09-17 11:57 | decision_harness | final | – | – | – | – | – | – | – | – | – | correccion de estado.json: invocaciones.escritor pasa de 11 a 12; el harness omitio el incremento al cerrar el capitulo 05 (intento 2). El registro, que es la fuente de verdad, tenia las 12 filas |
+| 2026-09-17 11:58 | fin_ejecucion | completa | 1 | 05 | 2 | – | – | – | – | – | – | resultado: EXITO · motivo: EXITO · 5/5 capitulos, 0 por agotamiento · 6/6 metricas dentro de umbral (5 con umbral + 1 informativa) · inventario completo |
