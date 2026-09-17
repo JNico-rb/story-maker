@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "feature-sliced-design": {
+      "source": "feature-sliced/skills",
+      "sourceType": "github",
+      "skillPath": "feature-sliced-design/SKILL.md",
+      "computedHash": "dbb51f9cf03e76d5da614049cad8cfdb00f23443fcad13fed320b010a5d26c78"
+    },
+    "langfuse": {
+      "source": "langfuse/skills",
+      "sourceType": "github",
+      "skillPath": "skills/langfuse/SKILL.md",
+      "computedHash": "b5fdc31d684d122ba0c43dd1baf769f7733f075be097b884e9da94dd0ddb8c83"
+    }
+  }
+}
