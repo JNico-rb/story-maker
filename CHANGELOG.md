@@ -19,7 +19,7 @@ Lo que **no** entra aquí:
 
 ## 0.8.1
 
-Versión de **revisión del repositorio** (17/09/2026): ninguna ejecución nueva, solo una lectura cruzada de spec, skill, procedimientos, hook y `settings.json` buscando sitios donde dos ficheros digan cosas distintas. Lo que salió: el hook de inmutabilidad **prohíbe tres pasos que los procedimientos exigen**, y por tanto ninguna novela nueva puede aprobar su escaleta. No se vio antes porque el hook es posterior a la ejecución de referencia: la novela de §8.5 se generó sin él.
+Versión de **revisión del repositorio** (17/09/2026): ninguna ejecución nueva, solo una lectura cruzada de spec, skill, procedimientos, hook y `settings.json` buscando sitios donde dos ficheros digan cosas distintas. Lo que salió: el hook de inmutabilidad **prohíbe tres pasos que los procedimientos exigen**, y por tanto ninguna novela nueva puede aprobar su escaleta. No se vio antes porque el hook es posterior a la ejecución de referencia: la novela de §8.5 se generó sin él. Implementada y verificada el 17/09/2026, en el orden que fija la regla 6 de CLAUDE.md: primero spec §3.1 y §9.3, después el hook y `settings.json`.
 
 ### Patch Changes
 
@@ -27,6 +27,7 @@ Versión de **revisión del repositorio** (17/09/2026): ninguna ejecución nueva
 
   - Entran dos reglas `deny`: `Read(.env)` y `Read(.claude/settings.local.json)`. La regla 5 de CLAUDE.md fijaba **dónde** viven las claves de Langfuse y `.gitignore` impedía publicarlas, pero nada impedía **leerlas**, y los cinco subagentes llevan `tools: Read, Glob, Grep`.
   - Un `deny` de `Read` cubre además `cat`, `head`, `sed` y las redirecciones de Bash sobre esas rutas: no hace falta un hook de Bash aparte para lo mismo.
+  - **Hecho.** Las dos reglas entran en `permissions.deny` de `.claude/settings.json` y §9.3 gana la regla 6 que las declara. Verificado en una sesión sin interfaz: un `Read` sobre `.env` responde DENEGADO.
 
 - **El hook de inmutabilidad decide por la existencia del fichero y debe decidir por su aprobación.** (spec §3.1; `.claude/hooks/inmutables.sh`)
 
@@ -37,11 +38,18 @@ Versión de **revisión del repositorio** (17/09/2026): ninguna ejecución nueva
   - Descartado: **que el interrogador devuelva ya `aprobada: true` y así baste una escritura.** No se puede: quien aprueba es el usuario, después de ver la propuesta (§4.1), así que en el momento de la primera escritura el valor no se conoce.
   - Descartado: **borrar el fichero antes de reescribirlo.** Deja una ventana en la que el artefacto no existe; una interrupción o un `descartar()` ahí pierden la propuesta entera, que es justo lo que el hook existe para evitar.
   - Descartado: **extender el hook a `Bash`.** `cerrar_capitulo` paso 2 copia `libro-estado-K.md` sobre `libro-estado.md`, y filtrar comandos de shell por ruta es un parser nuevo dentro del bucle. Queda como **limitación conocida**: la garantía del hook cubre `Edit` y `Write`, no Bash; el criterio 6 de §8.2 sigue siendo el que la demuestra a posteriori con git.
+  - **Hecho.** Spec §3.1 pasa a describir dos reglas de `Write` —**por aprobación** para `biblia.md`, `escaleta.md` y `arco-*.md`; **por existencia** para `intento-*.md`, `libro-estado-*.md`, `informe-arco-*.md` y `manuscrito.md`— y `inmutables.sh` las implementa leyendo el frontmatter del fichero que ya está en disco. La limitación de Bash, que hasta ahora solo vivía aquí, queda escrita en la propia §3.1 con su ejemplo (`cat >`, `sed -i`): un descarte que no está en la spec no protege nada.
+  - Verificado ejecutando el hook a mano contra **28 casos** con su código de salida: los tres sitios que el flujo reescribe pasan, los mismos tres ficheros ya aprobados bloquean, la regla de existencia sigue en pie, `Edit` bloquea siempre salvo fuera de la lista, y falla en abierto con entrada vacía, entrada que no es JSON, `file_path` ausente, herramienta desconocida y fichero sin frontmatter. Casos añadidos a los 18 de la 0.7.2: rutas de Windows con barras invertidas en las tres variantes, `aprobada: true` escrito en el cuerpo y no en el frontmatter —no debe bloquear, y no bloquea— y `aprobada:true` sin espacio, que sí.
 
 - **Dos reglas de permisos que Claude Code acepta y nunca consulta.** (`.claude/settings.json`)
 
   - Fuera `Write(/novelas/**)` y `Write(/comparativa/**)`. Claude Code comprueba las rutas solo contra reglas `Edit(...)` y `Read(...)`; una regla de ruta sobre `Write` se acepta, no se consulta nunca y provoca un aviso al arrancar. `Edit(/novelas/**)` ya cubre la herramienta `Write` sobre esa carpeta.
   - Comprobado de paso que la **barra inicial es correcta** y no hay que tocarla: en un `settings.json` de proyecto, `/novelas/**` ancla en el directorio de trabajo, no en la raíz del disco. Una ruta absoluta necesitaría dos barras.
+  - **Hecho.** Las dos reglas fuera. Verificado con un control: con `Write(/novelas/**)` puesta, Claude Code avisa al arrancar («is not matched by file permission checks — only `Edit(path)` rules are»); quitada, no avisa. Sin el control, la ausencia del aviso no demostraría nada.
+
+**Lo que esta versión no arregla.** La revisión encontró además cuatro sitios donde un fichero contradice a otro. Tres se corrigen aquí y no llevan viñeta propia, porque una desincronización no protege ninguna decisión y la cuenta mejor `git log`: la versión de estado de la tabla de motivos de `procedimientos/cierre.md`, la lista de inmutables de `SKILL.md` §9 y el `__pycache__` sin ignorar de `herramientas/trazas/` —que gana de paso su `requirements.txt` con `langfuse` fijado, porque `exportar.py` lo importa y nada decía qué versión—.
+
+El cuarto se queda como está, y esto sí es una decisión: **`plantillas/informe.md` sigue citando `veredicto.rechaza_con_graves`.** [TODO.md](TODO.md) lo listaba como desincronización suelta, pero no lo es: `config.json` y `procedimientos/capitulo.md` citan esa misma clave, y los tres son coherentes entre sí. Quien va por delante es la spec, que en §7.5 ya la partió en dos por la 0.8.0. Cambiar solo la plantilla la dejaría nombrando una clave que no existe en `config.json` y rompería el acuerdo con `capitulo.md`: tres ficheros contradiciéndose en vez de uno. Se arregla con el resto del arrastre de la 0.8.0, de una vez, cuando esa versión se implemente.
 
 ---
 

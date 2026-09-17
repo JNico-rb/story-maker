@@ -6,14 +6,14 @@ Orden de trabajo propuesto: primero lo que desbloquea el harness (bloque 1), des
 
 ---
 
-## 1. Desbloquear el harness
+## 1. Desbloquear el harness — **hecho el 17/09/2026**
 
-Ninguna novela nueva puede aprobar su escaleta hasta que esto esté. Diagnóstico completo en el CHANGELOG 0.8.1.
+Estaba en que ninguna novela nueva podía aprobar su escaleta. Ya no. Los cuatro puntos, implementados y verificados; el detalle y las pruebas, en el CHANGELOG 0.8.1.
 
-- [ ] **Reescribir spec §3.1** con la regla nueva del hook (decidir por frontmatter aprobado, no por existencia). Va antes que el código, por la regla 6 de CLAUDE.md.
-- [ ] **`.claude/hooks/inmutables.sh`**: para `biblia.md`, `escaleta.md` y `arco-AA.md`, mirar `aprobada: true` / `validada: true` en el frontmatter del fichero existente. El resto sigue con la regla de existencia.
-- [ ] **Reescribir spec §9.3** con las dos reglas `deny` de credenciales.
-- [ ] **`.claude/settings.json`**: quitar `Write(/novelas/**)` y `Write(/comparativa/**)`, que Claude Code acepta y nunca consulta.
+- [x] **Spec §3.1** reescrita: `Write` decide **por aprobación** en `biblia.md`, `escaleta.md` y `arco-*.md`, y **por existencia** en los demás. La limitación conocida de Bash queda escrita ahí.
+- [x] **`.claude/hooks/inmutables.sh`** implementa esas dos reglas leyendo el frontmatter del fichero existente. Probado a mano contra 28 casos con su código de salida.
+- [x] **Spec §9.3** gana la regla 6 con las dos `deny` de credenciales.
+- [x] **`.claude/settings.json`**: entran `Read(.env)` y `Read(.claude/settings.local.json)`; salen `Write(/novelas/**)` y `Write(/comparativa/**)`. El aviso de arranque ya no sale, comprobado con un control.
 
 ## 2. Arrastre de la 0.8.0
 
@@ -27,12 +27,12 @@ La 0.8.0 es solo spec y CHANGELOG. Falta toda la implementación.
 
 ### Desincronizaciones sueltas
 
-Cuatro sitios donde un fichero contradice a otro, encontrados en la revisión del 17/09/2026 y aún sin arreglar:
+Cuatro sitios donde un fichero contradice a otro, encontrados en la revisión del 17/09/2026. Tres arreglados; el que queda depende de esta misma versión:
 
-- [ ] `procedimientos/cierre.md`, tabla de motivos: `ESTADO_NO_RECONOCIDO` dice «no es `version: 3`»; `SKILL.md` §1 dice 4. Quedó de la 0.5.x.
-- [ ] `SKILL.md` §9, lista de inmutables: faltan `informe-arco-*.md` y `libro-estado-*.md`, que sí están en spec §3.1 y en el hook.
-- [ ] `plantillas/informe.md`: cita `veredicto.rechaza_con_graves`, la clave que la 0.8.0 parte en dos.
-- [ ] `.gitignore`: falta `herramientas/trazas/__pycache__/` (ya hay un `.pyc` sin ignorar). Y `exportar.py` importa `langfuse` sin fichero de dependencias: falta `herramientas/trazas/requirements.txt` con la versión fijada.
+- [x] `procedimientos/cierre.md`, tabla de motivos: `ESTADO_NO_RECONOCIDO` decía «no es `version: 3`». Ahora dice 4, y que 3 solo se acepta en `estado` y `verificar`.
+- [x] `SKILL.md` §9, lista de inmutables: entran `informe-arco-*.md` y `libro-estado-*.md`, y la línea distingue lo que admite una escritura por versión de lo que admite una sola.
+- [ ] `plantillas/informe.md`: cita `veredicto.rechaza_con_graves`. **No se toca suelto.** `config.json` y `procedimientos/capitulo.md` citan esa misma clave y los tres son coherentes; quien va por delante es la spec §7.5. Cambiar solo la plantilla dejaría tres ficheros contradiciéndose en vez de uno. Sale con el resto de este bloque, de una vez.
+- [x] `.gitignore` ignora `herramientas/trazas/__pycache__/`, y `herramientas/trazas/requirements.txt` fija `langfuse==4.15.3` (la versión instalada; `exportar.py` usa `propagate_attributes`, que no existe en el SDK v2).
 
 ## 3. Medir
 
