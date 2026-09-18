@@ -1,0 +1,25 @@
+{
+ "_documentacion": "Escala del validador de manuscrito (spec functional.md §9.6). Convierte cada tasa por mil palabras en un 0-1 donde 1 es mejor. Los topes NO son intuición: salen de las tasas medidas sobre los dos manuscritos del repositorio el 2026-09-18, con la regla 'el doble de la peor observada vale 0,0'. Cambiar un tope o un peso invalida las comparaciones anteriores: hay que re-puntuar la línea base.",
+ "version_escala": 1,
+ "fecha": "2026-09-18",
+ "dimensiones": {
+  "lengua": {
+   "unidad": "aciertos del detector por mil palabras",
+   "tope_cero": 2.0,
+   "peso": 0.87,
+   "justificacion_tope": "La peor tasa observada con el detector v1 es 0,94/mil (novela B, haiku). Tope = 2x esa tasa, redondeado a 2,0. Un manuscrito el doble de malo que el peor que hemos medido saca 0,0.",
+   "justificacion_peso": "E5 clasificó 30 defectos encontrados a mano: 13 eran de lengua y 2 de cohesión. 13/(13+2) = 0,87. Sale de un recuento real, no de una intuición; se revisa cuando haya un segundo recuento.",
+   "reserva": "El detector tiene recall 0,462 (calibracion.md). La tasa medida es un límite inferior: la tasa etiquetada de B es 2,023/mil, no 0,934. Los deltas entre manuscritos son comparables entre sí porque el sesgo es el mismo; el nivel absoluto es optimista."
+  },
+  "repeticion": {
+   "unidad": "6-gramas compartidos entre pares de capítulos por mil palabras",
+   "tope_cero": 16.0,
+   "peso": 0.13,
+   "justificacion_tope": "La peor tasa observada es 8,10/mil (novela A, opus): sus capitulos 3 y 4 comparten muchas secuencias. Tope = 2x esa tasa, redondeado. Misma regla que lengua. (La primera version de este fichero puso 12,0 derivandolo de una sonda con otra tokenizacion; corregido el mismo dia contra la medicion de validar.py.)",
+   "justificacion_peso": "2 de los 15 defectos de E5 que caen en estas dos dimensiones.",
+   "reserva": "Mide solapamiento literal. Una escena repetida con otras palabras no la ve; una cita interna legítima sí la cuenta."
+  }
+ },
+ "n_gramas": 6,
+ "regla_topes": "tope_cero = 2 x peor tasa observada al fijar la escala, redondeado. Con n=2 manuscritos esta regla es débil: se revisa con el tercero."
+}
