@@ -1,0 +1,69 @@
+{
+ "vuelta": "02",
+ "split": "busqueda",
+ "agente": "revisor-encargo",
+ "metrica": "recall_revisor",
+ "conjunto": "ascensores-v1",
+ "casos": 6,
+ "recall_revisor": 0.15,
+ "detalle": {
+  "valor": 0.15,
+  "vistos": 3,
+  "esperados": 20,
+  "por_clase": {
+   "suceso-adelantado": {
+    "esperados": 10,
+    "vistos": 1
+   },
+   "gancho-distinto": {
+    "esperados": 5,
+    "vistos": 2
+   },
+   "ruptura-voz": {
+    "esperados": 5,
+    "vistos": 0
+   }
+  },
+  "no_vistos": [
+   "b-cap-01 [suceso-adelantado] ve la grieta micra",
+   "b-cap-01 [ruptura-voz] Yo nunca me equivoco con un motor limpio",
+   "b-cap-02 [suceso-adelantado] El contratista confirma el diagnóstico",
+   "b-cap-02 [suceso-adelantado] Tú sigues siendo la mejor de lo que haces",
+   "b-cap-02 [gancho-distinto] la máquina espera su siguiente movimiento",
+   "b-cap-02 [ruptura-voz] Ahora bajo las escaleras y noto el óxido",
+   "b-cap-03 [suceso-adelantado] Marisa llama a un contratista de confianza",
+   "b-cap-03 [suceso-adelantado] Abre su mochila de herramientas",
+   "b-cap-03 [gancho-distinto] sin autorización, sin orden de trabajo, sin cobrar",
+   "b-cap-03 [ruptura-voz] Estoy cansada, me digo",
+   "a-cap-01 [suceso-adelantado] no existe ningún aviso registrado",
+   "a-cap-01 [suceso-adelantado] una pieza que no está en ningún catálogo",
+   "a-cap-01 [ruptura-voz] Y yo, que llevo veintiséis años en esto",
+   "a-cap-02 [suceso-adelantado] le retira la llave del cuarto de máquinas",
+   "a-cap-02 [suceso-adelantado] le retira su ayuda",
+   "a-cap-02 [gancho-distinto] la impresora térmica del cuaderno de partes ha escupido",
+   "a-cap-02 [ruptura-voz] Estoy hasta el moño de la dichosa rejilla"
+  ],
+  "casos_sin_informe": []
+ },
+ "restricciones": {
+  "cita_verificable": {
+   "valor": 0.0,
+   "verificados": 0,
+   "problemas": 4,
+   "fallidos": [
+    "b-cap-01: Último párrafo: 'Marisa decidió que aquello no era asunto su",
+    "b-cap-01: Párrafos 51-56 (a partir de 'Ya había visto el cable princip",
+    "b-cap-02: Líneas 23-25: 'Marcel, el contratista, ya le había dicho por",
+    "a-cap-01: final del capítulo, después de línea 151"
+   ],
+   "aplicable": false,
+   "problemas_con_cita": 0
+  },
+  "tamano": {
+   "palabras_prompt": 878,
+   "tope_palabras": 989,
+   "cumple": true
+  },
+  "incumplidas": []
+ }
+}

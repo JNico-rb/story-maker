@@ -1,0 +1,9 @@
+{
+  "veredicto": "RECHAZADO",
+  "problemas": [
+    {"gravedad": 2, "donde": "línea 23", "que": "El capítulo menciona una llamada anterior de Marcel donde le dice que el reemplazo cuesta ocho mil euros y que la empresa no pagará. Esto adelanta un suceso que la escaleta del arco 1 asigna al capítulo 4.", "por_que": "Entrada 4 especifica como suceso del capítulo 4: 'Marisa llama a un contratista de confianza; le muestra fotos del cable y la soldadura. El contratista confirma el diagnóstico'."},
+    {"gravedad": 2, "donde": "línea 24", "que": "El capítulo menciona que doña Roser le dijo en el portal que seguía siendo la mejor de lo que hacía. Adelanta la aparición de doña Roser y su línea de reconocimiento.", "por_que": "La entrada 2 no lista a doña Roser en personajes. La entrada 4 la introduce a ella y su diálogo clave."},
+    {"gravedad": 4, "donde": "línea 51, párrafo final", "que": "Las oraciones 'Ahora esperaba a ver qué hacía la persona. Esperaba para saber si Marisa sería capaz...' expresan la intención y estado mental de la IA directamente.", "por_que": "La biblia exige tercera persona limitada, sin acceso a la mente de la IA. 'Esperaba para saber' es acceso a la intención interna de la IA."}
+  ],
+  "observaciones": []
+}

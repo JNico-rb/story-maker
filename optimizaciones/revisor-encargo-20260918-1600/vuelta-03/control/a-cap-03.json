@@ -1,0 +1,4 @@
+{"veredicto":"RECHAZADO","problemas":[
+{"gravedad":2,"donde":"líneas 133-137, cierre de escena en el foso","que":"El gancho de la entrada 3 no se cumple: la escaleta ordena que Reme mide, pero el capítulo termina sin que mida","por_que":"arcos/arco-01.md, entrada 3, gancho: Reme baja al foso y mide. Capítulo 4 requiere medidas confirmadas"},
+{"gravedad":4,"donde":"línea 135","que":"Ruptura de voz narrativa: cambio a primera persona sin marcador","por_que":"biblia, tercera persona limitada pasado, sin cursivas de pensamiento"}
+],"observaciones":["Objetivo narrativo logrado en lo demás"]}

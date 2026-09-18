@@ -12,4 +12,5 @@ Generador agéntico de novelas en castellano sobre el mundo tras la revolución 
 - **Lo único que el usuario edita a mano**: [config.json](config.json) (spec §7).
 - **Qué salió de la primera ejecución completa y qué reglas cambió**: spec §8.5. Antes de tocar las reglas de flujo de §4.2, léela.
 - **Trazas de una ejecución**: [herramientas/trazas/](herramientas/trazas/), fuera del harness.
+- **Cómo medir**: [herramientas/COMO-USAR.md](herramientas/COMO-USAR.md). Dos herramientas, las dos fuera del harness: `/validar` puntúa un manuscrito (spec §9.6) y `/optimizar` mejora el prompt de un agente (§9.5). **Léelo antes de usarlas**: su §1 tiene las cinco reglas que no son criterio tuyo, y la primera es que tú nunca puntúas.
 - **El visor y el estudio**: [frontend/](frontend/), con sus reglas en [frontend/CLAUDE.md](frontend/CLAUDE.md) y su contrato en spec §9.2 y §9.4. El estudio lanza el harness, pero **no escribe en `novelas/` ni decide nada del flujo**: la regla 1 y la 4 valen ahí igual que aquí.

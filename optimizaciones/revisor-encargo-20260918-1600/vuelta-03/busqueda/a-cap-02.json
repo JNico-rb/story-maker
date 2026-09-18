@@ -1,0 +1,8 @@
+{
+  "veredicto": "RECHAZADO",
+  "problemas": [
+    {"gravedad": 4, "donde": "Línea 7, segundo párrafo", "que": "Cambio de primera persona del presente ('Estoy cansada, me digo...') a mitad de un párrafo en tercera persona limitada", "por_que": "Biblia §Tono y voz: 'Tercera persona limitada, pegada a Marisa. Pasado.'"},
+    {"gravedad": 2, "donde": "Línea 19", "que": "Se menciona que Marisa 'ya había llamado a Marcel esa misma mañana y él le había dado el presupuesto'. Adelanta la consulta con el contratista que la escaleta del capítulo 4 asigna como suceso clave.", "por_que": "Arco 1, entrada 4: suceso de llamar a un contratista y recibir presupuesto."}
+  ],
+  "observaciones": ["El descubrimiento de la grieta está bien ejecutado"]
+}

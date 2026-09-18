@@ -1,0 +1,16 @@
+{
+  "veredicto": "RECHAZADO",
+  "problemas": [
+    {
+      "gravedad": 2,
+      "donde": "Líneas 23-25: 'Marcel, el contratista, ya le había dicho por teléfono...' y 'doña Roser se lo había dicho en el portal aquella misma mañana...'",
+      "que": "El capítulo menciona que Marisa ya ha hablado con Marcel (costo de reparación, empresa no pagará) y visto a doña Roser, pero estos encuentros no se narran como escenas y están asignados al capítulo 4 por la escaleta.",
+      "por_que": "Entrada 2 (arco-01.md, líneas 19-29): personajes = 'Marisa Ferrán, la IA (presencia física en los motores, panel de control)'. Ni Marcel ni doña Roser. Entrada 4 (líneas 42-57): 'Marisa llama a un contratista de confianza...' y 'Marisa cruza con doña Roser en la entrada...'. El capítulo 2 adelanta la mención de sucesos que la escaleta asigna al capítulo 4, trastocando la estructura del arco."
+    }
+  ],
+  "observaciones": [
+    "El resto de sucesos y el objetivo de la entrada 2 se cumplen correctamente.",
+    "El gancho está presente de forma clara.",
+    "Tono, voz y punto de vista (tercera persona limitada) se mantienen conforme a la biblia."
+  ]
+}

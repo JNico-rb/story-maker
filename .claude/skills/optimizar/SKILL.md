@@ -1,7 +1,7 @@
 ---
 name: optimizar
 description: Bucle de mejora automática del prompt de un agente del harness. Usar cuando el usuario pida optimizar, calibrar o mejorar el prompt de un agente ("/optimizar revisor-encargo --metrica recall_revisor --vueltas 10"), o ver el resultado de una optimización anterior. Nunca dentro de /novela.
-argument-hint: <agente> --metrica <score> --vueltas N [--tope-invocaciones M] [--conjunto <nombre>] | estado <carpeta>
+argument-hint: <agente> --metrica <score> --vueltas N [--tope-invocaciones M] [--conjunto <nombre>] | continuar <carpeta> [--vueltas N] | estado <carpeta>
 ---
 
 # /optimizar — bucle de optimización de prompts
@@ -19,11 +19,28 @@ Argumentos recibidos: `$ARGUMENTS`
 | Forma | Hace |
 |---|---|
 | `<agente> --metrica <score> --vueltas N [--tope-invocaciones M] [--conjunto <nombre>]` | §1 → §9 |
+| `continuar <carpeta> [--vueltas N]` | §0.1 → §8 → §9: retoma una ejecución parada |
 | `estado <carpeta>` | §10, solo lectura |
 
 Por defecto `--tope-invocaciones` = `(N + 1) × casos_del_conjunto × 1,2`, redondeado hacia arriba. `--conjunto` por defecto es el único `.jsonl` de `herramientas/optimizacion/conjuntos/`; si hay más de uno, es ERROR y pides cuál.
 
 **Nunca infieras un argumento que falte.** Sin `--metrica` o sin `--vueltas`, para y pídelos: un bucle que se inventa su propio objetivo no demuestra nada.
+
+## 0.1 continuar(carpeta) → sigue donde lo dejó
+
+Una ejecución que paró sin agotar su presupuesto se retoma sin repetir nada de lo ya medido. **La línea base y las vueltas hechas no se vuelven a ejecutar**: ya están puntuadas en disco y repetirlas gastaría invocaciones para obtener el mismo número.
+
+1. Lee `carpeta/ejecucion.json`: de ahí salen `agente`, `metrica`, `conjunto`, `objetivo` y los topes. **No los vuelvas a pedir ni los cambies**; si el usuario quiere otro objetivo, es otra ejecución, porque mezclar dos objetivos en una curva la hace ilegible.
+2. `--vueltas N` solo **amplía** el presupuesto. Bajarlo por debajo de las vueltas ya hechas es ERROR.
+3. Comprueba, y para si falla alguna:
+   - `git hash-object .claude/agents/<agente>.md` coincide con `carpeta/produccion.hash`. Si no, la ejecución anterior dejó una variante instalada: restaura desde `carpeta/produccion.md` y dilo en el progreso antes de seguir.
+   - El hash del conjunto sigue siendo el de `ejecucion.json`. Si cambió, **para**: las vueltas nuevas no serían comparables con las viejas.
+   - `preparar.py --comprobar` con los valores de `ejecucion.json`.
+4. `vuelta_inicial` = última línea de `carpeta/vueltas.jsonl` + 1. `mejor_control` y `mejor.md` salen de disco, no se recalculan.
+5. Recupera el contador de estancamiento contando hacia atrás las líneas consecutivas con `aceptada: false` desde el final. Sin eso, el aborto por 3 vueltas sin mejora se reiniciaría y el bucle daría vueltas de más.
+6. Sigue en §8 desde `vuelta_inicial`.
+
+Al cerrar, `informe.md` se **reescribe entero** con todas las vueltas, no solo las nuevas, y dice cuántas veces se ha consultado el control **en total** — que es la cifra con la que hay que leer el resultado (§9.5.3).
 
 ## 1. comprobar_prerrequisitos(agente, metrica, conjunto) → ok | FALTA
 
@@ -43,7 +60,7 @@ Si sale 1: **muestra su salida tal cual y termina.** No arregles nada, no propon
    `Bash: git hash-object .claude/agents/<agente>.md > carpeta/produccion.hash`
 3. Copia `produccion.md` a `carpeta/mejor.md` (en la vuelta 1 la mejor es la de producción).
 4. Si no existe, crea `optimizaciones/<agente>/lecciones.md` con su cabecera.
-5. Escribe `carpeta/ejecucion.json`: agente, métrica, conjunto y su hash, vueltas, tope de invocaciones, objetivo, restricciones, instante de inicio, y `invocaciones: 0`.
+5. Escribe `carpeta/ejecucion.json`: agente, métrica, conjunto y su `conjunto_hash` (sha256 del `.jsonl`, 12 caracteres), vueltas, tope de invocaciones, objetivo, restricciones, instante de inicio, y `invocaciones: 0`.
 6. Escribe la primera línea de `carpeta/vueltas.jsonl` cuando termine la vuelta 0, no antes.
 
 **El hash del conjunto se congela aquí.** Si el fichero del conjunto cambia a mitad, las vueltas dejan de ser comparables; §9 lo comprueba al cerrar y lo dice en el informe.
@@ -137,7 +154,7 @@ Es la pieza más frágil del hito 1 y solo existe aquí: la herramienta `Agent` 
 ## 8. Una vuelta
 
 ```
-para vuelta en 1..N:
+para vuelta en vuelta_inicial..N:          # vuelta_inicial = 1, o §0.1 al continuar
     variante = proponer_variante(carpeta, vuelta)
     si comprobar_variante(...) == RECHAZADA:
         anota(vuelta, aceptada = false, motivo = <el del guion>, invocaciones = 0)

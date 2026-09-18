@@ -1,0 +1,26 @@
+{
+  "veredicto": "RECHAZADO",
+  "problemas": [
+    {
+      "gravedad": 2,
+      "donde": "línea 57, cierre del capítulo",
+      "que": "Marisa no actúa. El capítulo termina con 'Marisa guardó las herramientas sin llegar a tocar el cable y bajó a la calle', cuando la entrada 5 exige que 'abre su mochila de herramientas' y 'comienza a actuar'",
+      "por_que": "Entrada 5, suceso 4 (arco-01.md línea 152) y gancho (línea 156): 'Marisa comienza a actuar'. El verbo 'actuar' es el cierre obligatorio; el capítulo lo niega explícitamente al guardar las herramientas sin usarlas. Contradice también escaleta.md línea 47"
+    },
+    {
+      "gravedad": 2,
+      "donde": "línea 37-38, flash-forward narrativo",
+      "que": "El capítulo adelanta que 'la soldadura estaba hecha, el sellante seco y el ascensor volvía a funcionar sin un solo ruido'. Responde afirmativamente a qué pasará, cuando el gancho fija que debe permanecer sin resolver",
+      "por_que": "Gancho de entrada 5 (arco-01.md línea 156): 'No sabemos si logrará estabilizar el cable, si la descubrirán...'. El capítulo adelanta la resolución exitosa en línea 37-38, cerrando una pregunta que debe quedar abierta hasta un arco posterior"
+    },
+    {
+      "gravedad": 4,
+      "donde": "línea 39-42, cambio de voz narrativa",
+      "que": "Cambio abrupto a primera persona singular: 'Ahora abro la mochila y saco la llave inglesa, y me tiembla un poco la mano...' cuando todo el capítulo está en tercera persona limitada",
+      "por_que": "Biblia §Tono y voz (línea 47): 'Tercera persona limitada, pegada a Marisa. Pasado.' Este cambio a primera persona viola el punto de vista fijado. Interrumpe la voz narrativa sin justificación diegética"
+    }
+  ],
+  "observaciones": [
+    "La estructura temporal del capítulo es confusa: abre mochila (línea 35), flash-forward a dos horas después (línea 37-38), vuelve atrás (línea 39), termina guardando herramientas (línea 57). Esta incoherencia narrativa agrava el problema del gancho"
+  ]
+}

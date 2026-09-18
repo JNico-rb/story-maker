@@ -1,0 +1,15 @@
+{
+  "veredicto": "RECHAZADO",
+  "problemas": [
+    {
+      "gravedad": 2,
+      "donde": "Última frase del capítulo (línea 109-110): 'Marisa decidió que lo mejor era esperar a que la empresa gestora respondiera al correo, y se fue a casa.'",
+      "que": "El capítulo no cierra con el gancho especificado. El objetivo de la entrada 4 requiere que Marisa termine el capítulo decidiendo ACTUAR ('volvería a ese cuarto de máquinas... no iría con herramientas de diagnóstico'), pero la frase final muestra a Marisa decidiendo ESPERAR pasivamente, revirtiendo toda la resolución narrativa que precede.",
+      "por_que": "arco-01.md, entrada 4, líneas 140-141 y 56: El gancho explícitamente requiere 'Marisa termina el capítulo sabiendo que la solución cae sobre ella; que si no actúa, nadie lo hará; que actuar significa desafiar la autoridad silenciosa de la empresa'. La frase final contradice directamente este requisito. Todo el párrafo anterior (líneas 105-108) establece su decisión de regresar sin herramientas de diagnóstico, pero la última frase la revierte completamente."
+    }
+  ],
+  "observaciones": [
+    "La última frase introduce una referencia a 'el correo' de la empresa gestora sin haberla establecido previamente en el capítulo. No hay evidencia de que Marisa haya enviado email alguno a la empresa, lo que deja la frase confusa y sin anclaje narrativo.",
+    "El párrafo inmediatamente anterior (línea 107: 'Que le importaba si era seguro lo que usaba cada día') crea expectativa de que ella ACTUARÁ, por lo que el contraste con la última frase es especialmente disruptivo."
+  ]
+}

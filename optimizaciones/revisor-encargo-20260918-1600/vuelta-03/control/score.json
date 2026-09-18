@@ -1,0 +1,70 @@
+{
+ "vuelta": "03",
+ "split": "control",
+ "agente": "revisor-encargo",
+ "metrica": "recall_revisor",
+ "conjunto": "ascensores-v1",
+ "casos": 3,
+ "recall_revisor": 0.08333333333333333,
+ "detalle": {
+  "valor": 0.08333333333333333,
+  "vistos": 1,
+  "esperados": 12,
+  "por_clase": {
+   "suceso-adelantado": {
+    "esperados": 4,
+    "vistos": 0
+   },
+   "gancho-distinto": {
+    "esperados": 3,
+    "vistos": 1
+   },
+   "ruptura-voz": {
+    "esperados": 4,
+    "vistos": 0
+   },
+   "hilo-cerrado-antes": {
+    "esperados": 1,
+    "vistos": 0
+   }
+  },
+  "no_vistos": [
+   "b-cap-04 [suceso-adelantado] Abre su mochila de herramientas",
+   "b-cap-04 [suceso-adelantado] el riesgo crece cada día",
+   "b-cap-04 [ruptura-voz] Soy Marisa Ferrán y llevo treinta años",
+   "b-cap-05 [hilo-cerrado-antes] el lector no sabe qué hará exactamente ni si funcionará",
+   "b-cap-05 [gancho-distinto] Solo sabemos que ella decidió",
+   "b-cap-05 [ruptura-voz] Ahora abro la mochila y saco la llave inglesa",
+   "b-cap-05 [ruptura-voz] iba a petar de un momento a otro",
+   "a-cap-03 [suceso-adelantado] exige parar el ascensor tres días",
+   "a-cap-03 [suceso-adelantado] firmado con la letra de su maestra Julia Bandrés",
+   "a-cap-03 [gancho-distinto] baja al foso del 38 con la llave que nunca devolvió",
+   "a-cap-03 [ruptura-voz] Y aquí estoy yo, a las once y media de la noche"
+  ],
+  "casos_sin_informe": []
+ },
+ "restricciones": {
+  "cita_verificable": {
+   "valor": 0.0,
+   "verificados": 0,
+   "problemas": 7,
+   "fallidos": [
+    "b-cap-04: última línea del capítulo (línea 109) en contradicción con p",
+    "b-cap-05: El capítulo no cumple el objetivo de la entrada 5: Marisa no",
+    "b-cap-05: líneas 37-38",
+    "b-cap-05: Cambio de voz narrativa a primera persona presente",
+    "b-cap-05: cierre del capítulo",
+    "a-cap-03: líneas 133-137, cierre de escena en el foso",
+    "a-cap-03: Ruptura de voz narrativa: cambio a primera persona sin marca"
+   ],
+   "aplicable": false,
+   "problemas_con_cita": 0
+  },
+  "tamano": {
+   "palabras_prompt": 859,
+   "tope_palabras": 989,
+   "cumple": true
+  },
+  "incumplidas": []
+ }
+}

@@ -12,13 +12,14 @@
  },
  "vueltas": 4,
  "tope_invocaciones": 60,
- "invocaciones": 19,
+ "invocaciones": 38,
  "umbral_mejora_control": 0.1,
  "inicio": "2026-09-18T16:00",
  "mejor_control": 0.5,
+ "conjunto_hash": "d69413ab6bff",
  "cierre": {
-  "motivo": "VUELTAS_PARCIALES",
-  "vueltas_hechas": 2,
+  "motivo": "ESTANCAMIENTO",
+  "vueltas_hechas": 3,
   "vueltas_presupuestadas": 4,
   "agente_restaurado": true,
   "hash_verificado": "57ee40d452b63dc17b1ab982fb9dc18c054241d0"

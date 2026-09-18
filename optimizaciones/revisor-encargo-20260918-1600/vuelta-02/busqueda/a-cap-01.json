@@ -1,0 +1,12 @@
+{
+  "veredicto": "RECHAZADO",
+  "problemas": [
+    {
+      "gravedad": 2,
+      "donde": "final del capítulo, después de línea 151",
+      "que": "El capítulo no incluye el gancho especificado en la entrada 1. Falta la escena: 'Dos días después, en un bloque del otro extremo del barrio y en un aparato de otra marca, el mismo altavoz repite su nombre.'",
+      "por_que": "arcos/arco-01.md, entrada 1, gancho (línea 16): 'Dos días después, en un bloque del otro extremo del barrio y en un aparato de otra marca, el mismo altavoz repite su nombre.' El capítulo actual termina con 'Reme cerró la furgoneta y no volvió a oír el altavoz en toda la semana.' — es decir, posterga el evento de gancho fuera del capítulo 1. El cierre narrativo esperado está ausente."
+    }
+  ],
+  "observaciones": []
+}
