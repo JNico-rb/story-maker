@@ -11,7 +11,8 @@ frontend/.env
 frontend/.env.local
 
 # Herramientas (fuera del harness)
-herramientas/trazas/__pycache__/
+herramientas/*/__pycache__/
+herramientas/*/*/__pycache__/
 
 # Credenciales locales de observabilidad (Langfuse)
 .claude/settings.local.json

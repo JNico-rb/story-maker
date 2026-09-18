@@ -2,12 +2,12 @@
 
 Detector `v1` (hash `59ca75b`), escala v1. 8145 palabras en 5 capítulos aprobados.
 
-| Dimensión | Tasa /mil | Normalizado | Peso |
-|---|---:|---:|---:|
-| lengua | 0.00 | 1.000 | 0.87 |
-| repeticion | 8.10 | 0.494 | 0.13 |
+| Dimensión | Tasa /mil | Normalizado | Peso | Base | Delta |
+|---|---:|---:|---:|---:|---:|
+| lengua | 0.00 | 1.000 | 0.87 | 1.000 | +0.000 |
+| repeticion | 8.10 | 0.494 | 0.13 | 0.494 | +0.000 |
 
-**Índice global: 0.934** (línea base)
+**Índice global: 0.934** · base 0.934 · **delta +0.000**
 
 ## Hallazgos de lengua
 

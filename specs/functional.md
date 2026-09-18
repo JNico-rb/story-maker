@@ -616,9 +616,11 @@ Los ejecuta el orquestador sobre el caso de referencia en modo de prueba y compr
 
 Estado real: ninguno se ejecuta de forma automatizada; 3, 4, 5, 10, 11, 13, 14 y 16–18 no se han ejercitado nunca (E3 confirma que 14 no se llegó a evaluar). Guion de comprobación → A3.
 
-### 8.3 Métricas de calidad `[harness · ambos]`
+### 8.3 Métricas de calidad — de **proceso** `[harness · ambos]`
 
-"Suficientemente buena" = **coherente**, **cohesionada**, **fiel a lo pedido**. Calculadas solo de informes y Estado:
+**Autoinformadas**: se calculan solo de informes y Estado, es decir, de lo que los revisores declararon. Cuatro de las seis dependen de eso (E5c), y por eso pueden dar `6/6 CUMPLE` sobre un manuscrito con 30 defectos reales. Miden cómo fue el proceso, no cómo quedó el texto: para eso está el validador de **producto** de §9.6, que lee el manuscrito. Las dos conviven y ninguna manda sobre la otra; cada informe dice de dónde sale su número.
+
+"Suficientemente buena" = **coherente**, **cohesionada**, **fiel a lo pedido**:
 
 | Métrica | Cómo | Mide |
 |---|---|---|
@@ -678,6 +680,7 @@ Después, si completa, `calcular_metricas`. Si algo falla, `informe-cierre.md` d
 | Visor y estudio | [frontend/](../frontend/) · `encargos/<slug>/` |
 | Observabilidad y evaluadores | [herramientas/trazas/](../herramientas/trazas/) · [herramientas/evaluadores/](../herramientas/evaluadores/) |
 | Bucle de optimización (§9.5) | [.claude/skills/optimizar/](../.claude/skills/optimizar/SKILL.md) · [.claude/agents/optimizador.md](../.claude/agents/optimizador.md) · [herramientas/optimizacion/](../herramientas/optimizacion/) · `optimizaciones/` |
+| Validador de manuscrito (§9.6) | [.claude/skills/validar/](../.claude/skills/validar/SKILL.md) · [herramientas/validacion/](../herramientas/validacion/) · `validaciones/` |
 | Evidencia y transición | [hallazgos.md](hallazgos.md) · [consolidacion-2026-09-18.md](consolidacion-2026-09-18.md) |
 
 ### 9.1 Cómo se escribe el orquestador
@@ -864,6 +867,83 @@ Dónde vive cada cosa:
 | Ejecutar una variante | `cp` sobre `.claude/agents/<agente>.md` + herramienta `Agent`, porque `Agent` lee el contrato del disco y no admite un prompt inyectado | La cáscara pasa el system prompt al subagente; no hace falta tocar el repositorio ni restaurar |
 | Presupuesto | Tope de invocaciones: no hay tokens de subagente | Tope de coste, con `coste_usd` de §10.2 |
 | Todo lo demás | Markdown, JSONL y guiones | Idéntico |
+
+### 9.6 El validador de manuscrito
+
+**Estado a 2026-09-18: implementado y ejecutado.** Puntúa el **texto producido**, no lo que los revisores declararon. Nace del mismo hallazgo que §9.5 pero por el otro lado: E5(c) dice que cuatro de las seis métricas de §8.3 dependen de lo que el revisor declare, y `erratas.md` de la novela B dice `total: 0` sobre el manuscrito donde E5 contó 13 agramaticalidades a mano.
+
+**Mismo estatus que §9.2–§9.5: fuera del harness, borrable, nunca dentro de `/novela`.** Se invoca a mano con `/validar`. Solo lee `novelas/`; escribe en `validaciones/`.
+
+**No es un bucle.** Mide una vez y devuelve un número: no tiene condiciones de parada ni vectores de mejora, y eso es una decisión, no un olvido. Si algún día se itera sobre `config.json` usando esto como juez, ese bucle traerá su propio STOP.
+
+**§8.3 y §9.6 conviven, con nombres distintos** `[harness · ambos]`. §8.3 son métricas de **proceso**, y quedan declaradas como **autoinformadas**: las calcula el harness a partir de lo que los revisores dijeron. §9.6 son métricas de **producto**, medidas sobre el texto. Cada informe dice de dónde sale cada número; cuando discrepen, decide el usuario. Ninguna se retira: §8.3 ve cosas que el texto no muestra (agotamientos, reintentos) y §9.6 ve cosas que ningún revisor declaró.
+
+#### 9.6.1 TRIGGER
+
+`/validar <carpeta> [--congelar-base] [--publicar]`. Manual, nunca automático. Tres precondiciones; si falta una, no mide y dice cuál `[harness+guion · ambos]`:
+
+| # | Requisito | Por qué |
+|---|---|---|
+| 1 | La carpeta pasa §8.7: `etapa: completa` y `manuscrito.md` | Un manuscrito a medias no se compara con uno entero |
+| 2 | El **detector** está congelado: su hash coincide con el de la línea base | Un delta entre dos detectores distintos mide el detector, no el texto |
+| 3 | La **escala** está congelada: misma versión de topes y pesos | Ídem |
+
+#### 9.6.2 GOAL
+
+Un número **reproducible** sobre el texto. Dos dimensiones, ambas por mil palabras —los manuscritos miden 8.145 y 6.391 palabras y sin normalizar el más largo saldría penalizado por serlo—, ambas normalizadas a 0–1 con 1 = mejor, más un índice global ponderado:
+
+| Dimensión | Qué cuenta | Tope 0,0 | Peso |
+|---|---|---:|---:|
+| `lengua` | Aciertos del detector de agramaticalidades | 2,0 /mil | 0,87 |
+| `repeticion` | 6-gramas compartidos entre pares de capítulos | 16,0 /mil | 0,13 |
+
+**Ni los pesos ni los topes son intuición.** Los pesos salen del recuento de E5: de los 15 defectos que caen en estas dos dimensiones, 13 son de lengua y 2 de cohesión. Los topes salen de la regla «el doble de la peor tasa observada vale 0,0», aplicada a las tasas que midió el propio guion. Todo declarado con su dato en `herramientas/validacion/escala.json`. Con dos manuscritos la regla de topes es débil y se revisa con el tercero.
+
+#### 9.6.3 VERIFY
+
+Delta contra una **línea base congelada** en `validaciones/_base.json`. Eje declarado por ejecución; todo lo demás igual.
+
+La medición es determinista: re-puntuar el mismo manuscrito da el mismo número. **El ruido no está en la medición, está en la generación.** Con `n=1` por configuración no se puede separar el efecto de la config del azar de esa generación, así que el informe lo escribe siempre y **ninguna mejora se declara establecida** `[harness · ambos]`.
+
+#### 9.6.4 STOP — no aplica
+
+No itera. Declarado aquí para que no se rellene por inercia.
+
+#### 9.6.5 MEMORY
+
+No hay vectores de mejora, por lo mismo. Lo que sí hay son reglas y sitio:
+
+| Regla | Cómo se impone |
+|---|---|
+| Ningún patrón puede llevar dentro **tres palabras seguidas** de una cita del etiquetado | `comprobar_patrones.py`, sale 1. Una palabra suelta del léxico sí vale: es miembro de la clase, no la instancia |
+| Cada clase viaja con ejemplos **positivos y negativos inventados**, que no están en ningún manuscrito | Ídem: el patrón debe casar los positivos y respetar los negativos |
+| Cambiar `patrones.py` o `escala.json` obliga a re-puntuar la línea base | El hash y la versión viajan en cada resultado; la precondición 2 y 3 lo cortan |
+
+Es la misma regla que §9.5.5 impone al optimizador —quien escribe el examen no copia las respuestas— y la misma que §9.5.3 impone al juez: congelado durante toda la comparación.
+
+**Dónde vive**: `herramientas/validacion/` (detector, escala, calibración, etiquetado) y `validaciones/<slug>/` (`score.json`, `informe.md`), versionado en git. Publicación en Langfuse posterior y **fail-open**.
+
+#### 9.6.6 Alcance declarado de la v1
+
+| Medida | Valor | Qué significa |
+|---|---:|---|
+| Precisión | **1,000** | De lo que marca, todo es un error real: 6 de 6 |
+| Recall | **0,462** | De los 13 defectos etiquetados, ve 6 |
+| Recall sobre el techo | **1,000** | De los 6 que alguna clase del v1 puede expresar, los ve todos |
+
+Los 7 que no ve están declarados uno a uno en el etiquetado: tres son palabras inexistentes (exigen un léxico), dos son tiempo verbal y uno concordancia compleja (exigen análisis morfosintáctico), uno es laísmo idiomático. Subir ese recall exige spaCy o language-tool, y eso ata la línea base a una versión externa que al actualizarse cambiaría los números.
+
+**Fuera de la v1**: las clases A, B y C de E5 —coherencia interna, verosimilitud técnica, mundo post-IA, 13 de los 30 defectos— porque no son contables y exigen un juez LLM independiente, que hoy no existe (`openrouter/free` no garantiza qué modelo contesta → A14).
+
+#### 9.6.7 Primera medición (2026-09-18)
+
+| | Lengua | Repetición | Global |
+|---|---:|---:|---:|
+| **A** (opus, 8.145 palabras) — línea base | 0,00 /mil → 1,000 | 8,10 /mil → 0,494 | **0,934** |
+| **B** (haiku, 6.391 palabras) | 0,94 /mil → 0,531 | 2,82 /mil → 0,824 | **0,569** |
+| Delta | −0,469 | **+0,330** | −0,365 |
+
+Dos lecturas que ninguna métrica anterior daba. La primera: **la novela de opus pierde en repetición**, y por bastante; sus capítulos 3 y 4 comparten muchas secuencias literales. §8.3 le da CUMPLE y no lo ve. La segunda: el delta global de −0,365 **no autoriza a decir «haiku escribe peor»**, con n=1 y sin poder separar config de azar; autoriza a decir que esta novela de haiku puntuó 0,365 menos que esta novela de opus.
 
 ---
 
