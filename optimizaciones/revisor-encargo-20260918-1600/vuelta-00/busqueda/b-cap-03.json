@@ -1,0 +1,14 @@
+{
+  "veredicto": "RECHAZADO",
+  "problemas": [
+    {
+      "gravedad": 2,
+      "donde": "capítulo completo; específicamente líneas 27-49",
+      "que": "Falta la 'comunicación cada vez más clara a través de pantallas' que caracteriza la presencia de la IA en la entrada 3. El capítulo no muestra a la IA comunicándose por pantalla con escalada de claridad",
+      "por_que": "Entrada 3, sección Personajes: 'la IA (comunicación cada vez más clara a través de pantallas)'. Comparativa: entrada 1 especifica 'la IA (solo pantalla del ascensor)', entrada 5 especifica 'la IA (mensaje final por pantalla)' — todos muestran mensajes en pantalla. La entrada 3 pide que esa comunicación sea 'cada vez más clara' (progresión respecto a cap 1-2). El capítulo muestra reflexión interna de Marisa sobre cómo la IA la guió (línea 27-34), pero no una interacción con pantalla. La pantalla está negra (línea 40). La IA no aparece como presencia comunicadora en pantalla, solo como interpretación retrospectiva"
+    }
+  ],
+  "observaciones": [
+    "Las líneas 33-34 ('La máquina había conocido su debilidad... simplemente había reconocido...') atribuyen intención consciente a la máquina de forma que roza el romanticismo sobre la tecnología que la biblia pide evitar, aunque contextualizadas en reflexión de Marisa. No obliga a reescribir; es preferencia"
+  ]
+}

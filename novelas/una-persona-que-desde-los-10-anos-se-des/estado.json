@@ -7,7 +7,7 @@
   "carpeta_prueba": null,
   "encargo": "encargos/una-persona-que-desde-los-10-anos-se-des",
   "escaleta_aprobada": false,
-  "escaleta_rechazos": 0,
+  "escaleta_rechazos": 2,
   "total_capitulos": null,
   "arcos": {},
   "arco_actual": null,
@@ -16,14 +16,18 @@
   "capitulos": {},
   "informe_global": false,
   "invocaciones": {
-    "interrogador": 0,
+    "interrogador": 4,
     "escritor": 0,
     "resumidor": 0,
     "revisor_encargo": 0,
-    "revisor_continuidad": 0
+    "revisor_continuidad": 3
   },
   "ultima_parada": null,
-  "avisos": [],
+  "avisos": [
+    "Bash con escritura (mkdir/cp) denegado en esta sesión sin superficie de aprobación; la carpeta se creó con la herramienta Write. Los commits de git sí pasan.",
+    "El revisor-continuidad devolvió el JSON envuelto en vallas de código y, en dos de las tres invocaciones, con razonamiento fuera del objeto. Parsea sin ambigüedad, así que no se gastó reintento técnico; es un incumplimiento leve del contrato de forma (invocar.md § extraer).",
+    "En la vuelta 1 el interrogador devolvió los bloques con rutas relativas (biblia.md) en vez de la ruta completa pedida. El mapeo era inequívoco y no se gastó reintento."
+  ],
   "reescrituras_usadas": {},
   "ajustes_usados": {},
   "erratas": null

@@ -2,13 +2,15 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { api } from './lib/api'
-import { leerRuta, type Ruta } from './lib/ruta'
+import { escribirRuta, leerRuta, type Ruta } from './lib/ruta'
 import { useDatos } from './lib/useDatos'
-import type { Novela, ResumenNovela } from './lib/tipos'
+import type { Encargo, Novela, Pregunta, ResumenNovela } from './lib/tipos'
 import { BarraMarca } from './components/BarraMarca'
 import { CabeceraNovela } from './components/CabeceraNovela'
 import { DetalleCapitulo } from './components/DetalleCapitulo'
+import { FormularioEncargo } from './components/FormularioEncargo'
 import { ListaNovelas } from './components/ListaNovelas'
+import { SesionEncargo } from './components/SesionEncargo'
 import { PestanaDocumentos } from './components/PestanaDocumentos'
 import { PestanaLeer } from './components/PestanaLeer'
 import { PestanaProgreso } from './components/PestanaProgreso'
@@ -41,7 +43,10 @@ function Lista({ refrescando }: { refrescando: boolean }) {
   if (datos.length === 0) {
     return (
       <Vacio titulo="No hay ninguna novela todavía">
-        Genera una desde Claude Code con <code className="font-dato">/novela nueva</code> y aparecerá
+        <a href={escribirRuta({ vista: 'estudio', encargo: null })} className="font-medium text-marca-fuerte underline">
+          Encarga una
+        </a>{' '}
+        o genérala desde Claude Code con <code className="font-dato">/novela nueva</code>: aparecerá
         aquí en cuanto el harness cree su carpeta.
       </Vacio>
     )
@@ -113,6 +118,21 @@ function VistaNovela({
   )
 }
 
+function VistaEstudio({ encargo }: { encargo: string | null }) {
+  const { datos, cargando, error, recargar } = useDatos<{
+    preguntas: Pregunta[]
+    encargos: Encargo[]
+  }>((señal) => api.listarEncargos(señal), 'encargos', false)
+
+  if (encargo !== null) return <SesionEncargo slug={encargo} refrescando />
+
+  if (cargando && datos === null) return <Cargando que="el formulario" />
+  if (error !== null && datos === null) return <Fallo mensaje={error} alReintentar={recargar} />
+  if (datos === null) return null
+
+  return <FormularioEncargo preguntas={datos.preguntas} />
+}
+
 export function App() {
   const ruta = useRuta()
   const [refrescando, setRefrescando] = useState(true)
@@ -121,9 +141,9 @@ export function App() {
   return (
     <div className="min-h-screen bg-panel">
       <BarraMarca />
-      {ruta.vista === 'lista' ? (
-        <Lista refrescando={refrescando} />
-      ) : (
+      {ruta.vista === 'lista' && <Lista refrescando={refrescando} />}
+      {ruta.vista === 'estudio' && <VistaEstudio encargo={ruta.encargo} />}
+      {ruta.vista === 'novela' && (
         <VistaNovela ruta={ruta} refrescando={refrescando} alCambiarRefresco={alCambiarRefresco} />
       )}
     </div>

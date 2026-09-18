@@ -94,6 +94,13 @@ async function leerResumen(raiz, slug) {
     titulo: typeof escaleta?.titulo === 'string' ? escaleta.titulo : slug,
     etapa: estado.etapa ?? 'desconocida',
     modoPrueba: estado.modo_prueba === true,
+    // Qué encargo la pidió, si vino del estudio. Lo escribe crear_novela en
+    // estado.json (SKILL.md §2), así que el enlace sale del harness y no de
+    // una coincidencia de nombres.
+    encargo:
+      typeof estado.encargo === 'string'
+        ? (estado.encargo.split(/[\\/]/).filter(Boolean).pop() ?? null)
+        : null,
     perfil: config?.perfil?.nombre ?? config?.origen?.perfil_activo ?? null,
     totalCapitulos: estado.total_capitulos ?? null,
     capitulosAprobados: aprobados.length,

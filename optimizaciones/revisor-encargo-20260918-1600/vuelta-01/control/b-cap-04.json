@@ -1,0 +1,16 @@
+{
+ "veredicto": "RECHAZADO",
+ "problemas": [
+  {
+   "gravedad": 2,
+   "donde": "linea 109, parrafo final",
+   "que": "El capitulo cierra con Marisa decidiendo esperar a la empresa gestora, lo que contradice y anula el gancho de la entrada 4",
+   "por_que": "La entrada 4 ordena que Marisa 'termina el capitulo sabiendo que la solucion cae sobre ella; que si no actua, nadie lo hara; que actuar significa desafiar la autoridad silenciosa de la empresa'. Las lineas 105-108 establecen esa resolucion ('volveria a ese cuarto de maquinas. Una tercera vez'). Pero la linea 109 retracta ese movimiento: 'Marisa decidio que lo mejor era esperar a que la empresa gestora respondiera al correo, y se fue a casa.' Esperar a la empresa contradice directamente el hecho de que nadie mas actuara. El gancho no se cierra como se pide en la escaleta del arco, entrada 4"
+  }
+ ],
+ "observaciones": [
+  "Todos los sucesos clave estan presentes y bien ejecutados",
+  "Las lineas 95-103 si establecen el gancho correcto hasta que la linea 109 lo viola",
+  "Linea 67 ('Soy Marisa Ferran...se dijo en voz alta') tiene un tono peculiar en su marcacion, pero no viola la regla de punto de vista tercera persona limitada"
+ ]
+}

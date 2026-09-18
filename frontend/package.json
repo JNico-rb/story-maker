@@ -3,7 +3,7 @@
   "version": "0.7.1",
   "private": true,
   "type": "module",
-  "description": "Visor de solo lectura sobre novelas/. No forma parte del harness: ver specs/functional.md §9.2.",
+  "description": "Visor de novelas (solo lectura, spec §9.2) y estudio que recoge los inputs y lanza el harness (spec §9.4).",
   "scripts": {
     "dev": "node server/dev.mjs",
     "dev:api": "node server/index.mjs",

@@ -16,6 +16,7 @@ export const TITULO_PESTANA: Record<Pestana, string> = {
 
 export type Ruta =
   | { vista: 'lista' }
+  | { vista: 'estudio'; encargo: string | null }
   | { vista: 'novela'; slug: string; pestana: Pestana; seleccion: string | null }
 
 function esPestana(valor: string | undefined): valor is Pestana {
@@ -28,6 +29,8 @@ export function leerRuta(hash: string): Ruta {
     .split('/')
     .filter((p) => p !== '')
     .map(decodeURIComponent)
+
+  if (partes[0] === 'estudio') return { vista: 'estudio', encargo: partes[1] ?? null }
 
   if (partes[0] !== 'n' || partes[1] === undefined) return { vista: 'lista' }
 
@@ -44,6 +47,9 @@ export function leerRuta(hash: string): Ruta {
 
 export function escribirRuta(ruta: Ruta): string {
   if (ruta.vista === 'lista') return '#/'
+  if (ruta.vista === 'estudio') {
+    return ruta.encargo === null ? '#/estudio' : `#/estudio/${encodeURIComponent(ruta.encargo)}`
+  }
   const base = `#/n/${encodeURIComponent(ruta.slug)}/${ruta.pestana}`
   if (ruta.seleccion === null) return base
   const cola = ruta.seleccion.split('/').map(encodeURIComponent).join('/')

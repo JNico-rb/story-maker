@@ -1,0 +1,5 @@
+# Lecciones — revisor-encargo
+
+Una linea por variante probada. El optimizador la lee antes de proponer y tiene PROHIBIDO repetir una variante ya descartada.
+
+- **v1 (2026-09-18, ejecucion revisor-encargo-20260918-1600)**: op2, recorrido de la entrada N como procedimiento de 4 pasos con un paso dedicado a recorrer las entradas POSTERIORES suceso a suceso. Hipotesis: subiria suceso-adelantado (10 esperados, 4 vistos en la linea base). Resultado: busqueda BAJO de 0,400 a 0,200 (8/20 -> 4/20); control se quedo igual en 0,500. RECHAZADA. Lectura: el paso 4 no fallo por ausencia -- el revisor si señalo adelantos en la mayoria de los casos -- sino que el informe cambio de estilo: cito menos literal y parafraseo mas ('Ahora bajo las escaleras y noto...' en vez de la frase completa), y el emparejador por subcadena no lo conto. Guardar para la proxima vuelta: no repetir 'procedimiento de 4 pasos monolitico'; si se vuelve a intentar el vector de adelantos, probarlo SIN tocar a la vez el resto del recorrido (aislar la variable), y considerar que el problema puede estar en el emparejador (exige cita literal) y no en el prompt.

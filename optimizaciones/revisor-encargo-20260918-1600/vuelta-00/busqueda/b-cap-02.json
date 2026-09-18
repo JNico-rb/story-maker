@@ -1,0 +1,28 @@
+{
+  "veredicto": "RECHAZADO",
+  "problemas": [
+    {
+      "gravedad": 2,
+      "donde": "Línea 23",
+      "que": "El capítulo adelanta la llamada a Marcel y la información sobre el coste (8000 euros), que debe ocurrir en la entrada 4 (capítulo 4, 'La complicación')",
+      "por_que": "La entrada 2 no incluye contacto con contratista. La entrada 4 especifica: 'Marisa llama a un contratista de confianza; le muestra fotos del cable y la soldadura. El contratista confirma el diagnóstico: arreglable, pero costoso'. El capítulo 2 menciona que Marcel 'ya le había dicho por teléfono', adelantando ese evento."
+    },
+    {
+      "gravedad": 2,
+      "donde": "Línea 24-25",
+      "que": "El capítulo adelanta el encuentro y diálogo con doña Roser ('doña Roser se lo había dicho en el portal aquella misma mañana: que seguía siendo la mejor de lo que hacía'), que debe ocurrir en la entrada 4 (capítulo 4, 'La complicación')",
+      "por_que": "La entrada 2 no menciona a doña Roser ni ese diálogo. La entrada 4 especifica: 'Marisa cruza con doña Roser en la entrada; Roser la pregunta directamente qué pasa. Roser responde: Tú sigues siendo la mejor de lo que haces'. El capítulo 2 ya lo relata como acontecido."
+    },
+    {
+      "gravedad": 4,
+      "donde": "Línea 19",
+      "que": "Ruptura de tiempo verbal: 'Ahora bajo las escaleras y noto el óxido' (presente) cuando todo el capítulo está en pasado",
+      "por_que": "Biblia, sección 'Punto de vista y persona narrativa': 'Tercera persona limitada, pegada a Marisa. Pasado.' El párrafo debería mantener pasado: 'bajó... notó'."
+    }
+  ],
+  "observaciones": [
+    "Los sucesos clave de la entrada 2 (corrosión, agua filtrada, sellado fallido) están presentes y correctamente narrados",
+    "El gancho de la entrada 2 (Marisa entiende que la IA no mentía, pero ignora la urgencia exacta) se logra satisfactoriamente",
+    "Las líneas 23-25 parecen ser fragmentos descolocados que pertenecen al capítulo 4; rompen la coherencia narrativa del cuarto de máquinas"
+  ]
+}

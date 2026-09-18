@@ -1,0 +1,12 @@
+{
+ "veredicto": "RECHAZADO",
+ "problemas": [
+  {
+   "gravedad": 2,
+   "donde": "ultima linea del capitulo (linea 161)",
+   "que": "Falta el gancho de la entrada 1. El capitulo termina con 'no volvio a oir el altavoz en toda la semana', lo que cierra definitivamente la posibilidad de la segunda aparicion que el gancho pide.",
+   "por_que": "arco-01.md, entrada 1, gancho: 'Dos dias despues, en un bloque del otro extremo del barrio y en un aparato de otra marca, el mismo altavoz repite su nombre.' Este gancho no esta en el capitulo y es el anzuelo que lleva a la entrada 2, donde Reme rastrea los partes motivada por una segunda llamada."
+  }
+ ],
+ "observaciones": []
+}

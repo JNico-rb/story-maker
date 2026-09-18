@@ -1,0 +1,22 @@
+{
+  "veredicto": "RECHAZADO",
+  "problemas": [
+    {
+      "gravedad": 2,
+      "donde": "Párrafos finales, líneas 125-137, escena en el foso del 38",
+      "que": "El gancho promete 'Eme baja al foso del 38 con la llave que nunca devolvió, no por fe sino por curiosidad profesional, y mide.' El capítulo muestra que baja, prepara el metro, pero luego se arrepiente: 'Reme apagó la linterna, subió por los estribos y se fue a casa sin medir nada.' El gancho no se cumple; el capítulo termina sin que Eme mida.",
+      "por_que": "escaleta.md (entrada 3) y arcos/arco-01.md (entrada 3), ambas fijan como gancho 'y mide'. El capítulo cierra con el resultado opuesto ('sin medir nada'). Esto genera un problema lógico para el capítulo 4, cuyo suceso 1 presupone ya medidas tomadas: 'Las medidas del foso confirman que montar la pieza exige parar el ascensor tres días'."
+    },
+    {
+      "gravedad": 2,
+      "donde": "Línea 51, párrafo que comienza con 'Las medidas que había tomado ya'",
+      "que": "Se menciona que 'La impresora le había sacado ya la hoja del libro de mantenimiento de 2011, firmada con la letra de Julia Bandrés.' Esta mención adelanta la entrega del libro que la escaleta fija como evento clave del capítulo 4.",
+      "por_que": "arcos/arco-01.md, entrada 4, suceso 4: 'La voz, que no puede explicarse, le entrega en la impresora el libro de mantenimiento de 2011 del primer aparato que Reme tocó, firmado con la letra de su maestra Julia Bandrés.' La aparición del libro en el capítulo 3 (como algo ya ocurrido) adelanta este punto de trama que debe ser revelación del capítulo 4."
+    }
+  ],
+  "observaciones": [
+    "La narración mantiene tercera persona limitada a Reme sin salirse de su perspectiva; voz y tono consistentes con la biblia.",
+    "El objetivo narrativo se logra en lo demás: petición hecha concreta y comprensible, Reme sufre el precio ante el vecindario con la pérdida de la llave.",
+    "La escena de la cabina (líneas 59-88) donde Reme verifica su teoría y pregunta por qué no está explícita en la escaleta, pero es coherente como deducción técnica de su personaje."
+  ]
+}

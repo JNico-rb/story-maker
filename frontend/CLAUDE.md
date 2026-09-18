@@ -1,12 +1,19 @@
-# frontend — el visor
+# frontend — el visor y el estudio
 
-Aplicación web de **solo lectura** sobre `novelas/`. No forma parte del harness: ver [specs/functional.md](../specs/functional.md) §9.2, que manda sobre este fichero.
+Aplicación web con dos mitades sobre la misma carpeta. El **visor** enseña novelas ya generadas ([specs/functional.md](../specs/functional.md) §9.2); el **estudio** recoge los inputs del usuario y lanza el harness (§9.4). La spec manda sobre este fichero.
 
-## La regla que no se negocia
+## Las reglas que no se negocian
 
-**El visor solo lee.** No invoca agentes, no decide nada del flujo y no escribe, borra ni mueve un solo byte dentro de `novelas/`. El servidor responde `405` a cualquier método que no sea `GET` o `HEAD`, y su única raíz accesible es la carpeta de novelas.
+Eran una y ahora son cuatro, porque el estudio sí escribe y sí ejecuta. Ninguna es opinable:
 
-Si alguna vez hace falta que el visor escriba algo, eso es un cambio de diseño: primero la spec y el [CHANGELOG](../CHANGELOG.md), después el código (regla 5 de [CLAUDE.md](../CLAUDE.md)).
+1. **Nada de `frontend/` escribe en `novelas/`.** Ni el visor ni el estudio: ni un byte, ni crear, ni borrar, ni mover. Esa carpeta es del harness en exclusiva (spec §3.1), y es de lo que cuelga toda la inmutabilidad. Lo que el estudio escribe va a `encargos/<slug>/`, y nada más.
+2. **El estudio es una fachada, no un camino alternativo.** No decide nada del flujo, no invoca a ningún agente, no calcula métricas, no elige el mejor intento, no recalcula un veredicto y no aprueba nada por su cuenta. Todo lo que hace se reduce a componer texto, ejecutar el mismo comando `/novela` que ejecutaría el usuario y enseñar lo que el harness escribe. **Si una regla de negocio aparece en este código, está en el sitio equivocado**: vive en la skill y en los procedimientos.
+3. **El servidor solo escribe donde se le permite.** Las rutas de escritura son exclusivamente las de `encargos/`; todo lo demás sigue respondiendo `405` a cualquier método que no sea `GET` o `HEAD`. Dos raíces accesibles y ninguna más: `novelas/` en solo lectura y `encargos/` en lectura y escritura.
+4. **Lanzar el harness no se salta los permisos.** Se ejecuta apoyándose en la lista de `.claude/settings.json`, que se versiona. Nunca con `bypassPermissions`: un botón de una web local no puede tener permiso para cualquier cosa. Lo que no esté permitido se deniega, el harness para limpio y se ve.
+
+Borrar `frontend/` entero tiene que seguir dejando el sistema capaz de generar la misma novela desde una terminal. Esa es la prueba de que las cuatro reglas se cumplen.
+
+Cualquier cambio a esto es un cambio de diseño: primero la spec y el [CHANGELOG](../CHANGELOG.md), después el código (regla 6 de [CLAUDE.md](../CLAUDE.md)).
 
 ## Stack
 
@@ -22,9 +29,11 @@ El stack está cerrado salvo que Jaime apruebe un cambio.
 
 ```text
 frontend/
-├── server/                  # Servidor de lectura (Node, sin dependencias)
+├── server/                  # Servidor (Node, sin dependencias)
 │   ├── index.mjs            # HTTP y rutas
-│   ├── novelas.mjs          # Interpreta novelas/<slug>/ (spec §3)
+│   ├── novelas.mjs          # Interpreta novelas/<slug>/ (spec §3). SOLO LEE
+│   ├── encargos.mjs         # Escribe encargos/<slug>/ (spec §9.4)
+│   ├── harness.mjs          # Lanza y habla con el harness. Único sitio que ejecuta nada
 │   ├── yaml.mjs             # El subconjunto de YAML de las plantillas
 │   └── dev.mjs              # `pnpm dev`: servidor + web de una vez
 ├── public/                  # Servido tal cual en la raíz: los recursos de marca
@@ -41,6 +50,10 @@ frontend/
 ## Dónde va cada cosa
 
 **El servidor sabe de ficheros; la web no.** `server/novelas.mjs` es el único sitio que conoce rutas, nombres de fichero y la estructura de la spec §3. Devuelve un modelo ya montado y los componentes solo lo pintan. Si la spec cambia, se toca ahí y en ningún otro sitio.
+
+**`server/harness.mjs` es el único fichero que ejecuta algo.** Ahí viven el arranque en segundo plano, el identificador de sesión y el diálogo con el harness. Ningún otro módulo lanza procesos, y el navegador nunca decide qué comando se ejecuta: manda una intención (`empezar`, `responder`, `confirmar`, `pedir cambios`) y el servidor la traduce al comando `/novela` que corresponde. Una web que pudiera mandar comandos sería una web que ejecuta lo que le pidan.
+
+**El diálogo en vivo va por SSE, sin dependencias.** `text/event-stream` hacia el navegador con `node:http` pelado, `POST` hacia el servidor. Nada de WebSocket: obligaría a un paquete y a romper la promesa de que el servidor no lleva ninguno.
 
 **El vocabulario es el de la spec §0.** Los términos del proyecto se escriben en castellano y exactamente igual que allí: `Capitulo`, `Intento`, `Informe`, `veredicto`, `gravedad`, `libroEstado`. Lo demás va en inglés, como es costumbre en React. Un término nuevo entra antes en el glosario de la spec que en este código.
 

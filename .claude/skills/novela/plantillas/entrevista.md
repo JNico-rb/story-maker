@@ -1,12 +1,12 @@
 ---
 cerrada: false
-origen: ""            # grilling | fichero
+origen: ""            # grilling | fichero | formulario+grilling
 fecha: ""
 ---
 
 # Entrevista
 
-Decisiones tomadas con el usuario en la etapa 1 (grilling) o leídas de un fichero (`entrevista:` o `modo-prueba:`). El agente interrogador construye biblia y escaleta **solo** a partir de `idea.md` y de este fichero.
+Decisiones tomadas con el usuario en la etapa 1 (grilling), leídas de un fichero (`entrevista:` o `modo-prueba:`) o precargadas desde el estudio y completadas con grilling (`precarga:`, spec §9.4). El agente interrogador construye biblia y escaleta **solo** a partir de `idea.md` y de este fichero.
 
 Marca el origen de cada respuesta: **[usuario]** si la eligió el usuario, **[recomendación aceptada]** si aceptó la recomendación, **[decide tú]** si lo dejó abierto.
 

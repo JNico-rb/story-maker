@@ -5,6 +5,7 @@
   "etapa_previa": null,
   "modo_prueba": false,
   "carpeta_prueba": null,
+  "encargo": null,
   "escaleta_aprobada": false,
   "escaleta_rechazos": 0,
   "total_capitulos": null,

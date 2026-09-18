@@ -1,0 +1,6 @@
+{
+ "operacion": 2,
+ "hipotesis": "suceso-adelantado es la clase de mayor perdida (10 esperados, 4 vistos) y el unico metodo explicito del prompt mira solo a la entrada N, nunca a las posteriores, que es donde vive el adelanto. Un procedimiento numerado con un paso dedicado a recorrer las entradas posteriores suceso a suceso deberia hacerlos aparecer.",
+ "cambio": "La vinieta 'Recorrer la entrada N suceso por suceso' pasa a procedimiento de 4 pasos numerados; el paso 4 obliga a recorrer las entradas posteriores una por una. No se toca nada mas.",
+ "leccion": "op2: recorrido como procedimiento de 4 pasos, con un paso que recorre las entradas POSTERIORES suceso a suceso (objetivo: clase suceso-adelantado)"
+}

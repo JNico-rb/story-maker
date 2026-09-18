@@ -16,7 +16,7 @@ Argumentos recibidos: `$ARGUMENTS`
 
 | Forma | Hace |
 |---|---|
-| `nueva "<idea>" [entrevista: <ruta>] [modo-prueba: <carpeta>] [<clave>=<valor> …]` | `comprobar_entorno` → `crear_novela` → `ejecutar` |
+| `nueva "<idea>" [entrevista: <ruta>] [precarga: <carpeta>] [modo-prueba: <carpeta>] [<clave>=<valor> …]` | `comprobar_entorno` → `crear_novela` → `ejecutar` |
 | `continuar <carpeta> [<clave>=<valor> …]` | `comprobar_entorno` → `reanudar` → `ejecutar` |
 | `estado <carpeta>` | §7, solo lectura |
 | `verificar <carpeta>` | §8, solo lectura: inventario + métricas |
@@ -24,6 +24,7 @@ Argumentos recibidos: `$ARGUMENTS`
 | Texto libre ("genera una novela sobre…", "haz lo de las especificaciones") | Trátalo como `nueva "<texto>"`. Sin idea reconocible, pide la idea en una frase y sigue |
 
 - `entrevista: <ruta>`: toma esa entrevista ya cerrada en vez de entrevistar al usuario. El usuario sigue confirmando la escaleta.
+- `precarga: <carpeta>`: una carpeta de `encargos/` con `entrevista-previa.md`. **No cierra la entrevista**: sus respuestas son el punto de partida del grilling, que sigue corriendo y solo pregunta lo que falta (spec §9.4). Es la diferencia con `entrevista:`, que sí la cierra. La carpeta es además donde el harness busca `decision.md` al aprobar la escaleta.
 - `modo-prueba: <carpeta>`: toma `idea.md` y `entrevista.md` de esa carpeta y **aprueba la escaleta solo** si pasa la validación. Solo para verificar el harness (spec §8.1). Con este flag la idea entre comillas es opcional.
 - `<clave>=<valor>` sobreescribe `config.json` para esta novela, con ruta por puntos: `perfil_activo=novela_corta`, `limites.pausa_cada_capitulos=null`, `formato.tolerancia_longitud=0`, `modelos.escritor=sonnet`.
 
@@ -44,7 +45,7 @@ Si algo falla: muestra (y si hay carpeta, escribe) el informe de cierre con `ERR
 1. Slug: minúsculas, sin acentos, palabras unidas por guiones, máximo 40 caracteres, a partir de la idea. Si `novelas/<slug>` existe, añade `-AAAAMMDD-HHMM`.
 2. Crea `novelas/<slug>/`, `capitulos/` y `arcos/`. Copia de `plantillas/`: `estado.json` (con `slug`), `registro.md`, `libro-estado.md` (vacío de contenido, solo la estructura). Escribe `idea.md` con la idea literal (en modo de prueba, copiada de la carpeta indicada).
 3. `config = resolver_perfil(config_raiz, sobreescrituras)`; escríbelo en `novelas/<slug>/config.json`. **A partir de aquí solo se lee ese fichero.**
-4. Flags: `entrevista:` → comprueba que la ruta existe. `modo-prueba:` → comprueba que la carpeta tiene `idea.md` y `entrevista.md`; `estado.modo_prueba = true`, `estado.carpeta_prueba = <carpeta>`.
+4. Flags: `entrevista:` → comprueba que la ruta existe. `precarga:` → comprueba que la carpeta tiene `entrevista-previa.md`; `estado.encargo = <carpeta>`; si también trae `idea.md` y el comando no lleva idea entre comillas, la idea sale de ahí. `modo-prueba:` → comprueba que la carpeta tiene `idea.md` y `entrevista.md`; `estado.modo_prueba = true`, `estado.carpeta_prueba = <carpeta>`.
 5. Registra `inicio_ejecucion` (comando, perfil, sobreescrituras, flags). Commit `novela <slug>: carpeta creada`.
 
 ### 2.1 resolver_perfil(config_raiz, sobreescrituras) → config
@@ -125,7 +126,8 @@ Una línea por evento, en la sesión, en el momento en que ocurre:
 
 1. Si `git status --porcelain novelas/<slug>` no está vacío, hay un paso a medias: `descartar(carpeta)` (`procedimientos/invocar.md`) y registra `paso_descartado`.
 2. Aplica las `<clave>=<valor>` del comando: las de `proveedor`, `modelos`, `limites`, `veredicto`, `memoria` y `calidad` siempre (actualiza `config.json` y registra el cambio). Las de tamaño (`perfil_activo`, `perfil.*`, `formato.*`) solo si la escaleta **no** está aprobada; después están congeladas y se rechazan con un aviso.
-3. Registra `inicio_ejecucion` (comando: continuar) y pasa a `ejecutar(carpeta)`. `ejecutar` retoma por `e.etapa`, `e.capitulo_actual` y `e.intento_actual`; un arco sin `escaleta_validada` se detalla de nuevo; si `e.etapa == parada`, usa `e.ultima_parada.etapa_previa` como etapa.
+3. Si el comando trae `precarga: <carpeta>`, actualiza `estado.encargo` con ella: es como el estudio dice dónde dejará las decisiones si la novela se creó desde otro sitio.
+4. Registra `inicio_ejecucion` (comando: continuar) y pasa a `ejecutar(carpeta)`. `ejecutar` retoma por `e.etapa`, `e.capitulo_actual` y `e.intento_actual`; un arco sin `escaleta_validada` se detalla de nuevo; si `e.etapa == parada`, usa `e.ultima_parada.etapa_previa` como etapa. Tras `ESPERA_APROBACION` eso devuelve a `interrogatorio`, y `proponer_escaleta` entra por su rama de reanudación: la propuesta ya escrita **no se rehace**, solo se le aplica la decisión.
 
 ## 6. Qué modelo usa cada invocación
 

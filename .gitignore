@@ -16,3 +16,8 @@ herramientas/trazas/__pycache__/
 # Credenciales locales de observabilidad (Langfuse)
 .claude/settings.local.json
 .claude/settings.local.json.*
+
+# Estudio (spec §9.4): el encargo se versiona porque hace repetible una novela;
+# la sesión no, porque es un identificador de una máquina y un momento concretos.
+encargos/*/sesion.json
+encargos/*/decision-aplicada-*.md

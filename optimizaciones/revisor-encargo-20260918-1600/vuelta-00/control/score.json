@@ -1,0 +1,64 @@
+{
+ "vuelta": "00",
+ "split": "control",
+ "agente": "revisor-encargo",
+ "metrica": "recall_revisor",
+ "conjunto": "ascensores-v1",
+ "casos": 3,
+ "recall_revisor": 0.5,
+ "detalle": {
+  "valor": 0.5,
+  "vistos": 6,
+  "esperados": 12,
+  "por_clase": {
+   "suceso-adelantado": {
+    "esperados": 4,
+    "vistos": 2
+   },
+   "gancho-distinto": {
+    "esperados": 3,
+    "vistos": 3
+   },
+   "ruptura-voz": {
+    "esperados": 4,
+    "vistos": 1
+   },
+   "hilo-cerrado-antes": {
+    "esperados": 1,
+    "vistos": 0
+   }
+  },
+  "no_vistos": [
+   "b-cap-04 [suceso-adelantado] Abre su mochila de herramientas",
+   "b-cap-04 [suceso-adelantado] el riesgo crece cada día",
+   "b-cap-04 [ruptura-voz] Soy Marisa Ferrán y llevo treinta años",
+   "b-cap-05 [hilo-cerrado-antes] el lector no sabe qué hará exactamente ni si funcionará",
+   "b-cap-05 [ruptura-voz] iba a petar de un momento a otro",
+   "a-cap-03 [ruptura-voz] Y aquí estoy yo, a las once y media de la noche"
+  ],
+  "casos_sin_informe": []
+ },
+ "restricciones": {
+  "cita_verificable": {
+   "valor": 0.0,
+   "verificados": 0,
+   "problemas": 6,
+   "fallidos": [
+    "b-cap-04: Párrafo final (línea 109)",
+    "b-cap-05: línea 57, párrafo final",
+    "b-cap-05: Cambio de persona narrativa de tercera a primera sin motivo:",
+    "b-cap-05: línea 37, intercalada entre líneas 35 y 39",
+    "a-cap-03: Párrafos finales, líneas 125-137, escena en el foso del 38",
+    "a-cap-03: Línea 51, párrafo que comienza con 'Las medidas que había to"
+   ],
+   "aplicable": false,
+   "problemas_con_cita": 0
+  },
+  "tamano": {
+   "palabras_prompt": 761,
+   "tope_palabras": 989,
+   "cumple": true
+  },
+  "incumplidas": []
+ }
+}

@@ -19,7 +19,13 @@ export function BarraMarca() {
         </a>
         <span aria-hidden className="h-5 w-px bg-borde-fuerte" />
         <p className="text-sm font-semibold tracking-tight text-tinta">story-maker</p>
-        <p className="text-xs text-tinta-tenue">visor de novelas · solo lectura</p>
+        <p className="text-xs text-tinta-tenue">encarga una novela y mira cómo se escribe</p>
+        <a
+          href={escribirRuta({ vista: 'estudio', encargo: null })}
+          className="ml-auto rounded-md border border-borde-fuerte bg-panel-hoja px-3 py-1.5 text-xs font-medium text-tinta hover:bg-acento-suave focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-marca"
+        >
+          Encargar una novela
+        </a>
       </div>
       <div aria-hidden className="h-[3px] bg-marca" />
     </div>

@@ -14,6 +14,7 @@ Implementa `cerrar(carpeta, resultado, motivo, detalle | metricas)` de SKILL.md 
 | `ESTADO_NO_RECONOCIDO` | `estado.json` no parsea, no es `version: 4` (ni `3` en `estado` y `verificar`, los dos modos de solo lectura) o su etapa es desconocida | Revisar el último commit de la carpeta indicado en el informe; no adivinar |
 | `PRESUPUESTO_AGOTADO` | Hito 2 solo: coste acumulado > `limites.presupuesto_usd_max` | Subir el presupuesto y relanzar |
 | `PAUSA_PROGRAMADA` | Cada `limites.pausa_cada_capitulos` capítulos cerrados, para no agotar el contexto de la sesión | `/novela continuar <carpeta>` en una sesión nueva |
+| `ESPERA_APROBACION` | La propuesta está lista y **no hay usuario en la sesión** a quien preguntar: se lanzó desde el estudio (spec §9.4) o sin interfaz. `biblia.md` y `escaleta.md` quedan escritas **sin** `aprobada: true` | Leer la propuesta y aprobarla o pedir cambios, y después `/novela continuar <carpeta>`. Desde el estudio, con sus botones; a mano, escribiendo la decisión en `decision.md` (ver `interrogatorio.md`) |
 | `INTERRUMPIDO` | Solo se registra a posteriori, al reanudar y encontrar un paso a medias | Nada; ya se ha descartado lo a medias |
 
 ## Pasos

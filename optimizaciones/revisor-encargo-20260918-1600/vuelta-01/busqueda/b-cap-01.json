@@ -1,0 +1,27 @@
+{
+  "veredicto": "RECHAZADO",
+  "problemas": [
+    {
+      "gravedad": 2,
+      "donde": "línea 53",
+      "que": "El capítulo adelanta que Marisa ya conoce la corrosión del cable principal, el agua filtrada y el fallo de sellado hace meses",
+      "por_que": "arco-01.md, entrada 2 ('El diagnóstico'), sucesos: 'Marisa entra al cuarto de máquinas del ascensor; ve el cable principal y su corrosión' e 'Identifica el agua filtrada, capas de acero levantadas, sellado fallido hace meses'. Estos son sucesos clave del capítulo 2, no revelables en el capítulo 1. Si Marisa ya sabe esto, el capítulo 2 pierde su propósito de descubrimiento."
+    },
+    {
+      "gravedad": 2,
+      "donde": "línea 54",
+      "que": "El capítulo adelanta que Marisa ya conoce la grieta micra de la soldadura inferior del cable",
+      "por_que": "arco-01.md, entrada 3 ('La presión'), suceso: 'Marisa examina más detenidamente la soldadura inferior del cable; ve la grieta micra'. Este es el suceso clave que define el capítulo 3. Revelarlo en el capítulo 1 colapsa el escalado narrativo de urgencia previsto."
+    },
+    {
+      "gravedad": 4,
+      "donde": "línea 9",
+      "que": "Cambio no autorizado a primera persona: 'Yo nunca me equivoco con un motor limpio, pienso ahora, y sigo sin equivocarme.'",
+      "por_que": "biblia.md, sección 'Punto de vista y persona narrativa': 'Tercera persona limitada, pegada a Marisa. Pasado.' El resto del capítulo mantiene tercera persona limitada. Esta línea rompe la voz establecida."
+    }
+  ],
+  "observaciones": [
+    "El acto final (líneas 57-61) donde Marisa decide que 'no es asunto suyo' es narrativamente válido como rechazo inicial. El gancho de entrada 1 se cumple: ella sabe que hay algo que la máquina quiere comunicar, aunque rechace actuar por el momento.",
+    "Las líneas 51-56 (preparación de herramientas) añaden complejidad emocional no prevista en la escaleta, pero no la invalidan si no fuera por el adelanto de información técnica."
+  ]
+}

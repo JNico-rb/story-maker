@@ -1,0 +1,12 @@
+{
+ "veredicto": "RECHAZADO",
+ "problemas": [
+  {
+   "gravedad": 2,
+   "donde": "escena final en el foso del 38, lineas 133-137",
+   "que": "El capitulo no cierra con el gancho prescrito: Reme no mide el foso, contradice la escaleta",
+   "por_que": "arco-01.md, entrada 3, gancho: 'Esa noche Reme baja al foso del 38 con la llave que nunca devolvio, por curiosidad profesional mas que por fe, y mide.' El texto del capitulo termina con 'se fue a casa sin medir nada', que es lo opuesto a lo previsto. Esto es critico porque entrada 4 abre con 'Las medidas del foso confirman que montar la pieza exige parar el ascensor tres dias' -- las medidas deben existir al comienzo de cap. 4."
+  }
+ ],
+ "observaciones": []
+}

@@ -17,6 +17,8 @@ export interface ResumenNovela {
   titulo: string
   etapa: Etapa
   modoPrueba: boolean
+  /** Slug del encargo que la pidió, si vino del estudio (spec §9.4). */
+  encargo: string | null
   perfil: string | null
   totalCapitulos: number | null
   capitulosAprobados: number
@@ -166,4 +168,64 @@ export interface Lectura {
   fuente: 'manuscrito' | 'capitulos'
   cuerpo: string | null
   capitulos: CapituloLeido[]
+}
+
+// ── El estudio (spec §9.4) ───────────────────────────────────────────────────
+//
+// Un encargo es lo que el usuario rellena antes de que exista la novela. Vive
+// en encargos/<slug>/ y no en novelas/, que es del harness en exclusiva.
+
+export interface Pregunta {
+  id: string
+  seccion: string
+  texto: string
+}
+
+/** Estado del proceso del harness, tal como lo ve el servidor. */
+export type EstadoSesion =
+  | 'inactivo'
+  | 'arrancando'
+  | 'trabajando'
+  | 'esperando'
+  | 'parado'
+  | 'parando'
+  | 'fallado'
+
+export interface Encargo {
+  version: number
+  slug: string
+  creado: string
+  idea: string
+  ajustes: Record<string, string>
+  novela?: string
+  sesion: EstadoSesion
+}
+
+/** Lo que llega por el canal de eventos. `tipo` decide cómo se pinta. */
+export interface EventoHarness {
+  tipo:
+    | 'hola'
+    | 'estado'
+    | 'asistente'
+    | 'usuario'
+    | 'herramienta'
+    | 'turno_terminado'
+    | 'fin_proceso'
+    | 'aviso'
+    | 'error'
+    | 'crudo'
+  fecha: string
+  estado?: EstadoSesion
+  texto?: string
+  nombre?: string
+  mensaje?: string
+  motivo?: string
+  codigo?: number | null
+  novela?: string | null
+}
+
+export interface NuevoEncargo {
+  idea: string
+  respuestas: Record<string, string>
+  ajustes: Record<string, string>
 }
