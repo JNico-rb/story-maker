@@ -1,26 +1,28 @@
 {
   "version": 4,
   "slug": "ha-habido-un-apagon-masivo-y-ya-estaba",
-  "etapa": "interrogatorio",
+  "etapa": "capitulos",
   "etapa_previa": null,
   "modo_prueba": false,
   "carpeta_prueba": null,
   "encargo": null,
-  "escaleta_aprobada": false,
-  "escaleta_rechazos": 0,
-  "total_capitulos": null,
-  "arcos": {},
-  "arco_actual": null,
-  "capitulo_actual": null,
-  "intento_actual": null,
+  "escaleta_aprobada": true,
+  "escaleta_rechazos": 2,
+  "total_capitulos": 3,
+  "arcos": {
+    "1": { "desde": 1, "hasta": 3, "escaleta_validada": true, "informe": false }
+  },
+  "arco_actual": 1,
+  "capitulo_actual": 1,
+  "intento_actual": 1,
   "capitulos": {},
   "informe_global": false,
   "invocaciones": {
-    "interrogador": 0,
+    "interrogador": 3,
     "escritor": 0,
     "resumidor": 0,
     "revisor_encargo": 0,
-    "revisor_continuidad": 0
+    "revisor_continuidad": 3
   },
   "ultima_parada": null,
   "avisos": [],
