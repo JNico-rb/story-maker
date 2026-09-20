@@ -1,6 +1,6 @@
 # Trazas de dominio en Langfuse
 
-Proyecta una novela ya generada a Langfuse con la forma del problema: **novela › capítulo › intento › invocación**. Es la mitad «de dominio» de la observabilidad de [`specs/functional.md` §9.3](../../specs/functional.md); la otra mitad, la traza de sesión, la pone el hook `Stop` de Claude Code y vive fuera del repositorio.
+Proyecta una novela ya generada a Langfuse con la forma del problema: **novela › capítulo › intento › invocación**. Es la mitad «de dominio» de la observabilidad de [`specs/technical.md` §9.3](../../specs/technical.md); la otra mitad, la traza de sesión, la pone el hook `Stop` de Claude Code y vive fuera del repositorio.
 
 ## Qué es y qué no es
 

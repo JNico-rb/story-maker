@@ -11,7 +11,7 @@ Arreglos de **una línea** que salen del informe global. El harness no ha aplica
 
 Cada cita está copiada **literalmente** del manuscrito: se puede buscar tal cual.
 
-Lo que no cabe aquí —problemas que exigen reescribir una escena, cambiar una motivación o añadir material— se queda en [`informe-global.md`](informe-global.md).
+Lo que no cabe aquí —problemas que exigen reescribir una escena, cambiar una motivación o añadir material— se queda en `informe-global.md` de la carpeta de la novela.
 
 ## 1. Capítulo N — <qué es, en media línea>
 

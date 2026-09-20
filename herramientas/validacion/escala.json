@@ -1,5 +1,5 @@
 {
- "_documentacion": "Escala del validador de manuscrito (spec functional.md §9.6). Convierte cada tasa por mil palabras en un 0-1 donde 1 es mejor. Los topes NO son intuición: salen de las tasas medidas sobre los dos manuscritos del repositorio el 2026-09-18, con la regla 'el doble de la peor observada vale 0,0'. Cambiar un tope o un peso invalida las comparaciones anteriores: hay que re-puntuar la línea base.",
+ "_documentacion": "Escala del validador de manuscrito (spec technical.md §9.6). Convierte cada tasa por mil palabras en un 0-1 donde 1 es mejor. Los topes NO son intuición: salen de las tasas medidas sobre los dos manuscritos del repositorio el 2026-09-18, con la regla 'el doble de la peor observada vale 0,0'. Cambiar un tope o un peso invalida las comparaciones anteriores: hay que re-puntuar la línea base.",
  "version_escala": 1,
  "fecha": "2026-09-18",
  "dimensiones": {

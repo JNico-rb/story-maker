@@ -5,7 +5,6 @@
       "Glob",
       "Grep",
       "Edit(/novelas/**)",
-      "Edit(/comparativa/**)",
       "Edit(/optimizaciones/**)",
       "Bash(git status *)",
       "Bash(git rev-parse *)",

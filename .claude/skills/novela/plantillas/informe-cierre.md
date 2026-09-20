@@ -49,7 +49,7 @@ Solo en ÉXITO (`procedimientos/final.md` › calcular_metricas; umbrales en `co
 -
 
 ## Inventario
-Solo en ÉXITO: artefactos de `specs/inventario.md` §4 que faltan, o "completo".
+Solo en ÉXITO: artefactos de `specs/functional.md` §8.7 que faltan, o "completo".
 
 ## Rutas
 - `manuscrito.md` / `informe-global.md` (si existen)

@@ -1,6 +1,6 @@
 # Bucle de optimización de prompts
 
-Los guiones del bucle de [specs/functional.md](../../specs/functional.md) §9.5. Quien los llama es la skill [`/optimizar`](../../.claude/skills/optimizar/SKILL.md); aquí solo está el código.
+Los guiones del bucle de [specs/technical.md](../../specs/technical.md) §9.5. Quien los llama es la skill [`/optimizar`](../../.claude/skills/optimizar/SKILL.md); aquí solo está el código.
 
 **Fuera del harness.** `/novela` no los llama nunca. No escriben en `novelas/`: leen capítulos como entrada de un caso y nada más.
 

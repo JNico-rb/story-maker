@@ -1,6 +1,6 @@
 # optimizaciones/
 
-Registro local del bucle de [specs/functional.md](../specs/functional.md) §9.5. Lo escribe la skill [`/optimizar`](../.claude/skills/optimizar/SKILL.md); nada de aquí entra en el harness de la novela.
+Registro local del bucle de [specs/technical.md](../specs/technical.md) §9.5. Lo escribe la skill [`/optimizar`](../.claude/skills/optimizar/SKILL.md); nada de aquí entra en el harness de la novela.
 
 **Se versiona en git**, entero. `lecciones.md` es la única memoria del bucle entre ejecuciones: si se pierde, el optimizador vuelve a proponer variantes ya descartadas, que es justo lo que tiene prohibido.
 

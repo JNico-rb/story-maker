@@ -1,7 +1,7 @@
 ---
 name: novela
-description: Orquestador del harness story-maker. Usar cuando el usuario quiera generar una novela ("/novela nueva <idea>", "genera una novela sobre…", "haz lo de las especificaciones"), continuar una a medias, ver su estado, verificar una carpeta generada o comparar dos ejecuciones.
-argument-hint: nueva "<idea>" | continuar <carpeta> | estado <carpeta> | verificar <carpeta> | comparar <caso>
+description: Orquestador del harness story-maker. Usar cuando el usuario quiera generar una novela ("/novela nueva <idea>", "genera una novela sobre…", "haz lo de las especificaciones"), continuar una a medias, ver su estado o verificar una carpeta generada.
+argument-hint: nueva "<idea>" | continuar <carpeta> | estado <carpeta> | verificar <carpeta>
 ---
 
 # /novela — orquestador
@@ -20,7 +20,6 @@ Argumentos recibidos: `$ARGUMENTS`
 | `continuar <carpeta> [<clave>=<valor> …]` | `comprobar_entorno` → `reanudar` → `ejecutar` |
 | `estado <carpeta>` | §7, solo lectura |
 | `verificar <carpeta>` | §8, solo lectura: inventario + métricas |
-| `comparar <caso>` | `procedimientos/comparar.md` |
 | Texto libre ("genera una novela sobre…", "haz lo de las especificaciones") | Trátalo como `nueva "<texto>"`. Sin idea reconocible, pide la idea en una frase y sigue |
 
 - `entrevista: <ruta>`: toma esa entrevista ya cerrada en vez de entrevistar al usuario. El usuario sigue confirmando la escaleta.
@@ -141,7 +140,7 @@ Lee `estado.json` y, si existe, `informe-cierre.md`. Muestra: etapa, arco actual
 
 ## 8. verificar <carpeta>
 
-Solo lectura. Ejecuta los seis pasos de `specs/inventario.md` §4 y, si la novela está completa, `calcular_metricas(carpeta)` (`procedimientos/final.md`). Muestra una tabla: cada comprobación con OK / FALLA y el detalle, y cada métrica con su valor, su umbral y CUMPLE / NO CUMPLE. Sirve sobre cualquier carpeta con la estructura de la spec, la haya generado Claude Code o el runner.
+Solo lectura. Ejecuta los seis pasos de `specs/functional.md` §8.7 y, si la novela está completa, `calcular_metricas(carpeta)` (`procedimientos/final.md`). Muestra una tabla: cada comprobación con OK / FALLA y el detalle, y cada métrica con su valor, su umbral y CUMPLE / NO CUMPLE. Sirve sobre cualquier carpeta con la estructura de la spec, la haya generado Claude Code o el runner.
 
 ## 9. Reglas del orquestador (siempre)
 

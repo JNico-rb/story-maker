@@ -1,6 +1,6 @@
 # frontend — el visor y el estudio
 
-Aplicación web con dos mitades sobre la misma carpeta. El **visor** enseña novelas ya generadas ([specs/functional.md](../specs/functional.md) §9.2); el **estudio** recoge los inputs del usuario y lanza el harness (§9.4). La spec manda sobre este fichero.
+Aplicación web con dos mitades sobre la misma carpeta. El **visor** enseña novelas ya generadas ([specs/technical.md](../specs/technical.md) §9.2); el **estudio** recoge los inputs del usuario y lanza el harness (§9.4). La spec manda sobre este fichero.
 
 ## Las reglas que no se negocian
 

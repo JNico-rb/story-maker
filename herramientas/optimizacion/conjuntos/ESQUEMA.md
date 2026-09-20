@@ -1,6 +1,6 @@
 # Conjuntos etiquetados — esquema
 
-La **verdad de campo** del bucle de `specs/functional.md` §9.5. Un fichero `<nombre>.jsonl` por conjunto, **versionado en git**: si la verdad de campo solo viviera en Langfuse no sería reproducible, y el hito 2 no podría usarla (A24).
+La **verdad de campo** del bucle de `specs/technical.md` §9.5. Un fichero `<nombre>.jsonl` por conjunto, **versionado en git**: si la verdad de campo solo viviera en Langfuse no sería reproducible, y el hito 2 no podría usarla (A24).
 
 Langfuse guarda un **espejo**, que se sube con `preparar.py --subir-conjunto`. La fuente de verdad es el fichero.
 

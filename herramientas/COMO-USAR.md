@@ -1,6 +1,6 @@
 # Cómo usar las herramientas de medida
 
-**Para quién es este fichero:** para ti, y para Claude Code en una sesión futura que tenga que usar `/optimizar` o `/validar` sin haber estado el día que se montaron. Aquí va el *cómo*; el *qué* y el *por qué* están en `specs/functional.md` §9.5 y §9.6, y lo descartado en el CHANGELOG 0.9.0 y 0.10.0. **La spec manda sobre este fichero.**
+**Para quién es este fichero:** para ti, y para Claude Code en una sesión futura que tenga que usar `/optimizar` o `/validar` sin haber estado el día que se montaron. Aquí va el *cómo*; el *qué* y el *por qué* están en `specs/technical.md` §9.5 y §9.6, y lo descartado en el CHANGELOG 0.9.0 y 0.10.0. **La spec manda sobre este fichero.**
 
 Las dos herramientas están **fuera del harness**: `/novela` no las llama nunca, no escriben en `novelas/`, y si borras `herramientas/validacion/`, `herramientas/optimizacion/`, `validaciones/` y `optimizaciones/` el sistema sigue generando novelas igual.
 

@@ -14,6 +14,12 @@ para intento_tecnico en 1..config.limites.reintentos_tecnicos:
                       run_in_background = false)          # ver abajo: el bucle es secuencial
     e.invocaciones[agente] += 1; guardar(e)
 
+    si la herramienta falla porque se ha agotado la cuota de la suscripción
+       (límite de uso / rate limit del proveedor, no un error del agente):
+        descartar(carpeta)
+        cerrar(carpeta, PARADA, LIMITE_DE_USO,
+               detalle = "<error tal cual, con la hora de reinicio si la trae>")
+        return                                  # no consume reintentos: reintentar no lo arregla
     si la herramienta falla o el mensaje final está vacío:
         motivo = "fallo técnico: <error>"; tipo = fallo
     si el resultado viene marcado como parcial (agotó maxTurns):

@@ -1,6 +1,6 @@
 # Evaluadores de Langfuse
 
-Los siete evaluadores de [specs/revision-harness-2026-09-17.md](../../specs/revision-harness-2026-09-17.md) §5.4, tal como están creados en el proyecto de Langfuse.
+Los siete evaluadores de [specs/technical.md](../../specs/technical.md) §9.3.1, tal como están creados en el proyecto de Langfuse.
 
 **Fuera del harness.** `/novela` no los llama nunca (spec §9.3 regla 2). Corren después, sobre observaciones ya exportadas. Miden a los revisores, no a la novela.
 

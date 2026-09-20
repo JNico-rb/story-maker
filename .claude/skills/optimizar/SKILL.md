@@ -6,7 +6,7 @@ argument-hint: <agente> --metrica <score> --vueltas N [--tope-invocaciones M] [-
 
 # /optimizar — bucle de optimización de prompts
 
-Eres el **orquestador del bucle** de `specs/functional.md` §9.5. Coordinas un agente que propone (`optimizador`), un agente que se ejecuta (el optimizado) y unos guiones que puntúan. Escribes todos los ficheros del bucle, impones los límites y decides parar.
+Eres el **orquestador del bucle** de `specs/technical.md` §9.5. Coordinas un agente que propone (`optimizador`), un agente que se ejecuta (el optimizado) y unos guiones que puntúan. Escribes todos los ficheros del bucle, impones los límites y decides parar.
 
 **Este bucle está fuera del harness de la novela.** No lo llama `/novela` nunca, no escribe en `novelas/` (solo lee capítulos como entrada de un caso) y no decide si un capítulo se aprueba. La spec manda sobre este fichero.
 

@@ -1,30 +1,18 @@
-# Pendiente
+# TODO
 
-Trabajo abierto del harness. **Para qué sirve este fichero:** el [CHANGELOG.md](CHANGELOG.md) cuenta lo que *ya se decidió y por qué*; esto cuenta lo que *falta por hacer*. Un punto sale de aquí cuando está hecho, y solo entra en el CHANGELOG si por el camino se tomó una decisión de diseño que valga la pena proteger.
+Lo pendiente. Lo ya decidido vive en [CHANGELOG.md](CHANGELOG.md); lo vigente, en [specs/functional.md](specs/functional.md) y [specs/technical.md](specs/technical.md).
 
----
+## Configuración (revisión del 2026-09-19)
 
-## Implementar la 0.8.0
+- [ ] **A2 — `veredicto` con un solo umbral para gravedad 1 y 2.** `config.json` tiene `rechaza_con_graves: 1` sobre {1,2}; la spec quiere poder separar contradicción (1) de incumplimiento (2). Hoy el harness lee `rechaza_con_graves` y funciona; separarlo exige tocar `procedimientos/capitulo.md` y §7.5.
+- [ ] **A2 — `resumenes_completos_ultimos` está en `memoria`, no en el perfil.** Debería ir por perfil (`null` en `relato` y `novela_corta`, 10 en `novela` y `saga`). Al pasar a `novela` esto se nota.
+- [ ] **Claves inertes en el hito 1.** `modelos.temperatura.*` (la herramienta `Agent` no la expone) y `limites.presupuesto_usd_max` (con suscripción no hay coste por llamada). Están documentadas como tales; no borrarlas, son el contrato del runner del hito 2.
+- [ ] **A22 — recalibrar `calidad.*`.** Los umbrales vienen de E1 (5 capítulos) y con el `relato` de 3 un solo fallo suspende. Recalibrar con la segunda ejecución controlada, no antes.
+- [ ] **A20 — `paginas_objetivo` nunca se ha usado.** Sigue en los cuatro perfiles como `null`. O se usa o se quita en la versión 5.
 
-La spec la recoge entera; la implementación no existe. `config.json` sigue en la forma anterior. Entra todo junto:
+## Harness
 
-- **Hoja de continuidad** que compone el harness antes de invocar al escritor y al revisor de continuidad (spec §4.2, §5.2, §5.5), y los campos nuevos del frontmatter del resumen que necesita: `fecha_ficcion_inicio`, `fecha_ficcion_fin`, `plazos`, `objetos`.
-- **`memoria.resumen_max_palabras`** (350) con su reinvocación única al resumidor, y el contrato de §5.3 que separa hechos (resumen) de estado (libro de estado).
-- **`veredicto.rechaza_con_graves` se parte** en `rechaza_con_gravedad_1` (1) y `rechaza_con_gravedad_2` (2). Hoy la clave vieja la citan `config.json`, `procedimientos/capitulo.md` y `plantillas/informe.md`, y son coherentes entre sí: **se cambian los tres a la vez o ninguno**. Cambiar solo la plantilla la dejaría nombrando una clave inexistente.
-- **`resumenes_completos_ultimos` dentro de cada perfil** (`null` en `relato` y `novela_corta`, 10 en `novela` y `saga`) y **`limites.entrada_max_palabras_invocacion`** (25.000) con el aviso de proyección en `comprobar_entorno`.
-
-## Prueba de punta a punta del estudio
-
-Encargar, entrevistar, aprobar y escribir una novela entera desde el navegador. El servidor está probado por partes; lo que no se ha ejercitado nunca es el recorrido completo, que es lo único que demuestra los tres caminos nuevos del harness: `precarga:`, la parada `ESPERA_APROBACION` y la reanudación leyendo `decision.md`.
-
-## Recalibrar con la segunda ejecución completa
-
-Tres valores elegidos a ojo o sobre una sola ejecución, que solo una segunda puede confirmar:
-
-- `limites.pausa_cada_capitulos` (hoy 3).
-- `calidad.min_aprobados_primer_intento_pct` (hoy 40, marcado como suelo provisional).
-- Si se corrige el objetivo de longitud por el sesgo medido (+10,5 %, 11 de 13 intentos por encima): `objetivo × (1 − sesgo)`. Calibrar una constante que se realimenta al prompt con un solo punto es ajustar al ruido.
-
-## `--verificar` en el exportador de trazas
-
-No existe. `exportar.py` solo escribe, y por el SDK; leer de vuelta lo exportado exige `/api/public/v2/observations` con `fields=core,io,metadata` (la API legada responde 410 para esta organización). Documentado en `herramientas/trazas/README.md`.
+- [ ] **`LIMITE_DE_USO` sin probar.** El motivo de parada por cuota de suscripción agotada está escrito (spec §6.3/§6.5, `invocar.md`, `cierre.md`) pero no se ha disparado nunca de verdad; falta comprobar que el error del proveedor se distingue de un fallo técnico y que la reanudación deja el capítulo limpio.
+- [ ] **A19 — decidir el abaratamiento.** El paso 2 de §7.8 está ejecutado pero no decidido: con haiku de revisor las métricas no discriminan (E4). Falta la combinación escritor barato + revisor caro, en una comparación controlada (misma versión de spec en las dos ramas).
+- [ ] **A10 — recontar el volumen desde `registro.md`** en el informe de cierre, en vez de fiarse del contador vivo.
+- [ ] **A21 — conservar en `.descartado/`** lo que `descartar()` tira hoy.

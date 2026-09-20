@@ -28,6 +28,33 @@ Todo lo que no sirva a una de esas dos cosas, sobra. Escribe para que se entiend
 
 ---
 
+## 0.11.1
+
+### Patch Changes
+
+- **El agotamiento de cuota de la suscripción es un motivo de parada propio, `LIMITE_DE_USO`, y no un fallo técnico.** (spec §6.3 y §6.5; `procedimientos/invocar.md`, `cierre.md`)
+
+  - El harness corre sobre una suscripción de Claude Code, sin API key: lo que se acaba a mitad del bucle no es dinero, es cuota. Tratarlo como fallo técnico gastaría los tres `reintentos_tecnicos` en llamadas que el proveedor va a rechazar igual, y cerraría con un motivo que dice mentira («persistente») sobre algo que se arregla solo con esperar.
+  - Por eso no consume reintentos: descarta el paso a medias como una interrupción y cierra con la hora de reinicio si el error la trae. La reanudación es la de §6.2, sin nada especial.
+  - `limites.presupuesto_usd_max` queda declarado inerte mientras el proveedor sea la suscripción: sin coste por llamada no hay nada que sumar. Se mantiene porque es el contrato del runner del hito 2.
+
+- **`relato` pasa de 5 · 3–8 capítulos a 3 · 1–5, y se declara que deja de ser comparable con la línea base.** (spec §3.2, §7.1, §7.7)
+
+  - El motivo es el uso real del perfil: probar el harness entero lo más barato posible, no leer una historia.
+  - La consecuencia hay que escribirla porque si no se olvida: E1 se midió a 5 capítulos y los umbrales de `calidad.*` están calibrados sobre eso. A 3 capítulos un solo grave son 3,3 por 10 (umbral 2) y un capítulo por agotamiento es el 33 % (umbral 20), o sea que un fallo suspende. Para comparar contra la base se sobreescribe el tamaño en el comando, no en el fichero.
+  - Descartado: **bajar los umbrales de `calidad.*` para que el perfil pequeño salga verde.** Los umbrales miden el harness contra una referencia; moverlos para acomodar el tamaño de la prueba destruye lo único que hacían.
+
+## 0.11.0
+
+### Major Changes
+
+- **Se retira `/novela comparar` y con él la carpeta `comparativa/`.** (spec §8.4 ahora dice solo que está retirada; `procedimientos/comparar.md` y el permiso `Edit(/comparativa/**)` fuera)
+
+  - El motivo: su único caso real, `caso-01-opus-vs-haiku`, **no aislaba lo que decía medir**. Entre A y B cambiaron el modelo, la revisión partida, los ajustes de longitud y los umbrales a la vez (E4), así que el veredicto no era atribuible a nada concreto. Un comparador cuya precondición de justicia no se cumple ni una vez no es un instrumento.
+  - Lo que hacía lo hacen ya dos cosas que sí tienen número reproducible: §8.3 mide el proceso y §9.6 mide el producto contra línea base congelada. El bloque de lectura con cita obligatoria, que era lo valioso, vive en el informe de §9.6.
+  - La evidencia no se pierde: E4 se queda en [technical.md](specs/technical.md#e4) y es el origen de A6, A7 y A19. Retirar la herramienta no retira lo que enseñó.
+  - Descartado: **conservar el comando y la plantilla sin casos**. Un procedimiento que nadie puede ejecutar correctamente —hacen falta dos novelas de la misma `config.version` y `config.calidad`, que el repositorio nunca ha tenido— se degrada en spec muerta que alguien vuelve a citar como si funcionara.
+
 ## 0.10.0
 
 Versión del 18/09/2026: el harness gana una forma de medirse **por fuera**. Entra un validador que puntúa el texto producido con reglas deterministas y verdad de campo etiquetada a mano, y las métricas de §8.3 quedan reclasificadas por lo que son. Ejecutado: hay línea base congelada y una primera comparación.
