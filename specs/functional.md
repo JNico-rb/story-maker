@@ -18,7 +18,7 @@ El proyecto tiene **dos hitos** y este documento vale para los dos:
 
 Vocabulario: **hito** = fase del proyecto. **Etapa** = fase del flujo de una novela (1 interrogatorio, 2 bucle por capítulo, 3 final). No se usa "fase".
 
-La carpeta de la novela es el único estado, en los dos hitos. Este documento es **normativo**: dice qué hace el sistema y quién lo impone. El **porqué** con sus datos vive en [technical.md](technical.md) (evidencias `E-n`). Lo **sin decidir** vive en `consolidacion-2026-09-18.md` (retirado) (preguntas `A-n`); una regla marcada `→ A-n` está en discusión y no debe implementarse hasta que se decida.
+La carpeta de la novela es el único estado, en los dos hitos. Este documento es **normativo**: dice qué hace el sistema y quién lo impone. El **porqué** con sus datos vive en [technical.md](technical.md) (evidencias `E-n`). Lo **sin decidir** vive en [TODO.md](../TODO.md) (preguntas `A-n`); una regla marcada `→ A-n` está en discusión y no debe implementarse hasta que se decida.
 
 ### Cómo leer las marcas
 
@@ -189,8 +189,10 @@ Un capítulo rechazado por longitud tiene `intento-K.md` e `informe-K.md` pero n
   - `libro-estado.md`: su `Write` siempre pasa (se sustituye al cerrar cada capítulo); su `Edit` no.
   - El hook **falla en abierto** si no entiende su entrada. **Limitación conocida:** no cubre Bash (`cp`, `cat >`, `sed -i`); el criterio 6 de §8.2 lo demuestra a posteriori con git.
 - Estado, Registro y Libro de estado son exclusivos del harness `[harness · ambos]`.
+- **Todo commit pasa por `commitear(carpeta, punto)`**, que después de `git add -A` + `git commit` comprueba dos cosas: que `HEAD` ha avanzado y que `git status --porcelain novelas/<slug>` queda **vacío**. Si falla cualquiera de las dos, PARADA `COMMIT_NO_LIMPIO` sin avanzar al paso siguiente `[harness · ambos]`. Ningún procedimiento llama a `git commit` por su cuenta. Sin esta comprobación, un commit olvidado en `cerrar_capitulo` deja el capítulo aprobado sin guardar y la reanudación lo trata como paso a medias. Única excepción: llamada desde `cerrar()`, donde el fallo se anota como aviso en vez de parar, porque una PARADA en el cierre se llamaría a sí misma.
 - **Escritura atómica** (temporal + renombrado) `[cáscara · hito 2: la herramienta `Write` de la cáscara]`.
-- Reglas de permisos del repositorio (`.claude/settings.json`): `Edit(/novelas/**)` y `Edit(/optimizaciones/**)` son las que autorizan `Write` sobre esas carpetas (en Claude Code las reglas `Edit(ruta)` cubren `Write`; una regla `Write(ruta)` no se consulta). `git` acotado a `novelas/`, sin `push`, `--amend`, `reset --hard` ni `rebase`. `deny` de `Read(.env)` y `Read(.claude/settings.local.json)` `[hook · ambos: la cáscara lee el mismo fichero]`.
+- Reglas de permisos del repositorio (`.claude/settings.json`): `Edit(/novelas/**)` y `Edit(/optimizaciones/**)` son las que autorizan `Write` sobre esas carpetas (en Claude Code las reglas `Edit(ruta)` cubren `Write`; una regla `Write(ruta)` no se consulta). `git` acotado a `novelas/`, sin `push`, `--amend`, `reset --hard` ni `rebase`. `deny` de `Read` sobre `.env`, `frontend/.env`, `.claude/settings.local.json` y `herramientas/optimizacion/conjuntos/**` `[hook · ambos: la cáscara lee el mismo fichero]`.
+- **Un `deny` de `Read` no cubre lo que `Bash` lee.** En Claude Code esas reglas gobiernan la herramienta `Read`, no el contenido de un comando: con `Bash(cat *)` en el `allow`, un `cat` de cualquiera de esas rutas pasaba. Lo que lo impone es `.claude/hooks/rutas-protegidas.sh`, `PreToolUse` sobre `Bash`, que **falla en cerrado** (sin entrada legible, deniega) `[hook · ambos]`. Los `cat`/`head`/`tail` del `allow` están además acotados a `novelas/`, `encargos/`, `specs/` y `config.json`. No es un sandbox: una ruta ofuscada se le escapa; lo que corta es el camino barato, que es el único que un agente toma. Fixtures de los dos hooks: `herramientas/pruebas/hook.sh`.
 
 ### 3.2 Cuánto texto, por perfil
 
@@ -441,7 +443,7 @@ Crear y gestionar la carpeta · invocar con exactamente las entradas del contrat
 
 ### 6.2 Reanudación `[harness · ambos]`
 
-Relanzar sobre una carpeta existente continúa donde se quedó: escaleta sin aprobar → interrogatorio (tras `ESPERA_APROBACION`, la propuesta no se rehace, solo se aplica la decisión); en el bucle → arco, capítulo e intento del Estado, un intento a medias se repite con el mismo número, un arco sin escaleta validada se detalla de nuevo; bucle terminado sin global → solo eso; completa → no hace nada. Siempre `/novela continuar <carpeta>`. Un paso a medias (`git status` sucio) se descarta con `descartar()` y se registra `paso_descartado`; conservar lo descartado en `.descartado/`: → A21.
+Relanzar sobre una carpeta existente continúa donde se quedó: escaleta sin aprobar → interrogatorio (tras `ESPERA_APROBACION`, la propuesta no se rehace, solo se aplica la decisión); en el bucle → arco, capítulo e intento del Estado, un intento a medias se repite con el mismo número, un arco sin escaleta validada se detalla de nuevo; bucle terminado sin global → solo eso; completa → no hace nada. Siempre `/novela continuar <carpeta>`. Un paso a medias (`git status` sucio) se descarta con `descartar()` y se registra `paso_descartado`. **`descartar()` conserva antes lo que va a perder**: copia todo lo modificado o sin seguir a `novelas/<slug>/.descartado/<marca UTC>/`, con la misma ruta relativa, y solo después hace `reset` + `checkout` + `clean -fdq -e .descartado` `[harness · ambos]`. Si la copia falla, no descarta: PARADA `DESCARTE_NO_SEGURO`. `.descartado/` está en `.gitignore`, el harness nunca la lee ni la reutiliza, y borrarla no cambia ninguna novela: es material para que decida una persona (cierra A21; evidencia: E2, donde un `paso_descartado` se llevó un `intento-1.md` de 1.333 palabras).
 
 Tras `PAUSA_PROGRAMADA` la reanudación va **en una sesión nueva**; el harness no la encadena `[harness · ambos]`.
 
@@ -480,6 +482,8 @@ Principio: **nunca muere en silencio ni deja el estado a medias.** Toda ejecuci�
 | `LIMITE_DE_USO` (hito 1) | El proveedor rechaza la invocación por cuota de suscripción agotada | Parada limpia **sin gastar reintentos técnicos**: el paso en curso se descarta como una interrupción del usuario (§6.2) y el informe de cierre dice desde dónde se reanuda | Esperar al reinicio de la cuota y `/novela continuar <carpeta>` |
 | Presupuesto agotado (hito 2) | Coste > `presupuesto_usd_max` | Parada tras cerrar el paso | Subir y relanzar |
 | Error de configuración | Sin git, faltan ficheros, `maxTurns`/`model` ≠ config, `version` distinta | Parada antes de invocar a nadie | Corregir |
+| `COMMIT_NO_LIMPIO` | Tras `commitear()`, `HEAD` no avanzó o `git status --porcelain` no quedó vacío | Parada inmediata, sin avanzar al paso siguiente. El trabajo sigue **entero en disco**, sin commitear | `/novela continuar`: el paso se descarta conservándolo en `.descartado/` y se repite |
+| `DESCARTE_NO_SEGURO` | `descartar()` no pudo copiar a `.descartado/` lo que iba a borrar | Parada **sin descartar nada**: no destruye sin copia de seguridad | Liberar espacio o permisos y `/novela continuar` |
 | `ESTADO_NO_RECONOCIDO` | `estado.json` ilegible o versión desconocida | Parada señalando el último commit consistente | Revisar |
 | Interrupción del usuario | Corte | Paso en curso descartado | Relanzar |
 
@@ -617,8 +621,10 @@ Los ejecuta el orquestador sobre el caso de referencia en modo de prueba y compr
 16. **Hoja de continuidad** verificable campo a campo contra sus fuentes; `desconocido` si falta el dato `[pendiente]`.
 17. **Tope del resumen**: ninguno lo supera salvo aviso; una sola reinvocación `[pendiente]`.
 18. **Proyección de entrada**: `novela` con `null` → aviso y la ejecución **continúa** `[pendiente]`.
+19. **Commit comprobado**: suprimido el commit de `cerrar_capitulo`, la ejecución para con `COMMIT_NO_LIMPIO` en ese mismo capítulo —no en el siguiente— y el capítulo sigue entero en disco.
+20. **Descarte reversible**: interrumpido un intento a medias, `/novela continuar` deja en `.descartado/<marca>/` una copia byte a byte de lo borrado, con su ruta relativa; `git status --porcelain` queda vacío y `.descartado/` no entra en git.
 
-Estado real: ninguno se ejecuta de forma automatizada; 3, 4, 5, 10, 11, 13, 14 y 16–18 no se han ejercitado nunca (E3 confirma que 14 no se llegó a evaluar). Guion de comprobación → A3.
+Estado real: ninguno se ejecuta de forma automatizada; 3, 4, 5, 10, 11, 13, 14 y 16–20 no se han ejercitado nunca (E3 confirma que 14 no se llegó a evaluar; 19 y 20 son nuevos de 2026-09-19). Guion de comprobación → A3.
 
 ### 8.3 Métricas de calidad — de **proceso** `[harness · ambos]`
 
@@ -654,7 +660,7 @@ Movido a [technical.md → E2](technical.md#e2).
 
 ### 8.7 Comprobar que una ejecución está completa `[harness · ambos]`
 
-Lo ejecuta `/novela verificar <carpeta>`, de lo barato a lo caro (antes `inventario.md` §4):
+Lo ejecuta `/novela verificar <carpeta>`, de lo barato a lo caro:
 
 1. `informe-cierre.md` dice `resultado: EXITO`.
 2. `estado.json`: `version: 4`, `etapa: completa`, `informe_global: true`, una entrada por capítulo de `escaleta.md`, `escaleta_validada` en todos los arcos.
@@ -700,7 +706,8 @@ Decisión del 2026-09-18: el hito 2 **no es un runner en código** que reimpleme
 | `Bash` | Nativa, con `permissions` | Ejecuta en la raíz; solo comandos que casen con `permissions.allow` (prefijos) y no con `deny`; lo demás se deniega y el harness para limpio. Sin prompts de permiso |
 | `Agent` | Subagentes | Lee `.claude/agents/<name>.md`; bucle propio con `Read/Glob/Grep`, `maxTurns` del frontmatter, `model` del parámetro (o del frontmatter si falta), `temperatura` de `config.json`; devuelve el mensaje final **más** `tok_entrada`, `tok_salida`, `coste_usd` y `modelo_respondido` de OpenRouter, para que el harness los copie al registro (§6.6). Siempre bloqueante: no existe segundo plano, así que la fila `pendiente` (→ A9) desaparece |
 | `PreToolUse` | `settings.json` → `inmutables.sh` | Mismo matcher `Edit\|Write`, mismo comando, mismo JSON (`tool_name`, `tool_input.file_path`), mismo código de salida 2 = bloqueo. Falla en abierto igual |
-| `permissions.deny` de `Read` | Nativo | Mismas rutas, sobre `Read` y sobre Bash |
+| `PreToolUse` | `settings.json` → `rutas-protegidas.sh` | Mismo matcher `Bash`, mismo comando, misma entrada cruda, mismo 2 = bloqueo. Falla en **cerrado** igual |
+| `permissions.deny` de `Read` | Nativo, **solo sobre `Read`** | Mismas rutas; lo que `Bash` lee lo corta `rutas-protegidas.sh`, no el `deny` |
 | `maxTurns` | Frontmatter | Ídem; resultado parcial marcado como tal |
 | Sesión y `--resume` | Nativo | Transcript de la conversación del orquestador en `encargos/<slug>/` o en un directorio propio; `--resume <id>` la retoma. Solo hace falta para la entrevista a medias: el resto se reanuda desde disco |
 | `AskUserQuestion` | Denegada por el estudio | No existe: el orquestador pregunta en texto |

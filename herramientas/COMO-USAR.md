@@ -25,6 +25,8 @@ Las dos herramientas están **fuera del harness**: `/novela` no las llama nunca,
 
 ## Guiones (desde la terminal, sin pasar por la skill)
 
+**Requisito previo: que `python` responda.** En Windows el alias de Microsoft Store secuestra ese nombre y falla con código 49, aunque haya un intérprete instalado. `uv python install <version> --default` deja `python` y `python3` en `~/.local/bin`; es lo que arregló esta máquina el 2026-09-20 (R3 del plan). Comprobación en una línea: `python --version`.
+
 | Comando | Cuándo |
 |---|---|
 | `python herramientas/validacion/comprobar_patrones.py` | Siempre que toques `patrones.py`. Sale 1 si el detector no es usable |

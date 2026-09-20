@@ -28,6 +28,26 @@ Todo lo que no sirva a una de esas dos cosas, sobra. Escribe para que se entiend
 
 ---
 
+## 0.12.0
+
+### Minor Changes
+
+- **Todo commit pasa por `commitear()`, que comprueba que el commit se creó y que la carpeta quedó limpia; si no, PARADA `COMMIT_NO_LIMPIO`.** (spec §3.1, §6.5, §8.2 criterio 19; `procedimientos/invocar.md`, `capitulo.md`, `arco.md`, `interrogatorio.md`, `cierre.md`, SKILL.md §9)
+
+  - El commit era el único punto de retorno de una novela y estaba en el nivel más débil de la spec: prosa que el orquestador tiene que acordarse de ejecutar (`harness`, «puede olvidarse»). Nada comprobaba que hubiera ocurrido.
+  - El fallo encadenaba mal: capítulo cerrado sin commitear → la reanudación ve `git status` sucio → `descartar()` borra un capítulo aprobado. La red de seguridad era la trituradora.
+  - Para en vez de reintentar porque el paso siguiente daría por guardado algo que no lo está. Única excepción: llamado desde `cerrar()` no para, se anota como aviso; una PARADA en el cierre se llamaría a sí misma.
+
+- **`descartar()` copia a `novelas/<slug>/.descartado/<marca UTC>/` antes de borrar; si no puede copiar, no borra (`DESCARTE_NO_SEGURO`).** (spec §6.2, §6.5, §8.2 criterio 20; `procedimientos/invocar.md`, `.gitignore`) — cierra **A21**
+
+  - Ya había pasado: un `paso_descartado` al reanudar se llevó un `intento-1.md` de 1.333 palabras (E2). `git clean -fdq` no deja de dónde tirar.
+  - Quien protege la copia es el `.gitignore` (`git clean -fdq` no borra ignorados); el `-e .descartado` del `clean` es un segundo cinturón por si alguien quita esa línea o añade `-x`.
+  - `.descartado/` va al `.gitignore`. Si se versionara, el paso 6 de §8.7 y la aserción de `commitear()` verían la carpeta sucia para siempre: las dos piezas solo encajan así.
+  - El harness nunca lee de ahí ni lo reutiliza: no es caché ni punto de retorno, es material para que decida una persona. Borrarlo no cambia ninguna novela.
+
+- **Descartado: reintentar el commit, y hacer que `descartar()` haga `stash` en vez de copiar.** Reintentar no arregla la causa (un commit que no cierra suele ser un índice bloqueado o un hook fallando) y deja avanzar sobre un punto de retorno inexistente. `git stash` mete lo descartado en el historial de git, donde el usuario no lo va a buscar y donde ensucia `git log` de la novela; una carpeta que se ve con `ls` es lo que hace que alguien la rescate.
+---
+
 ## 0.11.1
 
 ### Patch Changes

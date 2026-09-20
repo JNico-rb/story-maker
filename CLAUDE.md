@@ -16,3 +16,8 @@ Generador agéntico de novelas en castellano sobre el mundo tras la revolución 
 - **Trazas de una ejecución**: [herramientas/trazas/](herramientas/trazas/), fuera del harness.
 - **Cómo medir**: [herramientas/COMO-USAR.md](herramientas/COMO-USAR.md). Dos herramientas, las dos fuera del harness: `/validar` puntúa un manuscrito (technical §9.6) y `/optimizar` mejora el prompt de un agente (technical §9.5). **Léelo antes de usarlas**: su §1 tiene las cinco reglas que no son criterio tuyo, y la primera es que tú nunca puntúas.
 - **El visor y el estudio**: [frontend/](frontend/), con sus reglas en [frontend/CLAUDE.md](frontend/CLAUDE.md) y su contrato en technical §9.2 y §9.4. El estudio lanza el harness, pero **no escribe en `novelas/` ni decide nada del flujo**: la regla 1 y la 4 valen ahí igual que aquí.
+
+## Antes de cerrar un cambio
+
+- Si has tocado documentación (`specs/`, `CLAUDE.md`, `README.md`, un `README` de `herramientas/`): `bash herramientas/comprobar_punteros.sh`. Sale 1 si un enlace, una spec retirada o una `§` apuntan a la nada. Este sistema son punteros entre documentos; uno roto no lo ve nadie hasta que alguien lo sigue.
+- Si has tocado `.claude/hooks/` o `permissions` de `.claude/settings.json`: `bash herramientas/pruebas/hook.sh`. Son las dos líneas rojas (una aprobación no se toca; credenciales y conjunto etiquetado no se leen) y son lo único del repositorio que no puede regresar en silencio.

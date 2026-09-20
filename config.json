@@ -1,5 +1,5 @@
 {
-  "_documentacion": "Todas estas variables están explicadas en specs/functional.md §7. Edita este fichero para cambiar el comportamiento del harness; no hace falta tocar nada más. Los valores por defecto son los del abaratamiento (§7.8 paso 2): historia pequeña, los cinco agentes con el modelo barato, escalado apagado. El paso 1 (todo en opus) ya está ejecutado; su resultado es la línea base de §8.5. Las claves marcadas 'hito 2' solo las usa el runner contra OpenRouter. OJO: modelos.* gobierna solo a los agentes; el orquestador es la sesión de Claude Code y su modelo no se configura aquí (§7.3).",
+  "_documentacion": "Todas estas variables están explicadas en specs/functional.md §7. Edita este fichero para cambiar el comportamiento del harness; no hace falta tocar nada más. Los valores por defecto son los del abaratamiento (§7.8 paso 2): historia pequeña, los cinco agentes con el modelo barato, escalado apagado. El paso 1 (todo en opus) ya está ejecutado; su resultado es la línea base de §8.5. Las claves marcadas 'hito 2' solo las usa la cáscara contra OpenRouter. OJO: modelos.* gobierna solo a los agentes; el orquestador es la sesión de Claude Code y su modelo no se configura aquí (§7.3). ENTORNO ACTUAL: suscripción de Claude Code, sin API key. No hay coste por llamada, así que limites.presupuesto_usd_max y modelos.temperatura no hacen nada en el hito 1; lo que se agota es la cuota de uso, y eso lo maneja el harness como PARADA LIMITE_DE_USO (§6.5): se reanuda con /novela continuar cuando la cuota vuelve.",
   "version": 4,
 
   "proveedor": "claude-code",
@@ -8,11 +8,11 @@
 
   "perfiles": {
     "relato": {
-      "descripcion": "Prueba rápida. Lo mínimo que ya se lee como una historia. Es el perfil de la validación (hito 1). Un solo arco.",
+      "descripcion": "Prueba rápida. Lo mínimo que ya se lee como una historia. Un solo arco. OJO: la línea base E1 se midió con 5 capítulos (3-8); a 3 capítulos la ejecución NO es comparable con ella ni con los umbrales de calidad.* (§7.1, §7.7). Para comparar, lanza con perfiles.relato.capitulos_objetivo=5 en el comando.",
       "paginas_objetivo": null,
-      "capitulos_objetivo": 5,
-      "capitulos_min": 3,
-      "capitulos_max": 8,
+      "capitulos_objetivo": 3,
+      "capitulos_min": 1,
+      "capitulos_max": 5,
       "palabras_por_capitulo": 1500
     },
     "novela_corta": {
@@ -32,7 +32,7 @@
       "palabras_por_capitulo": 2500
     },
     "saga": {
-      "descripcion": "Objetivo final: 100-200 capítulos de una sola novela en el runner de OpenRouter. Requiere libro de estado, arcos y pausa_cada_capitulos en null.",
+      "descripcion": "Objetivo final: 100-200 capítulos de una sola novela en la cáscara de OpenRouter. Requiere libro de estado, arcos y pausa_cada_capitulos en null.",
       "paginas_objetivo": null,
       "capitulos_objetivo": 100,
       "capitulos_min": 60,
@@ -50,7 +50,7 @@
   },
 
   "modelos": {
-    "_nota": "Por defecto (§7.8 paso 2): los cinco en haiku, escalado apagado. Con red: lo mismo con escalado.activo true y escalado.modelo opus. Validación (§8.5): los cinco en opus. Con proveedor openrouter se usan identificadores de modelo de OpenRouter. temperatura solo la usa el runner (hito 2). Cada valor está escrito también en el frontmatter del agente y comprobar_entorno compara ambos.",
+    "_nota": "Por defecto (§7.8 paso 2): los cinco en haiku, escalado apagado. Con red: lo mismo con escalado.activo true y escalado.modelo opus. Validación (§8.5): los cinco en opus. Con proveedor openrouter se usan identificadores de modelo de OpenRouter. temperatura NO se aplica en el hito 1: la herramienta Agent de Claude Code no la expone, así que estos valores están aquí solo como contrato para la cáscara del hito 2 (§7.3). escalado SÍ funciona en el hito 1 (el modelo va en el parámetro model de la llamada Agent); con suscripción no cuesta dinero, pero gasta cuota mucho más rápido. Cada valor está escrito también en el frontmatter del agente y comprobar_entorno compara ambos.",
     "interrogador": "haiku",
     "escritor": "haiku",
     "resumidor": "haiku",
@@ -96,7 +96,7 @@
   },
 
   "calidad": {
-    "_nota": "Recalibrados con la ejecución de referencia (§8.5). Con 5 capítulos la resolución es gruesa: un grave vale 2,0 puntos de graves_por_10 y un capítulo por agotamiento vale 20 puntos. Los umbrales anteriores (1 y 10) exigían cero de cada cosa.",
+    "_nota": "Recalibrados con la ejecución de referencia (§8.5), que tenía 5 capítulos. Con el relato actual de 3 la resolución es aún más gruesa: un grave vale 3,3 puntos de graves_por_10 (umbral 2) y un capítulo por agotamiento vale 33 puntos (umbral 20), o sea que un solo fallo suspende. A 3 capítulos estas métricas se leen como detalle, no como aprobado/suspenso; no bajes los umbrales para que salgan verdes (§7.7).",
     "max_graves_por_10_capitulos": 2,
     "max_agotamiento_pct": 20,
     "max_hilos_previstos_sin_cerrar": 0,

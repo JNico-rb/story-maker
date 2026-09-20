@@ -43,7 +43,7 @@ agotados:
     cerrar(carpeta, PARADA, motivo_parada, detalle = último motivo)      # cierre.md
 ```
 
-**`run_in_background = false` siempre, y explícito.** La herramienta `Agent` corre en segundo plano por defecto y devuelve un identificador en vez de la salida; el paso siguiente de `invocar` es `extraer(resultado, validacion)`, así que una invocación en segundo plano no te daría nada que validar y el bucle avanzaría sobre un resultado que no existe. Es la única excepción a la norma general de Claude Code de no bloquear la sesión: aquí la acción siguiente **siempre** depende del resultado. Nunca des por hecha la salida de un agente que aún no ha terminado. (Detalle de Claude Code: en el hito 2 el runner espera la respuesta de la API y no hay nada que declarar.)
+**`run_in_background = false` siempre, y explícito.** La herramienta `Agent` corre en segundo plano por defecto y devuelve un identificador en vez de la salida; el paso siguiente de `invocar` es `extraer(resultado, validacion)`, así que una invocación en segundo plano no te daría nada que validar y el bucle avanzaría sobre un resultado que no existe. Es la única excepción a la norma general de Claude Code de no bloquear la sesión: aquí la acción siguiente **siempre** depende del resultado. Nunca des por hecha la salida de un agente que aún no ha terminado. (Detalle de Claude Code: en el hito 2 la cáscara espera la respuesta de la API y no hay nada que declarar.)
 
 Cada agente recibe **exactamente** las rutas de su contrato (spec §5): ni una más para "dar contexto", ni una menos. En el prompt van rutas, no contenidos; el agente las lee. Todos los prompts terminan con: "Devuelve tu salida en el mensaje final con la forma exacta de tu definición. No escribas ningún fichero."
 
@@ -95,18 +95,47 @@ Se lanzan **en el mismo mensaje**, en dos llamadas a la herramienta `Agent`, par
 
 Si uno falla y el otro entrega, **reintenta solo el que falló** con su propio contador de `reintentos_tecnicos`; la salida del que entregó se conserva y no se vuelve a pedir. Solo si el que falla agota sus reintentos se llega a la parada.
 
+## commitear(carpeta, punto)
+
+**El único sitio desde el que se commitea.** Ningún procedimiento llama a `git commit` por su cuenta: todos pasan por aquí, porque lo que da valor a la función es el paso 3.
+
+```
+antes=$(git rev-parse HEAD)
+git add -A novelas/<slug>
+git commit -m "novela <slug>: <punto>"
+despues=$(git rev-parse HEAD)
+sucio=$(git status --porcelain novelas/<slug>)
+```
+
+1. Si `despues` == `antes`, no se ha creado ningún commit: el `git commit` falló o no había nada que guardar en un punto donde tenía que haberlo.
+2. Si `sucio` no está vacío, ha quedado trabajo fuera del commit.
+3. **En cualquiera de los dos casos: PARADA `COMMIT_NO_LIMPIO`** (`cerrar(...)`, `procedimientos/cierre.md`), con el punto, la salida de `git status --porcelain` entera y el último commit bueno. No sigas: el paso siguiente daría por guardado algo que no lo está.
+4. Si los dos están bien, registra el evento `commit` con el `sha` y el punto.
+
+**Única excepción:** llamada desde `cerrar()` (`procedimientos/cierre.md`, paso 5) **no para**; anota el fallo como aviso en el informe y termina. `cerrar()` es el final del camino y una PARADA ahí se llamaría a sí misma.
+
+Por qué para en vez de reintentar: un commit que no cierra deja la carpeta en un estado que la reanudación va a tratar como paso a medias. Es mejor parar con todo en disco y decírselo al usuario que seguir generando capítulos sobre un punto de retorno que no existe. Esta es la comprobación que faltaba cuando un `paso_descartado` se llevó un `intento-1.md` de 1.333 palabras (`specs/technical.md`, E2).
+
 ## descartar(carpeta)
 
-Devuelve la carpeta al **último commit**. Solo se usa al reanudar (SKILL.md §5) y al parar por agotamiento de reintentos.
+Devuelve la carpeta al **último commit**, **conservando antes lo que se va a perder**. Solo se usa al reanudar (SKILL.md §5) y al parar por agotamiento de reintentos.
 
 ```
+destino="novelas/<slug>/.descartado/$(date -u +%Y%m%dT%H%M%SZ)"
+git status --porcelain novelas/<slug>   # las rutas a salvar
+# por cada ruta modificada o sin seguir, copiarla a $destino/<misma ruta relativa>
 git reset -q HEAD -- novelas/<slug>
 git checkout -- novelas/<slug>
-git clean -fdq novelas/<slug>
+git clean -fdq -e .descartado novelas/<slug>
 ```
 
-Registra `paso_descartado` con las rutas que se han perdido. Como nada aprobado está sin commitear, nunca se pierde nada aprobado.
+1. Copia **primero**, con `cp` y creando los directorios intermedios, para que la ruta relativa dentro de `.descartado/<marca>/` sea la misma que tenía en la carpeta. Si la copia falla, **no descartes**: PARADA `DESCARTE_NO_SEGURO` con el detalle. Destruir sin copia de seguridad es justo lo que esto viene a evitar.
+2. Lo que de verdad protege la copia es el `.gitignore`: `git clean -fdq` **no** borra ficheros ignorados (comprobado). El `-e .descartado` es un segundo cinturón, por si alguien quita esa línea del `.gitignore` o añade `-x` al `clean`; no quites ninguno de los dos.
+3. `.descartado/` está en `.gitignore` y **nunca se commitea**: si se versionara, el paso 6 de §8.7 y la aserción de `commitear()` verían la carpeta sucia para siempre.
+4. Registra `paso_descartado` con las rutas salvadas y la carpeta `.descartado/<marca>/` donde han quedado.
+
+El harness **nunca** lee de `.descartado/` ni la reutiliza: no es un caché ni un punto de retorno, es material para que decida una persona. Quien quiera rescatar algo lo copia a mano. Borrarla entera no cambia ninguna novela.
 
 ## Volumen
 
-`pal_entrada` y `pal_salida` van en todas las filas `invocacion`, contadas con `wc -w`. `tok_entrada`, `tok_salida` y `coste_usd` se rellenan solo si la herramienta los devuelve (en el hito 1 normalmente no; en el runner siempre). Es el dato de `specs/functional.md` §6.6.
+`pal_entrada` y `pal_salida` van en todas las filas `invocacion`, contadas con `wc -w`. `tok_entrada`, `tok_salida` y `coste_usd` se rellenan solo si la herramienta los devuelve (en el hito 1 normalmente no; en la cáscara siempre). Es el dato de `specs/functional.md` §6.6.

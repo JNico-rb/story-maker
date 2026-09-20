@@ -124,7 +124,7 @@ Spec: §6.2. Siempre `/novela continuar <carpeta>`; el punto de retorno sale de 
 stateDiagram-v2
     [*] --> Lee: /novela continuar carpeta
     Lee --> Sucio: git status sucio
-    Sucio --> Lee: descartar() y registrar paso_descartado
+    Sucio --> Lee: descartar() copia a .descartado/<br/>y registra paso_descartado
 
     Lee --> Etapa1: escaleta sin aprobar
     Lee --> Etapa2: en el bucle
@@ -166,12 +166,16 @@ flowchart TD
     tipo -->|"coste sobre presupuesto_usd_max, hito 2"| parada
     tipo -->|"sin git, falta un fichero, maxTurns distinto de config"| conf["ERROR_CONFIGURACION:<br/>para ANTES de invocar a nadie"]
     tipo -->|"estado.json ilegible"| nore["ESTADO_NO_RECONOCIDO"]
+    tipo -->|"commit no creado o carpeta sucia"| cnl["COMMIT_NO_LIMPIO:<br/>para sin avanzar, nada se pierde"]
+    tipo -->|"no se pudo copiar a .descartado/"| dns["DESCARTE_NO_SEGURO:<br/>no destruye sin copia"]
 
     parada["Parada limpia"] --> informe
     espera --> informe
     pausa --> informe
     conf --> informe
     nore --> informe
+    cnl --> informe
+    dns --> informe
 
     informe["informe-cierre.md: resultado EXITO o PARADA,<br/>motivo clasificado, etapa/arco/capítulo,<br/>qué quedó hecho, avisos, métricas, volumen<br/>y la acción exacta para continuar"]
     informe --> user(["Usuario: nunca hace falta borrar<br/>nada a mano ni editar el Estado"])

@@ -18,7 +18,7 @@ Registra `manuscrito(palabras = wc -w)`.
 ```
 palabras = wc -w manuscrito.md
 si palabras ≤ config.limites.revision_global_max_palabras:
-    entradas = [manuscrito.md, biblia.md, escaleta.md, libro-estado.md, todos los resúmenes aprobados]; modo_texto = manuscrito
+    entradas = [manuscrito.md]; modo_texto = manuscrito
 si no:
     entradas = [biblia.md, escaleta.md, libro-estado.md, todos los resúmenes aprobados, todos los arcos/informe-arco-*.md]; modo_texto = resúmenes
 salida = invocar(revisor-continuidad, global, K = –, entradas, validacion = JSON del revisor, destinos = ninguno)
@@ -26,7 +26,7 @@ escribe informe-global.md desde plantillas/informe.md: frontmatter con capitulo:
     el JSON tal cual (veredicto informativo), y el cuerpo en prosa legible
 estado.informe_global = true; guardar
 registra veredicto(GLOBAL informativo, veredicto, nº problemas, gravedad máx., base)
-progreso "[final] revisión global (<base>): <n> problemas de gravedad 1–2"
+progreso "[final] revisión global (<base>): <n> problemas de gravedad 1 o 5"
 ```
 
 **No reescribas nada** aunque haya problemas: quedan para el usuario, y los que se arreglan en una línea van a `erratas.md`.

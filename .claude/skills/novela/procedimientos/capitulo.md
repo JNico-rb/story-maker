@@ -162,5 +162,5 @@ Registra `decision_harness(mejor_intento = k, motivo: "paso <n> de la regla: <de
 2. Copia `capitulos/NN/libro-estado-K.md` sobre `libro-estado.md` (escritura completa).
 3. `estado.capitulos[N] = { "aprobado": K, "por_agotamiento": <bool>, "intentos": <K máximo alcanzado>, "reescrituras": <e.reescrituras_usadas[N]>, "ajustes_longitud": <e.ajustes_usados[N]> }`. Si por agotamiento, añade a `estado.avisos`: `"Capítulo N aceptado por agotamiento (mejor intento: K de <intentos>); ver capitulos/NN/informe-K.md"`.
 4. `estado.capitulo_actual = N + 1`; `estado.intento_actual = 1`; si N es el último del arco A, `estado.arco_actual = A + 1` (salvo que sea el último arco). Guarda.
-5. Commit `novela <slug>: cap NN cerrado (intento K)`.
+5. `commitear(carpeta, "cap NN cerrado (intento K)")` (`procedimientos/invocar.md`). Comprueba que el commit existe y que la carpeta queda limpia; si no, para con `COMMIT_NO_LIMPIO` y **no se avanza al capítulo siguiente**. Es el paso que convierte el capítulo en un punto de retorno real: hasta aquí, todo lo del capítulo está sin commitear.
 6. Progreso: `[cap NN/<total>] intento K · APROBADO` o `… · RECHAZADO · aceptado por agotamiento (mejor intento: K) ⚠`.

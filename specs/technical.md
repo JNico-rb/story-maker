@@ -43,7 +43,7 @@ Si esta spec y functional.md discrepan sobre una regla de flujo, gana functional
 
 SKILL.md es **pseudocódigo numerado con nombres de función estables**; cada procedimiento implementa una o varias. En el hito 2 **el mismo texto** lo ejecuta el orquestador LLM de la cáscara: no se traduce a código (decisión 2026-09-18; SKILL.md e `invocar.md` aún dicen lo contrario → consolidación §6).
 
-`comprobar_entorno` · `crear_novela` · `resolver_perfil` · `entrevistar` · `proponer_escaleta` · `validar_canon` · `detallar_arco` · `escribir_capitulo` · `comprobar_longitud` · `resumir` · `revisar` · `decidir` · `mejor_intento` · `cerrar_capitulo` · `revisar_arco` · `ensamblar` · `revisar_global` · `escribir_erratas` · `calcular_metricas` · `cerrar` · `reanudar` · `invocar` · `elegir_modelo` · `descartar`. Dónde vive cada una: SKILL.md §0–§9 y los procedimientos.
+`comprobar_entorno` · `crear_novela` · `resolver_perfil` · `entrevistar` · `proponer_escaleta` · `validar_canon` · `detallar_arco` · `escribir_capitulo` · `comprobar_longitud` · `resumir` · `revisar` · `decidir` · `mejor_intento` · `cerrar_capitulo` · `revisar_arco` · `ensamblar` · `revisar_global` · `escribir_erratas` · `calcular_metricas` · `cerrar` · `reanudar` · `invocar` · `elegir_modelo` · `commitear` · `descartar`. Dónde vive cada una: SKILL.md §0–§9 y los procedimientos.
 
 ### 9.2 El visor (`frontend/`)
 
@@ -57,7 +57,7 @@ Mismo estatus que el visor: **fuera del harness, solo lectura, borrable**. Regla
 3. **Fail-open**.
 4. **No escribe en `novelas/`**.
 5. **Credenciales fuera del repositorio**: `.claude/settings.local.json` y `.env`, ignorados.
-6. **Credenciales no legibles desde la sesión**: `deny` de `Read` sobre ambos `[hook · ambos]`.
+6. **Credenciales no legibles desde la sesión**: `deny` de `Read` sobre ambos, **y** `PreToolUse` sobre `Bash` (`.claude/hooks/rutas-protegidas.sh`), porque el `deny` de `Read` no gobierna lo que lee un comando `[hook · ambos]`.
 
 | Nivel | Qué | Cómo | Marca |
 |---|---|---|---|
@@ -112,7 +112,7 @@ Recoge los inputs y arranca el harness. **Fachada, no camino alternativo**: comp
 | Juez | evaluador de `herramientas/evaluadores/` + conjunto etiquetado | puntúa contra verdad de campo; no opina |
 | Optimizador | agente `optimizador` | propone variantes; **nunca** puntúa, y **nunca ve el conjunto etiquetado** |
 
-Que el optimizador no vea el conjunto no es prosa: `permissions.deny` corta `Read` sobre la carpeta del conjunto, y con él `cat`, `head` y las redirecciones de Bash `[cáscara · ambos]`.
+Que el optimizador no vea el conjunto no es prosa, pero tampoco lo daba el `deny` a solas: `permissions.deny` corta `Read` sobre la carpeta del conjunto, y `.claude/hooks/rutas-protegidas.sh` (`PreToolUse` sobre `Bash`, falla en cerrado) corta `cat`, `head` y las redirecciones, que el `deny` **no** cubría `[cáscara · ambos]`. Las dos capas tienen fixtures en `herramientas/pruebas/hook.sh`. Ninguna de las dos es un sandbox contra una ruta ofuscada: el aislamiento que de verdad sostiene el bucle es que el orquestador nunca pone el conjunto en el prompt del optimizador.
 
 #### 9.5.1 TRIGGER
 
@@ -346,7 +346,7 @@ Fuentes: `novelas/tecnica-ascensores-peticion-ia/` (A, opus, spec v3), `novelas/
 
 **Volumen.** 403.727 palabras de entrada, 77.066 de salida (traza: 412.877; el registro manda). **49,6 palabras leídas por palabra publicada.** Revisor 38 % de la entrada, escritor 45 %. Ni un token: `Agent` no los devuelve.
 
-**Fugas de integridad.** `estado.json` se desincronizó y hubo que recontar desde `registro.md` al cerrar; un `paso_descartado` al reanudar se llevó un `intento-1.md` de 1.333 palabras (→ A21).
+**Fugas de integridad.** `estado.json` se desincronizó y hubo que recontar desde `registro.md` al cerrar; un `paso_descartado` al reanudar se llevó un `intento-1.md` de 1.333 palabras (**resuelto el 2026-09-19**: `descartar()` ahora copia a `.descartado/` antes de borrar, functional §6.2; cierra A21).
 
 ---
 

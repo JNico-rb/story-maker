@@ -106,6 +106,60 @@ comprueba "$PROTEGIDAS" 0 "git status pasa" \
 comprueba "$PROTEGIDAS" 2 "entrada vacia bloquea (falla en cerrado)" \
   ''
 
+
+# ── permisos vs procedimientos ───────────────────────────────────────────────
+# No es un hook: es la otra mitad de la contencion. Un procedimiento puede prescribir
+# un comando que la lista `allow` de .claude/settings.json no cubre, y entonces el
+# harness se para a pedir permiso justo donde no hay nadie mirando (R11 del TODO: el
+# `git clean` de invocar.md:129 llevaba el `-e .descartado` que el permiso no tenia).
+# Aqui se comprueba el literal exacto que cada procedimiento manda ejecutar.
+#
+# Motor de prefijos de Claude Code, version corta: "Bash(x *)" cubre todo comando que
+# empiece por "x "; sin `*` final, tiene que ser exacto. Si el motor real cambia, esta
+# prueba se queda corta pero nunca de mas: solo afirma que existe una entrada que empieza igual.
+ALLOW=$(sed -n '/"allow"/,/\]/p' .claude/settings.json | sed -n 's/.*"Bash(\(.*\))".*/\1/p')
+
+# cubre <descripcion> <comando prescrito>
+cubre() {
+  descripcion=$1; comando=$2
+  total=$((total + 1))
+  encontrado=0
+  while IFS= read -r patron; do
+    [ -z "$patron" ] && continue
+    case $patron in
+      *'*')
+        prefijo=${patron%\*}
+        case $comando in "$prefijo"*) encontrado=1 ;; esac
+        ;;
+      *)
+        [ "$comando" = "$patron" ] && encontrado=1
+        ;;
+    esac
+    [ "$encontrado" = 1 ] && break
+  done <<EOF
+$ALLOW
+EOF
+  if [ "$encontrado" = 1 ]; then
+    echo "  ok    $descripcion"
+  else
+    echo "  FALLA $descripcion -> ningun Bash(...) de allow cubre: $comando"
+    fallos=1
+  fi
+}
+
+echo "== permisos vs procedimientos =="
+cubre "invocar.md:104 commitear() anade la carpeta" \
+  'git add -A novelas/mi-slug'
+cubre "invocar.md:105 commitear() confirma" \
+  'git commit -m "novela mi-slug: capitulo 01 aprobado"'
+cubre "invocar.md:107 commitear() comprueba que quedo limpio" \
+  'git status --porcelain novelas/mi-slug'
+cubre "invocar.md:127 descartar() desindexa" \
+  'git reset -q HEAD -- novelas/mi-slug'
+cubre "invocar.md:128 descartar() revierte" \
+  'git checkout -- novelas/mi-slug'
+cubre "invocar.md:129 descartar() limpia SIN tocar .descartado" \
+  'git clean -fdq -e .descartado novelas/mi-slug'
 echo
 if [ "$fallos" = 0 ]; then
   echo "OK: $total casos, ninguno falla"

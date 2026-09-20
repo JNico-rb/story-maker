@@ -51,7 +51,7 @@ frontend/
 
 **El servidor sabe de ficheros; la web no.** `server/novelas.mjs` es el único sitio que conoce rutas, nombres de fichero y la estructura de la spec §3. Devuelve un modelo ya montado y los componentes solo lo pintan. Si la spec cambia, se toca ahí y en ningún otro sitio.
 
-**`server/harness.mjs` es el único fichero que ejecuta algo.** Ahí viven el arranque en segundo plano, el identificador de sesión y el diálogo con el harness. Ningún otro módulo lanza procesos, y el navegador nunca decide qué comando se ejecuta: manda una intención (`empezar`, `responder`, `confirmar`, `pedir cambios`) y el servidor la traduce al comando `/novela` que corresponde. Una web que pudiera mandar comandos sería una web que ejecuta lo que le pidan.
+**`server/harness.mjs` es el único fichero que ejecuta algo.** Ahí viven el arranque en segundo plano, el identificador de sesión y el diálogo con el harness. Ningún otro módulo lanza procesos, y el navegador nunca decide qué comando se ejecuta: manda una intención (`empezar`, `responder`, `continuar`) y el servidor la traduce al comando `/novela` que corresponde. Confirmar la propuesta o pedir cambios no son intenciones: van por `POST /decision` y solo escriben `decision.md` en el encargo (`server/encargos.mjs`), que el harness lee cuando le toca. Una web que pudiera mandar comandos sería una web que ejecuta lo que le pidan.
 
 **El diálogo en vivo va por SSE, sin dependencias.** `text/event-stream` hacia el navegador con `node:http` pelado, `POST` hacia el servidor. Nada de WebSocket: obligaría a un paquete y a romper la promesa de que el servidor no lleva ninguno.
 

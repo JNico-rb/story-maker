@@ -7,9 +7,9 @@ Objetivo: `biblia.md` y `escaleta.md` aprobadas por el usuario, dentro de límit
 La hace el **orquestador**, no un agente. Los agentes nunca hablan con el usuario.
 
 1. Si `entrevista.md` existe con `cerrada: true`, no hagas nada (reanudación).
-2. Si el comando trae `entrevista: <ruta>` o `modo-prueba: <carpeta>`: copia esa `entrevista.md` a la carpeta de la novela, pon `cerrada: true` y `origen: fichero` en el frontmatter, registra `entrevista_cerrada (origen: <ruta>)` y termina. Esto es lo mismo que hará el runner: la entrevista le llega hecha.
+2. Si el comando trae `entrevista: <ruta>` o `modo-prueba: <carpeta>`: copia esa `entrevista.md` a la carpeta de la novela, pon `cerrada: true` y `origen: fichero` en el frontmatter, registra `entrevista_cerrada (origen: <ruta>)` y termina. Esto es lo mismo que hará la cáscara: la entrevista le llega hecha.
 
-   **`precarga: <ruta>` no es esto.** Si el comando trae `precarga: <carpeta>` (lo que manda el estudio, spec §9.4), lee ahí `entrevista-previa.md` y **no cierres nada**: sus respuestas son el punto de partida del paso 3, no la entrevista. Sigue al paso 3 con ellas en la mano. La diferencia importa: `entrevista:` se salta el grilling —correcto para el modo de prueba y para el runner, que no tienen a quién preguntar—, y aquí hay un usuario al otro lado esperando a que le repregunten.
+   **`precarga: <ruta>` no es esto.** Si el comando trae `precarga: <carpeta>` (lo que manda el estudio, spec §9.4), lee ahí `entrevista-previa.md` y **no cierres nada**: sus respuestas son el punto de partida del paso 3, no la entrevista. Sigue al paso 3 con ellas en la mano. La diferencia importa: `entrevista:` se salta el grilling —correcto para el modo de prueba y para la cáscara, que no tienen a quién preguntar—, y aquí hay un usuario al otro lado esperando a que le repregunten.
 3. **Uso normal**: invoca la skill `mattpocock-skills:grilling` con este encargo:
 
    > Diseñar una novela en castellano sobre el mundo tras la revolución de la IA a partir de esta idea: «<idea>». Hay que cerrar, como mínimo: qué versión del mundo post-IA es (qué pasó, qué reglas rigen ahora, qué ha cambiado en la vida diaria); protagonista (quién es, qué quiere, qué le falta) y antagonismo; tono y registro; punto de vista y persona narrativa; tipo de final; temas a tocar y temas a evitar; extensión (entre <capitulos_min> y <capitulos_max> capítulos de <palabras_min>–<palabras_max> palabras; sugerido <capitulos_objetivo> × <palabras_por_capitulo>). Cada novela inventa su propio mundo; no hay canon previo.
@@ -89,7 +89,7 @@ Al reanudar, `proponer_escaleta` vuelve a entrar por aquí y encuentra la decisi
 
 1. Reescribe `biblia.md` y `escaleta.md` con `aprobada: true` en el frontmatter (escritura completa, lo haces tú). Si hay `arcos/arco-01.md`, ponle `validada: true`.
 2. `estado.escaleta_aprobada = true`; `estado.total_capitulos = escaleta.capitulos`; `estado.arcos = { "1": {desde, hasta, escaleta_validada: <true si vino en la propuesta>, informe: false}, … }` a partir de `escaleta.arcos`; `estado.arco_actual = 1`; `estado.capitulo_actual = 1`; `estado.intento_actual = 1`; `estado.etapa = capitulos`. Guarda.
-3. Commit `novela <slug>: escaleta aprobada`.
+3. `commitear(carpeta, "escaleta aprobada")`.
 4. Progreso: `[etapa 1] escaleta aprobada: <título>, <capítulos> capítulos en <arcos> arco(s)`.
 
 ## Reanudación

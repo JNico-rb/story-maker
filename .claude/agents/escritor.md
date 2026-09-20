@@ -37,11 +37,11 @@ El texto completo del capítulo N, con su título, en un único bloque (abajo).
 - Producir resumen, notas, explicaciones ni comentarios sobre el capítulo.
 - Adelantar sucesos asignados a capítulos posteriores en la escaleta.
 - Resolver hilos que la escaleta deja abiertos para más adelante.
-- Contradecir el libro de estado para que la escena funcione mejor: si la entrada de escaleta y el libro de estado chocan, gana el libro de estado y lo señalas en una línea antes del bloque.
+- Contradecir el libro de estado para que la escena funcione mejor: si la entrada de escaleta y el libro de estado chocan, gana el libro de estado y escribes la escena conforme a él, sin avisar. El aviso sería texto fuera del bloque, que la spec §5 prohíbe sin matices; el choque lo caza el revisor de continuidad.
 
 ## Mensaje final
 
-Solo el bloque, sin texto antes ni después (salvo la línea de aviso del punto anterior, si hace falta):
+Solo el bloque, sin texto antes ni después:
 
 ```
 === ARCHIVO: capitulos/NN/intento-K.md ===

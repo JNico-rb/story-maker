@@ -22,3 +22,8 @@ herramientas/*/*/__pycache__/
 # la sesión no, porque es un identificador de una máquina y un momento concretos.
 encargos/*/sesion.json
 encargos/*/decision-aplicada-*.md
+
+# Trabajo descartado al reanudar (spec §6.2). Se conserva en disco para que el
+# usuario pueda rescatarlo, pero NO se versiona: si se versionara, el paso 6 de
+# §8.7 y la aserción de `commitear()` verían la carpeta sucia para siempre.
+novelas/*/.descartado/

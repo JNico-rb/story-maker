@@ -8,7 +8,7 @@ argument-hint: nueva "<idea>" | continuar <carpeta> | estado <carpeta> | verific
 
 Eres el **harness** (`specs/functional.md` §6). Coordinas cinco agentes —`interrogador`, `escritor`, `resumidor`, `revisor-encargo`, `revisor-continuidad`—, **escribes todos los ficheros**, guardas el estado, impones los límites y tomas todas las decisiones de flujo. Tú no escribes prosa de la novela ni juzgas capítulos. La spec manda sobre este fichero; el vocabulario es su §0.
 
-Este fichero es **pseudocódigo**. Cada función lleva el nombre de la spec §9.1 y su detalle está en un procedimiento de `procedimientos/`. El runner del hito 2 implementa estas mismas funciones con estos mismos nombres.
+Este fichero es **pseudocódigo**. Cada función lleva el nombre de la spec §9.1 y su detalle está en un procedimiento de `procedimientos/`. La cáscara del hito 2 implementa estas mismas funciones con estos mismos nombres.
 
 Argumentos recibidos: `$ARGUMENTS`
 
@@ -45,7 +45,7 @@ Si algo falla: muestra (y si hay carpeta, escribe) el informe de cierre con `ERR
 2. Crea `novelas/<slug>/`, `capitulos/` y `arcos/`. Copia de `plantillas/`: `estado.json` (con `slug`), `registro.md`, `libro-estado.md` (vacío de contenido, solo la estructura). Escribe `idea.md` con la idea literal (en modo de prueba, copiada de la carpeta indicada).
 3. `config = resolver_perfil(config_raiz, sobreescrituras)`; escríbelo en `novelas/<slug>/config.json`. **A partir de aquí solo se lee ese fichero.**
 4. Flags: `entrevista:` → comprueba que la ruta existe. `precarga:` → comprueba que la carpeta tiene `entrevista-previa.md`; `estado.encargo = <carpeta>`; si también trae `idea.md` y el comando no lleva idea entre comillas, la idea sale de ahí. `modo-prueba:` → comprueba que la carpeta tiene `idea.md` y `entrevista.md`; `estado.modo_prueba = true`, `estado.carpeta_prueba = <carpeta>`.
-5. Registra `inicio_ejecucion` (comando, perfil, sobreescrituras, flags). Commit `novela <slug>: carpeta creada`.
+5. Registra `inicio_ejecucion` (comando, perfil, sobreescrituras, flags). `commitear(carpeta, "carpeta creada")`.
 
 ### 2.1 resolver_perfil(config_raiz, sobreescrituras) → config
 
@@ -92,7 +92,7 @@ si e.etapa == final:                                            # procedimientos
     informe_global = revisar_global(carpeta)
     escribir_erratas(carpeta, informe_global)
     metricas = calcular_metricas(carpeta)
-    e.etapa = completa; guardar(e); commit "novela <slug>: novela completa"
+    e.etapa = completa; guardar(e); commitear(carpeta, "novela completa")
     cerrar(carpeta, EXITO, metricas)                            # procedimientos/cierre.md
 
 si e.etapa == completa:
@@ -117,7 +117,7 @@ Una línea por evento, en la sesión, en el momento en que ocurre:
 [cap 02/05] intento 2 · RECHAZADO (gravedad 1: contradice libro de estado › Marta) [continuidad 1 · encargo 0]
 [cap 02/05] intento 3 · APROBADO
 [cap 04/05] intento 3 · RECHAZADO · aceptado por agotamiento (mejor intento: 2, cierra el hilo que pedía la escaleta) ⚠
-[arco 1/1] informe de arco: 0 problemas graves
+[arco 1/2] informe de arco: 0 problemas graves
 [final] revisión global: 1 problema de gravedad 1 · 3 erratas propuestas · métricas: 5/6 CUMPLE
 ```
 
@@ -140,14 +140,14 @@ Lee `estado.json` y, si existe, `informe-cierre.md`. Muestra: etapa, arco actual
 
 ## 8. verificar <carpeta>
 
-Solo lectura. Ejecuta los seis pasos de `specs/functional.md` §8.7 y, si la novela está completa, `calcular_metricas(carpeta)` (`procedimientos/final.md`). Muestra una tabla: cada comprobación con OK / FALLA y el detalle, y cada métrica con su valor, su umbral y CUMPLE / NO CUMPLE. Sirve sobre cualquier carpeta con la estructura de la spec, la haya generado Claude Code o el runner.
+Solo lectura. Ejecuta los seis pasos de `specs/functional.md` §8.7 y, si la novela está completa, `calcular_metricas(carpeta)` (`procedimientos/final.md`). Muestra una tabla: cada comprobación con OK / FALLA y el detalle, y cada métrica con su valor, su umbral y CUMPLE / NO CUMPLE. Sirve sobre cualquier carpeta con la estructura de la spec, la haya generado Claude Code o la cáscara.
 
 ## 9. Reglas del orquestador (siempre)
 
 - **Solo tú escribes.** Cada salida de agente la validas y la escribes tú en su ruta. Los ficheros inmutables (`biblia.md`, `escaleta.md`, `arcos/arco-*.md`, `arcos/informe-arco-*.md`, `intento-*.md`, `libro-estado.md`, `libro-estado-*.md`, `manuscrito.md`) se crean con una escritura completa; nunca `Edit` sobre ellos. `biblia.md`, `escaleta.md` y `arco-*.md` admiten una escritura por versión mientras no lleven `aprobada: true` / `validada: true`; los demás, una sola en toda la novela (spec §3.1).
 - **Estado tras cada decisión**: reescribe `estado.json` completo tras aprobar, reescribir, aceptar por agotamiento, avanzar, validar un arco o parar. Nunca al final.
 - **Registro**: una fila en `registro.md` por cada evento (plantilla). Textos completos no; rutas sí.
-- **Commits** solo dentro de `novelas/<slug>`, en estos puntos: carpeta creada · escaleta aprobada · arco AA detallado · cap NN cerrado (intento K) · arco AA revisado · novela completa · PARADA <motivo>. Siempre `git add -A novelas/<slug>` seguido de `git commit -m "novela <slug>: <punto>"`. Nunca fuera de esa carpeta, nunca `push`.
+- **Commits** solo dentro de `novelas/<slug>`, en estos puntos: carpeta creada · escaleta aprobada · arco AA detallado · cap NN cerrado (intento K) · arco AA revisado · novela completa · PARADA <motivo>. **Siempre con `commitear(carpeta, punto)`** (`procedimientos/invocar.md`), nunca llamando a `git commit` por tu cuenta: esa función comprueba después que el commit se ha creado y que `git status --porcelain novelas/<slug>` queda vacío, y para con `COMMIT_NO_LIMPIO` si no. Nunca fuera de esa carpeta, nunca `push`.
 - **Lo mecánico lo haces tú con herramientas, no con criterio**: palabras con `wc -w`, veredicto con la regla de `config.veredicto` sobre la **unión** de los problemas de los dos revisores, mejor intento con los cinco pasos de `procedimientos/capitulo.md` (los cierres de escaleta antes que el recuento), forma de las salidas con los delimitadores exactos.
 - **Nada de observabilidad dentro del bucle.** No llames a Langfuse ni a ninguna herramienta externa durante la generación: las trazas se exportan después, desde `registro.md` (spec §9.3). Tu única salida es la carpeta de la novela.
 - **Nunca terminas sin informe de cierre.** Éxito o parada, siempre `cerrar(...)`.

@@ -14,7 +14,7 @@ salida = invocar(interrogador, arco, K = –,
 escribe arcos/arco-AA.md con `validada: true` en el frontmatter
 estado.arcos[A].escaleta_validada = true; guardar
 registra escaleta_validada(arco A, <desde>–<hasta>)
-commit "novela <slug>: arco AA detallado"
+commitear(carpeta, "arco AA detallado")
 progreso "[arco A/<total>] escaleta del arco validada (<n> capítulos)"
 ```
 
@@ -37,8 +37,8 @@ escribe arcos/informe-arco-AA.md desde plantillas/informe.md: frontmatter con ca
     el JSON (veredicto tal cual, es informativo), y el cuerpo en prosa legible
 estado.arcos[A].informe = true; guardar
 registra veredicto(ARCO A informativo, veredicto, nº problemas, gravedad máx.)
-commit "novela <slug>: arco AA revisado"
-progreso "[arco A/<total>] informe de arco: <n> problemas de gravedad 1–2"
+commitear(carpeta, "arco AA revisado")
+progreso "[arco A/<total>] informe de arco: <n> problemas de gravedad 1"
 ```
 
 Nada se reescribe. El informe alimenta `detallar_arco(A+1)` y las métricas de calidad (final.md).
