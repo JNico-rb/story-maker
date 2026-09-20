@@ -1,0 +1,82 @@
+{
+  "_documentacion": "Configuración congelada de esta novela, resuelta por resolver_perfil (SKILL.md §2.1) a partir de la config de la raíz. A partir de la creación de la carpeta solo se lee este fichero.",
+  "version": 4,
+
+  "proveedor": "claude-code",
+
+  "perfil": {
+    "nombre": "relato",
+    "descripcion": "Prueba rápida. Lo mínimo que ya se lee como una historia. Un solo arco. OJO: la línea base E1 se midió con 5 capítulos (3-8); a 3 capítulos la ejecución NO es comparable con ella ni con los umbrales de calidad.* (§7.1, §7.7). Para comparar, lanza con perfiles.relato.capitulos_objetivo=5 en el comando.",
+    "paginas_objetivo": null,
+    "capitulos_objetivo": 3,
+    "capitulos_min": 1,
+    "capitulos_max": 5,
+    "palabras_por_capitulo": 1500
+  },
+
+  "formato": {
+    "palabras_por_pagina": 250,
+    "palabras_min_capitulo": 800,
+    "palabras_max_capitulo": 5000,
+    "tolerancia_longitud": 0.2,
+    "capitulos_por_arco": 15
+  },
+
+  "modelos": {
+    "interrogador": "haiku",
+    "escritor": "haiku",
+    "resumidor": "haiku",
+    "revisor_encargo": "haiku",
+    "revisor_continuidad": "haiku",
+    "temperatura": {
+      "interrogador": 0.7,
+      "escritor": 0.9,
+      "resumidor": 0.0,
+      "revisor_encargo": 0.0,
+      "revisor_continuidad": 0.0
+    },
+    "escalado": {
+      "activo": false,
+      "modelo": "opus",
+      "escritor_desde_intento": 2,
+      "revisor_desde_intento": 3,
+      "tras_fallo_tecnico": true,
+      "revision_arco_y_global": true
+    }
+  },
+
+  "limites": {
+    "reescrituras_max": 2,
+    "ajustes_longitud": 2,
+    "reintentos_tecnicos": 3,
+    "escaleta_rechazos_max": 3,
+    "turnos_por_invocacion": 40,
+    "revision_global_max_palabras": 60000,
+    "presupuesto_usd_max": null,
+    "pausa_cada_capitulos": 3
+  },
+
+  "veredicto": {
+    "rechaza_con_graves": 1,
+    "rechaza_con_leves": 2
+  },
+
+  "memoria": {
+    "resumenes_completos_ultimos": null,
+    "capitulo_anterior_integro": true,
+    "libro_estado_max_palabras": 4000
+  },
+
+  "calidad": {
+    "max_graves_por_10_capitulos": 2,
+    "max_agotamiento_pct": 20,
+    "max_hilos_previstos_sin_cerrar": 0,
+    "min_aprobados_primer_intento_pct": 40,
+    "max_rechazos_voz_pct": 20
+  },
+
+  "origen": {
+    "perfil_activo": "relato",
+    "sobreescrituras": {}
+  }
+}
