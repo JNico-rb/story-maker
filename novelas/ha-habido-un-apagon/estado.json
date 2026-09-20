@@ -1,0 +1,30 @@
+{
+  "version": 4,
+  "slug": "ha-habido-un-apagon",
+  "etapa": "interrogatorio",
+  "etapa_previa": null,
+  "modo_prueba": false,
+  "carpeta_prueba": null,
+  "encargo": "encargos/ha-habido-un-apagon",
+  "escaleta_aprobada": false,
+  "escaleta_rechazos": 0,
+  "total_capitulos": null,
+  "arcos": {},
+  "arco_actual": null,
+  "capitulo_actual": null,
+  "intento_actual": null,
+  "capitulos": {},
+  "informe_global": false,
+  "invocaciones": {
+    "interrogador": 0,
+    "escritor": 0,
+    "resumidor": 0,
+    "revisor_encargo": 0,
+    "revisor_continuidad": 0
+  },
+  "ultima_parada": null,
+  "avisos": [],
+  "reescrituras_usadas": {},
+  "ajustes_usados": {},
+  "erratas": null
+}
