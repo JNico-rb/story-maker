@@ -1,0 +1,15 @@
+{
+  "veredicto": "RECHAZADO",
+  "problemas": [
+    {
+      "gravedad": 4,
+      "donde": "párrafo 7",
+      "que": "Ruptura de punto de vista a primera persona: 'Estoy cansada, me digo, y aun así vuelvo a subir'",
+      "por_que": "La biblia especifica (§47): 'Tercera persona limitada, pegada a Marisa. Pasado.' El párrafo debe estar en tercera persona limitada, no en primera persona. Ejemplo correcto: 'Estaba cansada, se dijo, y aun así volvía a subir'"
+    }
+  ],
+  "observaciones": [
+    "El párrafo 49 termina el capítulo con 'decidió esperar a que la empresa contestara el correo', lo que es consistente con entrada 3 (aún no actúa, solo reporta). La entrada 4 confirmará que la empresa no actúa.",
+    "Los tres sucesos de entrada 3 están presentes; el gancho se cumple. No hay incumplimiento de escala de entrada 3, solo la ruptura de voz."
+  ]
+}

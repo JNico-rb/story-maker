@@ -1,0 +1,18 @@
+{
+  "veredicto": "RECHAZADO",
+  "problemas": [
+    {
+      "gravedad": 2,
+      "donde": "últimas líneas del capítulo (línea 60–61)",
+      "que": "El gancho del capítulo no se logra. Marisa termina rechazando la comunicación de la IA ('aquello no era asunto suyo, se fue a comer') cuando debería terminar en estado de reconocimiento de la importancia del mensaje",
+      "por_que": "Entrada 1 de arco-01.md especifica gancho: 'Marisa cierra el mensaje pero sabe que no es un aviso normal; hay algo que la máquina quiere que sepa'. El objetivo narrativo es que Marisa reciba la petición implícita (escaleta de alto nivel: 'recibe la petición implícita de la IA'). El capítulo cierra con negación en lugar de apertura"
+    },
+    {
+      "gravedad": 4,
+      "donde": "línea 9",
+      "que": "Cambio de punto de vista a primera persona ('Yo nunca me equivoco...pienso ahora') en medio de tercera persona pasada",
+      "por_que": "Biblia §2 (Punto de vista y persona narrativa): 'Tercera persona limitada, pegada a Marisa. Pasado'. El cambio a primera persona y tiempo presente es una ruptura sin justificación narrativa"
+    }
+  ],
+  "observaciones": []
+}

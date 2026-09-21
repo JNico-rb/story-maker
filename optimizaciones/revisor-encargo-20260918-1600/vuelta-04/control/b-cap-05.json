@@ -1,0 +1,27 @@
+{
+  "veredicto": "RECHAZADO",
+  "problemas": [
+    {
+      "gravedad": 2,
+      "donde": "línea 37 y línea 57 (contradicción interna); cierre del capítulo",
+      "que": "El capítulo afirma explícitamente en la línea 37 que 'la soldadura estaba hecha, el sellante seco y el ascensor volvía a funcionar' pero luego en la línea 57 cierra con 'Marisa guardó las herramientas sin llegar a tocar el cable y bajó a la calle'. Esto hace imposible cumplir el gancho requerido.",
+      "por_que": "Escaleta.md, entrada 5, gancho: 'No sabemos si logrará estabilizar el cable, si la descubrirán... Solo sabemos que ella decidió.' El capítulo no puede sostener simultáneamente que completó la reparación y que no tocó nada. La lectura del final es que NO actuó, violando el objetivo de entrada 5: 'Marisa toma la decisión final: actúa para reparar el defecto'."
+    },
+    {
+      "gravedad": 4,
+      "donde": "líneas 39-56 (sección media-final del capítulo)",
+      "que": "La narración viola la perspectiva especificada. Cambia a primera persona presente ('Ahora abro la mochila y saco la llave inglesa') dentro de una sección que debería ser tercera persona pasada. La línea 41 retorna a tercera ('La peso en su mano') creando una mezcla incoherente.",
+      "por_que": "Biblia.md, § Tono y voz, Punto de vista: 'Tercera persona limitada, pegada a Marisa. Pasado.' Esta es una violación explícita del contrato narrativo. No hay justificación narrativa (monólogo interior, flash-forward) que lo explique."
+    },
+    {
+      "gravedad": 2,
+      "donde": "línea 57, cierre del capítulo; también líneas 27-52 (reflexión interna)",
+      "que": "Tres hilos que la escaleta especifica deben cerrarse aquí quedan abiertos: (1) 'El conflicto con la institución' debe cerrar con 'Marisa elige actuar sin avisar'; (2) 'La soledad de Marisa' debe cerrar con 'Marisa decide actuar porque es necesaria'; (3) 'La decisión final: ella actuará' no se resuelve. Marisa piensa la decisión pero no la ejecuta.",
+      "por_que": "Escaleta.md, tabla de hilos (líneas 77-82) y hilos_cierra (líneas 23-24). El capítulo 5 es el último donde pueden cerrarse (es el final del arco 1). Si quedan abiertos aquí, no hay oportunidad de cerrarlos. La entrada 5 de arco-01.md especifica el objetivo: 'Marisa toma la decisión final: actúa para reparar el defecto sin autorización'."
+    }
+  ],
+  "observaciones": [
+    "La contradicción entre línea 37 (ella reparó) y línea 57 (no tocó nada) sugiere un error en la estructura narrativa o una confusión sobre qué momento es el clímax del capítulo. El 'Ahora' de la línea 40 puede ser un intento de marcar una sección de decisión interna, pero no está claro y viola de todas formas el contrato de tercera persona.",
+    "La abundancia de reflexión interna (líneas 20-56) es coherente con el tono (sobrio, pegado a Marisa), pero la falta de resolución clara deja al lector sin certeza sobre si ella decidió o no, cuando el gancho exige esa certeza ('Solo sabemos que ella decidió')."
+  ]
+}

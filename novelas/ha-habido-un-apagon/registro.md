@@ -13,3 +13,9 @@ Las columnas `modelo`, `pal_entrada`, `pal_salida`, `tok_entrada`, `tok_salida` 
 | fecha-hora | evento | etapa | arco | cap | intento | modelo | pal_entrada | pal_salida | tok_entrada | tok_salida | coste_usd | detalle |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | 2026-09-20 | inicio_ejecucion | interrogatorio | – | – | – | – | – | – | – | – | – | comando: `nueva "Ha habido un apagón." precarga: encargos/ha-habido-un-apagon` · perfil: relato · sobreescrituras: ninguna · flags: precarga=encargos/ha-habido-un-apagon |
+| 2026-09-20 | commit | interrogatorio | – | – | – | – | – | – | – | – | – | punto: carpeta creada · sha: 7895281 |
+| 2026-09-20 | entrevista_cerrada | interrogatorio | – | – | – | – | – | – | – | – | – | 24 decisiones (12 precargadas + 12 del grilling), 2 rondas + cierre · origen: formulario+grilling · precarga: encargos/ha-habido-un-apagon/entrevista-previa.md · ruta: novelas/ha-habido-un-apagon/entrevista.md |
+| 2026-09-20 | invocacion | interrogatorio | 1 | – | – | haiku | 1890 | 4294 | – | – | – | agente: interrogador · modo: propuesta · intento técnico 1 · resultado: ok · destinos: biblia.md, escaleta.md, arcos/arco-01.md · observación: «Reglas inviolables» entregada como negrita dentro de «Cronología y datos fijos» en vez de sección propia; contenido presente y numerado 1–6 |
+| 2026-09-20 | invocacion | interrogatorio | 1 | – | – | haiku | 2405 | – | – | – | – | agente: revisor-continuidad · modo: canon · intento técnico 1 · resultado: ok |
+| 2026-09-20 | veredicto | interrogatorio | 1 | – | – | – | – | – | – | – | – | origen: CANON · RECHAZADO · 2 problemas · gravedad máx. 1 · (a) balance de gasóleo imposible: 5000 l / 30 días = 167 l/día frente a 200 l/día solo del ambulatorio; (b) 1000 l finales no dan «dos meses asegurados» a 200 l/día |
+| 2026-09-20 | decision_harness | interrogatorio | 1 | – | – | – | – | – | – | – | – | devuelto al interrogador por CANON (vuelta 1/3) · sin molestar al usuario |

@@ -7,7 +7,7 @@
   "carpeta_prueba": null,
   "encargo": "encargos/ha-habido-un-apagon",
   "escaleta_aprobada": false,
-  "escaleta_rechazos": 0,
+  "escaleta_rechazos": 1,
   "total_capitulos": null,
   "arcos": {},
   "arco_actual": null,
@@ -16,11 +16,11 @@
   "capitulos": {},
   "informe_global": false,
   "invocaciones": {
-    "interrogador": 0,
+    "interrogador": 1,
     "escritor": 0,
     "resumidor": 0,
     "revisor_encargo": 0,
-    "revisor_continuidad": 0
+    "revisor_continuidad": 1
   },
   "ultima_parada": null,
   "avisos": [],

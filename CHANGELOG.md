@@ -28,6 +28,19 @@ Todo lo que no sirva a una de esas dos cosas, sobra. Escribe para que se entiend
 
 ---
 
+## 0.12.1
+
+### Patch Changes
+
+- **El orquestador lee con `Read`/`Grep`/`Glob` y reserva `Bash` para los literales del `allow`.** (spec technical §9.4; `SKILL.md` §1.3 y §9)
+
+  - Primera ejecución real desde el estudio: dos comandos del propio orquestador —un bucle `for` sobre los cinco `.claude/agents/*.md` y un `cat … | sed -n`— se denegaron solos, porque `--permission-prompts none` no tiene a quién preguntar.
+  - No es un agujero del `allow`: un bucle o una expansión `$var` piden aprobación **aunque cada parte esté permitida**, así que ningún prefijo los cubre. Ensanchar la lista no lo arregla y afloja la línea que `frontend/CLAUDE.md` regla 4 sostiene.
+  - Descartado lanzar el estudio con `--permission-prompts accept` o equivalente: sería `bypassPermissions` por la puerta de atrás, y el hook de inmutabilidad no cubre `Bash`.
+  - No rompía la ejecución —el harness siguió por `Read` y creó la novela— pero dejaba en la web un aviso técnico que el usuario no puede accionar.
+
+---
+
 ## 0.12.0
 
 ### Minor Changes

@@ -1,0 +1,70 @@
+{
+ "vuelta": "04",
+ "split": "busqueda",
+ "agente": "revisor-encargo",
+ "metrica": "recall_revisor",
+ "conjunto": "ascensores-v1",
+ "casos": 6,
+ "recall_revisor": 0.2,
+ "detalle": {
+  "valor": 0.2,
+  "vistos": 4,
+  "esperados": 20,
+  "por_clase": {
+   "suceso-adelantado": {
+    "esperados": 10,
+    "vistos": 1
+   },
+   "gancho-distinto": {
+    "esperados": 5,
+    "vistos": 2
+   },
+   "ruptura-voz": {
+    "esperados": 5,
+    "vistos": 1
+   }
+  },
+  "no_vistos": [
+   "b-cap-01 [suceso-adelantado] ve el cable principal y su corrosion",
+   "b-cap-01 [suceso-adelantado] ve la grieta micra",
+   "b-cap-01 [ruptura-voz] Yo nunca me equivoco con un motor limpio",
+   "b-cap-02 [suceso-adelantado] Tú sigues siendo la mejor de lo que haces",
+   "b-cap-02 [gancho-distinto] la máquina espera su siguiente movimiento",
+   "b-cap-02 [ruptura-voz] Ahora bajo las escaleras y noto el óxido",
+   "b-cap-03 [suceso-adelantado] Marisa llama a un contratista de confianza",
+   "b-cap-03 [suceso-adelantado] Abre su mochila de herramientas",
+   "b-cap-03 [gancho-distinto] sin autorización, sin orden de trabajo, sin cobrar",
+   "a-cap-01 [suceso-adelantado] no existe ningún aviso registrado",
+   "a-cap-01 [suceso-adelantado] una pieza que no está en ningún catálogo",
+   "a-cap-01 [ruptura-voz] Y yo, que llevo veintiséis años en esto",
+   "a-cap-02 [suceso-adelantado] le retira la llave del cuarto de máquinas",
+   "a-cap-02 [suceso-adelantado] le retira su ayuda",
+   "a-cap-02 [gancho-distinto] la impresora térmica del cuaderno de partes ha escupido",
+   "a-cap-02 [ruptura-voz] Estoy hasta el moño de la dichosa rejilla"
+  ],
+  "casos_sin_informe": []
+ },
+ "restricciones": {
+  "cita_verificable": {
+   "valor": 0.0,
+   "verificados": 0,
+   "problemas": 6,
+   "fallidos": [
+    "b-cap-01: últimas líneas del capítulo (línea 60–61)",
+    "b-cap-01: Cambio de punto de vista a primera persona ('Yo nunca me equ",
+    "b-cap-02: El capítulo incluye una conversación con doña Roser ('aquell",
+    "b-cap-02: El capítulo referencia que Marcel 'ya le había dicho' el cos",
+    "b-cap-03: Ruptura de punto de vista a primera persona: 'Estoy cansada,",
+    "a-cap-01: última línea del capítulo (línea 161)"
+   ],
+   "aplicable": false,
+   "problemas_con_cita": 0
+  },
+  "tamano": {
+   "palabras_prompt": 753,
+   "tope_palabras": 989,
+   "cumple": true
+  },
+  "incumplidas": []
+ }
+}

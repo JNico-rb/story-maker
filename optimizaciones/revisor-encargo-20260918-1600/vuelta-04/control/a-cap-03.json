@@ -1,0 +1,12 @@
+{
+  "veredicto": "RECHAZADO",
+  "problemas": [
+    {
+      "gravedad": 2,
+      "donde": "últimas líneas del capítulo (párrafos finales, líneas 127-138)",
+      "que": "El capítulo termina con 'sin medir nada', pero el gancho de la entrada 3 manda 'y mide'",
+      "por_que": "arcos/arco-01.md, entrada 3, gancho explícito: 'esa noche Reme baja al foso del 38 con la llave que nunca devolvió, por curiosidad profesional más que por fe, y mide.' El gancho es el cierre de la entrada N y el empuje hacia el capítulo siguiente (entrada 4, que presupone: 'Las medidas del foso confirman...'). Si el capítulo no cumple el gancho, no entrega lo que la escaleta fija."
+    }
+  ],
+  "observaciones": []
+}
