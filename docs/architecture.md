@@ -429,9 +429,14 @@ Es el caso que más se va a usar y el que menos margen deja. Debe probarse desde
 
 | Capa | Tecnología |
 |---|---|
-| Backend y orquestación | Python + FastAPI, dependencias con `uv` |
-| Frontend | TypeScript + React + Vite, dependencias con `pnpm` |
+| Backend y orquestación | Python 3.12+ con FastAPI y Pydantic v2; dependencias con `uv` |
+| Persistencia | SQLAlchemy 2 sobre SQLite |
+| Frontend | Vite + React + TypeScript en modo estricto, Tailwind CSS; dependencias con `pnpm` |
 | Salida | Markdown |
+
+Verificación del stack (el método y su clase T/A/I/D/U viven en `verification.md`): Ruff en el backend; comprobación de tipos de TypeScript, ESLint y build de producción en el frontend; evaluadores en vivo declarados explícitamente; y un recorrido manual del flujo completo en el navegador.
+
+Validación de NIF-IVA: estructura y dígito de control de la UE en local con `python-stdnum`; no se afirma consulta en vivo a VIES.
 
 ### 9.2 Reparto de responsabilidades
 
@@ -530,7 +535,7 @@ Registro de lo acordado, para no reabrirlo sin motivo.
 | Entrada | `config` + un único prompt del usuario |
 | Generación | Secuencial por escena |
 | Formato de salida | Markdown, único formato soportado |
-| Stack | Python + FastAPI (`uv`) en backend; TypeScript + React + Vite (`pnpm`) en frontend |
+| Stack | Backend: Python 3.12+, FastAPI, Pydantic v2, SQLAlchemy 2, SQLite, `uv`. Frontend: Vite, React, TypeScript estricto, Tailwind CSS, `pnpm` |
 | Modelo de ejecución | Trabajo asíncrono con punto de control por escena |
 | Ante imposible | Bloquear con error accionable; nunca degradar |
 | Criterio de bloqueo por alcance | Densidad narrativa |
