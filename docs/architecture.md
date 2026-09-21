@@ -21,7 +21,7 @@ La **calidad (D)** no es una cuarta capa paralela: es un conjunto de predicados 
 ```mermaid
 graph TD
     subgraph ENTRADA
-        SEM[Semilla del usuario]
+        SEM[Prompt del usuario]
         CFG[config.json]
     end
 
@@ -53,7 +53,7 @@ graph TD
 
 Todo lo que condiciona la generación viene de una de estas tres, y conviene no mezclarlas:
 
-- **Semilla / ContratoDeBrief** — la intención del usuario.
+- **Prompt / ContratoDeBrief** — la intención del usuario.
 - **Canon** — la verdad ficcional ya establecida.
 - **config** — los parámetros de forma y operación.
 
@@ -64,11 +64,11 @@ Todo lo que condiciona la generación viene de una de estas tres, y conviene no 
 
 ## 2. Extracción del ContratoDeBrief
 
-La semilla es texto libre; el contrato es el objeto sobre el que el resto del sistema razona. La extracción convierte prosa en compromisos y huecos declarados.
+El prompt del usuario es texto libre; el contrato es el objeto sobre el que el resto del sistema razona. La extracción convierte prosa en compromisos y huecos declarados.
 
 Tres propiedades de diseño:
 
-1. **La extracción no es fiable al 100 %.** Un modelo interpretando texto libre confundirá preferencias con requisitos. El contrato debe ser **visible y editable por el usuario antes de generar**: es barato de corregir ahí e imposible después.
+1. **La extracción no es fiable al 100 %.** Un modelo interpretando texto libre confundirá preferencias con requisitos. Al no haber revisión humana, la comprobación es el verificador de ida y vuelta (§8.10), y ante ambigüedad se clasifica como Hueco, no como Compromiso.
 2. **Los compromisos no verificables son el punto débil.** «Final ambiguo» no se comprueba con una regla. O se convierte en criterio de la puerta de juicio con rúbrica concreta, o se descarta explícitamente del contrato. Dejarlo dentro sin método de verificación es autoengaño.
 3. **Los huecos son de un solo uso.** El contrato registra la intención inicial; el canon registra lo ya decidido. Son objetos distintos y no deben fusionarse.
 
@@ -80,7 +80,7 @@ El patrón viable es **outline-first + recuperación selectiva + validación de 
 
 ```mermaid
 graph LR
-    SEM[Semilla] --> EXT[Extraccion de brief]
+    SEM[Prompt unico] --> EXT[Extractor de brief]
     EXT --> CB[ContratoDeBrief]
     CB --> COMP[Compromiso<br/>tipo, dureza, verificable]
     CB --> HUE[Hueco<br/>ambito, resuelto_por]
@@ -116,10 +116,10 @@ Activos de primera clase:
 
 | Puerta | Método | Qué detecta | Coste |
 |---|---|---|---|
-| **0. Factibilidad** | Determinista | config inconsistente consigo mismo o con el brief; trama que no cabe en la estructura | Muy bajo |
+| **0. Factibilidad** | Determinista | config inconsistente consigo mismo; densidad narrativa por debajo del mínimo; compromisos sin cobertura en el outline | Muy bajo |
 | **1. Dura** | Determinista | Violación de Restriccion, contradicción temporal, estado epistémico imposible, atributo alterado, compromiso inviolable roto | Bajo |
 | **2. Canon** | Recuperación + modelo | Incoherencia con el grafo causal, consecuencia sin premisa, invención que contradice invención previa | Medio |
-| **3. Juicio** | Modelo + humano | Prosa, ritmo, disciplina de POV, infodump, cliché, plausibilidad especulativa | Alto |
+| **3. Juicio** | Modelo con rúbrica | Prosa, ritmo, disciplina de POV, infodump, cliché, plausibilidad especulativa | Alto |
 
 ```mermaid
 graph LR
@@ -134,7 +134,7 @@ graph LR
     P2 -->|falla| REG[Regenerar escena]
 
     P3 -->|pasa| ACE[Aceptada]
-    P3 -->|falla| ESC[Escalar a humano]
+    P3 -->|falla| ESC[Correccion dirigida<br/>dentro del presupuesto]
 
     ACE --> UPD[Actualizar canon,<br/>estado y resumen]
     UPD -.siguiente escena.-> IN
@@ -205,7 +205,7 @@ graph TD
 ### 5.2 Reglas
 
 1. **No sobredeterminar.** `capitulos`, `paginas_maximas` y `palabras_por_escena` no son independientes: fijar los tres permite configuraciones aritméticamente imposibles. Declarar **una variable de tamaño** más una **forma de distribución**, y derivar el resto. Un config donde el usuario puede escribir un estado inconsistente es un fallo de diseño, no de validación.
-2. **Precedencia declarada.** config gana en lo estructural; la semilla gana en lo narrativo. Ninguna colisión se resuelve en silencio.
+2. **Precedencia declarada.** config gana en lo estructural; el prompt gana en lo narrativo. Ninguna colisión se resuelve en silencio.
 3. **Inmutabilidad post-outline.** Los campos estructurales se congelan al aprobar el outline; cambiarlos a mitad de obra invalida el plan y probablemente canon ya establecido. Los poéticos sí pueden ajustarse en caliente.
 4. **Cada parámetro estructural genera un Criterio de la puerta dura.** `capitulos: 12` no es solo una instrucción de generación: es una aserción verificable sobre el artefacto final. Si no se materializa como criterio, el config es decorativo.
 5. **`calidad` no lo edita el usuario final.** Permitirlo deja bajar los umbrales para que una historia mal configurada «pase», lo que invalida el marco entero. Solo lectura, o fichero de política separado.
@@ -214,25 +214,49 @@ graph TD
 
 ## 6. Precedencia y conflictos
 
-```mermaid
-graph TD
-    CFG[config] --> CHK{Conflicto con<br/>la semilla?}
-    SEM[Semilla] --> CHK
+### 6.1 Precedencia ordinaria
 
-    CHK -->|no| OK[Generar outline]
-    CHK -->|si, ambito estructural| WC[Gana config]
-    CHK -->|si, ambito narrativo| WS[Gana semilla]
+config gana en lo estructural; el prompt gana en lo narrativo. Ninguna colisión se resuelve en silencio: toda resolución queda registrada en el informe de ejecución.
 
-    WC --> NOT[Notificar al usuario<br/>antes de generar]
-    WS --> NOT
-    NOT --> OK
+### 6.2 Los dos tipos de imposible
 
-    OK --> FAC{Cabe la trama<br/>en la estructura?}
-    FAC -->|si| GEN[Generacion]
-    FAC -->|no| NOT
+En operación autónoma no hay a quién preguntar, y se decidió **bloquear en ambos casos**. La degradación silenciosa queda descartada como mecanismo.
+
+| Tipo | Ejemplo | Cuándo se detecta | Acción |
+|---|---|---|---|
+| **Aritmético** | 40 capítulos × 4 escenas × 800 palabras mínimas dentro de un objetivo de 40.000 | Validación de entrada, antes de ejecutar nada | Error inmediato, nombrando los parámetros incompatibles |
+| **Densidad** | «tres generaciones, cinco planetas» en 40.000 palabras | Puerta 0, sobre el outline | Error, nombrando la cifra que falla |
+
+### 6.3 Densidad narrativa
+
+Para que el segundo caso sea bloqueable hace falta una métrica; bloquear por juicio de modelo es rechazo arbitrario.
+
+```
+densidad = objetivo_palabras / nº elementos estructurales
 ```
 
-> Ningún conflicto se resuelve en silencio. El coste de detectar la infactibilidad en el capítulo 9 es el fallo más caro del pipeline; de ahí la puerta 0, que valida sobre el outline y no sobre el texto.
+Donde los elementos estructurales son POVs, saltos temporales mayores, localizaciones principales e hilos argumentales. Por debajo de `config.calidad.densidad_minima`, se bloquea con un mensaje que nombra el número:
+
+> «El prompt implica 14 elementos estructurales; con 40.000 palabras quedan 2.900 por elemento, por debajo del mínimo de 6.000. Reduzca el alcance o suba a 85.000 palabras.»
+
+Un error que nombra la cifra es accionable; «no es posible» no lo es.
+
+```mermaid
+graph TD
+    CFG[config] --> VAL{Validacion<br/>aritmetica}
+    VAL -->|falla| ERR1[Error: parametros<br/>incompatibles]
+    VAL -->|pasa| PROC[Extraer brief,<br/>construir canon]
+
+    PROC --> PLA[Planificador]
+    PLA --> OUT[Outline]
+    OUT --> DEN{Densidad<br/>narrativa}
+    DEN -->|bajo umbral| ERR2[Error: alcance<br/>excede presupuesto]
+    DEN -->|pasa| COB{Cobertura de<br/>compromisos}
+    COB -->|incompleta| PLA
+    COB -->|completa| GEN[Generacion]
+```
+
+> Consecuencia de descartar la degradación: ya no hace falta un orden de prioridad entre compromisos, porque nunca hay que elegir qué sacrificar.
 
 ---
 
@@ -257,41 +281,259 @@ graph LR
 
 ---
 
-## 8. Decisiones abiertas
+## 8. Sistema de agentes
 
-### 8.1 Mecanismo de extracción del ContratoDeBrief
+### 8.1 Premisas de operación
 
-¿Modelo sobre texto libre, formulario guiado, o negociación conversacional con el usuario?
+1. **Autonomía total.** No hay intervención humana en ningún punto de la ejecución.
+2. **Entrada mínima.** Dos cosas: el `config` y un único prompt del usuario, con la información que él decida dar. No hay preguntas de aclaración ni pasos de confirmación.
+3. **Generación secuencial.** Las escenas se producen en orden, porque cada una depende del estado que deja la anterior.
 
-### 8.2 Umbrales por criterio y su calibración
+### 8.2 Principio de asignación: qué es y qué no es un agente
 
-Un criterio dice *qué* medir; el umbral dice *a partir de qué punto se rechaza*. Sin umbral, un criterio no es accionable: un evaluador que devuelve 0.34 de «densidad de infodump» no significa nada hasta fijar los cortes. Demasiado estrictos, el sistema regenera escenas aceptables y el coste se dispara; demasiado laxos, la puerta no filtra nada.
+No todo paso del pipeline es un agente. Convertir cada puerta en uno paga latencia, coste y no determinismo por comprobaciones que son código. La asignación se hace por naturaleza de la tarea:
 
-Método:
+| Tipo | Cuándo | Cuántos |
+|---|---|---|
+| **Código** | La respuesta es calculable | 7 |
+| **Modelo en un paso** | Requiere comprensión, no exploración | 6 |
+| **Agente (bucle + herramientas)** | Requiere explorar, consultar canon y decidir en varios pasos | 5 |
+
+### 8.3 Los cinco agentes
+
+| Agente | Fase | Entrada | Salida |
+|---|---|---|---|
+| **Arquitecto de mundo** | 1 | ContratoDeBrief | N candidatos de Novum, Restricciones, grafo de Consecuencias |
+| **Planificador** | 2 | Canon, contrato, config | Outline jerárquico |
+| **Escritor** | 3 | Ventana de contexto | Texto de escena + delta pretendido |
+| **Editor** | 3 | Escena + defectos | Escena corregida |
+| **Revisor de obra** | 4 | Manuscrito completo | Defectos de nivel obra |
+
+> **Escritor y editor se mantienen separados.** Podrían fusionarse en un agente con dos modos —el argumento anticomplacencia aplica a criticar, no a corregir—, pero mantenerlos distintos permite medir por separado la calidad de escritura y la de corrección.
+
+### 8.4 Llamadas de modelo en un paso
+
+| Componente | Fase | Función |
+|---|---|---|
+| **Extractor de brief** | 0 | Prompt → ContratoDeBrief |
+| **Verificador de contrato** | 0 | Comprobación de ida y vuelta contra el prompt original |
+| **Auditor de tropos** | 1 y 3 | Puntúa solapamiento con el catálogo |
+| **Crítico de canon** | 3 | Defectos de coherencia contra el grafo causal |
+| **Crítico de oficio** | 3 | Defectos de prosa, ritmo y POV |
+| **Registrador de estado** | 3 | Extrae el DeltaDeEstado real del texto aceptado |
+
+### 8.5 Componentes de código
+
+Validador de config, orquestador, ensamblador de contexto, puerta dura, selector de novum, aplicador de estado y redactor del informe. Ninguno necesita un modelo.
+
+### 8.6 Flujo por fases
+
+```mermaid
+graph TD
+    IN[config + prompt unico] --> VAL{Validacion<br/>aritmetica del config}
+    VAL -->|falla| ERR1[Error con parametros<br/>incompatibles]
+    VAL -->|pasa| EXB[Extractor de brief]
+
+    EXB --> VC[Verificador de contrato<br/>round-trip]
+    VC -->|discrepancia| EXB
+    VC -->|conforme| CB[ContratoDeBrief]
+
+    CB --> AM[Arquitecto de mundo<br/>N candidatos de Novum]
+    AM --> AT1[Auditor de tropos]
+    AT1 --> SEL[Selector de Novum<br/>derivabilidad, ajuste, originalidad]
+    SEL --> DC[Derivacion de consecuencias]
+    DC --> VG{Consecuencias<br/>huerfanas?}
+    VG -->|si| DC
+    VG -->|no| CAN[Canon]
+
+    CAN --> PLA[Planificador]
+    PLA --> OUT[Outline]
+    OUT --> DEN{Densidad<br/>narrativa}
+    DEN -->|bajo umbral| ERR2[Error con la cifra<br/>que falla]
+    DEN -->|pasa| COB{Cobertura de<br/>compromisos}
+    COB -->|incompleta| PLA
+    COB -->|completa| CONG[Congelar estructura]
+
+    CONG --> LOOP[Bucle de produccion<br/>por escena]
+    LOOP --> REV[Revisor de obra]
+    REV --> FIN[Manuscrito markdown<br/>+ informe de ejecucion]
+```
+
+### 8.7 Bucle de producción por escena
+
+```mermaid
+graph TD
+    ENS[Ensamblador de contexto] --> ESC[Escritor]
+    ESC --> P1{Puerta 1<br/>Dura}
+
+    P1 -->|falla| ED
+    P1 -->|pasa| CRI[Criticos en paralelo<br/>canon, oficio, tropos]
+
+    CRI --> AGR{Agregacion<br/>de defectos}
+    AGR -->|sin defectos| REG[Registrador de estado]
+    AGR -->|corregibles| ED[Editor]
+    AGR -->|estructurales| ESC
+
+    ED --> P1
+
+    REG --> UPD[Actualizar canon,<br/>EstadoDelMundo y resumen]
+    UPD --> SIG[Siguiente escena]
+```
+
+### 8.8 Reglas de interacción
+
+1. **Separación escritor / críticos.** El mismo agente no escribe y se autoevalúa: ya posee el contexto que justificó sus decisiones y su autocrítica es complaciente. Los críticos reciben la escena y el canon, no el razonamiento del escritor.
+2. **Los críticos no reescriben.** Devuelven `Defecto` tipados. Detectar y corregir son competencias distintas; fusionarlas impide medir la fiabilidad de la detección.
+3. **Críticos en paralelo.** Canon, oficio y tropos son independientes. Encadenarlos en serie multiplica latencia sin mejorar cobertura.
+4. **El estado se extrae, no se asume.** El escritor declara el delta que pretendía; el registrador lee el texto aceptado y extrae el delta real. Una divergencia entre ambos es un defecto de la puerta dura.
+5. **Presupuesto de reintentos por escena.** Sin él, una escena imposible consume el presupuesto de la obra.
+6. **Ningún agente escribe en canon directamente.** Solo el registrador, y solo tras un veredicto de aceptación. Es lo que impide que una escena rechazada contamine el estado.
+
+### 8.9 Pase global (fase 4)
+
+Hay defectos que no existen a nivel de escena y que ninguna evaluación local detecta:
+
+- Ritmo y curva de tensión a lo largo de la obra.
+- Cobertura de arcos: hilos abiertos sin cerrar.
+- Repetición léxica y de estructuras entre escenas distantes.
+- Deriva de voz entre el primer tercio y el último.
+- Consecuencias del canon establecidas y nunca usadas.
+
+El revisor de obra opera sobre el manuscrito completo y sus resúmenes, y sus defectos se resuelven con reescritura dirigida de escenas concretas, no con regeneración global.
+
+### 8.10 Operación autónoma: qué sustituye a la supervisión
+
+Cada punto donde intervendría una persona necesita un mecanismo propio.
+
+**Contrato → verificación de ida y vuelta.** El riesgo es que el extractor confunda una preferencia con un requisito, o pierda uno. La comprobación es reconstructiva: a partir del `ContratoDeBrief`, un verificador independiente redacta una paráfrasis del prompt y la contrasta con el original. Lo que aparezca en el prompt y no en la paráfrasis es un compromiso perdido; lo que aparezca con más firmeza en la paráfrasis es una preferencia ascendida indebidamente. Ante ambigüedad irresoluble, la política por defecto es **clasificar como Hueco, no como Compromiso**: un compromiso inventado restringe toda la obra, un hueco solo la deja abierta.
+
+**Novum → selección por puntuación.** El arquitecto genera N candidatos; pedirle uno solo garantiza el más obvio. El selector puntúa cada uno en derivabilidad (consecuencias de 2.º y 3.er orden que admite), ajuste a los compromisos, y distancia al catálogo de tropos. El tercer eje es el que evita la convergencia al cliché y **exige que el catálogo curado exista desde el primer día**: sin él, un novum trillado puntúa perfectamente en los otros dos ejes.
+
+**Outline → dos comprobaciones deterministas.** Densidad narrativa y cobertura de compromisos. Un compromiso que no aparece en el plan no aparecerá en la novela.
+
+**Supervisión → informe de ejecución.** El manuscrito se entrega acompañado de: compromisos cumplidos, compromisos no verificables, huecos resueltos y con qué, novum elegido y su puntuación, defectos no resueltos con su localización, y presupuesto consumido.
+
+> Un sistema autónomo no es un sistema sin supervisión: es un sistema que produce su propia evidencia de lo que hizo. El informe no es documentación opcional, es el sustituto funcional del revisor.
+
+### 8.11 El caso extremo: prompt casi vacío
+
+Con una entrada del tipo «escribe una novela sobre IA», el contrato queda con cero compromisos y grado de libertad 1.0. El arquitecto trabaja sin ninguna restricción y el selector de novum es lo único que impide el cliché puro.
+
+Es el caso que más se va a usar y el que menos margen deja. Debe probarse desde el primer día, no al final.
+
+---
+
+## 9. Stack e implicaciones
+
+### 9.1 Elección
+
+| Capa | Tecnología |
+|---|---|
+| Backend y orquestación | Python + FastAPI, dependencias con `uv` |
+| Frontend | TypeScript + React + Vite, dependencias con `pnpm` |
+| Salida | Markdown |
+
+### 9.2 Reparto de responsabilidades
+
+Todo el sistema de agentes vive en el backend. El frontend no orquesta nada.
+
+| Componente del diseño | Dónde |
+|---|---|
+| Validador de config, orquestador, puertas, selector, aplicador de estado | Python, código puro |
+| Agentes y llamadas de modelo | Python, servicios asíncronos |
+| Canon, outline, estado del mundo, manuscrito | Persistencia del backend |
+| Formulario de config, campo de prompt, progreso, visor del manuscrito e informe | React |
+
+El frontend es deliberadamente delgado: al no haber revisión humana, no hay pantallas de aprobación, edición de contrato ni selección de novum. Recoge dos entradas, muestra progreso y presenta dos salidas.
+
+### 9.3 La ejecución no cabe en una petición HTTP
+
+Una novela completa son decenas o cientos de escenas, cada una con generación, críticos y posible corrección. El tiempo total se mide en minutos u horas, no en segundos.
+
+Consecuencias directas:
+
+1. **La generación es un trabajo asíncrono, no un endpoint síncrono.** FastAPI recibe la petición, crea el trabajo y devuelve un identificador. La ejecución corre en un *worker* aparte.
+2. **El progreso se transmite, no se espera.** Server-Sent Events para el avance en vivo, o *polling* sobre el estado del trabajo. SSE encaja mejor con FastAPI y es suficiente: el flujo es unidireccional.
+3. **Hace falta punto de control por escena.** Si el proceso cae en la escena 80, reanudar desde cero es inaceptable. El `EstadoDelMundo` ya está versionado por escena en el diseño, así que el punto de control natural ya existe: basta con persistirlo.
+
+### 9.4 Contrato de API mínimo
+
+```
+POST   /runs              { config, prompt }        -> { run_id }
+GET    /runs/{id}                                   -> { estado, fase, escena_actual }
+GET    /runs/{id}/stream                            -> SSE de progreso
+GET    /runs/{id}/manuscript                        -> markdown
+GET    /runs/{id}/report                            -> informe de ejecución
+DELETE /runs/{id}                                   -> cancelar
+```
+
+Los errores de bloqueo (§6.2) se devuelven en el `POST` cuando son aritméticos —validación inmediata— y en el estado del trabajo cuando son de densidad, porque requieren haber construido el outline.
+
+### 9.5 Lo que el stack decide por nosotros
+
+**La persistencia deja de ser opcional.** Estaba aplazada como decisión abierta (reutilizar canon entre ejecuciones), pero la ejecución larga obliga a persistir el estado *dentro* de una misma ejecución. Una vez que existe ese almacén, reutilizar canon entre intentos pasa a ser casi gratis: queda como decisión de producto, no de arquitectura.
+
+**Los agentes necesitan límites de tiempo propios.** Un agente con bucle y sin techo puede colgar el trabajo entero. Cada uno lleva su propio tiempo máximo, además del presupuesto de reintentos por escena.
+
+**El frontend no debe cachear el manuscrito parcial como verdad.** Una escena mostrada durante el progreso puede ser regenerada por el revisor de obra en la fase 4. Solo el manuscrito final es definitivo.
+
+---
+
+## 10. Decisiones abiertas
+
+### 10.1 Regla de conteo de elementos estructurales
+
+La densidad narrativa se define sobre «elementos estructurales», pero decidir que «cinco planetas» son cinco localizaciones principales y no una es un juicio, no aritmética. Si lo hace un modelo, la validación deja de ser determinista.
+
+Hay que fijar qué cuenta, qué no, y si se cuenta sobre el prompt o sobre el canon derivado. **Arranque:** puerta permisiva, endurecida con producción real.
+
+### 10.2 Umbral de densidad y umbrales de los criterios de juicio
+
+`densidad_minima` está sin calibrar; cualquier cifra hoy es inventada. Lo mismo aplica a los umbrales de la puerta 3.
+
+Método para los criterios de juicio:
 
 1. Generar un conjunto de 30–50 escenas variadas.
-2. Etiquetado humano: aceptable / corregible / inaceptable. Es el trabajo real y no tiene atajo.
-3. Pasar el evaluador y buscar los cortes que mejor reproducen el juicio humano.
+2. Etiquetado humano *offline*: aceptable / corregible / inaceptable. Es el trabajo real y no tiene atajo.
+3. Pasar el evaluador y buscar los cortes que mejor reproducen ese juicio.
 4. Medir la concordancia. Baja concordancia no indica un umbral mal puesto, sino un criterio mal definido o un evaluador inservible.
 
-Muchos criterios no sobreviven el paso 4, y eso es información valiosa: mejor tres criterios calibrados que quince inventados. Solo aplica a evaluadores por juicio; los deterministas son binarios.
+Muchos criterios no sobreviven el paso 4, y eso es información valiosa: mejor tres criterios calibrados que quince inventados.
 
-### 8.3 Política ante conflicto irresoluble
+Para la densidad, la calibración se hace contra novelas reales del género: contar sus elementos y su longitud.
 
-Distinto del conflicto normal, que resuelve la precedencia. Aquí ninguna fuente puede ceder sin romper el resultado: p. ej. una saga de tres generaciones y cinco planetas en 8 capítulos y 40.000 palabras.
+### 10.3 Fragilidad del verificador de contrato
 
-| Política | Comportamiento | Coste |
-|---|---|---|
-| **Bloquear** | Se detiene, explica el conflicto, exige cambio | Fricción; riesgo de abandono |
-| **Degradar** | Genera lo posible, recorta ambición, avisa | El usuario percibe mala calidad sin saber que la causó su config |
-| **Negociar** | Propone 2–3 ajustes concretos y deja elegir | Más trabajo de producto |
+Riesgo asumido, no tarea. Un modelo comprobando a otro modelo puede compartir el mismo sesgo, y con un único prompt de entrada un fallo del extractor se propaga a la obra entera sin detección posterior: el resto del pipeline solo ve el contrato, nunca el prompt.
 
-Es una decisión de producto, no técnica. Recomendación: negociar en el momento del outline, bloquear solo ante insistencia en una combinación imposible.
+Mitigaciones parciales: usar un modelo distinto para verificar, o complementar el parafraseo con comprobaciones por reglas. Ninguna elimina el riesgo.
 
-### 8.4 Origen del catálogo de Tropo
+### 10.4 Reutilización de canon entre ejecuciones
 
-- **Fijo (curado):** preciso, explicable, controlable; no escala y envejece.
-- **Aprendido (de la producción):** captura los sesgos del modelo propio; necesita volumen y puede confundir clichés con convenciones legítimas.
-- **Ambos:** el fijo arranca el sistema, el aprendido lo corrige en producción.
+La persistencia *dentro* de una ejecución ya no es opcional (§9.5). Lo que queda por decidir es si el usuario puede reintentar con el config corregido y aprovechar el mundo ya construido.
 
-En cualquier caso, el catálogo debe cruzarse con el ContratoDeBrief: un tropo en zona comprometida es intención; en zona libre, defecto.
+Si la respuesta es afirmativa, el arquitecto de mundo necesita un modo «reutilizar canon» que hoy no existe. Es ahora una decisión de producto, no de arquitectura: el almacén ya estará ahí.
+
+### 10.5 Presupuesto global de ejecución
+
+Hay presupuesto de reintentos por escena, pero no un techo de coste o tiempo para la ejecución completa. Sin él, una novela con muchas escenas difíciles puede dispararse.
+
+---
+
+## 11. Decisiones cerradas
+
+Registro de lo acordado, para no reabrirlo sin motivo.
+
+| Decisión | Valor |
+|---|---|
+| Supervisión | Ninguna; sistema autónomo de extremo a extremo |
+| Entrada | `config` + un único prompt del usuario |
+| Generación | Secuencial por escena |
+| Formato de salida | Markdown, único formato soportado |
+| Stack | Python + FastAPI (`uv`) en backend; TypeScript + React + Vite (`pnpm`) en frontend |
+| Modelo de ejecución | Trabajo asíncrono con punto de control por escena |
+| Ante imposible | Bloquear con error accionable; nunca degradar |
+| Criterio de bloqueo por alcance | Densidad narrativa |
+| Orden de prioridad entre compromisos | No necesario, al descartarse la degradación |
+| Agentes | 5; escritor y editor separados |
+| Catálogo de tropos | Curado desde el día uno; extracción del modelo cruzada con 20–30 novums de prompt vacío |

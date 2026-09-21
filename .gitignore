@@ -2,4 +2,4 @@
 *.code-workspace
 
 # API keys and secrets
-.env
+.local.env

@@ -14,7 +14,7 @@ Convención: los identificadores van sin acentos ni espacios, para que los diagr
 
 Postulado especulativo raíz de la obra. El elemento novedoso que separa el mundo de la ficción del mundo real y del cual se deriva todo lo demás.
 
-- **Atributos:** enunciado, ámbito (tecnológico / político / económico / cognitivo), fecha de aparición, origen (semilla o invención).
+- **Atributos:** enunciado, ámbito (tecnológico / político / económico / cognitivo), fecha de aparición, origen (prompt o invención).
 - **Relaciones:** `implica` → Consecuencia; `define` → Restriccion.
 
 ### Consecuencia
@@ -234,13 +234,13 @@ classDiagram
 
 ## 3. Entrada e intención del usuario
 
-### Semilla
+### Prompt
 
-Entrada libre del usuario. Longitud y especificidad variables.
+Entrada libre del usuario, en un único mensaje. Longitud y especificidad variables.
 
 ### ContratoDeBrief
 
-Objeto derivado de la Semilla que declara qué es obligación y qué es espacio de invención.
+Objeto derivado del Prompt que declara qué es obligación y qué es espacio de invención.
 
 - **Atributos:** lista de Compromisos, lista de Huecos, grado de libertad (0–1).
 
@@ -296,7 +296,7 @@ Predicado evaluable.
 
 ### Evaluador
 
-Implementación de uno o varios Criterios: validador programático, juez LLM con rúbrica, o revisor humano.
+Implementación de uno o varios Criterios: validador programático o juez LLM con rúbrica. No hay revisor humano en ejecución.
 
 - **Atributos:** criterios cubiertos, método, fiabilidad conocida.
 
@@ -316,7 +316,19 @@ Resultado agregado por Evaluable.
 
 Patrón saturado del género, registrado para su detección.
 
-- **Atributos:** nombre, descripción, origen del registro (curado | aprendido), frecuencia observada.
+- **Atributos:** nombre, descripción, marcadores, origen del registro (curado | aprendido), frecuencia observada.
+
+### CatalogoDeTropos
+
+Colección de Tropos contra la que se puntúa la originalidad de un Novum o de una escena.
+
+- **Atributos:** entradas, versión, cobertura declarada.
+
+### InformeDeEjecucion
+
+Documento que acompaña al manuscrito y registra qué hizo el sistema y por qué. Sustituye funcionalmente a la supervisión humana.
+
+- **Atributos:** compromisos cumplidos, compromisos no verificables, huecos resueltos y con qué, novum elegido y su puntuación, defectos no resueltos y su localización, presupuesto consumido.
 
 ### Modelo de clases
 
@@ -373,11 +385,13 @@ config
 ├── identidad     { id, version, congelado_desde }
 ├── estructura    { objetivo_palabras, capitulos, forma_distribucion, pov_max }
 ├── poetica       { tono, ritmo, densidad_especulativa, registro }
-├── calidad       { umbrales_por_puerta, criterios_activos }
-└── operacion     { modelo, reintentos_max, presupuesto }
+├── calidad       { umbrales_por_puerta, criterios_activos, densidad_minima }
+└── operacion     { modelo, reintentos_max, presupuesto, formato_salida }
 ```
 
 - **estructura** — parámetros verificables de forma determinista.
 - **poetica** — parámetros solo evaluables por juicio.
 - **calidad** — umbrales y criterios activos; no editable por el usuario final.
-- **operacion** — parámetros de ejecución, invisibles para el usuario final.
+- **operacion** — parámetros de ejecución, invisibles para el usuario final. `formato_salida` es markdown; es el único formato soportado.
+
+La entrada completa del sistema son dos cosas: este fichero y un único prompt del usuario. No hay más interacción.

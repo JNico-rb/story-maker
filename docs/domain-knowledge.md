@@ -70,7 +70,7 @@ graph TD
 
 ### 2.4 El riesgo específico de este producto
 
-Cuando la semilla no especifica el novum, el sistema debe inventarlo. Es el punto de mayor exposición al cliché de todo el pipeline: el modelo tenderá a producir «superinteligencia + colapso laboral + vigilancia total» con muy poca variación.
+Cuando el prompt no especifica el novum, el sistema debe inventarlo. Es el punto de mayor exposición al cliché de todo el pipeline: el modelo tenderá a producir «superinteligencia + colapso laboral + vigilancia total» con muy poca variación.
 
 Además, «la IA lo cambió todo» es demasiado vago para derivar nada. El valor del novum está en forzar la concreción: qué capacidad apareció, cuándo, y qué dejó de ser cierto a partir de ahí.
 
@@ -95,13 +95,37 @@ Conviene además separar dos orígenes distintos del catálogo:
 - **Tropos del género** — los que un lector reconocería. Se curan a mano; son precisos y explicables, pero no escalan y envejecen.
 - **Tropos del modelo** — los que el generador propio repite sin que estén en ningún manual (una lluvia en toda escena de revelación, un mismo tipo de final). Solo se descubren midiendo la producción real.
 
+### 3.1 Cómo se escriben los marcadores
+
+La calidad de un catálogo no depende del número de entradas sino de cómo se formulen sus marcadores. Ahí se gana o se pierde la detección.
+
+| Nivel | Ejemplo | Problema |
+|---|---|---|
+| Demasiado general | «la IA tiene poder sobre los humanos» | Lo cumple cualquier obra del subgénero, incluidas las buenas |
+| Demasiado específico | «una IA llamada HAL desconecta el soporte vital» | Solo dispara con una obra concreta |
+| **Correcto** | «la IA concluye por razonamiento que los humanos son el problema» | Mecanismo narrativo reconocible: concreto para detectarse, general para cubrir variantes |
+
+El nivel útil es el **mecanismo narrativo**, no el tema ni la instancia.
+
+### 3.2 Cómo se construye el catálogo inicial
+
+Tres vías, combinables:
+
+1. **Extracción del propio modelo** (media hora). Pedirle que liste los clichés del subgénero con sus marcadores, y podar. Riesgo: categorías demasiado amplias.
+2. **Derivación de la producción propia** (una tarde, requiere el arquitecto de mundo funcionando). Generar 20–30 novums con prompt vacío y registrar lo que se repita tres o más veces. Captura los sesgos del modelo concreto, no los del género en abstracto.
+3. **Fuentes del género** (uno o dos días). Catálogos críticos y repositorios del género. Más fiable, más trabajo de curación.
+
+Cruzar (1) y (2) aporta algo más que el catálogo: revela si los sesgos del sistema coinciden con los clichés del género o son otros. Si no coinciden, un catálogo importado no sirve de mucho.
+
+**Prueba de validez antes de integrarlo:** puntuar a mano cinco novums considerados buenos y cinco malos. Si el catálogo no los separa, el problema son los marcadores, no el número de entradas.
+
 ---
 
 ## 4. Especificidad variable de la entrada
 
 El producto acepta desde «una novela sobre IA» hasta tres páginas de especificación. Esto tiene una consecuencia de fondo sobre qué significa «calidad»:
 
-> No existe un criterio único de fidelidad. Una semilla corta y una larga generan obligaciones distintas.
+> No existe un criterio único de fidelidad. Un prompt corto y uno largo generan obligaciones distintas.
 
 De ahí la partición en dos zonas:
 
@@ -114,7 +138,7 @@ El usuario puede dejar libertad al inicio; el sistema no puede mantenerla despu�
 
 ### Ejemplo
 
-Semilla: *«Una novela sobre una abogada que descubre que los tribunales llevan años siendo automatizados en secreto. Quiero un final ambiguo.»*
+Prompt: *«Una novela sobre una abogada que descubre que los tribunales llevan años siendo automatizados en secreto. Quiero un final ambiguo.»*
 
 ```
 compromisos:
