@@ -115,6 +115,26 @@ Verificar que la interfaz entre dos servicios —forma de petición y respuesta�
 
 ---
 
+### 3.9 Contratos de importación — clase A
+
+Declaración de las dependencias permitidas entre módulos y comprobación estática de que el código las respeta. No ejecuta nada: lee el grafo de importaciones y lo contrasta con el contrato.
+
+- **Dónde aplica:** la regla de dependencia de `architecture.md` §9.2. En el backend: ninguna fase importa a otra fase ni a `execution`, `execution` importa las cinco fases como única excepción declarada, y `domain` no importa nada. En el frontend: las capas de Feature-Sliced Design solo importan hacia abajo y se consumen por su API pública.
+- **En este stack:** `import-linter` en el backend, con un contrato de independencia entre las slices de `phases` y un contrato de capas para `domain`; `steiger`, el linter oficial de FSD, en el frontend.
+- **Por qué clase A y no I:** el aislamiento entre slices es la propiedad que sostiene toda la organización del código, y se erosiona con un solo import que nadie mire en una revisión. Un import cruzado no rompe ninguna prueba el día que se escribe; rompe el diseño meses después.
+- **Límite:** comprueba quién importa a quién, no qué se hace con lo importado. `execution` puede importar una fase y usarla mal.
+
+### 3.10 Consistencia del cliente de API generado — clase A
+
+Regeneración del artefacto derivado y comparación con el que está en el repositorio. Si difieren, el commit no es consistente consigo mismo.
+
+- **Dónde aplica:** el cliente TypeScript de `shared/api`, generado del esquema OpenAPI que FastAPI deriva de los modelos Pydantic (`architecture.md` §9.2 y §9.4).
+- **En este stack:** el esquema se exporta en estático desde la aplicación FastAPI, sin arrancar servidor; CI regenera el cliente y falla si hay diferencia con lo commiteado.
+- **Por qué se commitea el cliente:** para que la comprobación de tipos y el build del frontend funcionen sin levantar el backend. El precio de esa comodidad es la deriva, y la comprobación es lo que lo paga: sin ella, generar pasa a ser un paso opcional y los tipos vuelven a ser manuales por la vía de los hechos.
+- **Límite:** garantiza que el cliente refleja el esquema, no que el esquema refleje lo que la API hace de verdad. Eso lo cubren las pruebas de contrato de §3.8.
+
+---
+
 ## 4. Verificación de proceso: ¿se comporta el agente de forma fiable?
 
 ### 4.1 Observabilidad y trazas en ejecución — clase D
@@ -243,6 +263,8 @@ Explorar exhaustivamente los estados y transiciones alcanzables del agente para 
 | Agentes escritor y editor | Evals + trazas + inspección muestreada | I, D |
 | Contrato de API y SSE | Pruebas de contrato derivadas del esquema | T |
 | Fronteras de datos entre capas | Tipos + validación en los bordes | A |
+| Aislamiento entre slices y capas | Contratos de importación en CI | A |
+| Cliente de API del frontend | Regeneración y comparación en CI | A |
 | Ejecución completa de prompt casi vacío | Demostración de extremo a extremo | D |
 | Presupuesto y límites de tiempo | Guardarraíles + trazas | A, D |
 | Plausibilidad especulativa del novum | — | **U** |
@@ -265,7 +287,7 @@ Explorar exhaustivamente los estados y transiciones alcanzables del agente para 
 
 No todo vale lo mismo al principio. El orden sigue el mismo criterio económico que las puertas: primero lo barato que detecta lo caro.
 
-1. **Tipos, análisis estático, unitarias y contrato de API en CI.** Coste casi nulo, cobertura inmediata de las fronteras.
+1. **Tipos, análisis estático, unitarias, contratos de importación y contrato de API en CI.** Coste casi nulo, cobertura inmediata de las fronteras. Los contratos de importación entran aquí y no más tarde: cuestan una configuración el primer día y una refactorización el año siguiente.
 2. **Propiedades sobre los invariantes 1, 3 y 5.** Están escritos como propiedades; traducirlos es mecánico.
 3. **Trazas por ejecución.** Sin ellas no hay evals posibles.
 4. **Evals del extractor de brief y del caso de prompt casi vacío.** Es el caso que más se usará.

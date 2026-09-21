@@ -451,6 +451,134 @@ Todo el sistema de agentes vive en el backend. El frontend no orquesta nada.
 
 El frontend es deliberadamente delgado: al no haber revisión humana, no hay pantallas de aprobación, edición de contrato ni selección de novum. Recoge dos entradas, muestra progreso y presenta dos salidas.
 
+#### Organización del backend: una slice por fase
+
+El corte es vertical y sigue las fases de §8.6. Cada slice contiene todo lo que su fase necesita —su agente, sus llamadas de modelo en un paso, sus puertas, su persistencia y sus pruebas— y nada de lo que necesitan las demás.
+
+```
+backend/
+  pyproject.toml
+  src/story_maker/
+    phases/
+      brief_extraction/
+      world_building/
+      planning/
+      scene_production/
+      work_review/
+    execution/
+    domain/
+    platform/
+```
+
+`execution` es la sexta slice y no es una fase: posee la superficie HTTP de §9.4, el estado del trabajo y el informe de ejecución. Por eso no cuelga de `phases/`.
+
+**No hay `commons`, `shared` ni `utils`.** Una carpeta llamada «lo común» no declara ninguna responsabilidad, así que acaba aceptándolo todo. En su lugar, dos módulos con nombre y frontera declarada:
+
+| Módulo | Contiene | No contiene |
+|---|---|---|
+| `domain` | Los datos del dominio —`ContratoDeBrief`, `Canon`, `Outline`, `EstadoDelMundo`, `ResumenRodante`, `Defecto`, la obra— y los seis invariantes de §7 como funciones puras | Nada de I/O: ni HTTP, ni SQL, ni llamadas de modelo |
+| `platform` | Orquestador, worker, puerto del proveedor de modelo, persistencia, config | Ningún término de `definitions.md` |
+
+#### Regla de dependencia
+
+```mermaid
+graph TD
+    EXE[execution] -->|unica excepcion| PH[phases - las cinco]
+    EXE --> DOM[domain]
+    PH --> DOM
+    EXE --> PLT[platform]
+    PH --> PLT
+    PHA[phases.a] -.prohibido.-> PHB[phases.b]
+    DOM -.prohibido.-> PLT
+```
+
+1. **Ninguna fase importa a otra fase.** Se comunican por artefacto persistido: una fase escribe su salida, el orquestador la encadena con la siguiente. El acoplamiento es el artefacto, no el módulo.
+2. **Ninguna fase importa `execution`.** Una fase no sabe que existe una API ni un trabajo asíncrono.
+3. **`execution` importa las cinco fases.** Es la única excepción, y está declarada: alguien tiene que invocarlas.
+4. **`domain` no importa nada.** Ni `platform`, ni `phases`, ni `execution`. Es lo que lo mantiene puro y comprobable sin dobles.
+
+Esta regla no es una convención: es un contrato comprobado en CI (`verification.md` §3.9).
+
+#### Qué sale de una slice y qué se duplica
+
+Algo abandona una slice solo si se cumplen **las dos** condiciones: lo usan dos fases o más, **y** tiene entrada en `definitions.md` o es un invariante de §7. Si falla cualquiera de las dos, se duplica.
+
+Se comparten datos, no comportamiento. El catálogo de tropos es dato y vive en `domain`; el auditor de tropos es comportamiento y existe dos veces, una en `world_building` y otra en `scene_production`.
+
+La frontera fina: **se duplica el juicio, no la regla.**
+
+- El auditor de tropos *puntúa*, y puntúa cosas distintas en la fase 1 —originalidad de un novum candidato— y en la fase 3 —cliché en la prosa de una escena—. Dos juicios distintos con el mismo nombre; unificarlos crearía un parámetro para elegir cuál de los dos se quería.
+- Un invariante de §7 *se cumple o no*, igual en toda fase. Si dos fases lo comprobaran de forma distinta, dejaría de ser un invariante. Los seis viven una sola vez, en `domain`.
+- El comportamiento que no menciona ningún término de `definitions.md` —HTTP, SQL, reintentos, serialización— no se duplica nunca: va a `platform`.
+
+Las pruebas viven dentro de cada slice. Una slice es una unidad que se puede leer entera, mover entera y borrar entera; separar sus pruebas rompe esa propiedad justo cuando más se necesita.
+
+#### Nombres
+
+Las carpetas y los módulos van en inglés. `definitions.md` sigue siendo la autoridad de nomenclatura: esta tabla no introduce sinónimos, declara la proyección de cada término a identificador. Fuera de esta tabla no se traduce nada por cuenta propia.
+
+| Fase (§8.6) | Slice |
+|---|---|
+| Extracción de brief | `phases/brief_extraction` |
+| Arquitectura de mundo | `phases/world_building` |
+| Planificación | `phases/planning` |
+| Producción por escena | `phases/scene_production` |
+| Revisión de obra | `phases/work_review` |
+
+| Término | Identificador | Término | Identificador |
+|---|---|---|---|
+| `Novum` | `novum` | `CanonCard` | `canon_card` |
+| `Consecuencia` | `consequence` | `ResumenRodante` | `rolling_summary` |
+| `Restriccion` | `constraint` | `StyleSheet` | `style_sheet` |
+| `Personaje` | `character` | `EstadoDelMundo` | `world_state` |
+| `Faccion` | `faction` | `EstadoEpistemico` | `epistemic_state` |
+| `Localizacion` | `location` | `DeltaDeEstado` | `state_delta` |
+| `Evento` | `event` | `Trazabilidad` | `traceability` |
+| `LineaTemporal` | `timeline` | `Criterio` | `criterion` |
+| `Obra` | `work` | `Evaluador` | `evaluator` |
+| `Capitulo` | `chapter` | `Evaluable` | `evaluable` |
+| `Escena` | `scene` | `Defecto` | `defect` |
+| `Outline` | `outline` | `Veredicto` | `verdict` |
+| `ContratoDeBrief` | `brief_contract` | `Tropo` | `trope` |
+| `Compromiso` | `commitment` | `CatalogoDeTropos` | `trope_catalog` |
+| `Hueco` | `gap` | `InformeDeEjecucion` | `execution_report` |
+
+#### Frontend: Feature-Sliced Design
+
+El frontend sigue **Feature-Sliced Design v2.1** con tres capas: `app`, `pages` y `shared`. En FSD las capas son opcionales y la regla es empezar por lo simple y extraer cuando haga falta, así que tres capas no son un subconjunto informal: son FSD aplicado a un cliente delgado.
+
+```
+frontend/
+  src/
+    app/       providers, router, tema, estilos globales
+    pages/     new-run/   progress/   manuscript/
+    shared/    api/  ui/  lib/  config/
+```
+
+| Capa | Responsabilidad |
+|---|---|
+| `app` | Inicialización: providers, enrutado, Tailwind global |
+| `pages` | Composición por ruta. Cada página es dueña de su lógica, su obtención de datos y su UI |
+| `shared` | Infraestructura sin reglas de negocio: cliente de API, kit de UI, utilidades. No tiene slices; se organiza por segmentos |
+
+Reglas de FSD que se aplican:
+
+1. **Solo se importa hacia capas inferiores:** `app` → `pages` → `shared`. Nunca hacia arriba, y dos slices de la misma capa no se importan entre sí.
+2. **API pública:** una página se consume por su `index`; en `shared` la API pública es por segmento —`shared/api`, `shared/ui`—, no un `index` único de toda la capa.
+3. **Lo que usa una sola página se queda en esa página.** Duplicar entre páginas es aceptable; extraer no lo es hasta que el bloque tenga consumidores reales y razón de cambio propia.
+4. **`entities` y `features` no se crean vacías.** Se incorporan cuando aparezca reutilización real. `widgets` no se usa: la propia documentación de FSD lo desaconseja porque su frontera con `features` es ambigua.
+
+`shared/api` contiene el **cliente generado** del esquema OpenAPI que FastAPI deriva de los modelos Pydantic de §9.4. Tres decisiones que van juntas:
+
+- El esquema se exporta **en estático** desde la aplicación FastAPI, sin arrancar un servidor.
+- El cliente generado **se commitea**, para que la comprobación de tipos y el build funcionen sin levantar el backend.
+- **CI regenera y falla si hay diferencia** con lo commiteado (`verification.md` §3.10). Sin esa comprobación, generar es un paso opcional que alguien se salta, y los tipos vuelven a ser manuales por la vía de los hechos.
+
+Tipos de transporte en `shared` son FSD válido; reglas de negocio, no. Y si el frontend deja de ser delgado —pantallas de aprobación, edición de contrato, selección de novum—, `entities` y `features` vuelven a evaluarse. Hoy no existe ninguna de esas pantallas, por decisión de §8.1.
+
+> Esta estructura es el destino acordado, no un andamiaje que crear ahora. Ninguna carpeta se crea hasta que una spec la exija.
+
+
 ### 9.3 La ejecución no cabe en una petición HTTP
 
 Una novela completa son decenas o cientos de escenas, cada una con generación, críticos y posible corrección. El tiempo total se mide en minutos u horas, no en segundos.
@@ -542,3 +670,8 @@ Registro de lo acordado, para no reabrirlo sin motivo.
 | Orden de prioridad entre compromisos | No necesario, al descartarse la degradación |
 | Agentes | 5; escritor y editor separados |
 | Catálogo de tropos | Curado desde el día uno; extracción del modelo cruzada con 20–30 novums de prompt vacío |
+| Organización del backend | Slice vertical por fase (§8.6) más `execution`; `domain` y `platform` con nombre propio; sin `commons` |
+| Organización del frontend | Feature-Sliced Design v2.1 con `app`, `pages` y `shared`; `entities` y `features` diferidas, `widgets` descartada |
+| Aislamiento entre slices | Ninguna fase importa a otra; `execution` → `phases` es la única excepción; contrato comprobado en CI |
+| Tipos del cliente de API | Generados del esquema OpenAPI, commiteados, con comprobación de deriva en CI |
+| Ubicación de las pruebas | Dentro de cada slice |
