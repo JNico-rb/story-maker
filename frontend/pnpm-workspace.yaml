@@ -1,6 +1,0 @@
-# Reglas de dependencias del visor. Ver frontend/CLAUDE.md.
-# savePrefix "" : las versiones se fijan exactas, sin ^ ni ~.
-# minimumReleaseAge : no se instala nada publicado hace menos de 7 días (10080 minutos).
-savePrefix: ''
-minimumReleaseAge: 10080
-minimumReleaseAgeStrict: true

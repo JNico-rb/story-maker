@@ -1,8 +1,0 @@
-{
-  "veredicto": "RECHAZADO",
-  "problemas": [
-    {"gravedad": 4, "donde": "línea 9", "que": "Ruptura de punto de vista y tiempo verbal: el párrafo cambia a primera persona presente ('Yo nunca me equivoco con un motor limpio, pienso ahora, y sigo sin equivocarme') en una narración que es tercera persona pasado", "por_que": "biblia.md, § Tono y voz: 'Tercera persona limitada, pegada a Marisa. Pasado.' Esta es una violación clara de la voz declarada. El resto del capítulo mantiene tercera persona pasado sin excepción"},
-    {"gravedad": 2, "donde": "línea 54: 'También sabía que la grieta micra de la soldadura inferior era lo que de verdad reducía el margen de tiempo'", "que": "El capítulo adelanta el descubrimiento específico del defecto de soldadura, asignado al capítulo 3 por la escaleta del arco", "por_que": "arco-01.md, entrada 3 (capítulo 3): 'Sucesos: Marisa examina más detenidamente la soldadura inferior del cable; ve la grieta micra. El defecto de soldadura amplifica el riesgo de corrosión y reduce el margen de tiempo.' Esa información debe ser nueva en el capítulo 3."}
-  ],
-  "observaciones": ["Continuidad de la linterna algo confusa, no incorrección directa de la escaleta"]
-}

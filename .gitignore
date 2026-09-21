@@ -3,27 +3,3 @@
 
 # API keys and secrets
 .env
-
-# Visor (frontend/)
-frontend/node_modules/
-frontend/dist/
-frontend/.env
-frontend/.env.local
-
-# Herramientas (fuera del harness)
-herramientas/*/__pycache__/
-herramientas/*/*/__pycache__/
-
-# Credenciales locales de observabilidad (Langfuse)
-.claude/settings.local.json
-.claude/settings.local.json.*
-
-# Estudio (spec §9.4): el encargo se versiona porque hace repetible una novela;
-# la sesión no, porque es un identificador de una máquina y un momento concretos.
-encargos/*/sesion.json
-encargos/*/decision-aplicada-*.md
-
-# Trabajo descartado al reanudar (spec §6.2). Se conserva en disco para que el
-# usuario pueda rescatarlo, pero NO se versiona: si se versionara, el paso 6 de
-# §8.7 y la aserción de `commitear()` verían la carpeta sucia para siempre.
-novelas/*/.descartado/

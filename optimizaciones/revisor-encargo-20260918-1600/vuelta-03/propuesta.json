@@ -1,6 +1,0 @@
-{
-  "operacion": 3,
-  "hipotesis": "El cuello de botella no es la deteccion sino el destino de lo detectado: ante la duda el revisor descarga lo que ha visto en `observaciones` (o se calla), porque el prompt le ofrece esa salida barata y nunca le dice que hay cosas que NO pueden ir ahi. Una regla de exclusion que saque del cajon de `observaciones` todo desajuste con la entrada N o con la biblia deberia subir las tres clases del diagnostico a la vez, y sobre todo gancho-distinto y ruptura-voz, que son las mas sujetas a duda ('no es del todo el gancho previsto', 'suena algo raro de voz') y por tanto las que mas se desvian al cajon blando. Es el vector contrario al de v1 y v2: no anade trabajo ni exigencia de forma, retira una valvula de escape, asi que no deberia reproducir el modo de fallo de v2 (callarse para no incumplir).",
-  "cambio": "Una sola vineta nueva al final de 'No debes': regla de exclusion que declara que un desajuste con la entrada N o con la biblia no cuenta como observacion --ni siquiera cuando no se esta seguro-- con un ejemplo de gancho. Nada mas del fichero cambia.",
-  "leccion": "op3: regla de exclusion que prohibe mandar a `observaciones` un desajuste con la entrada N o con la biblia (aunque haya duda), para bajar el umbral de emision sin anadir exigencia; primer intento del vector contrario a v1/v2"
-}

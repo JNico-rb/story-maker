@@ -1,1 +1,0 @@
-Ha habido un apagón.

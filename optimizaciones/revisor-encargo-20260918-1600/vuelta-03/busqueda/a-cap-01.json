@@ -1,7 +1,0 @@
-{
-  "veredicto": "RECHAZADO",
-  "problemas": [
-    {"gravedad": 2, "donde": "final del capítulo, línea 162", "que": "Falta el gancho de cierre especificado en la entrada 1: 'Dos días después, en un bloque del otro extremo del barrio y en un aparato de otra marca, el mismo altavoz repite su nombre.' El capítulo termina con Reme en casa pensando en el fusible.", "por_que": "arcos/arco-01.md, entrada 1, gancho; escaleta.md, sección cap. 1."}
-  ],
-  "observaciones": ["Sucesos clave presentes y bien ejecutados", "Voz y tono consistentes con la biblia"]
-}

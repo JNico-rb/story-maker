@@ -1,6 +1,0 @@
-{
-  "operacion": 4,
-  "hipotesis": "El fallo es transversal (0,40 en las tres clases) y la vuelta 1 mostro que lo que se pierde no es la deteccion sino la forma del informe: cuando el revisor parafrasea el pasaje en vez de reproducirlo, el defecto deja de ser reconocible como apoyado en el texto. Endurecer el campo 'donde' para exigir un fragmento literal del capitulo, copiado entrecomillado y sin recortar ni resumir, deberia subir a la vez suceso-adelantado, gancho-distinto y ruptura-voz, porque afecta a la forma de todo problema emitido y no al procedimiento de busqueda de una sola clase.",
-  "cambio": "El campo 'donde' pasa de 'escena, parrafo o cita breve' a obligatorio con cita literal: una frase entera del capitulo entre comillas, copiada caracter a caracter, mas la localizacion. Se modifica la vineta correspondiente de 'Debes', se aniade una vineta de 'No debes' contra parafrasear o recortar la cita, se actualiza el 'donde' del ejemplo y la frase del contrato final. No se toca el frontmatter, el rol, los criterios ni el esquema de tres claves.",
-  "leccion": "op4: 'donde' exige cita literal entrecomillada del capitulo (frase entera, sin parafrasear ni recortar); hipotesis transversal a las tres clases, derivada de v1 (la perdida fue de literalidad, no de deteccion)"
-}

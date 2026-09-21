@@ -1,6 +1,0 @@
-{"veredicto":"RECHAZADO","problemas":[
-{"gravedad":2,"donde":"línea 57","que":"El capítulo no cumple el objetivo de la entrada 5: Marisa no actúa, guardó las herramientas sin tocar el cable","por_que":"arco-01.md, entrada 5, objetivo: actúa para reparar el defecto sin autorización; escaleta.md gancho: Marisa comienza a actuar"},
-{"gravedad":2,"donde":"líneas 37-38","que":"El gancho requiere final abierto pero las líneas revelan el resultado exitoso","por_que":"arco-01.md, entrada 5, gancho: no sabemos si logrará estabilizar el cable"},
-{"gravedad":4,"donde":"línea 41","que":"Cambio de voz narrativa a primera persona presente","por_que":"biblia.md: tercera persona limitada, pasado"},
-{"gravedad":2,"donde":"cierre del capítulo","que":"Hilos que debían cerrarse aquí quedan abiertos porque Marisa no actúa","por_que":"escaleta.md, tabla de hilos"}
-],"observaciones":["Líneas 37-38 podrían ser anticipación no marcada como tal"]}
