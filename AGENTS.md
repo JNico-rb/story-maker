@@ -1,6 +1,6 @@
 # AGENTS.md — Instructions
 
-**Work only on the V2 branch. Ignore all other branches** — the project restarted from scratch; nothing before is a valid reference.
+**Work only on the V2-test branch. Ignore all other branches** — the project restarted from scratch; nothing before is a valid reference.
 
 ## Stack
 
@@ -25,7 +25,7 @@ When touching `backend/` or `frontend/`, read `backend/AGENTS.md` and `frontend/
 
 ## Workflow — five layers, always in this order
 
-`docs/*.md` → `specs/` → `TODO.md` (plan) → tests → code. Never skip upward: code no plan asks for, a plan no approved spec asks for, or a spec no doc supports, is drift.
+`docs/*.md` → `specs/` → `TODO.md` (implementation plan) → tests → code → document. Never skip upward: code no plan asks for, a plan no approved spec asks for, or a spec no doc supports, is drift.
 
 ### Gates
 
@@ -94,13 +94,3 @@ Per step of the approved plan: write the test → run it and watch it fail **for
 - Backend via `uv`, frontend via `pnpm`. Never disable, skip or weaken a test for a green run.
 
 **Closing a feature** (all four, in order): full suite green and types clean → fix the spec if the code proved it wrong → fix the owning doc if the work contradicted `docs/*.md`, or state nothing changed → mark the three closing boxes.
-
-## Code style (universal)
-
-- **Small, obvious functions.** A 15-line function with clear names beats a three-class abstraction.
-- **No premature abstraction.** Three similar lines is better than a badly-named base class. Extract when there's a third caller, not a hypothetical one.
-- **No error handling for cases that can't happen.** Trust internal callers and framework guarantees. Validate only at boundaries: HTTP input, external APIs, DB writes, untrusted parsing.
-- **No backwards-compat shims** unless explicitly asked for.
-- **No feature flags** added speculatively.
-- **Comments:** explain *why* when non-obvious, never *what*. Remove stale TODOs.
-- **Keep files focused.** Prefer small modules.

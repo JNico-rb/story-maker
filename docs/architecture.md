@@ -165,6 +165,10 @@ Cada par (colección, consumidor) tiene un número fijo de plazas. **Sin fusión
 
 El consumidor determina qué colecciones ve: la prosa solo aparece en la fila del crítico de oficio.
 
+**Las plazas las declara `config.recuperacion.cuotas`**, una entrada por par y entero ≥ 0. No hay tabla por defecto en el código: la ejecución no arranca sin ella. Una plaza a `0` es la forma de expresar que esa colección no entra en la ventana de ese consumidor —es así como el escritor no ve prosa— y no necesita una regla aparte.
+
+**La validación ocurre al crear la ejecución, no en la escena 40.** Cuota negativa o no entera, colección o consumidor desconocidos, par ausente, o prosa con plazas para alguien que no sea el crítico de oficio: error accionable y no arranca. Es «nunca degradar» de §11 aplicado a config, que es donde esa política sí vale entera.
+
 > Se acepta lo que esto renuncia: una escena que necesitara diez tarjetas y ningún resumen no puede pedir plazas prestadas.
 
 ### 3.7 Corte temporal
@@ -206,7 +210,7 @@ Es además la misma causa raíz que registra el recorte por techo de ventana (§
 
 ### 3.11 Vectores congelados y determinismo
 
-- El **identificador del modelo de incrustación se fija al crear la ejecución** y viaja con el índice.
+- El **identificador del modelo de incrustación se fija al crear la ejecución** y viaja con el índice. Sale de `config.recuperacion.modelo_incrustacion`; una vez creada la ejecución, cambiar el valor en config no afecta a esa ejecución.
 - Los vectores **se guardan y no se recalculan jamás**.
 - El **desempate es estable por id**.
 
@@ -256,6 +260,15 @@ No hacen falta puntuaciones comparables entre colecciones, porque el orden no se
 **`sqlite-vec` como extensión cargable de SQLite**, más **FTS5 nativo** para el canal léxico. Ninguna de las dos piezas añade un servicio: el índice vive en el mismo fichero SQLite que el canon, que es lo que hace posible §3.12.
 
 Comprobado empíricamente en el entorno de desarrollo —Windows sin permisos de administrador ni VC++ Redistributable—: `sqlite3.Connection.enable_load_extension(True)` no lanza, `sqlite-vec` carga y responde a una consulta KNN, y FTS5 está disponible en la misma conexión.
+
+**El productor de vectores es `fastembed`**, local y sin servicio, coherente con que el índice viva en el mismo fichero SQLite. El identificador del modelo que declara `config.recuperacion.modelo_incrustacion` es el nombre del modelo de `fastembed`, y es el que se congela al crear la ejecución (§3.11).
+
+Comprobado en el mismo entorno, y con dos condiciones que no son opcionales:
+
+1. **`fastembed` arrastra `onnxruntime`, que no carga sin el runtime de Visual C++.** En este equipo falta y no se puede instalar sin administrador. Se resuelve en espacio de usuario: el paquete `msvc-runtime` aporta `msvcp140.dll` y `vcruntime140.dll`, que deben quedar donde el cargador de `onnxruntime` las encuentre. Sin ese paso, el `import` falla con `DLL load failed`.
+2. **La caché de HuggingFace no puede crear enlaces simbólicos** sin privilegio (`WinError 1314`). La descarga reintenta y termina bien, pero conviene desactivar los enlaces por variable de entorno para no pagar el reintento en cada arranque.
+
+Con ambas, la comprobación termina: modelo multilingüe cargado y vector de 384 dimensiones para una frase en español, sin red más allá de la descarga inicial del modelo.
 
 ### 3.15 Presupuesto de ventana por etapa
 
@@ -355,15 +368,18 @@ Dos reglas de diseño:
 
 ## 5. Configuración
 
-### 5.1 Tres familias
+### 5.1 Cuatro familias
 
 | Familia | Ejemplos | Propiedad clave |
 |---|---|---|
 | **Estructural** | `objetivo_palabras`, `capitulos`, `forma_distribucion`, `pov_max` | Verificable de forma determinista |
 | **Poética** | tono, densidad especulativa, ritmo, tecnicismo, ambigüedad del final | Solo evaluable por juicio |
+| **De recuperación** | `modelo_incrustacion`, cuotas por (colección, consumidor) | Decide qué entra en la ventana; se congela al crear la ejecución |
 | **Operativa** | modelo, temperatura, reintentos, umbrales, presupuesto | Invisible para el usuario final |
 
 Mezclarlas en un JSON plano funciona hasta la primera vez que el usuario necesita editar la poética sin tocar la operativa.
+
+**Eran tres.** La de recuperación se separa de la operativa porque no comparte su ciclo de vida: la operativa se ajusta entre ejecuciones sin consecuencias, mientras que el modelo de incrustación y las cuotas quedan congelados junto al índice (§3.11) y cambiarlos a mitad de ejecución invalidaría los vectores ya almacenados. La familia `calidad` tampoco servía: sus umbrales se calibran contra evals, y estos parámetros se calibran contra el tamaño de la ventana.
 
 ```mermaid
 graph TD
@@ -373,7 +389,10 @@ graph TD
     CFG --> EST[estructura<br/>objetivo_palabras, capitulos,<br/>forma_distribucion, pov_max]
     CFG --> POE[poetica<br/>tono, ritmo,<br/>densidad_especulativa, registro]
     CFG --> CAL[calidad<br/>umbrales_por_puerta, criterios_activos,<br/>densidad_minima]
+    CFG --> REC[recuperacion<br/>modelo_incrustacion, cuotas]
     CFG --> OPE[operacion<br/>modelo, reintentos_max, presupuesto,<br/>techo_ventana, umbral_deriva_conteo,<br/>formato_salida]
+
+    REC -.congelado al crear la ejecucion.-> LOCK
 
     EST -->|genera criterios| PD[Puerta dura]
     POE -->|promociona a| COMP[Compromiso del brief]
@@ -392,6 +411,7 @@ graph TD
 3. **Inmutabilidad post-outline.** Los campos estructurales se congelan al aprobar el outline; cambiarlos a mitad de obra invalida el plan y probablemente canon ya establecido. Los poéticos sí pueden ajustarse en caliente.
 4. **Cada parámetro estructural genera un Criterio de la puerta dura.** `capitulos: 12` no es solo una instrucción de generación: es una aserción verificable sobre el artefacto final. Si no se materializa como criterio, el config es decorativo.
 5. **`calidad` no lo edita el usuario final.** Permitirlo deja bajar los umbrales para que una historia mal configurada «pase», lo que invalida el marco entero. Solo lectura, o fichero de política separado.
+6. **`recuperacion` tampoco, y además se valida al crear la ejecución.** Sin tabla de cuotas completa y bien formada no se arranca (§3.6). No hay valores por defecto: una novela entera generada con una ventana que nadie pidió es peor que un error al empezar.
 
 ---
 
@@ -992,6 +1012,10 @@ Registro de lo acordado, para no reabrirlo sin motivo.
 | Conteo de entrada | Tokenizador del modelo congelado al crear la ejecución, más reconciliación con el uso real del proveedor; divergencia sobre `umbral_deriva_conteo` → causa raíz `presupuesto excedido`, que no bloquea |
 | Orden de recorte | prosa → resúmenes de escena → CanonCards → `ResumenRodante`; rango inverso dentro de cada colección. Si lo intocable solo ya supera la cuota, el `ResumenRodante` es la última válvula |
 | Stack del índice | `sqlite-vec` más FTS5 nativo, en el mismo fichero SQLite que el canon |
+| Productor de vectores | `fastembed`, local y sin servicio; comprobado en este entorno con dos condiciones: runtime de Visual C++ en espacio de usuario vía `msvc-runtime`, y enlaces simbólicos de HuggingFace desactivados (§3.14) |
+| Familias de config | **4**; `recuperacion` se separa de `operacion` porque se congela junto al índice y no se ajusta entre escenas (§5.1) |
+| Origen de las cuotas | `config.recuperacion.cuotas`, una entrada por par (colección, consumidor), entero ≥ 0; `0` desactiva esa colección para ese consumidor. Sin valores por defecto: config incompleta o mal formada no arranca (§3.6) |
+| Trazabilidad de lo negado | La `VentanaDeContexto` registra también lo que la recuperación encontró y no entregó, por cuota o por recorte; sin eso no se distingue «el modelo falló» de «el modelo no lo vio» |
 | Reutilización de canon (§10.4) | Biblioteca de canon con entidades, aristas y vigencias, **nunca vectores**; el índice se reconstruye en cada ejecución, y reconstruir es la comprobación del invariante 7 |
 | Presupuesto de ejecución (§10.5) | Techo **en dinero**, derivado del modelo de `config.operacion`; bloquea al agotarse |
 | Catálogo de tropos | Curado desde el día uno; extracción del modelo cruzada con 20–30 novums de prompt vacío. Residente en la ventana, nunca indexado |
@@ -1017,9 +1041,11 @@ La pieza de diseño que falta. §9.3 establece que la ejecución es un trabajo a
 
 Cuando se escriba, deja de ser §12.1 y pasa a §9 o a sección propia, con sus filas en §11.
 
-### 12.2 Spec 001 — el ensamblador de contexto
+### 12.2 Spec 001 — la memoria de la ejecución
 
-Primera spec a escribir, sobre §3, en `specs/`. Dado un canon, un outline y un número de escena: qué contiene la ventana y qué no. Clase T de principio a fin, sin ningún modelo en el bucle. Necesita su propia ronda de `grill-me` antes de escribirse (AGENTS.md, proceso 2).
+Escrita: `specs/001-memoria-de-la-ejecucion.md`, sobre §3. Cubre el ciclo completo de la memoria sin ningún modelo en el bucle: qué se escribe en el índice y en qué transacción, qué se recupera para una escena y un consumidor, y qué contiene la ventana ensamblada y qué no.
+
+Fuera de su alcance, y por tanto todavía sin spec: el cálculo de los vectores —que en la spec llegan dados—, la fabricación del `ResumenRodante` y del `EstadoDelMundo`, la reconciliación del conteo con el uso del proveedor (§3.15), y la reanudación desde punto de control, que espera a que §12.1 exista.
 
 ### 12.3 Revisar: posición de la comprobación de densidad
 

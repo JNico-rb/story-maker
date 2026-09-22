@@ -274,6 +274,7 @@ Explorar exhaustivamente los estados y transiciones alcanzables del agente para 
 | Recuperador: filtro temporal, RRF, arrastre, cuotas y recorte | Pruebas doradas sobre índice de fixture con vectores almacenados, sin llamada a modelo | T |
 | Guardián de presupuesto de ventana: cuota por etapa y tope duro | Pruebas doradas con cuota fija como entrada del caso; nunca se excede ni se entrega contexto que luego se recorta | T |
 | Elección de cuotas y modos de recuperación | Eval del crítico de canon; no lo cubre ninguna prueba del recuperador | I |
+| Validación de `config.recuperacion` al crear la ejecución | Unitarias sobre la tabla de cuotas: par ausente, cuota negativa o no entera, colección o consumidor desconocidos, prosa fuera del crítico de oficio | T |
 | Orquestador, fases y reanudación | Integración con dobles + comprobación de modelos | T, A |
 | Extractor de brief | Eval de conjunto dorado | T |
 | Verificador de contrato | Eval adversaria + revisión humana de la muestra | T, I |

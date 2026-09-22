@@ -21,6 +21,14 @@
     "criterios_activos": null,
     "densidad_minima": null
   },
+  "recuperacion": {
+    "modelo_incrustacion": null,
+    "cuotas": {
+      "escritor": { "canoncards": null, "resumenes_escena": null, "prosa": 0 },
+      "critico_canon": { "canoncards": null, "resumenes_escena": null, "prosa": 0 },
+      "critico_oficio": { "canoncards": 0, "resumenes_escena": 0, "prosa": null }
+    }
+  },
   "operacion": {
     "modelo": null,
     "reintentos_max": 3,

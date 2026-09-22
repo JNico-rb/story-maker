@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(.env)",
+      "Read(.claude/settings.local.json)"
+    ]
+  }
+}

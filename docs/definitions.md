@@ -293,6 +293,8 @@ Conjunto homogéneo dentro de la `MemoriaDeLargoPlazo`. No es un compartimento a
 - **Atributos:** unidad, consumidor, modo de recuperación, cuota.
 - **Relaciones:** `pertenece_a` → MemoriaDeLargoPlazo.
 
+> La **cuota** no es un atributo intrínseco de la colección: la declara `config.recuperacion` para cada par (colección, consumidor), y `0` significa que esa colección no entra en la ventana de ese consumidor (`architecture.md` §3.6).
+
 ### MemoriaDeCortoPlazo
 
 Lo residente y secuencial: está en la ventana siempre, sin consulta de por medio y sin estar indexado.
@@ -303,8 +305,10 @@ Lo residente y secuencial: está en la ventana siempre, sin consulta de por medi
 
 Lo ensamblado para una llamada concreta: la `MemoriaDeCortoPlazo` residente más las cuotas recuperadas de la `MemoriaDeLargoPlazo`.
 
-- **Atributos:** consumidor, escena, residentes, recuperados por colección, cuota de entrada de la etapa, tokens de entrada ocupados.
+- **Atributos:** consumidor, escena, residentes, recuperados por colección, **negados**, cuota de entrada de la etapa, tokens de entrada ocupados.
 - **Relaciones:** `reside` → MemoriaDeCortoPlazo; `recupera_de` → ColeccionDeMemoria; `registra` → Trazabilidad.
+
+> **Negados** son las unidades que la recuperación encontró y la ventana no entregó, por cuota agotada o por recorte de tope. Sin ellas no se distingue «el modelo falló» de «el modelo no vio la tarjeta».
 
 ### Componentes de las memorias
 
@@ -330,7 +334,7 @@ Snapshot mutable, versionado por escena, construido aplicando Deltas. Componente
 
 #### Trazabilidad
 
-Vínculo entre un fragmento generado y los elementos de canon, compromiso y config que lo justifican. Es el registro de qué aportó la `VentanaDeContexto` con la que se generó ese fragmento.
+Vínculo entre un fragmento generado y los elementos de canon, compromiso y config que lo justifican. Es el registro de qué aportó la `VentanaDeContexto` con la que se generó ese fragmento, **y también de qué quedó fuera**: los negados de esa ventana viajan con la traza.
 
 ### Modelo de clases
 
@@ -354,6 +358,7 @@ classDiagram
     class VentanaDeContexto {
         consumidor
         escena
+        negados
         cuota_entrada
         tokens_entrada_ocupados
     }
@@ -380,6 +385,7 @@ classDiagram
     class Trazabilidad {
         fragmento
         elementos_justificantes
+        elementos_negados
     }
 
     MemoriaDeLargoPlazo "1" --> "*" ColeccionDeMemoria : agrupa
@@ -503,6 +509,7 @@ config
 ├── estructura    { objetivo_palabras, capitulos, forma_distribucion, pov_max }
 ├── poetica       { tono, ritmo, densidad_especulativa, registro }
 ├── calidad       { umbrales_por_puerta, criterios_activos, densidad_minima }
+├── recuperacion  { modelo_incrustacion, cuotas }
 └── operacion     { modelo, reintentos_max, presupuesto, techo_ventana,
                     umbral_deriva_conteo, formato_salida }
 ```
@@ -510,6 +517,7 @@ config
 - **estructura** — parámetros verificables de forma determinista.
 - **poetica** — parámetros solo evaluables por juicio.
 - **calidad** — umbrales y criterios activos; no editable por el usuario final.
+- **recuperacion** — qué entra en la `VentanaDeContexto` por recuperación; no editable por el usuario final. `modelo_incrustacion` es el identificador que se congela al crear la ejecución y viaja con el índice (`architecture.md` §3.11). `cuotas` es la tabla de plazas por par (colección, consumidor): una entrada por par, entero ≥ 0, y `0` significa que esa colección no entra en la ventana de ese consumidor. No declara modos de recuperación: el modo de cada colección es diseño cerrado (§3.4), no parámetro.
 - **operacion** — parámetros de ejecución, invisibles para el usuario final. `presupuesto` es un techo **en dinero** por ejecución. `techo_ventana` es el techo de tokens **de entrada**, y se aplica a la **suma de las llamadas en vuelo de una misma etapa**, no a una llamada suelta; la salida no lleva techo en tokens (`architecture.md` §3.13). `umbral_deriva_conteo` es la divergencia tolerada entre el conteo de entrada propio y el del proveedor antes de registrar `presupuesto excedido` (§3.15); está sin valor (§10.2). `formato_salida` es markdown; es el único formato soportado.
 
 La entrada completa del sistema son dos cosas: este fichero y un único prompt del usuario. No hay más interacción.
