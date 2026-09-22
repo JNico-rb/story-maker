@@ -16,10 +16,10 @@ escribir nada.**
 
 ## Protocolo
 
-1. Lee `docs/architecture.md`, `docs/specs/` y, si existe, el
-   `specs/<name>/requirements.md` de la feature en curso. Si no hay
-   nada de eso, pregunta al usuario qué se está construyendo antes de
-   inventar.
+1. Lee `docs/architecture.md` y la spec de la feature en curso,
+   `specs/NNN-nombre.md` (las specs viven en la raiz del repo, no
+   dentro de `docs/`). Si no hay nada de eso, pregunta al usuario
+   qué se está construyendo antes de inventar.
 2. Inventaria **lo que hay que verificar**, en dos bloques separados:
    - **Código** — módulos, interfaces entre servicios, invariantes de
      datos.

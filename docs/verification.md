@@ -62,7 +62,7 @@ Escaneo del código fuente sin ejecutarlo, contrastándolo con patrones conocido
 
 Ejecutar el código con entradas simbólicas y derivar, mediante un solucionador SMT, las condiciones exactas que lo rompen, con contraejemplo concreto.
 
-- **Dónde aplica:** en la aritmética de factibilidad (`architecture.md` §6.2). Palabras totales, capítulos, escenas por capítulo y densidad narrativa forman un sistema de desigualdades con un espacio de entrada acotado; es exactamente el tipo de código donde el solucionador encuentra el caso límite que nadie escribiría a mano.
+- **Dónde aplica:** en la aritmética de factibilidad (`architecture.md` §6.2). `objetivo_palabras`, `capitulos`, `forma_distribucion` y la densidad narrativa de los elementos comprometidos forman un sistema de desigualdades con un espacio de entrada acotado; es exactamente el tipo de código donde el solucionador encuentra el caso límite que nadie escribiría a mano.
 - **Coste:** alto en esfuerzo de integración, muy bajo en superficie objetivo. Se aplica a dos o tres funciones, no al sistema.
 - **Límite:** inútil sobre código que llama a un modelo. Todo lo que cruza una frontera no determinista queda fuera.
 
@@ -78,7 +78,7 @@ Demostrar matemáticamente que el código satisface una especificación para *to
 
 Comprobación del comportamiento frente a entradas de ejemplo concretas y salidas esperadas.
 
-- **Unitarias:** los siete componentes de código (`architecture.md` §8.5). Son deterministas y no necesitan modelo: se prueban como cualquier función.
+- **Unitarias:** los nueve componentes de código (`architecture.md` §8.5). Son deterministas y no necesitan modelo: se prueban como cualquier función.
 - **Integración:** el flujo por fases con los agentes sustituidos por dobles. Verifica el orquestador —orden de puertas, punto de control por escena, reanudación tras caída— sin gastar presupuesto de modelo.
 - **Regla:** ninguna prueba del pipeline llama a un modelo real. Si necesita al modelo, no es una prueba: es una eval (§4.2).
 
@@ -91,8 +91,11 @@ Es el método de mayor rendimiento en este sistema, porque los invariantes de `a
 | Invariante | Propiedad generable |
 |---|---|
 | 1 | Para todo grafo de consecuencias generado, toda consecuencia es alcanzable desde algún novum |
-| 3 | Para toda secuencia de escenas, ningún personaje actúa sobre información ausente de su estado epistémico |
+| 3, predicado determinista | Para toda secuencia de escenas, ningún `DeltaDeEstado` declarado usa hechos ausentes del `EstadoEpistemico` de entrada |
 | 5 | Para toda secuencia de deltas, aplicarlos en orden *n* veces equivale al estado de la escena *n* |
+| 7 | Para todo canon aceptado, reconstruir el índice desde cero produce el mismo índice |
+
+> **Corrección.** Este documento prometía antes propiedades sobre el invariante 3 entero. Esas propiedades son ciertas **sobre la máquina de estados** y falsas **sobre el manuscrito**: ninguna generación de entradas comprueba que la prosa no muestre a un personaje actuando sobre lo que no sabe. Solo la mitad estructural es generable; la mitad semántica la evalúa el crítico de canon y es clase I (`architecture.md` §7.1).
 
 - **En este stack:** generadores de propiedades en Python para el backend; equivalente en TypeScript si alguna lógica de forma acaba en el frontend.
 - **Límite:** la propiedad solo es tan buena como su enunciado. Una propiedad trivialmente cierta pasa siempre y no informa de nada.
@@ -132,6 +135,15 @@ Regeneración del artefacto derivado y comparación con el que está en el repos
 - **En este stack:** el esquema se exporta en estático desde la aplicación FastAPI, sin arrancar servidor; CI regenera el cliente y falla si hay diferencia con lo commiteado.
 - **Por qué se commitea el cliente:** para que la comprobación de tipos y el build del frontend funcionen sin levantar el backend. El precio de esa comodidad es la deriva, y la comprobación es lo que lo paga: sin ella, generar pasa a ser un paso opcional y los tipos vuelven a ser manuales por la vía de los hechos.
 - **Límite:** garantiza que el cliente refleja el esquema, no que el esquema refleje lo que la API hace de verdad. Eso lo cubren las pruebas de contrato de §3.8.
+
+### 3.11 Pruebas doradas de recuperación — clase T
+
+Fijar un índice de ejemplo con sus vectores ya calculados y almacenados, ejecutar el recuperador sobre él y comparar la ventana resultante con una esperada, escrita a mano.
+
+- **Dónde aplica:** el recuperador de `architecture.md` §3.2–§3.15: filtro temporal, RRF dentro de cada colección, arrastre por el grafo y temporal, cuotas por (colección, consumidor), orden de recorte y respeto de la cuota de entrada de la etapa. La prueba fija la cuota como entrada del caso —«escena 12, crítico de canon, cuota de 33k»—, y eso solo es posible porque el guardián de presupuesto lo invoca el orquestador y no el modelo (§3.15).
+- **Por qué es posible, y por qué es clase T y no I:** el diseño renuncia al re-ranking y congela el modelo de incrustación y los vectores al crear la ejecución, con desempate estable por id. Eso deja la recuperación entera **determinista**, así que admite aserciones exactas —«la ventana de la escena 12 contiene la tarjeta X y no la Y»— **sin llamar a ningún modelo**. Con un re-ranker, este método no existiría y el recuperador sería clase I.
+- **Qué cubre además:** el invariante 8. Si la ventana es conocida, la trazabilidad esperada del fragmento también lo es.
+- **Límite:** prueba que el recuperador hace lo que se decidió, no que lo decidido recupere lo relevante. Si la cuota o el modo de una colección están mal elegidos, todas las pruebas pasan. Eso lo mide la eval del crítico, no este método.
 
 ---
 
@@ -174,7 +186,8 @@ Ejecutar el código del agente en un entorno aislado —contenedor, microVM— p
 Políticas o filtros que restringen qué acciones o salidas puede producir un agente, **antes** de que actúe.
 
 - **Ya existen en el diseño y no se llaman así:** la puerta 0 es un guardarraíl sobre config; el bloqueo ante imposible —«nunca degradar»— es un guardarraíl sobre el orquestador; el límite de tiempo por agente es un guardarraíl sobre el bucle.
-- **Lo que falta declarar explícitamente:** techo de reintentos por escena, techo de tokens por ejecución y prohibición de escritura fuera del directorio de la ejecución.
+- **Ya declarados:** los tres techos de `architecture.md` §8.12 —ventana, reintentos por escena y dinero por ejecución—. El de ventana es el caso interesante: es de **tokens de entrada y por etapa de concurrencia**, y no impide sino que recorta, así que su guardarraíl no es el bloqueo sino el registro obligatorio de la causa raíz `contexto ausente`. La salida no lleva techo en tokens: la acota el de dinero.
+- **Lo que falta declarar explícitamente:** la prohibición de escritura fuera del directorio de la ejecución.
 - **Distinción que importa:** el guardarraíl impide; la puerta juzga. Un guardarraíl que necesita un modelo para decidir es una puerta mal colocada.
 
 ### 4.5 Revisión con humano en el bucle — clase I
@@ -253,8 +266,14 @@ Explorar exhaustivamente los estados y transiciones alcanzables del agente para 
 | Validador de config | Unitarias + ejecución simbólica + mutación | T, A |
 | Aritmética de factibilidad (puerta 0) | Ejecución simbólica | A |
 | Puerta dura | Propiedades + mutación | T |
-| Invariantes 1, 3 y 5 | Pruebas basadas en propiedades | T |
-| Invariantes 2, 4 y 6 | Comprobación de modelos sobre el orquestador | A |
+| Invariantes 1 y 5, y el predicado determinista del 3 | Pruebas basadas en propiedades | T |
+| Invariantes 2 y 6, y el predicado determinista del 4 | Comprobación de modelos sobre el orquestador | A |
+| Predicados semánticos de los invariantes 3 y 4 | Eval de juez del crítico de canon con defectos sembrados | I |
+| Invariante 7 — pureza del índice | Reconstrucción del índice y comparación | T |
+| Invariante 8 — trazabilidad | Pruebas doradas de recuperación | T |
+| Recuperador: filtro temporal, RRF, arrastre, cuotas y recorte | Pruebas doradas sobre índice de fixture con vectores almacenados, sin llamada a modelo | T |
+| Guardián de presupuesto de ventana: cuota por etapa y tope duro | Pruebas doradas con cuota fija como entrada del caso; nunca se excede ni se entrega contexto que luego se recorta | T |
+| Elección de cuotas y modos de recuperación | Eval del crítico de canon; no lo cubre ninguna prueba del recuperador | I |
 | Orquestador, fases y reanudación | Integración con dobles + comprobación de modelos | T, A |
 | Extractor de brief | Eval de conjunto dorado | T |
 | Verificador de contrato | Eval adversaria + revisión humana de la muestra | T, I |
@@ -280,6 +299,8 @@ Explorar exhaustivamente los estados y transiciones alcanzables del agente para 
 3. **Los compromisos no verificables siguen sin método.** La política es no fingir: o se convierten en criterio con rúbrica, o se descartan del contrato, o se listan en el informe como no verificados.
 4. **La ausencia de supervisión en ejecución no se compensa del todo.** El informe de ejecución es el sustituto funcional del revisor, y un sustituto funcional no es un equivalente.
 5. **La verificación formal no se adopta.** Decisión de coste, registrada en §3.4.
+6. **La doble consulta reduce el punto ciego compartido, no lo elimina.** Escritor y crítico de canon consultan con textos distintos (`architecture.md` §3.9), lo que hace improbable —no imposible— que ambos pierdan la misma `CanonCard`. Sin re-ranking ni expansión de consulta, una entidad nombrada en la escena de forma muy distinta a como figura en su tarjeta puede no recuperarse en ninguna de las dos consultas, y entonces la contradicción pasa la puerta 2 sin dejar defecto. Es un fallo silencioso. Se acepta porque las dos alternativas —un canal más de recuperación o un re-ranker con modelo— cuestan el determinismo de §3.11, que es lo que mantiene al recuperador en clase T en vez de I.
+7. **El alcance de lo inventado no lo verifica ninguna puerta determinista.** La puerta 0 cuenta solo elementos comprometidos (`architecture.md` §6.3) y el techo de entrada del arquitecto acota cuántos puede inventar, no si el mundo resultante queda anémico o desbordado dentro de ese techo. Esa parte cae en la puerta de juicio, que es clase I. Se acepta porque la alternativa —contar sobre el outline— devuelve exactamente el problema por el que `architecture.md` §10.1 estuvo abierto: decidir por juicio de modelo si «cinco planetas» son una localización o cinco, y seguir llamando determinista a la puerta.
 
 ---
 
@@ -288,10 +309,11 @@ Explorar exhaustivamente los estados y transiciones alcanzables del agente para 
 No todo vale lo mismo al principio. El orden sigue el mismo criterio económico que las puertas: primero lo barato que detecta lo caro.
 
 1. **Tipos, análisis estático, unitarias, contratos de importación y contrato de API en CI.** Coste casi nulo, cobertura inmediata de las fronteras. Los contratos de importación entran aquí y no más tarde: cuestan una configuración el primer día y una refactorización el año siguiente.
-2. **Propiedades sobre los invariantes 1, 3 y 5.** Están escritos como propiedades; traducirlos es mecánico.
-3. **Trazas por ejecución.** Sin ellas no hay evals posibles.
-4. **Evals del extractor de brief y del caso de prompt casi vacío.** Es el caso que más se usará.
-5. **Guardarraíles explícitos de presupuesto y reintentos.** Antes de la primera ejecución larga sin vigilancia.
-6. **Mutación sobre la puerta dura y el validador de config.** Cuando ya haya pruebas que merezca la pena auditar.
-7. **Comprobación de modelos del orquestador y ejecución simbólica de la factibilidad.** Cuando la máquina de estados y la aritmética estén estables.
-8. **Red-teaming y lote de referencia para cambios de prompt o umbral.** Cuando exista una versión que defender.
+2. **Propiedades sobre los invariantes 1 y 5 y el predicado determinista del 3.** Están escritos como propiedades; traducirlos es mecánico.
+3. **Pruebas doradas del recuperador.** Entran aquí arriba, y no más tarde, porque toda la fase 3 depende de qué entró en la ventana: sin ellas, cada defecto de escena es ambiguo entre «el modelo falló» y «el modelo no vio la tarjeta», y esa ambigüedad contamina la calibración de todos los jueces posteriores. Además no cuestan ninguna llamada a modelo.
+4. **Trazas por ejecución.** Sin ellas no hay evals posibles.
+5. **Evals del extractor de brief y del caso de prompt casi vacío.** Es el caso que más se usará.
+6. **Guardarraíles explícitos de presupuesto y reintentos.** Antes de la primera ejecución larga sin vigilancia.
+7. **Mutación sobre la puerta dura y el validador de config.** Cuando ya haya pruebas que merezca la pena auditar.
+8. **Comprobación de modelos del orquestador y ejecución simbólica de la factibilidad.** Cuando la máquina de estados y la aritmética estén estables.
+9. **Red-teaming y lote de referencia para cambios de prompt o umbral.** Cuando exista una versión que defender.

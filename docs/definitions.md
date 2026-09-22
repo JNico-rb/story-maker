@@ -59,8 +59,8 @@ Grupo con agencia colectiva: estado, corporación, culto, red informal.
 
 ### Personaje
 
-- **Atributos:** nombre, rol narrativo, arco, motivación, voz, atributos físicos fijos.
-- **Relaciones:** `miembro_de` → Faccion; `conoce` → EstadoEpistemico; `participa_en` → Evento.
+- **Atributos:** nombre, rol narrativo, motivación, voz, atributos físicos fijos.
+- **Relaciones:** `miembro_de` → Faccion; `conoce` → EstadoEpistemico; `participa_en` → Evento; `protagoniza` → Arco.
 
 ### Localizacion
 
@@ -118,7 +118,6 @@ classDiagram
     class Personaje {
         nombre
         rol_narrativo
-        arco
         motivacion
         voz
     }
@@ -148,7 +147,9 @@ classDiagram
 
 ## 2. Artefacto narrativo
 
-Jerarquía: `Obra → Parte → Capitulo → Escena → Beat`
+Jerarquía: `Obra → Capitulo → Escena`
+
+`Arco` no es un nivel de esta jerarquía: la atraviesa.
 
 ### Obra
 
@@ -157,6 +158,13 @@ Jerarquía: `Obra → Parte → Capitulo → Escena → Beat`
 ### Capitulo
 
 - **Atributos:** número, función en el arco, tensión de entrada y de salida, longitud objetivo.
+
+### Arco
+
+Hilo narrativo con planteamiento y resolución que atraviesa varias escenas, normalmente varios capítulos. Un arco sin resolver al terminar la obra es un hilo abierto.
+
+- **Atributos:** nombre, tipo (de personaje / de trama / temático), escena de planteamiento, escena de resolución, estado (abierto | resuelto).
+- **Relaciones:** `protagonizado_por` → Personaje; `cubierto_por` → Escena.
 
 ### Escena
 
@@ -222,9 +230,18 @@ classDiagram
         cobertura_arcos
         congelado
     }
+    class Arco {
+        nombre
+        tipo
+        escena_planteamiento
+        escena_resolucion
+        estado
+    }
 
     Obra "1" --> "*" Capitulo
     Capitulo "1" --> "*" Escena
+    Obra "1" --> "*" Arco : despliega
+    Arco "*" --> "*" Escena : cubierto por
     Escena "1" --> "1" DeltaDeEstado : produce
     Escena "*" --> "*" EstadoEpistemico : consume y produce
     Outline "1" --> "1" Obra : planifica
@@ -258,27 +275,123 @@ Decisión no especificada que el sistema debe resolver.
 
 ---
 
-## 4. Contexto de generación
+## 4. Memoria y contexto de generación
 
-### CanonCard
+La generación no tiene una memoria, tiene dos, y una tercera cosa que resulta de juntarlas. Se distinguen por cómo llegan a una llamada: lo que está siempre, lo que se recupera por consulta, y lo ensamblado para esa llamada concreta.
 
-Proyección compacta de una entidad de storyworld, recuperada por escena.
+### MemoriaDeLargoPlazo
 
-### ResumenRodante
+El índice de la ejecución. Agrupa las `ColeccionDeMemoria` y es la única memoria de la que se recupera por consulta.
 
-Comprimido acumulativo de lo ya narrado, más las últimas N escenas en literal.
+- **Atributos:** colecciones, identificador del modelo de incrustación, escritura (solo añadir).
+- **Relaciones:** `agrupa` → ColeccionDeMemoria.
 
-### StyleSheet
+### ColeccionDeMemoria
 
-Voz, registro, léxico prohibido, densidad de exposición, disciplina de POV.
+Conjunto homogéneo dentro de la `MemoriaDeLargoPlazo`. No es un compartimento arbitrario: cada colección tiene su propia unidad, y unidades distintas no se comparan entre sí.
 
-### EstadoDelMundo
+- **Atributos:** unidad, consumidor, modo de recuperación, cuota.
+- **Relaciones:** `pertenece_a` → MemoriaDeLargoPlazo.
 
-Snapshot mutable, versionado por escena, construido aplicando Deltas.
+### MemoriaDeCortoPlazo
 
-### Trazabilidad
+Lo residente y secuencial: está en la ventana siempre, sin consulta de por medio y sin estar indexado.
 
-Vínculo entre un fragmento generado y los elementos de canon, compromiso y config que lo justifican.
+- **Atributos:** `ResumenRodante`, `EstadoDelMundo`, proyección acotada del `Outline`, `StyleSheet`, `Compromiso`s inviolables, `CatalogoDeTropos`.
+
+### VentanaDeContexto
+
+Lo ensamblado para una llamada concreta: la `MemoriaDeCortoPlazo` residente más las cuotas recuperadas de la `MemoriaDeLargoPlazo`.
+
+- **Atributos:** consumidor, escena, residentes, recuperados por colección, cuota de entrada de la etapa, tokens de entrada ocupados.
+- **Relaciones:** `reside` → MemoriaDeCortoPlazo; `recupera_de` → ColeccionDeMemoria; `registra` → Trazabilidad.
+
+### Componentes de las memorias
+
+Las cinco entidades siguientes no son memorias: son los componentes de las anteriores.
+
+#### CanonCard
+
+Proyección compacta de una entidad de storyworld. Es la unidad de la colección de CanonCards. **Inmutable:** un cambio en la entidad proyectada cierra la tarjeta vigente y añade otra.
+
+- **Atributos:** entidad proyectada, contenido, desde_escena, hasta_escena.
+
+#### ResumenRodante
+
+Comprimido acumulativo de lo ya narrado, más las últimas N escenas en literal. Componente de la `MemoriaDeCortoPlazo`.
+
+#### StyleSheet
+
+Voz, registro, léxico prohibido, densidad de exposición, disciplina de POV. Componente de la `MemoriaDeCortoPlazo`.
+
+#### EstadoDelMundo
+
+Snapshot mutable, versionado por escena, construido aplicando Deltas. Componente de la `MemoriaDeCortoPlazo`.
+
+#### Trazabilidad
+
+Vínculo entre un fragmento generado y los elementos de canon, compromiso y config que lo justifican. Es el registro de qué aportó la `VentanaDeContexto` con la que se generó ese fragmento.
+
+### Modelo de clases
+
+```mermaid
+classDiagram
+    class MemoriaDeLargoPlazo {
+        colecciones
+        modelo_incrustacion
+        solo_anadir
+    }
+    class ColeccionDeMemoria {
+        unidad
+        consumidor
+        modo_recuperacion
+        cuota
+    }
+    class MemoriaDeCortoPlazo {
+        proyeccion_outline
+        compromisos_inviolables
+    }
+    class VentanaDeContexto {
+        consumidor
+        escena
+        cuota_entrada
+        tokens_entrada_ocupados
+    }
+    class CanonCard {
+        entidad_proyectada
+        contenido
+        desde_escena
+        hasta_escena
+    }
+    class ResumenRodante {
+        comprimido
+        ultimas_escenas_literales
+    }
+    class StyleSheet {
+        voz
+        registro
+        lexico_prohibido
+        disciplina_pov
+    }
+    class EstadoDelMundo {
+        version_escena
+        snapshot
+    }
+    class Trazabilidad {
+        fragmento
+        elementos_justificantes
+    }
+
+    MemoriaDeLargoPlazo "1" --> "*" ColeccionDeMemoria : agrupa
+    ColeccionDeMemoria "1" --> "*" CanonCard : indexa
+    MemoriaDeCortoPlazo "1" --> "1" ResumenRodante : contiene
+    MemoriaDeCortoPlazo "1" --> "1" EstadoDelMundo : contiene
+    MemoriaDeCortoPlazo "1" --> "1" StyleSheet : contiene
+    MemoriaDeCortoPlazo "1" --> "1" CatalogoDeTropos : contiene
+    VentanaDeContexto "1" --> "1" MemoriaDeCortoPlazo : reside
+    VentanaDeContexto "1" --> "*" ColeccionDeMemoria : recupera por cuota
+    VentanaDeContexto "1" --> "*" Trazabilidad : registra
+```
 
 ---
 
@@ -304,7 +417,9 @@ Implementación de uno o varios Criterios: validador programático o juez LLM co
 
 Instancia de violación de un Criterio.
 
-- **Atributos:** criterio, severidad, localización, causa raíz (contexto ausente / canon contradictorio / deriva de estilo / fallo de outline / config infactible).
+- **Atributos:** criterio, severidad, localización, causa raíz (contexto ausente / canon contradictorio / deriva de estilo / fallo de outline / config infactible / presupuesto excedido).
+
+> **`presupuesto excedido`** se refiere a la **cuota de ventana** de la etapa, no al techo en dinero de la ejecución. Se registra cuando el conteo de entrada propio y el del proveedor divergen por encima de `umbral_deriva_conteo` (`architecture.md` §3.15); no bloquea.
 
 ### Veredicto
 
@@ -328,7 +443,9 @@ Colección de Tropos contra la que se puntúa la originalidad de un Novum o de u
 
 Documento que acompaña al manuscrito y registra qué hizo el sistema y por qué. Sustituye funcionalmente a la supervisión humana.
 
-- **Atributos:** compromisos cumplidos, compromisos no verificables, huecos resueltos y con qué, novum elegido y su puntuación, defectos no resueltos y su localización, presupuesto consumido.
+- **Atributos:** compromisos cumplidos, compromisos no verificables, huecos resueltos y con qué, novum elegido y su puntuación, defectos no resueltos y su localización, presupuesto consumido, causas raíz registradas.
+
+> Las causas raíz llegan aquí también cuando **no** producen un `Defecto`: `contexto ausente` por recorte de ventana y `presupuesto excedido` por deriva del conteo de entrada (`architecture.md` §3.13 y §3.15).
 
 ### Modelo de clases
 
@@ -386,12 +503,13 @@ config
 ├── estructura    { objetivo_palabras, capitulos, forma_distribucion, pov_max }
 ├── poetica       { tono, ritmo, densidad_especulativa, registro }
 ├── calidad       { umbrales_por_puerta, criterios_activos, densidad_minima }
-└── operacion     { modelo, reintentos_max, presupuesto, formato_salida }
+└── operacion     { modelo, reintentos_max, presupuesto, techo_ventana,
+                    umbral_deriva_conteo, formato_salida }
 ```
 
 - **estructura** — parámetros verificables de forma determinista.
 - **poetica** — parámetros solo evaluables por juicio.
 - **calidad** — umbrales y criterios activos; no editable por el usuario final.
-- **operacion** — parámetros de ejecución, invisibles para el usuario final. `formato_salida` es markdown; es el único formato soportado.
+- **operacion** — parámetros de ejecución, invisibles para el usuario final. `presupuesto` es un techo **en dinero** por ejecución. `techo_ventana` es el techo de tokens **de entrada**, y se aplica a la **suma de las llamadas en vuelo de una misma etapa**, no a una llamada suelta; la salida no lleva techo en tokens (`architecture.md` §3.13). `umbral_deriva_conteo` es la divergencia tolerada entre el conteo de entrada propio y el del proveedor antes de registrar `presupuesto excedido` (§3.15); está sin valor (§10.2). `formato_salida` es markdown; es el único formato soportado.
 
 La entrada completa del sistema son dos cosas: este fichero y un único prompt del usuario. No hay más interacción.

@@ -1,0 +1,32 @@
+{
+  "identidad": {
+    "id": "ejemplo",
+    "version": 1,
+    "congelado_desde": null
+  },
+  "estructura": {
+    "objetivo_palabras": 90000,
+    "capitulos": 24,
+    "forma_distribucion": "uniforme",
+    "pov_max": 3
+  },
+  "poetica": {
+    "tono": "sombrio",
+    "ritmo": "medio",
+    "densidad_especulativa": "alta",
+    "registro": "literario"
+  },
+  "calidad": {
+    "umbrales_por_puerta": null,
+    "criterios_activos": null,
+    "densidad_minima": null
+  },
+  "operacion": {
+    "modelo": null,
+    "reintentos_max": 3,
+    "presupuesto": null,
+    "techo_ventana": 100000,
+    "umbral_deriva_conteo": null,
+    "formato_salida": "markdown"
+  }
+}
