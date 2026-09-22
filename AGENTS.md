@@ -1,6 +1,6 @@
 # AGENTS.md — Instructions
 
-**Work only on the V2-test branch.** The project restarted from scratch; other branches are not a valid reference.
+**Work only on the V2-test branch.** The project restarted from scratch; other branches are not a valid reference ([ADR 0002](docs/adr/0002-v2-desde-cero.md)).
 
 ## Stack
 
@@ -14,8 +14,11 @@ Load only the one the task needs. One concern per doc; cross-reference instead o
 - [domain-knowledge.md](docs/domain-knowledge.md) — why the genre works this way. For prompts, rubrics, trope scoring, novum logic.
 - [architecture.md](docs/architecture.md) — pipeline, context and memory, quality gates (runtime judges of the novel), config, the agents, stack, API. §10 open decisions, §11 closed.
 - [verification.md](docs/verification.md) — how the system is verified in CI: T/A/I/D/U classes (§2), coverage table (§5), accepted risks (§6). For tests, evals, CI, guardrails.
+- [adr/](docs/adr/) — the why behind decisions no doc section owns, mostly how the project is built. Load only the one the task needs; when to write one: [process 1](workflow/1-docs.md), step 3.
 
 Entity names and diagram identifiers: ASCII without accents, no spaces (Mermaid).
+
+Language: a file keeps the language it is written in. New files: agent instructions (`AGENTS.md`, `workflow/`) in English; `docs/`, `specs/` and the product in Spanish.
 
 ## Specs — `specs/NNN-slug/`, one folder per feature
 
@@ -39,6 +42,8 @@ Entity names and diagram identifiers: ASCII without accents, no spaces (Mermaid)
 ### Grill (`grill-me` skill)
 
 Run before the first edit to `docs/*.md`, `specs/`, `backend/` or `frontend/`. Once per task, not per file — but **every spec gets its own round**, even mid-task. Grill the task, not the diff: what is asked, which layer owns it, which `definitions.md` terms it uses, which requirements it implies, what is out of scope. Edit once every question is answered. Trivial non-semantic edits (typos, formatting, links) are exempt.
+
+A task too big for one session, with the route still unclear → `/wayfinder` instead: it charts a map of decision tickets in `.scratch/` and grills one ticket per session.
 
 ### Processes — read the one for the layer you touch
 

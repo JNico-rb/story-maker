@@ -11,6 +11,7 @@ desde el origen.
 | `sqlalchemy-code-review` | `existential-birds/beagle`, ruta `plugins/beagle-python/skills/sqlalchemy-code-review` | Apache-2.0 | `d1a7489` |
 | `review-verification-protocol` | `existential-birds/beagle`, ruta `plugins/beagle-python/skills/review-verification-protocol` | Apache-2.0 | `d1a7489` |
 | `feature-sliced-design` | `feature-sliced/skills`, ruta `feature-sliced-design` | MIT | `fd71da4` |
+| `wayfinder` | `mattpocock/skills`, ruta `skills/engineering/wayfinder` | MIT | `959a8e9` — **adaptada**, ver abajo |
 | `sqlalchemy-sqlite` | propia del proyecto | — | **no escrita**: bloqueada a propósito, ver abajo |
 
 ## Notas
@@ -28,6 +29,13 @@ cuatro seguirán funcionando.
 dependen de `review-verification-protocol`, que se copia con ella por la referencia cruzada
 `../review-verification-protocol/SKILL.md`; sin esa hermana el enlace queda roto. Ambas son
 solo Markdown: no traen scripts ni ejecutan nada.
+
+`wayfinder`, a diferencia del resto, **no es una copia literal**: está adaptada a este repo.
+Llama a `grill-me` en vez de a `grilling`, fija el tracker en markdown local (`.scratch/`,
+versionado) y añade una sección *Repo overrides* que remite a `workflow/` para el glosario, las
+decisiones y el paso a specs. Volver a copiarla desde el origen borra esas adaptaciones: hay que
+reaplicarlas. `research`, `prototype` y `domain-modeling` no se copian; se usan desde el plugin
+`mattpocock-skills`, que tiene que estar instalado.
 
 ### `sqlalchemy-sqlite` — decidida, no escrita
 
