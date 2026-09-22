@@ -971,6 +971,8 @@ Para la densidad, la calibración se hace contra novelas reales del género: con
 | Techo de dinero por ejecución | Presupuesto de la ejecución (§8.12) |
 | Techo de reanudaciones | Reanudación desde punto de control (§9.3) |
 
+Mientras no tengan valor, el código las lee de configuración y falla de forma accionable si faltan. Ninguna spec ni ningún plan las inventa.
+
 ### 10.3 Fragilidad del verificador de contrato
 
 Riesgo asumido, no tarea. Un modelo comprobando a otro modelo puede compartir el mismo sesgo, y con un único prompt de entrada un fallo del extractor se propaga a la obra entera sin detección posterior: el resto del pipeline solo ve el contrato, nunca el prompt.
@@ -1029,7 +1031,7 @@ Registro de lo acordado, para no reabrirlo sin motivo.
 
 ## 12. Pendiente
 
-Lo que está acordado o identificado y todavía no tiene sitio propio. Esta sección se vacía a medida que cada punto pasa a una sección numerada, a una spec o a `verification.md`. No es un registro de decisiones: lo cerrado vive en §11, lo abierto en §10.
+Lo que está acordado o identificado y todavía no tiene sitio propio. Esta sección se vacía a medida que cada punto pasa a una sección numerada, a una spec o a `verification.md`. No es un registro de decisiones: lo cerrado vive en §11, lo abierto en §10. La numeración se mantiene estable, como en §10: §12.2 pasó a spec (`specs/004-mem-memoria/`).
 
 ### 12.1 Orquestación del trabajo — sin escribir
 
@@ -1040,12 +1042,6 @@ La pieza de diseño que falta. §9.3 establece que la ejecución es un trabajo a
 3. **Cancelación que conserva todo.** Cancelar no destruye: conserva el manuscrito parcial y el estado, y promueve el canon ya validado a la biblioteca de canon de §9.5.
 
 Cuando se escriba, deja de ser §12.1 y pasa a §9 o a sección propia, con sus filas en §11.
-
-### 12.2 Spec 001 — la memoria de la ejecución
-
-Escrita: `specs/001-memoria-de-la-ejecucion.md`, sobre §3. Cubre el ciclo completo de la memoria sin ningún modelo en el bucle: qué se escribe en el índice y en qué transacción, qué se recupera para una escena y un consumidor, y qué contiene la ventana ensamblada y qué no.
-
-Fuera de su alcance, y por tanto todavía sin spec: el cálculo de los vectores —que en la spec llegan dados—, la fabricación del `ResumenRodante` y del `EstadoDelMundo`, la reconciliación del conteo con el uso del proveedor (§3.15), y la reanudación desde punto de control, que espera a que §12.1 exista.
 
 ### 12.3 Revisar: posición de la comprobación de densidad
 

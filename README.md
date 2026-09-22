@@ -8,10 +8,10 @@ Generator of Spanish-language novels about **what the world will look like after
 story-maker/
 ├── AGENTS.md          # universal rules
 ├── README.md
-├── TODO.md            # the implementation plans, one block per spec
 ├── config.json        # example run config; null marks a value still to be calibrated
 ├── docs/              # source of truth: domain and design
-├── specs/             # one file per feature, NNN-nombre.md
+├── specs/             # one folder per feature, NNN-slug/: spec.md, plan.md, design.md
+├── workflow/          # how each layer changes: docs, specs, plans, code
 ├── backend/           # FastAPI service
 ├── frontend/          # React + Vite SPA
 └── .claude/

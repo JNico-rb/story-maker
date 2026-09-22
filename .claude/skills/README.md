@@ -34,10 +34,10 @@ solo Markdown: no traen scripts ni ejecutan nada.
 No existe skill oficial de SQLite ni de SQLAlchemy para *escribir* persistencia. Se acordó
 el 2026-09-21 que habrá una skill propia, y **se decidió no escribirla todavía**.
 
-**Por qué no ahora.** `specs/` y `backend/` están vacíos. Una skill que dicte cómo persistir,
-escrita antes de que exista un spec de persistencia, fija decisiones que nadie ha tomado: es
-la deriva que `AGENTS.md` prohíbe, solo que una capa más arriba. Se escribe cuando un spec
-fije el esquema, no antes.
+**Por qué no ahora.** El esquema ya está redactado en `specs/001-base/design.md`, pero sin
+aprobar, y `backend/` aún no tiene código. Una skill que dicte cómo persistir, escrita antes de
+que se apruebe ese esquema, fija decisiones que nadie ha aprobado: es la deriva que `AGENTS.md`
+prohíbe, solo que una capa más arriba. Se escribe cuando se apruebe ese esquema, no antes.
 
 **Qué será, cuando toque.** Una skill *del proyecto*, no de la librería — deliberadamente
 **no** una gemela de `fastapi`. Lo genérico de SQLAlchemy (sesiones, N+1, `select()` 2.0,
@@ -59,18 +59,19 @@ Cubrirá lo que ninguna skill genérica puede saber, que sale de `docs/architect
 - **Los nombres los manda `definitions.md`.** El esquema no puede inventar sinónimos de
   `EstadoDelMundo`, `canon`, `outline` ni del resto de términos definidos.
 
-Nota: `docs/architecture.md` §10.4 (reutilizar canon entre ejecuciones) sigue abierta, pero es
-decisión de producto y no bloquea el esquema.
+Nota: reutilizar canon entre ejecuciones (antes `docs/architecture.md` §10.4) ya está cerrada
+(§9.5, §11), y eso sí toca el esquema: son dos ficheros SQLite, uno por ejecución con el índice
+y otro compartido para la biblioteca de canon, sin índice ni vectores
+(`specs/001-base/design.md`, Persistencia).
 
 `feature-sliced-design` es la skill oficial de Feature-Sliced Design v2.1: enseña la jerarquía
 de capas (`app`, `pages`, `widgets`, `features`, `entities`, `shared`), las reglas de importación
 y dónde colocar cada pieza. Su sesgo declarado es *pages-first*: empezar con `app/`, `pages/` y
 `shared/`, y abrir `features/` o `entities/` solo cuando una responsabilidad compartida y estable
 lo justifique; `widgets/` está desaconsejada. Ese sesgo encaja con el frontend deliberadamente
-delgado de `docs/architecture.md` §9.4 — dos entradas, progreso, dos salidas —, pero conviene
-recordar que la skill no es una decisión de arquitectura: `docs/` no impone hoy ninguna estructura
-de carpetas en el frontend, así que adoptar FSD como norma del proyecto exigiría cerrarlo en
-`architecture.md` antes de escribir specs o código con esa forma.
+delgado de `docs/architecture.md` §9.4 — dos entradas, progreso, dos salidas —, pero la skill
+enseña FSD en general: la forma que adopta aquí la fija `architecture.md` §9.2 (`app`, `pages` y
+`shared`; `entities` y `features` diferidas; `widgets` descartada).
 
 Es solo Markdown más un JSON: no trae scripts ni ejecuta nada. Se copia entera, incluida
 `evals/`, para que reactualizarla sea un `cp` desde el origen; esas evals no se pueden correr
@@ -94,7 +95,7 @@ divergen, la skill está desactualizada.
 | Candidata | Motivo del descarte |
 |---|---|
 | `SecureSkills-io/sqlite-skill` | **Rechazada por seguridad.** Ver abajo. |
-| `sqlite-vec` (`existential-birds/beagle`) | Ya no existe en el repo de origen, y el proyecto no tiene búsqueda semántica, *embeddings* ni RAG en `docs/`. Añadirla sería deriva: código que ningún doc sostiene. |
+| `sqlite-vec` (`existential-birds/beagle`) | Ya no existe en el repo de origen. El proyecto sí usa `sqlite-vec` (`docs/architecture.md` §3.14): el descarte se sostiene solo por lo primero. |
 
 ### Por qué se rechaza `SecureSkills-io/sqlite-skill`
 

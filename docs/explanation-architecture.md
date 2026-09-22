@@ -305,8 +305,8 @@ El trabajo recorre siempre cinco capas en este orden, y nunca se salta hacia arr
 
 ```mermaid
 graph LR
-    D["docs/*.md<br/>HECHO"] --> S[specs<br/>vacio]
-    S --> P[TODO.md<br/>sin bloques]
+    D["docs/*.md<br/>HECHO"] --> S["spec.md<br/>11 sin aprobar"]
+    S --> P["plan.md<br/>11 sin aprobar"]
     P --> T[tests<br/>no existen]
     T --> C["backend/ y frontend/<br/>vacios"]
 ```
@@ -314,12 +314,12 @@ graph LR
 Qué dice cada capa:
 
 - **`docs/`** — qué es verdad del dominio y por qué el diseño es así. Es la autoridad.
-- **specs** — qué comportamiento observable tiene una feature, como casos concretos de entrada y salida esperada.
-- **`TODO.md`** — el plan: un paso por cada caso de la spec, en orden de implementación.
+- **`spec.md`** — qué comportamiento observable tiene una feature: requisitos comprobables, cada uno con su clase de verificación. Una carpeta por feature en `specs/`, con su `plan.md` al lado.
+- **`plan.md`** — el plan de esa spec: un paso por requisito, en orden de implementación.
 - **tests y código** — se escriben test primero, caso a caso.
 
-Ahora mismo **solo la primera capa está hecha**. Lo siguiente, en orden:
+Ahora mismo **solo la primera capa está hecha**; las specs del backend V1 y sus planes (`001-base` a `011-out-salidas`) están escritos y sin aprobar. Lo siguiente, en orden:
 
-1. **Spec 001 — el ensamblador de contexto.** Dado un canon, un outline y un número de escena: qué entra en la ventana y qué no. Se puede probar entero sin ningún modelo en el bucle.
+1. **Aprobar cada spec y su plan**, empezando por `001-base`.
 2. **Orquestación del trabajo** — estados, reanudación desde punto de control, cancelación y reparto del presupuesto en dinero. Es la pieza de diseño que falta (`architecture.md` §12.1).
-3. **Código por TDD** desde esa spec. Ninguna carpeta se crea hasta que una spec la exija.
+3. **Código por TDD** desde esas specs. Ninguna carpeta se crea hasta que una spec la exija.
