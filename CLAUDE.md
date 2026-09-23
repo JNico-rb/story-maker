@@ -1,6 +1,6 @@
 # CLAUDE.md — Instructions
 
-**Work only on the V2-test branch.** The project restarted from scratch; other branches are not a valid reference ([ADR 0002](docs/adr/0002-v2-desde-cero.md)).
+**`V2-test` is the main branch.** Each spec's code goes on its own branch `v2-test-NNN`, cut from `V2-test` into a worktree under `.claude/worktrees/`; the code chat commits there ([process 3](workflow/3-plan.md) has its line). A hyphen, since on Windows a `v2-test/` ref collides with `V2-test`. Every other branch predates the restart and is not a valid reference ([ADR 0002](docs/adr/0002-v2-desde-cero.md)).
 
 ## What is being built
 
@@ -64,7 +64,7 @@ Each folder holds `spec.md` (what), `plan.md` (steps) and, when needed, `design.
 | Change a reference doc | Grill round on the task |
 | Write or change a spec | Supporting docs + a grill round **on that spec** |
 | Write the plan | That `spec.md`'s approval box `[x]` |
-| Write tests or code | That `plan.md`'s approval box `[x]` + its gap at zero in `docs/relational-matrix.md` + a failing test |
+| Write tests or code | That `plan.md`'s approval box `[x]` + its gap zero in `docs/relational-matrix.md` —no blocking difference open; minor ones may stay `aceptada`— + a failing test |
 
 **Only the user marks an approval box.** Never mark one, never assume one, never read agreement in conversation as approval. Box unmarked → **stop and ask**.
 

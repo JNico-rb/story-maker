@@ -10,3 +10,6 @@ settings.local.json
 
 # Instantáneas de Playwright MCP
 .playwright-mcp/
+
+# Worktrees de los chats de código
+.claude/worktrees/
