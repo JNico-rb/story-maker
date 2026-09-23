@@ -1,0 +1,4 @@
+- [Entorno Windows sin admin](entorno-windows-sin-admin.md) — portátil corporativo sin admin ni VC++ Redist y con Smart App Control en Enforce: pnpm 10.x, shims .cmd, Lean solo en CI; ExecutionPolicy intacta a propósito.
+- [Máxima de simplicidad](feedback-maxima-simplicidad.md) — lo más fácil posible, tan difícil como haga falta; dificultad deliberada solo en RAG, Langfuse, MCP, Agent SDK, Lean, TLA+.
+- [Examen de Harness Engineering](project-examen-harness.md) — project-constraints.md es el encargo; lo opcional se hace entero; se mantiene el tema post-IA.
+- [docs/ limpio](feedback-docs-limpio.md) — solo los cuatro de referencia + adr/ + relational-matrix.md; ficheros nuevos solo si son imprescindibles o temporales.

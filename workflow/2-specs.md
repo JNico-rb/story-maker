@@ -19,11 +19,11 @@ One folder per feature: `specs/NNN-slug/`, `NNN` sequential in implementation or
 
 Rules:
 
-- Behaviour only: file names, signatures and libraries go to `design.md`. Exception: `001-base` holds the technical constraints of `architecture.md` §3.14 and §9 as checkable requirements.
+- Behaviour only: file names, signatures and libraries go to `design.md`. Exception: `001-base` holds the technical constraints of `architecture.md` §6.12 and §14 as checkable requirements.
 - Consistent with `docs/*.md`; where they disagree, the doc wins. A spec that needs a doc change waits for [process 1](1-docs.md).
 - **Obligatorio** is V1; **Deseable** may be left out without invalidating the delivery.
-- Uncalibrated figures (`architecture.md` §10.2) are named as such and given no value.
-- Requirements go in the module's logical order. A new one is inserted where it belongs and renumbers the ones after it; the renumbering reaches its `plan.md` and `matriz-ralcion.md` in the same commit. A retired one leaves its gap.
+- Uncalibrated figures (`architecture.md` §15.2) are named as such and given no value.
+- Requirements go in the module's logical order. A new one is inserted where it belongs and renumbers the ones after it; the renumbering reaches its `plan.md` in the same commit. A retired one leaves its gap.
 - Dependent specs reference each other by number; each requirement lives in exactly one spec.
 - Written → leave its approval box unmarked and **stop**.
 - Changing one: edit the requirements, unmark the approval boxes of both `spec.md` and `plan.md`, re-run [process 3](3-plan.md) and [process 4](4-code.md) for what changed. A deleted requirement means a deleted test.

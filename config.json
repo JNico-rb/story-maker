@@ -1,40 +1,41 @@
 {
-  "identidad": {
-    "id": "ejemplo",
-    "version": 1,
-    "congelado_desde": null
+  "quality": {
+    "active_criteria": null,
+    "thresholds": null,
+    "readability_targets": null
   },
-  "estructura": {
-    "objetivo_palabras": 90000,
-    "capitulos": 24,
-    "forma_distribucion": "uniforme",
-    "pov_max": 3
-  },
-  "poetica": {
-    "tono": "sombrio",
-    "ritmo": "medio",
-    "densidad_especulativa": "alta",
-    "registro": "literario"
-  },
-  "calidad": {
-    "umbrales_por_puerta": null,
-    "criterios_activos": null,
-    "densidad_minima": null
-  },
-  "recuperacion": {
-    "modelo_incrustacion": null,
-    "cuotas": {
-      "escritor": { "canoncards": null, "resumenes_escena": null, "prosa": 0 },
-      "critico_canon": { "canoncards": null, "resumenes_escena": null, "prosa": 0 },
-      "critico_oficio": { "canoncards": 0, "resumenes_escena": 0, "prosa": null }
+  "retrieval": {
+    "embedding_model": null,
+    "quotas": {
+      "writer": { "canon_cards": null, "prose": 0 },
+      "critic": { "canon_cards": null, "prose": 0 },
+      "editor": { "canon_cards": null, "prose": null },
+      "repetition_linter": { "canon_cards": 0, "prose": null }
     }
   },
-  "operacion": {
-    "modelo": null,
-    "reintentos_max": 3,
-    "presupuesto": null,
-    "techo_ventana": 100000,
-    "umbral_deriva_conteo": null,
-    "formato_salida": "markdown"
+  "operation": {
+    "roles": {
+      "interviewer": { "model": null, "max_output": null, "max_turns": null },
+      "extractor": { "model": null, "max_output": null, "max_turns": null },
+      "planner": { "model": null, "max_output": null, "max_turns": null },
+      "writer": { "model": null, "max_output": null, "max_turns": null },
+      "critic": { "model": null, "max_output": null, "max_turns": null },
+      "editor": { "model": null, "max_output": null, "max_turns": null },
+      "recorder": { "model": null, "max_output": null, "max_turns": null },
+      "judge": { "model": null, "max_output": null, "max_turns": null },
+      "visual_reviewer": { "model": null, "max_output": null, "max_turns": null }
+    },
+    "pricing": null,
+    "max_retries": null,
+    "max_agent_seconds": null,
+    "max_verifier_seconds": null,
+    "max_resumes": null,
+    "max_tool_output": null,
+    "budget": null,
+    "window_ceiling": 100000,
+    "count_drift_threshold": null,
+    "max_mandatory_elements": null,
+    "access_token_hours": 24,
+    "confirmation_minutes": 15
   }
 }

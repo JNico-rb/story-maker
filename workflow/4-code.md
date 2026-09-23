@@ -13,4 +13,10 @@ Work through the Closing boxes of its `plan.md`, in order:
 
 1. Full suite green and types clean.
 2. Spec: fix it where the code proved it wrong, or confirm it still holds.
-3. Docs: fix the owning doc where the work contradicted `docs/*.md`, or state nothing changed.
+3. Docs: fix the owning reference doc where the work contradicted it, or state nothing changed.
+4. Process records: add the rows the work produced, all in `verification.md`.
+   - An eval, or a TLC or Lean counterexample, that changed code, a prompt or a threshold → the iteration log, §8, with cause and effect.
+   - An adversarial case run → its row in the cases table of §4.9.
+   - A browser MCP inspection, or a subagent or slash command that produced a result → §9.
+   - Eval results → the end of §4.2.
+5. Explainer: a course concept this feature applies for the first time gets its short explainer at the head of the section the root `README.md` lists for it.

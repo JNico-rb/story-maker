@@ -36,8 +36,8 @@ The map is an **index**, not a store. It lists the decisions made and points at 
 
 ### Repo overrides
 
-- **Domain model**: when `domain-modeling` runs, new terms go to `docs/definitions.md`, never to a `CONTEXT.md`. Decisions are recorded as `workflow/1-docs.md` step 3 says: in the owning section of `docs/architecture.md` (§10 open, §11 closed), and in `docs/adr/` only when its four conditions hold.
-- **Hand-off**: a cleared map feeds this repo's layers in order, never skipping one: its decisions go to `docs/*.md` (`workflow/1-docs.md`), then to a spec in `specs/NNN-slug/spec.md` (`workflow/2-specs.md`), then to its `plan.md` (`workflow/3-plan.md`), each behind the approval gates in `AGENTS.md`. None of it is written inside the map.
+- **Domain model**: when `domain-modeling` runs, new terms go to `docs/definitions.md`, never to a `CONTEXT.md`. Decisions are recorded as `workflow/1-docs.md` step 3 says: in the owning section of `docs/architecture.md` (§15 open, §16 closed), and in `docs/adr/` only when its four conditions hold.
+- **Hand-off**: a cleared map feeds this repo's layers in order, never skipping one: its decisions go to `docs/*.md` (`workflow/1-docs.md`), then to a spec in `specs/NNN-slug/spec.md` (`workflow/2-specs.md`), then to its `plan.md` (`workflow/3-plan.md`), each behind the approval gates in `CLAUDE.md`. None of it is written inside the map.
 
 ### The map body
 

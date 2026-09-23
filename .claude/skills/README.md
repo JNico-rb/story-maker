@@ -12,6 +12,7 @@ desde el origen.
 | `review-verification-protocol` | `existential-birds/beagle`, ruta `plugins/beagle-python/skills/review-verification-protocol` | Apache-2.0 | `d1a7489` |
 | `feature-sliced-design` | `feature-sliced/skills`, ruta `feature-sliced-design` | MIT | `fd71da4` |
 | `wayfinder` | `mattpocock/skills`, ruta `skills/engineering/wayfinder` | MIT | `959a8e9` — **adaptada**, ver abajo |
+| `writing-for-agents` | `mattpocock/skills`, ruta `skills/productivity/writing-for-agents` | MIT | `959a8e9` (plugin `mattpocock-skills` 1.2.3) |
 | `sqlalchemy-sqlite` | propia del proyecto | — | **no escrita**: bloqueada a propósito, ver abajo |
 
 ## Notas
@@ -34,8 +35,16 @@ solo Markdown: no traen scripts ni ejecutan nada.
 Llama a `grill-me` en vez de a `grilling`, fija el tracker en markdown local (`.scratch/`,
 versionado) y añade una sección *Repo overrides* que remite a `workflow/` para el glosario, las
 decisiones y el paso a specs. Volver a copiarla desde el origen borra esas adaptaciones: hay que
-reaplicarlas. `research`, `prototype` y `domain-modeling` no se copian; se usan desde el plugin
-`mattpocock-skills`, que tiene que estar instalado.
+reaplicarlas. `research`, `prototype` y `domain-modeling` no se copian porque no se han usado:
+los transcripts de Claude Code de este repo no registran ninguna invocación a 2026-09-23. Solo
+las nombra `wayfinder`, como `mattpocock-skills:<nombre>`, para resolver sus tickets; ejecutar
+`wayfinder` exige tener instalado el plugin `mattpocock-skills`.
+
+`writing-for-agents` es copia literal: `CLAUDE.md` obliga a cargarla antes de editar
+`CLAUDE.md`, `workflow/` o `.claude/`, y vendorizada esa regla funciona sin el plugin. Se copian
+`SKILL.md` y `SKILL-MECHANICS.md` más el `LICENSE` del repositorio de origen, que la MIT exige
+acompañar a la copia; como en `wayfinder`, se omite `agents/openai.yaml`, metadatos de interfaz
+para Codex que Claude Code no lee. Es solo Markdown.
 
 ### `sqlalchemy-sqlite` — decidida, no escrita
 
@@ -44,42 +53,40 @@ el 2026-09-21 que habrá una skill propia, y **se decidió no escribirla todaví
 
 **Por qué no ahora.** El esquema ya está redactado en `specs/001-base/design.md`, pero sin
 aprobar, y `backend/` aún no tiene código. Una skill que dicte cómo persistir, escrita antes de
-que se apruebe ese esquema, fija decisiones que nadie ha aprobado: es la deriva que `AGENTS.md`
+que se apruebe ese esquema, fija decisiones que nadie ha aprobado: es la deriva que `CLAUDE.md`
 prohíbe, solo que una capa más arriba. Se escribe cuando se apruebe ese esquema, no antes.
 
 **Qué será, cuando toque.** Una skill *del proyecto*, no de la librería — deliberadamente
 **no** una gemela de `fastapi`. Lo genérico de SQLAlchemy (sesiones, N+1, `select()` 2.0,
 Alembic) ya lo verifica `sqlalchemy-code-review`; repetirlo en modo imperativo sería duplicar.
-Cubrirá lo que ninguna skill genérica puede saber, que sale de `docs/architecture.md` §9.3 y
-§9.5:
+Cubrirá lo que ninguna skill genérica puede saber, que sale de `docs/architecture.md` §9.1 y
+§14.4:
 
-- **Concurrencia.** Un worker aparte escribe un punto de control por escena durante horas
-  mientras la API lee el estado del run. En SQLite por defecto eso es `database is locked`:
-  WAL, `busy_timeout` y un único escritor son decisiones, no detalles.
+- **Concurrencia.** El proceso de una ejecución escribe un punto de control por capítulo
+  mientras la API lee su estado. En SQLite por defecto eso es `database is locked`:
+  WAL, `busy_timeout` y un único escritor por novela son decisiones, no detalles.
 - **Async es medio espejismo.** SQLAlchemy async sobre `aiosqlite` funciona, pero SQLite no
-  tiene concurrencia de escritura real. Si el worker debe ser síncrono, es decisión de
-  arquitectura y va a `architecture.md`, no a la skill.
+  tiene concurrencia de escritura real. La arquitectura ya fija SQLAlchemy síncrono dentro
+  del worker (§14.4); la skill lo aplica, no lo decide.
 - **Afinidad de tipos.** SQLite no tiene JSON, UUID ni `datetime` con zona nativos. Un
-  `EstadoDelMundo` versionado por escena acaba casi seguro en columna JSON, y eso condiciona
+  `EstadoDelMundo` versionado por capítulo acaba casi seguro en columna JSON, y eso condiciona
   cómo se consulta.
 - **`PRAGMA foreign_keys=ON`** no está activo por defecto: hay que fijarlo por conexión o las
   claves ajenas son decorativas.
-- **Los nombres los manda `definitions.md`.** El esquema no puede inventar sinónimos de
-  `EstadoDelMundo`, `canon`, `outline` ni del resto de términos definidos.
-
-Nota: reutilizar canon entre ejecuciones (antes `docs/architecture.md` §10.4) ya está cerrada
-(§9.5, §11), y eso sí toca el esquema: son dos ficheros SQLite, uno por ejecución con el índice
-y otro compartido para la biblioteca de canon, sin índice ni vectores
-(`specs/001-base/design.md`, Persistencia).
+- **Append-only de verdad.** El audit log, las versiones publicadas y el índice solo admiten
+  inserciones (`architecture.md` §6.6, §9.3, §11.4): un trigger que rechace `UPDATE` y
+  `DELETE` lo hace comprobable.
+- **Los nombres los manda `definitions.md`.** El esquema usa la proyección de su §12 y no
+  inventa sinónimos de `EstadoDelMundo`, `Hecho`, `Version` ni del resto de términos.
 
 `feature-sliced-design` es la skill oficial de Feature-Sliced Design v2.1: enseña la jerarquía
 de capas (`app`, `pages`, `widgets`, `features`, `entities`, `shared`), las reglas de importación
 y dónde colocar cada pieza. Su sesgo declarado es *pages-first*: empezar con `app/`, `pages/` y
 `shared/`, y abrir `features/` o `entities/` solo cuando una responsabilidad compartida y estable
-lo justifique; `widgets/` está desaconsejada. Ese sesgo encaja con el frontend deliberadamente
-delgado de `docs/architecture.md` §9.4 — dos entradas, progreso, dos salidas —, pero la skill
-enseña FSD en general: la forma que adopta aquí la fija `architecture.md` §9.2 (`app`, `pages` y
-`shared`; `entities` y `features` diferidas; `widgets` descartada).
+lo justifique; `widgets/` está desaconsejada. Ese sesgo encaja con un frontend organizado por
+página —acceso, novelas, entrevista, progreso, lectura, cambio—, pero la skill enseña FSD en
+general: la forma que adopta aquí la fija `architecture.md` §14.2 (`app`, `pages` y `shared`;
+`entities` y `features` cuando aparezca reutilización real; `widgets` descartada).
 
 Es solo Markdown más un JSON: no trae scripts ni ejecuta nada. Se copia entera, incluida
 `evals/`, para que reactualizarla sea un `cp` desde el origen; esas evals no se pueden correr
@@ -103,7 +110,7 @@ divergen, la skill está desactualizada.
 | Candidata | Motivo del descarte |
 |---|---|
 | `SecureSkills-io/sqlite-skill` | **Rechazada por seguridad.** Ver abajo. |
-| `sqlite-vec` (`existential-birds/beagle`) | Ya no existe en el repo de origen. El proyecto sí usa `sqlite-vec` (`docs/architecture.md` §3.14): el descarte se sostiene solo por lo primero. |
+| `sqlite-vec` (`existential-birds/beagle`) | Ya no existe en el repo de origen. El proyecto sí usa `sqlite-vec` (`docs/architecture.md` §6.12): el descarte se sostiene solo por lo primero. |
 
 ### Por qué se rechaza `SecureSkills-io/sqlite-skill`
 
