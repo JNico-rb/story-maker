@@ -1,0 +1,89 @@
+# Lean verification of a novel's chronology: lean/README.md, ADR 0004.
+#
+# - push: builds the library with --wfail and checks that the positive example passes, that each
+#   negative example fails with its invariant and first witness, and that the axiom audit rejects
+#   a seeded `sorry` and a seeded axiom.
+# - workflow_dispatch: the backend sends a chronology JSON, gzip-compressed and base64-encoded, and
+#   reads the verdict from the artifact chronology-result (result.json).
+name: lean-verify
+
+on:
+  push:
+    paths:
+      - "lean/**"
+      - ".github/workflows/lean-verify.yml"
+  workflow_dispatch:
+    inputs:
+      chronology:
+        description: "Chronology JSON (lean/README.md), gzip-compressed and base64-encoded"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  library:
+    name: Library and examples
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Generator and verdict tests
+        working-directory: lean
+        run: python3 -m unittest discover -s scripts -p "test_*.py"
+
+      - name: Build the library with warnings as errors
+        uses: leanprover/lean-action@v1.6.0
+        with:
+          lake-package-directory: lean
+          auto-config: false
+          build: true
+          build-args: --wfail
+
+      - name: Positive passes, negatives fail with their invariant, seeds are rejected
+        working-directory: lean
+        run: python3 scripts/verify.py --examples examples
+
+  verify:
+    name: Verify a chronology
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Build the library with warnings as errors
+        uses: leanprover/lean-action@v1.6.0
+        with:
+          lake-package-directory: lean
+          auto-config: false
+          build: true
+          build-args: --wfail
+
+      - name: Verify the chronology
+        working-directory: lean
+        env:
+          CHRONOLOGY: ${{ inputs.chronology }}
+        run: python3 scripts/verify.py --encoded-env CHRONOLOGY --result result.json
+
+      - name: Record an error if the verification did not complete
+        if: failure()
+        working-directory: lean
+        run: |
+          test -f result.json || printf '%s\n' '{"version": 1, "status": "error", "invariant": null, "witness": null, "invariants": [], "error": "the verification did not complete: see the run log"}' > result.json
+
+      - name: Upload the result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chronology-result
+          path: lean/result.json
+          if-no-files-found: error
+          retention-days: 7
