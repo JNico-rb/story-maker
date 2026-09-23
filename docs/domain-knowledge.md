@@ -136,10 +136,10 @@ La entrevista detecta los datos incompatibles antes de generar nada. Las reglas 
 | C3 · ocasión ↔ edad | la ocasión es boda o aniversario y el destinatario es menor de 18, o es jubilación y es menor de 50 |
 | C4 · nacimiento ↔ edad | la fecha de nacimiento declarada no da la edad declarada en la fecha de creación de la novela |
 | C5 · recuerdo ↔ edad | un recuerdo tiene una edad mayor que la actual, o un año anterior al nacimiento o posterior al año presente |
-| C6 · prohibido ↔ obligatorio | una entrada prohibida de cualquiera de los tres niveles —global, cliente o novela— aparece en un elemento obligatorio o en la dedicatoria |
+| C6 · prohibido ↔ obligatorio | una entrada prohibida de cualquiera de los tres niveles —global, cliente o novela— aparece en un elemento obligatorio, en la dedicatoria o en un deseo de trama |
 | C7 · recuerdo ↔ nacimiento de un allegado | un allegado está presente en un recuerdo anterior a su nacimiento |
 
-C6 cuenta los tres niveles porque un elemento obligatorio que choca con cualquiera de las listas hace imposible la novela: tiene que aparecer y no puede aparecer. La dedicatoria entra por lo mismo: es el texto de la portada.
+C6 cuenta los tres niveles porque un elemento obligatorio que choca con cualquiera de las listas hace imposible la novela: tiene que aparecer y no puede aparecer. La dedicatoria entra por lo mismo: es el texto de la portada. Un deseo de trama entra aunque no sea obligatorio: pedir lo que el propio cliente prohíbe son dos intenciones incompatibles, y solo él decide cuál gana.
 
 C4, C5 y C7 se parecen a los invariantes de §5.3, pero no duplican a Lean: son validación de entrada del brief, anterior a toda cronología. Comparan datos que fija el cliente, y solo él puede corregirlos, porque los hechos del brief son inmutables para todos los roles.
 
@@ -151,6 +151,22 @@ El brief contiene datos personales de alguien que no es el cliente: nombre, edad
 
 - **Minimización.** Lo que sale del sistema hacia terceros —trazas, verificaciones remotas— no necesita los datos reales para cumplir su función, así que no los lleva.
 - **El texto libre no es una instrucción.** Una carta pegada puede contener, a propósito o no, frases dirigidas a quien la procese: «ignora lo anterior y…». Para la novela es material del que se extraen hechos, nunca una orden. Lo mismo vale para el texto de una petición de cambio.
+
+### 4.5 Deseos que no caben en el presente post-IA
+
+La novela se personaliza por completo: el cliente puede pedir la prehistoria, un castillo con dragones o una idea absurda. **Ningún deseo de trama se rechaza por su ambientación.** El que no cabe en el presente post-IA se reencauza con un **marco**: la historia sigue en su presente (§5.2), y el deseo ocurre dentro de una ficción que ese presente contiene.
+
+| Marco | El deseo ocurre… |
+|---|---|
+| Simulación | en un mundo simulado en el que un personaje entra y actúa |
+| Sueño | en lo que sueña un personaje |
+| Relato dentro del relato | en una historia que un personaje cuenta, lee o escribe |
+
+- **Un deseo que cabe tal cual va sin marco.** Una recreación hecha con IA —dinosaurios robóticos en un parque— tampoco es un marco: ocurre de verdad en el presente post-IA y es mundo como cualquier otro.
+- **El marco no cambia el mundo.** Lo que pasa dentro solo es verdad dentro: no entra en la cronología ni cambia hechos. Por eso T1–T6 (§5.3) siguen valiendo sin cambios: un sueño en el que el destinatario vuelve a tener ocho años, o en el que aparece alguien que ya murió, no viola T2 ni T4. La personalización sí cuenta dentro: un recuerdo que aparece en un sueño está en la novela.
+- **La novela empieza y termina en el presente post-IA**, fuera de todo marco. Un marco puede ocupar casi toda la trama, pero tiene entrada y salida en la página.
+- **El cliente fija el marco o lo deja libre**, y entonces es un hueco (§4.1). Si insiste en que la prehistoria sea «de verdad», el deseo queda libre y se enmarca igual: lo post-IA no se negocia, y no se bloquea nada por ello.
+- **De un deseo solo se rechaza lo prohibido** (C6, §4.3). Uno inadecuado para la edad del destinatario no se rechaza: se adapta a su franja.
 
 ---
 
@@ -173,6 +189,7 @@ El destinatario es real y la novela es post-IA. La regla que lo reconcilia es la
 - Un nacimiento es a las 00:00 de su fecha. Un cumpleaños del 29 de febrero cae el 1 de marzo en los años no bisiestos.
 - Cada recuerdo conserva su momento, fechado a mediodía por la edad o por el año que declare. «A los 8 años» es el día en que cumple 8, así que la edad en ese momento es exactamente la declarada. Un año declarado es su 1 de enero, o el día siguiente al nacimiento si es el año en que nació.
 - Un recuerdo puede ser anterior o posterior al novum. Si es anterior, el destinatario recuerda el mundo de antes.
+- Lo que pasa dentro de un marco (§4.5) no ocurre en el tiempo de la historia.
 
 ### 5.3 Invariantes de la cronología
 
@@ -203,7 +220,7 @@ Patrones saturados que aparecerán por defecto si nadie los controla:
 - Vigilancia total.
 - Dilema del tranvía algorítmico.
 
-**Un tropo no siempre es un defecto.** «IA que descubre el amor» es un cliché si aparece porque al modelo no se le ocurrió otra cosa, y una elección legítima si el cliente la pidió. La distinción depende de la intención declarada en el brief, no del tropo en sí: un tropo que el cliente pidió en los **deseos de trama** no es un defecto.
+**Un tropo no siempre es un defecto.** «IA que descubre el amor» es un cliché si aparece porque al modelo no se le ocurrió otra cosa, y una elección legítima si el cliente la pidió. La distinción depende de la intención declarada en el brief, no del tropo en sí: un tropo que el cliente pidió en los **deseos de trama** no es un defecto. Tampoco lo es el marco de un deseo (§4.5): se declara al entrar en él, así que no es el giro final de «todo era una simulación».
 
 Conviene separar dos orígenes del catálogo, que son los dos valores del origen de un `Tropo`:
 

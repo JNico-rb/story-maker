@@ -59,7 +59,7 @@ Objeto estructurado y validado con schema que resulta de la entrevista. Es el co
 
 - **Atributos:** destinatario, allegados, ocasión, recuerdos, género, tono, extensión, dedicatoria, entradas prohibidas, prohibidas preguntadas (sí/no), deseos de trama, textos libres con sus hechos, elementos personales, estado (borrador | confirmado).
 
-> Las entradas prohibidas son obligatorias de preguntar, aunque la lista puede quedar vacía si el cliente responde «ninguna». Los **deseos de trama** son una lista opcional de lo que el cliente quiere que ocurra, como «que salga un robot». Llegan al planner, y un tropo pedido en ellos no se penaliza (`CatalogoDeTropos`).
+> Las entradas prohibidas son obligatorias de preguntar, aunque la lista puede quedar vacía si el cliente responde «ninguna». Los **deseos de trama** son una lista opcional de `DeseoDeTrama`.
 >
 > Los datos faltantes, las contradicciones y los huecos no se guardan: se calculan en cada turno de la entrevista.
 >
@@ -75,7 +75,7 @@ Dato del brief que la novela incorpora: el nombre del destinatario, un rasgo, un
 
 ### Hueco
 
-Lo que el brief no fija y el sistema tiene que inventar: el novum, la trama, los personajes y lugares secundarios.
+Lo que el brief no fija y el sistema tiene que inventar: el novum, la trama, los personajes y lugares secundarios, y el marco de un deseo de trama que el cliente deja libre.
 
 > Un hueco es de un solo uso: en cuanto el sistema lo resuelve, el resultado entra en la story bible y deja de ser libre.
 
@@ -114,6 +114,22 @@ Intervalo de edad del destinatario: infantil (0–12), juvenil (13–17) o adult
 ### Dedicatoria
 
 Texto de la portada, dirigido al destinatario.
+
+### DeseoDeTrama
+
+Algo que el cliente quiere que ocurra en la novela, como «que salga un robot» o «una aventura en la prehistoria».
+
+- **Atributos:** enunciado, marco (opcional).
+
+> No es un elemento obligatorio: llega al planner como intención, y ningún validador comprueba que se cumpla. Un tropo pedido en un deseo no se penaliza (`CatalogoDeTropos`).
+>
+> Ningún deseo se rechaza por su ambientación (`domain-knowledge.md` §4.5). Sin marco, lo decide el planner: el deseo va tal cual si cabe en el presente post-IA, y si no, lo enmarca. Un deseo con una entrada prohibida es una contradicción (C6).
+
+### Marco
+
+Ficción dentro de la novela en la que ocurre un deseo de trama que no cabe en el presente post-IA. De un catálogo cerrado: simulación, sueño, relato dentro del relato (`domain-knowledge.md` §4.5).
+
+> Lo que pasa dentro de un marco no cambia el mundo: no tiene eventos ni cambia hechos (`Beat`). La novela empieza y termina fuera de todo marco.
 
 ### ListaProhibida
 
@@ -160,8 +176,11 @@ classDiagram
         extension
         dedicatoria
         prohibidas_preguntadas
-        deseos_de_trama
         estado
+    }
+    class DeseoDeTrama {
+        enunciado
+        marco
     }
     class Destinatario {
         nombre
@@ -216,6 +235,7 @@ classDiagram
     Brief "1" --> "*" ElementoPersonal : declara
     Brief "1" --> "*" Contradiccion : detecta
     Brief "1" --> "*" EntradaProhibida : prohibe
+    Brief "1" --> "*" DeseoDeTrama : pide
 ```
 
 ---
@@ -430,10 +450,10 @@ Párrafo de un capítulo de una versión: la unidad de la colección de prosa y 
 
 Suceso planificado dentro de un capítulo, en el que pasa o cambia algo. Es la unidad de cambio de estado y de cronología, pero no se genera por separado: el writer escribe el capítulo entero.
 
-- **Atributos:** número, descripción, evento, hechos que usa, revelación (tema y contenido, si revela algo).
+- **Atributos:** número, descripción, evento, hechos que usa, revelación (tema y contenido, si revela algo), marco (si ocurre dentro de uno).
 - **Relaciones:** `declara` y `registra` → DeltaDeEstado.
 
-> Su evento lleva todos los atributos de `Evento`.
+> Su evento lleva todos los atributos de `Evento`. Un beat **dentro de un marco** no tiene evento ni cambia hechos: de su delta solo cuentan los hechos que usa y los personajes y lugares que introduce, con su hecho de nombre.
 
 ### Arco
 
@@ -531,6 +551,7 @@ classDiagram
         numero
         descripcion
         revelacion
+        marco
     }
     class DeltaDeEstado {
         tipo
@@ -711,7 +732,9 @@ Función del sistema de generación que ejecuta un modelo. Cada rol trabaja en s
 
 Una sesión del Claude Agent SDK de un rol, con su ventana. No es la `Sesion` de Langfuse ni la sesión de autenticación, que es el `TokenDeAcceso`.
 
-- **Atributos:** rol, ejecución (vacía en la entrevista y en la interpretación de un cambio), evaluable e intento, ventana, tokens de entrada, de salida y de caché, coste, duración.
+- **Atributos:** rol, ejecución (vacía en la entrevista y en la interpretación de un cambio), evaluable e intento, ventana, tokens de entrada, de salida y de caché, coste, duración, desenlace.
+
+> El **desenlace** es cómo terminó la sesión, según el puerto de agente: completada, turnos agotados, tiempo agotado, cortada por quien la abrió o fallo de infraestructura.
 
 ### WorkspaceDelHarness
 
@@ -744,7 +767,7 @@ Piezas del harness que son código, sin modelo:
 - **Detector de inyección** — marca por patrones las frases dirigidas al sistema en un texto no confiable. No deniega.
 - **Worker** — el proceso del sistema operativo que ejecuta la ejecución activa.
 - **Cola** — las ejecuciones `created`, en orden de llegada y comunes a todo el servidor.
-- **CLI** — la línea de órdenes del backend: reproduce el brief de ejemplo, lanza las evals, sube los prompts a Langfuse y mueve su etiqueta.
+- **CLI** — la línea de órdenes del backend: reproduce el brief de ejemplo, importa un brief, lanza las evals, sube los prompts a Langfuse y mueve su etiqueta; y, para operar el servidor, migra la base, lo arranca, exporta el esquema OpenAPI, comprueba el entorno y lanza la mutación.
 
 ### Ejecucion
 
@@ -778,7 +801,7 @@ Cambio del texto de un capítulo que hace a mano el cliente, o un editor humano 
 
 ### Presupuesto
 
-Techo en dinero, en USD, de cada ejecución y de cada entrevista (`config.operation.budget`). El coste de una sesión de rol es su uso exacto de tokens por el precio de su modelo en `operation.pricing`.
+Techo en dinero, en USD, de cada ejecución, de cada entrevista y de cada importación de un brief (`config.operation.budget`). El coste de una sesión de rol es su uso exacto de tokens por el precio de su modelo en `operation.pricing`.
 
 ---
 
@@ -800,7 +823,7 @@ Predicado evaluable.
 
 - **Atributos:** identificador, dimensión, niveles (capítulo, novela o los dos), método (determinista | modelo | humano | formal), umbral, bloqueante (sí/no), acción requerida (corregir | regenerar | volver a registrar | bloquear), origen (encargo | brief | catálogo), parámetros, rúbrica si lo juzga un modelo o una persona.
 
-> El identificador de un criterio es único en todo el catálogo. Un criterio puede implementarlo más de un validador, y entonces comparte su umbral. Un criterio de los dos niveles tiene un solo identificador y un solo umbral. La **dimensión** es una etiqueta del catálogo, no un enumerado. Los criterios de los validadores de entrada —el brief, el texto libre, la salida de una tool— no tienen nivel. Cada métrica de un linter es un criterio determinista con su identificador. El tema prohibido es un criterio fijo que recibe los temas del brief como parámetro.
+> El identificador de un criterio es único en todo el catálogo. Un criterio puede implementarlo más de un validador, y entonces comparte su umbral. Un criterio de los dos niveles tiene un solo identificador y un solo umbral. La **dimensión** es una etiqueta del catálogo, no un enumerado. Los criterios de los validadores de entrada —el brief, el texto libre, la salida de una tool— y el de `inyeccion-detectada` no tienen nivel ni acción requerida: su resultado no pasa por el veredicto. Cada métrica de un linter es un criterio determinista con su identificador. El tema prohibido es un criterio fijo que recibe los temas del brief como parámetro.
 
 ### CatalogoDeCriterios
 
@@ -969,7 +992,7 @@ Prompt de sistema de un rol. Es un fichero del workspace del harness. Un comando
 
 ### Mascara
 
-Función que sustituye por etiquetas los datos personales antes de enviar nada a Langfuse. Es de cada novela: cubre los datos personales de su brief y los hechos de origen brief de todas sus versiones.
+Función que sustituye por etiquetas los datos personales antes de enviar nada a Langfuse. Es de cada novela: cubre los datos personales de su brief —también sus entradas prohibidas y sus hechos extraídos— y los hechos de origen brief o texto libre de todas sus versiones.
 
 ---
 
@@ -979,7 +1002,7 @@ Función que sustituye por etiquetas los datos personales antes de enviar nada a
 
 Fichero Lean generado desde una cronología de una versión, con las fechas de nacimiento y la fecha del novum. Va **seudonimizado**:
 
-- los identificadores son los de las filas de SQLite, sin nombres, así que no hace falta una tabla de seudónimos;
+- los identificadores son los de las filas de SQLite, sin nombres, así que no hace falta una tabla de seudónimos; los eventos de un outline propuesto, que aún no tienen fila, llevan el id que les da la propuesta;
 - las fechas son de calendario —año, mes, día, hora y minuto— con el año desplazado un múltiplo de 400, que conserva los años bisiestos.
 
 Se guarda con su resultado y su testigo.
@@ -1043,7 +1066,7 @@ config
   - `max_verifier_seconds`: tiempo máximo de una verificación del `VerificadorFormal`.
   - `max_resumes`: reanudaciones máximas de una ejecución.
   - `max_tool_output`: cota de la salida de una tool, que entra en la reserva de turnos.
-  - `budget`: techo en USD de cada ejecución y de cada entrevista.
+  - `budget`: techo en USD de cada ejecución, de cada entrevista y de cada importación de un brief.
   - `window_ceiling`: techo de tokens **de entrada** de una ejecución, que se reparten sus sesiones en vuelo; una sesión que no pertenece a una ejecución lo respeta ella sola. Al arrancar se valida que no pase de 100.000.
   - `count_drift_threshold`: proporción de divergencia tolerada entre el conteo propio y el del proveedor.
   - `max_mandatory_elements`: elementos obligatorios admitidos en un brief.
@@ -1063,7 +1086,7 @@ Lo que depende de la máquina y no de la política no es config: son **ajustes d
 | Directorio de datos | `STORY_MAKER_DATA_DIR` |
 | Ruta de `config.json` | `STORY_MAKER_CONFIG` |
 | Modo del `VerificadorFormal` (`local` o `github`) | `FORMAL_VERIFIER` |
-| Secreto del JWT | `JWT_SECRET` |
+| Secreto del JWT, de 32 caracteres o más | `JWT_SECRET` |
 | Repositorio, workflow y token de Lean en GitHub Actions | `GITHUB_REPOSITORY`, `LEAN_WORKFLOW`, `GITHUB_TOKEN` |
 | Etiqueta de los prompts en Langfuse | `LANGFUSE_PROMPT_LABEL` |
 | Credenciales de Langfuse | `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_BASE_URL` |
@@ -1075,7 +1098,7 @@ El backend traduce la clave de OpenRouter al entorno del Agent SDK: `ANTHROPIC_B
 
 ## 12. Proyección a identificadores
 
-El código, las tablas, la API, el servidor MCP y los ficheros JSON van en inglés; la documentación, los prompts y la interfaz, en español. Esta tabla no introduce sinónimos: declara la proyección de cada término a su identificador, y fuera de ella no se traduce nada por cuenta propia.
+El código, las tablas, la API, el servidor MCP y los ficheros JSON van en inglés; la documentación, los prompts y la interfaz, en español. Esta tabla no introduce sinónimos: declara la proyección de cada término a su identificador, y fuera de ella no se traduce nada por cuenta propia. La de los atributos a columnas es el esquema por columna de `specs/001-base/design.md` §4, que parte de estos identificadores y de estos enumerados.
 
 | Término | Identificador | Término | Identificador |
 |---|---|---|---|
@@ -1089,6 +1112,7 @@ El código, las tablas, la API, el servidor MCP y los ficheros JSON van en ingl�
 | `Extension` | `length` | `FranjaDeEdad` | `age_band` |
 | `Dedicatoria` | `dedication` | `ListaProhibida` | `banned_list` |
 | `EntradaProhibida` | `banned_term` | `Entrevista` | `interview` |
+| `DeseoDeTrama` | `plot_wish` | `Marco` | `frame` |
 | `StoryBible` | `story_bible` | `Mundo` | `world` |
 | `Novum` | `novum` | `Consecuencia` | `consequence` |
 | `Restriccion` | `constraint` | `Personaje` | `character` |
@@ -1133,7 +1157,7 @@ El código, las tablas, la API, el servidor MCP y los ficheros JSON van en ingl�
 
 **Roles:** entrevistador `interviewer`, extractor `extractor`, planner `planner`, writer `writer`, crítico `critic`, editor `editor`, registrador `recorder`, juez `judge`, revisor visual `visual_reviewer`. **Consumidores:** los mismos identificadores, más linter de repetición `repetition_linter`. **Colecciones:** CanonCards `canon_cards`, Prosa `prose`. **Componentes de código:** orquestador `orchestrator`, guardián de ventana `window_guard`, recuperador `retriever`, detector de inyección `injection_detector`, worker `worker`, cola `run_queue`, CLI `cli`. **Tramo** de una ejecución: `run_segment`. **Tools:** las de los roles y las del servidor MCP son identificadores de código; las nombran `architecture.md` §7.2 y §13.2. **Páginas del frontend:** acceso `login`, mis novelas `novels`, entrevista `interview`, progreso `progress`, lectura `reader`, estado de un cambio `change`, vista previa `preview`, ruta de impresión `print`. **Campos de una solicitud de cambio:** selección `selection`, petición `request`, propuesta `proposal`. **Ajustes del servidor:** `settings`, con las variables de §11.
 
-**Excepción declarada: las etiquetas de Langfuse.** Los nombres de validador, de criterio, de span y de prompt se ven en Langfuse, así que son etiquetas en español, en ASCII y en kebab-case: `palabras-prohibidas`, `capitulo-3`. La etiqueta de un rol es su nombre sin acentos (`critico`, `registrador`, `revisor-visual`). Lo que una etiqueta nombra por dentro conserva su identificador: `tool:submit_chapter`. Los nombres de validador están en `architecture.md` §10.2, los de criterio en §10.3, y los de span y prompt en §12.
+**Excepción declarada: las etiquetas de Langfuse.** Los nombres de validador, de criterio, de traza, de span y de prompt se ven en Langfuse, así que son etiquetas en español, en ASCII y en kebab-case: `palabras-prohibidas`, `capitulo-3`. La etiqueta de un rol es su nombre sin acentos (`critico`, `registrador`, `revisor-visual`). Lo que una etiqueta nombra por dentro conserva su identificador: `tool:submit_chapter`. Los nombres de validador están en `architecture.md` §10.2, los de criterio en §10.3, y los de span y prompt en §12.
 
 **Valores de los enumerados**, en el orden en que los define este documento:
 
@@ -1144,6 +1168,7 @@ El código, las tablas, la API, el servidor MCP y los ficheros JSON van en ingl�
 | Tono | `tender`, `funny`, `exciting`, `nostalgic`, `epic`, `unsettling` |
 | Extension | `short`, `medium`, `long` |
 | FranjaDeEdad | `children`, `teen`, `adult` |
+| Marco | `simulation`, `dream`, `story_within_story` |
 | Nivel de ListaProhibida | `global`, `user`, `novel` |
 | Tipo de EntradaProhibida | `word`, `topic` |
 | Origen de ElementoPersonal | `brief_field`, `extracted_fact` |
@@ -1189,3 +1214,6 @@ El código, las tablas, la API, el servidor MCP y los ficheros JSON van en ingl�
 | Origen de DecisionDePolitica | `policy_hook`, `free_text`, `change_request`, `manual_edit`, `publication_gate`, `mcp_write` |
 | Decisión de política | `allow`, `deny`, `flag` |
 | Modo del VerificadorFormal | `local`, `github` |
+| Desenlace de SesionDeRol | `completed`, `turns_exhausted`, `time_exhausted`, `cut`, `infrastructure_failure` |
+| Cronología que verifica un FicheroDeCronologia | `planned`, `recorded` |
+| Entidad proyectada de una CanonCard | `character`, `place`, `consequence`, `constraint`, `novum` |

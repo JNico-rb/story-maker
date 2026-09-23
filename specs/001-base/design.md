@@ -134,7 +134,7 @@ En el portátil, `LongPathsEnabled = 0` y Python no abre rutas de más de 260 ca
 ### 4.1 Convenciones
 
 - **Nombres:** tablas en plural con el identificador de `definitions.md` §12, salvo los incontables (`traceability`, `audit_log`); columnas en inglés, en `snake_case`. Las tablas de unión nombran sus dos lados. Este esquema es la proyección de los atributos de `definitions.md` a columnas, como declara su §12.
-- **Claves:** `id INTEGER PRIMARY KEY`. Son los identificadores que usa el `FicheroDeCronologia` (009).
+- **Claves:** en las tablas de ámbito versión, `PRIMARY KEY (version_id, id)`. Una candidata copia las filas de la vigente con sus mismos ids (014), así que un personaje, un hecho o un evento tienen el mismo id en todas las versiones de su novela, y un `{hecho}` seleccionado en una versión es el mismo id en la candidata. Una fila nueva toma un id que no usa ninguna versión de esa tabla: el mayor más uno. Dentro de una versión, las claves ajenas son compuestas, `(version_id, <x>_id)`. En el resto de tablas, `id INTEGER PRIMARY KEY`. Los ids de las filas son los identificadores que usa el `FicheroDeCronologia` (009).
 - **Momentos del sistema:** `TEXT` en ISO 8601 UTC (`2026-09-23T17:30:00Z`).
 - **Momentos de la ficción:** `TEXT` `YYYY-MM-DDTHH:MM`; fechas de nacimiento, `YYYY-MM-DD`, y el nacimiento es a las 00:00.
 - **Booleanos:** `INTEGER` con `CHECK (col IN (0, 1))`.
@@ -301,7 +301,7 @@ La ejecución de una solicitud es la de `runs.change_request_id`; su versión re
 
 ### 4.3 Una versión: story bible, artefacto e índice
 
-Todas estas tablas, salvo `versions` y `embeddings`, son de ámbito versión: llevan `version_id` (FK `versions`, no nulo), o la heredan de su tabla padre —`outline_chapters`, `beats`, `arcs`, `element_assignments` y las tablas de unión—, y una candidata las copia de la vigente en una sola transacción (014).
+Todas estas tablas, salvo `versions` y `embeddings`, son de ámbito versión: llevan `version_id` (FK `versions`, no nulo), también las hijas —`outline_chapters`, `beats`, `arcs`, `element_assignments`— y las de unión, y su clave es `(version_id, id)`, o `(version_id, <lado_1>_id, <lado_2>_id)` en las de unión. Una candidata las copia de la vigente en una sola transacción (014): cada tabla con un `INSERT … SELECT` que solo cambia `version_id`, sin remapear ninguna clave ajena.
 
 **`versions`** · ámbito novela
 
@@ -473,7 +473,7 @@ Uniones: **`event_characters`** (`event_id`, `character_id`), los personajes pre
 
 | Columna | Tipo | Nulo | Notas |
 |---|---|---|---|
-| `id` | INTEGER | no | Es el `rowid` de su fila en `canon_cards_fts` |
+| `id` | INTEGER | no | Estable entre versiones, como el resto de ids de ámbito versión |
 | `version_id` | INTEGER | no | |
 | `entity_type` | TEXT | no | `character`, `place`, `consequence`, `constraint`, `novum` |
 | `entity_id` | INTEGER | no | |
@@ -484,9 +484,9 @@ Uniones: **`event_characters`** (`event_id`, `character_id`), los personajes pre
 
 `hasta_capitulo` no se guarda: es el `since_chapter` de la tarjeta sucesora de la misma `(entity_type, entity_id)` en la versión.
 
-**`canon_cards_fts`**: tabla virtual FTS5 `(content, version_id UNINDEXED)` con `tokenize = 'unicode61 remove_diacritics 2'`; su `rowid` es el `id` de la tarjeta.
+**`canon_cards_fts`**: tabla virtual FTS5 `(content, version_id UNINDEXED, card_id UNINDEXED)` con `tokenize = 'unicode61 remove_diacritics 2'`. Tiene su propio `rowid`, porque el id de una tarjeta se repite entre versiones; la fila de la tarjeta es la de `(version_id, card_id)`.
 
-**`paragraphs_fts`**: tabla virtual FTS5 `(text, version_id UNINDEXED, chapter_number UNINDEXED)` con el mismo tokenizador; su `rowid` es el `id` del párrafo. La prosa no tiene vectores.
+**`paragraphs_fts`**: tabla virtual FTS5 `(text, version_id UNINDEXED, paragraph_id UNINDEXED, chapter_number UNINDEXED)` con el mismo tokenizador y su propio `rowid`. La prosa no tiene vectores.
 
 **`embeddings`** · ámbito global, solo inserción
 
@@ -553,6 +553,7 @@ La candidata de una ejecución es la versión con su `run_id`. La posición en l
 | `version_id` | INTEGER | no | FK `versions` |
 | `chronology` | TEXT | no | `planned`, `recorded` |
 | `content` | TEXT | no | El fichero Lean, seudonimizado |
+| `year_offset` | INTEGER | no | Desplazamiento de los años: un múltiplo de 400 distinto de cero (009) |
 | `verifier_mode` | TEXT | no | `local`, `github` |
 | `passed` | INTEGER | no | |
 | `result` | TEXT | no | JSON del comprobador: el invariante violado y su primer testigo |

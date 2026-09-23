@@ -107,7 +107,7 @@ graph TD
 
 ### 3.1 Dos roles, porque solo uno ve texto no confiable
 
-- **El entrevistador** conversa con el cliente y rellena el brief con tools. Pregunta por los datos que faltan, plantea las contradicciones y propone una dedicatoria si el cliente no la trae. Pregunta siempre por las entradas prohibidas, aunque la respuesta sea «ninguna», y anota los deseos de trama si el cliente los trae. **Nunca recibe un texto libre**: solo los hechos que se extrajeron de él y quedaron verificados.
+- **El entrevistador** conversa con el cliente y rellena el brief con tools. Pregunta por los datos que faltan, plantea las contradicciones y propone una dedicatoria si el cliente no la trae: con `propose_dedication`, la propuesta sale en la respuesta del turno, y solo entra en el brief cuando el cliente la acepta y el entrevistador la registra con `update_brief`. Pregunta siempre por las entradas prohibidas, aunque la respuesta sea «ninguna», y anota los deseos de trama si el cliente los trae. No rechaza ninguno por su ambientación: al que no cabe en el presente post-IA le propone un `Marco`, y el cliente fija uno o lo deja libre para el planner; si insiste en que sea real, queda libre (`domain-knowledge.md` §4.5). **Nunca recibe un texto libre**: solo los hechos que se extrajeron de él y quedaron verificados.
 - **El extractor** recibe un texto libre como dato y su única tool es entregar hechos: sujeto, atributo, valor y cita. No tiene ninguna tool con efecto.
 
 Es separación de privilegios. El único rol expuesto al texto no confiable no puede hacer nada con él salvo proponer hechos, y el código los verifica antes de que nadie más los vea (§3.3).
@@ -118,7 +118,7 @@ El modelo conversa; el código decide si el brief es válido. Cuatro comprobacio
 
 1. **Schema.** El brief cumple su modelo de datos.
 2. **Datos faltantes.** Son obligatorios el nombre, la edad, al menos un rasgo, al menos un recuerdo, la ocasión, el género, el tono, la extensión, la dedicatoria y haber preguntado por las entradas prohibidas; la lista puede quedar vacía si el cliente responde «ninguna». La fecha de nacimiento, los allegados, los deseos de trama y los textos libres son opcionales.
-3. **Contradicciones.** Las reglas C1–C7 de `domain-knowledge.md` §4.3. C6 cruza las tres listas prohibidas con los elementos obligatorios y con la dedicatoria.
+3. **Contradicciones.** Las reglas C1–C7 de `domain-knowledge.md` §4.3. C6 cruza las tres listas prohibidas con los elementos obligatorios, con la dedicatoria y con los deseos de trama.
 4. **Cota de elementos obligatorios.** Como mucho `max_mandatory_elements`, cifra sin calibrar (§15.2). Si el cliente marca más, el error lo dice y le pide que priorice. Es «bloquear, nunca degradar» aplicado al alcance: sin cota, un brief con cuarenta recuerdos obligatorios agota los reintentos de todos los capítulos.
 
 **El brief solo se confirma sin datos faltantes ni contradicciones.** Confirmado, es inmutable (`definitions.md` §1).
@@ -138,15 +138,16 @@ El texto libre no vuelve a salir de ahí: **ningún otro rol lo recibe literal**
 Un brief también se puede cargar directamente como JSON, con el mismo schema. Es la vía del brief de ejemplo reproducible, que carga la CLI (§14.2), y de los briefs de evaluación. Solo entra por la API y la CLI: la interfaz web no tiene pantalla de subida, y el cliente siempre pasa por la entrevista. Pasa por las mismas comprobaciones de §3.2 y sus textos libres, por el mismo extractor.
 
 - Los hechos verificados se aceptan sin intervención, porque no hay cliente en el bucle, y ninguno es obligatorio: nadie los marcó.
-- Una contradicción o un dato faltante devuelven error sin crear nada.
+- El brief se valida antes de extraer nada, porque ninguna comprobación de §3.2 depende de hechos que nadie marcó obligatorios. Una contradicción o un dato faltante devuelven error sin crear nada y sin abrir ninguna sesión.
+- Si la extracción falla después, tampoco queda nada en SQLite; la traza de la importación queda en Langfuse sin sesión de novela.
 - Si pasa, el brief queda confirmado al importarse.
-- La importación tiene su propia traza (§12.1).
+- La importación tiene su propia traza (§12.1) y su techo en dinero, `budget`, como una entrevista (§11.5).
 
 ### 3.5 La entrevista corre en la API
 
 El entrevistador corre en el proceso de la API, no en el worker: la entrevista no es una ejecución.
 
-- **Una sesión de rol por turno HTTP.** Cada mensaje del cliente abre una sesión nueva, que recibe el historial guardado de la entrevista y el brief en curso. El turno —la respuesta y los cambios del brief— solo se guarda si la sesión termina bien.
+- **Una sesión de rol por turno HTTP.** Cada mensaje del cliente abre una sesión nueva, que recibe el historial guardado de la entrevista y el brief en curso. El turno —la respuesta y los cambios del brief— solo se guarda si la sesión termina bien. La sesión de rol, con su uso y su coste, se guarda siempre que se abrió, porque el presupuesto la cuenta (§11.5).
 - **Fallos.** Si el proveedor falla o la sesión agota un límite, el turno responde 503 y no se guarda: el cliente lo repite.
 - **Texto libre.** El extractor también corre en la API, una sesión por texto libre. Si el texto no cabe en su ventana, responde 422.
 - **Techo de ventana.** Cada sesión de la entrevista lo respeta ella sola (§6.10).
@@ -186,7 +187,7 @@ El planner recibe el brief confirmado, sin textos libres y con sus deseos de tra
 
 **El mundo se valida al entregarse.** El validador `grafo-causal` comprueba `submit_world` en el acto: toda consecuencia alcanzable desde el novum, orden ≤ 3 y novum anterior al año presente (§10.2). Si falla, se replanifica (§5.2).
 
-**Los deseos de trama** llegan al planner como intención del cliente. Un tropo pedido en ellos no es un cliché que evitar, y ni el crítico ni el juez lo penalizan (§10.3). No son elementos obligatorios: ningún validador comprueba que se cumplan.
+**Los deseos de trama** llegan al planner como intención del cliente. Un tropo pedido en ellos no es un cliché que evitar, y ni el crítico ni el juez lo penalizan (§10.3). No son elementos obligatorios: ningún validador comprueba que se cumplan. Un deseo con marco se planifica dentro de ese marco. Uno sin marco va tal cual si cabe en el presente post-IA; si no, el planner lo enmarca con uno del catálogo. En el outline, cada beat que ocurre dentro de un marco lleva el suyo (§5.1).
 
 Se descarta la selección entre N candidatos de novum puntuados por un selector: en una novela de regalo el mundo es el escenario, no el tema. El riesgo de cliché que asumía el selector lo recoge el criterio `no-cliche` de la rúbrica (§10.3) y queda escrito en `verification.md` §6.
 
@@ -196,6 +197,8 @@ Todo `Evento` tiene momento, personajes presentes y lugar:
 
 - los recuerdos, de origen brief, y los antecedentes del planner, planificados sin beat, forman el trasfondo;
 - los eventos de los beats forman la trama. Los que no son analepsis ocurren en el año presente. Un beat analéptico que cuenta un evento de trasfondo lo referencia como evento que narra, en vez de duplicarlo.
+
+**Un beat dentro de un marco no cambia el mundo** (`domain-knowledge.md` §4.5): no tiene evento, y de su delta, declarado o real, el código descarta los eventos y los cambios de hechos. Conserva los hechos que usa, que cuentan para `elementos-obligatorios`, y los personajes y lugares que introduce, con su hecho de nombre, que entran en la ficha. Así la cronología no contiene nada de dentro de un marco, y T1–T6 se verifican sin cambios.
 
 Todos viven en la tabla de cronología de SQLite, con su origen: brief, planificado o registrado. Los nacimientos no son eventos, sino la fecha de nacimiento de cada personaje, y la fecha del novum va aparte.
 
@@ -214,7 +217,7 @@ Lean verifica dos cronologías (§10.5), las dos completadas con las fechas de n
 
 El outline tiene **10 capítulos**, cada uno con título, función en el arco, tensión planificada de entrada y de salida, de 1 a 5, y **3 a 6 beats**. Cada beat declara:
 
-- su evento, con todos los atributos de `Evento` (`definitions.md` §2);
+- su evento, con todos los atributos de `Evento` (`definitions.md` §2), o, si ocurre dentro de un marco, su marco y ningún evento (§4.3);
 - los hechos que usa;
 - si revela algo, la revelación: su tema y su contenido.
 
@@ -224,7 +227,7 @@ El outline declara además los arcos, con su capítulo de planteamiento y de res
 
 Antes de congelar el outline pasan dos validadores (§10.2), sobre el outline propuesto y antes de escribir nada:
 
-- **`outline`**, determinista: exactamente 10 capítulos, de 3 a 6 beats cada uno; todo elemento obligatorio asignado al menos a un capítulo; todo arco con capítulo de resolución.
+- **`outline`**, determinista: exactamente 10 capítulos, de 3 a 6 beats cada uno; todo elemento obligatorio asignado al menos a un capítulo; todo arco con capítulo de resolución; el primer beat del capítulo 1 y el último del 10, fuera de todo marco, para que la novela empiece y termine en el presente post-IA.
 - **`cronologia-lean`**, sobre la cronología *planificada* (§4.3). El generador del fichero recibe una lista de eventos y no lee la tabla, así que verifica el outline propuesto antes de guardarlo. Un error temporal del plan se detecta antes de escribir diez capítulos sobre él.
 
 Si alguno falla, o si falla `grafo-causal` al entregar el mundo (§4.2), se replanifica: se abre una sesión nueva del planner, con los defectos como realimentación. Cada planificación es un intento del evaluable outline (§7.6); agotado el límite, la ejecución se bloquea. Superados los tres, el outline se congela con el canon inicial, y ese es el punto de control del capítulo 0 (§9.2).
@@ -443,8 +446,8 @@ La columna «Fase» usa las fases de una ejecución (§9.1).
 
 | Rol | Fase | Recibe | Tools | Produce |
 |---|---|---|---|---|
-| **entrevistador** | Entrevista, fuera de una ejecución | Historial guardado de la entrevista, brief en curso, hechos verificados, datos faltantes y contradicciones calculados | `update_brief`, `propose_dedication` | El brief en borrador, con sus deseos de trama |
-| **extractor** | Entrevista, fuera de una ejecución | Un texto libre, como dato | `submit_facts` | Hechos con sujeto, atributo, valor y cita |
+| **entrevistador** | Entrevista, fuera de una ejecución | Historial guardado de la entrevista, brief en curso, hechos verificados y las cuatro comprobaciones de §3.2 calculadas: errores de schema, datos faltantes, contradicciones y cota | `update_brief`, `propose_dedication` | El brief en borrador, con sus deseos de trama |
+| **extractor** | Entrevista, fuera de una ejecución | Un texto libre, como dato | `submit_facts` | Hechos con sujeto, atributo, valor y cita, y las instrucciones descartadas |
 | **planner** | `planning`; la interpretación de un cambio, fuera de una ejecución | Brief confirmado sin textos libres, con sus deseos de trama; story bible inicial; `CatalogoDeTropos`. Para un cambio: la petición, la selección y la story bible de la versión vigente | `submit_world`, `submit_cast`, `submit_outline`, `submit_style_sheet`; `propose_change` | Mundo con sus antecedentes, personajes, lugares, outline, StyleSheet; la propuesta de un cambio |
 | **writer** | `chapter_production`; `editing` y `propagation`, en la regeneración de respaldo; `publication`, si un defecto del gate pide regenerar | Su ventana (§6.4) y el objetivo de palabras de su extensión | `submit_chapter` | Texto del capítulo y delta declarado por beat |
 | **crítico** | `chapter_production` | Su ventana, con el capítulo y la rúbrica de capítulo | `submit_evaluation` | Puntuación y justificación por criterio, tensión medida y defectos tipados |
@@ -491,7 +494,7 @@ Los dos hooks del encargo son hooks del SDK, registrados como funciones de Pytho
 
 **Qué escanea la policy.** Solo los campos de texto narrativo: el capítulo, la corrección, la edición, el mundo, el reparto, el outline, los títulos y la dedicatoria. Nunca los campos que son listas de prohibidas —las entradas que registra `update_brief` o el léxico a evitar de la StyleSheet—, porque contienen esos términos a propósito.
 
-**Spans de tool** (§12.1). Las tools en proceso abren y cierran el suyo en su manejador. Las de Playwright MCP no tienen manejador propio: su span va del hook de policy a un tercer hook, un `PostToolUse` de observabilidad. Una denegación no abre span: se registra como evento de la traza.
+**Spans de tool** (§12.1). Las tools en proceso abren y cierran el suyo en su manejador. Las de Playwright MCP y `Skill` no tienen manejador propio: su span va del hook de policy a un tercer hook, un `PostToolUse` de observabilidad. Una denegación no abre span: se registra como evento de la traza.
 
 Cada entrega de texto, denegada, bloqueada o aceptada, cuenta como un intento de su evaluable: del capítulo, al producirlo o al editarlo por un cambio o una propagación. En el gate las correcciones no cuentan por capítulo: el intento es el ciclo del gate entero (§9.4).
 
@@ -503,7 +506,7 @@ Cinco límites, todos en `config.operation`, y ninguno con valor inventado (§15
 |---|---|---|
 | `max_retries` | Intentos por evaluable (`definitions.md` §6): las entregas de un capítulo, la regeneración de respaldo, las planificaciones, cada ciclo del gate y las interpretaciones de un cambio | La ejecución se bloquea con `intentos agotados` y el informe lo dice. La interpretación de un cambio no es una ejecución: su solicitud queda `rejected` (§9.5) |
 | `roles.<rol>.max_turns` | Turnos de una sesión, que acotan los reintentos por schema | La sesión termina; cuenta como intento fallido |
-| `max_agent_seconds` | Duración de una sesión | El orquestador la interrumpe con `ClaudeSDKClient.interrupt()` y cierra su subproceso con `disconnect()`, que `interrupt()` deja vivo; cuenta como intento fallido |
+| `max_agent_seconds` | Duración de una sesión | El puerto de agente la interrumpe con `ClaudeSDKClient.interrupt()` y cierra su subproceso con `disconnect()`, que `interrupt()` deja vivo; cuenta como intento fallido |
 | `max_verifier_seconds` | Duración de una verificación del `VerificadorFormal` | La ejecución pasa a `interrupted` (§10.5) |
 | `max_resumes` | Reanudaciones de una ejecución | Reanudar responde 409, y solo queda cancelar (§9.2) |
 
@@ -514,7 +517,7 @@ Cinco límites, todos en `config.operation`, y ninguno con valor inventado (§15
 - **Cuentan como intento fallido** una salida inválida, los turnos agotados, el tiempo agotado, una denegación de policy y un bloqueo del hook de validación.
 - **Un error de transporte o del proveedor**, agotados los reintentos del propio SDK, no es un intento: es infraestructura, y la ejecución pasa a `interrupted` (§9.1).
 
-**Ningún bucle del harness es ilimitado**, y es lo que permite demostrar la terminación en TLA+ (§10.6). `max_turns` lo aplica el SDK. `max_agent_seconds` lo aplica el orquestador, porque el SDK no tiene tiempo máximo por sesión.
+**Ningún bucle del harness es ilimitado**, y es lo que permite demostrar la terminación en TLA+ (§10.6). `max_turns` lo aplica el SDK. `max_agent_seconds` lo aplica el puerto de agente, con el tiempo que le pasa quien abre la sesión —el orquestador o la API—, porque el SDK no tiene tiempo máximo por sesión.
 
 ### 7.7 Reglas de interacción
 
@@ -574,7 +577,7 @@ El veredicto lo agrega el código a partir de los defectos, por evaluable. Cada 
 
 ### 8.3 Registro y aceptación
 
-1. El registrador extrae el **delta real** de cada beat del texto aceptado: eventos, con todos sus atributos; hechos usados; hechos nuevos inventados en la prosa, con sus personajes y lugares nuevos; y arcos que el capítulo resuelve. Escribe además el resumen del capítulo.
+1. El registrador extrae el **delta real** de cada beat del texto aceptado: eventos, con todos sus atributos; hechos usados; hechos nuevos inventados en la prosa, con sus personajes y lugares nuevos; y arcos que el capítulo resuelve. Escribe además el resumen del capítulo. De un beat dentro de un marco, el código se queda solo con lo que §4.3 conserva.
 2. El código pasa siempre el validador `delta-real`, que aplica sobre el delta real los predicados de `delta-declarado`. Es la única comprobación de delta de las salidas del editor, que no declaran uno: `delta-declarado` solo se aplica a `submit_chapter`. Si `delta-real` falla, sus defectos se enrutan por su acción, como cualquier otro (§8.2), y cuentan como intento. En un cambio o una propagación, regenerar es la regeneración de respaldo.
 3. Si es conforme, el código aplica en **una sola transacción** (invariante 5):
    - el capítulo, con su huella, su resumen y su tensión medida;
@@ -627,7 +630,7 @@ stateDiagram-v2
 
 **Una sola ejecución activa en todo el servidor.** Las demás esperan en la **cola**, en orden de llegada, sean de la novela que sean. Así las novelas se generan de una en una, y el techo de ventana de la ejecución activa vale para toda la generación; las sesiones de la API, fuera de una ejecución, respetan el suyo aparte (§6.10).
 
-- **Quién la lanza.** Cada ejecución corre en su propio proceso del sistema operativo, el worker. Cuando su ejecución sale de `running`, el worker lanza la siguiente de la cola y termina. Si no hay ninguna activa, la lanza la API: al encolar, y al pasar una caída a `interrupted`.
+- **Quién la lanza.** Cada ejecución corre en su propio proceso del sistema operativo, el worker. Cuando su ejecución sale de `running`, el worker lanza la siguiente de la cola y termina. Si no hay ninguna activa, la lanza la API: al encolar, al pasar una caída a `interrupted` y al arrancar, por si un worker cayó entre cerrar su ejecución y lanzar la siguiente.
 - **Cancelar.** El worker lee la marca de cancelación antes de abrir cada sesión y mientras corre la que está en curso. Si aparece, corta esa sesión con `interrupt()` y `disconnect()`, rechaza la candidata y termina: la ejecución se detiene en segundos y no paga el capítulo en curso.
 - **Caídas.** La API, al arrancar y cada vez que lee una ejecución `running`, comprueba el PID y la hora de arranque de su worker. Si ese proceso ya no vive, pasa la ejecución a `interrupted`. La hora de arranque evita confundir el worker con otro proceso que haya heredado su PID.
 - **Linealidad de versiones.** Cada ejecución de cambio o de edición lleva su versión base, la que vio el cliente, y revalida al arrancar (§9.5, §9.6). Es lo que hace lineal la historia de versiones con varias en cola (§10.6).
@@ -812,7 +815,7 @@ Cada validador tiene nombre, se ejecuta en uno o varios puntos del harness y env
 | `delta-real` | programático | Registro | sí | Los predicados de `delta-declarado`, aplicados al delta real de toda entrega del writer, del editor y de una edición manual |
 | `linter-repeticion`, `linter-legibilidad`, `linter-estilo-ia`, `linter-consistencia` | programático | Hook de validación, edición manual y linter en vivo | no; avisos al informe, y al editor si un bloqueante ya lo llama | §13.3 |
 | `grafo-causal` | programático | Entrega del mundo | sí | Toda consecuencia es alcanzable desde el novum, ninguna pasa de orden 3 y el novum es anterior al año presente |
-| `outline` | programático | Congelación del outline | sí | 10 capítulos, 3–6 beats, cobertura de obligatorios, arcos con resolución |
+| `outline` | programático | Congelación del outline | sí | 10 capítulos, 3–6 beats, cobertura de obligatorios, arcos con resolución, primer y último beat fuera de marco |
 | `rubrica-capitulo` | semántico | Crítico | según el umbral de cada criterio | §10.3 |
 | `elementos-obligatorios` | programático | Gate de publicación | sí | Cada elemento obligatorio tiene `UsoDeHecho` en al menos un capítulo |
 | `arcos-cerrados` | programático | Gate de publicación | sí | Ningún arco abierto: cada arco consta como resuelto en el delta real de algún capítulo |
@@ -860,7 +863,7 @@ Los criterios viven en el `CatalogoDeCriterios`, versionado con el código en `d
 | `coherencia-personajes` | Coherencia de personajes | ✓ | ✓ | encargo |
 | `personalizacion-natural` | Personalización integrada de forma natural | ✓ | ✓ | encargo |
 | `prosa` | Prosa ni mecánica ni repetitiva | ✓ | ✓ | encargo |
-| `no-cliche` | No-cliché del subgénero post-IA, contra el `CatalogoDeTropos`. Recibe los deseos de trama como parámetro: un tropo pedido no se penaliza | ✓ | ✓ | catálogo |
+| `no-cliche` | No-cliché del subgénero post-IA, contra el `CatalogoDeTropos`. Recibe los deseos de trama, con sus marcos, como parámetro: no se penaliza un tropo pedido ni el marco de un deseo | ✓ | ✓ | catálogo |
 | `tema-prohibido` | Ningún tema prohibido; recibe los temas del brief como parámetro | ✓ | ✓ | brief |
 | `arco` | Arco de la historia | | ✓ | encargo |
 | `ritmo` | Ritmo entre capítulos, contra la tensión planificada | | ✓ | encargo |
@@ -883,7 +886,7 @@ Los criterios viven en el `CatalogoDeCriterios`, versionado con el código en `d
 | `alcance-propuesta` | uno, con su nombre | sí | regenerar: el planner vuelve a proponer, como intento de la interpretación (§9.5) |
 | `valor-antiguo-ausente` | uno, con su nombre | sí | corregir, con el editor del cambio |
 | `grafo-causal` | `alcanzable`, `orden-maximo`, `novum-anterior` | sí | regenerar: se replanifica (§5.2) |
-| `outline` | `diez-capitulos`, `beats-por-capitulo`, `obligatorios-asignados`, `arcos-con-resolucion` | sí | regenerar: se replanifica |
+| `outline` | `diez-capitulos`, `beats-por-capitulo`, `obligatorios-asignados`, `arcos-con-resolucion`, `extremos-sin-marco` | sí | regenerar: se replanifica |
 | `cronologia-lean` | `t1-orden`, `t2-edad`, `t3-dos-lugares`, `t4-excluyente`, `t5-nacimiento`, `t6-novum` | sí | corregir, en el gate; al congelar el outline, se replanifica (§8.2) |
 | `revision-visual` | `portada`, `indice`, `capitulos`, `ficha`, `enlaces-ficha` | sí | bloquear con `fallo de render`; `enlaces-ficha`, volver a registrar |
 | `pdf-enlaces` | `pdf-indice`, `pdf-ficha` | sí | bloquear con `fallo de render` |
@@ -892,7 +895,9 @@ Los criterios viven en el `CatalogoDeCriterios`, versionado con el código en `d
 | `linter-estilo-ia` | `adverbios-mente`, `cliches`, `giros-generados` | no | ídem |
 | `linter-consistencia` | `narrador`, `tiempo-verbal`, `tratamiento` | no | ídem |
 
-Los validadores de entrada —`schema-brief`, `citas-verificadas` y `schema-salida`— tienen un solo criterio, con su nombre. Su fallo no pasa por el veredicto: lo resuelve quien entregó la entrada (§3.2, §3.3, §7.4). `inyeccion-detectada` solo marca y registra.
+Los validadores de entrada —`schema-brief`, `citas-verificadas` y `schema-salida`— tienen un solo criterio, con su nombre. Su fallo no pasa por el veredicto: lo resuelve quien entregó la entrada (§3.2, §3.3, §7.4). `inyeccion-detectada` tiene también un solo criterio, con su nombre, no bloqueante: solo marca y registra. Ninguno de estos cuatro tiene nivel ni acción requerida.
+
+En el hook de policy, una coincidencia en cualquier campo de texto narrativo de una entrega —también el mundo, el reparto, el outline, un título o la dedicatoria— la mide `palabras-prohibidas/en-capitulo`: el rol que la entregó la reescribe. `en-portada-o-ficha` queda para el gate, donde no hay rol que reescriba (§9.4).
 
 **Calibración de los umbrales.** Los umbrales de la rúbrica salen de dos fuentes que ya existen, sin etiquetar capítulos aparte. Para cada criterio se elige el corte que separa los capítulos y novelas con su defecto sembrado de los limpios (`verification.md` §4.2), y entre los cortes que lo hacen, el que más se parece al juicio de la revisión humana (§10.7). Un criterio que no separa lo sembrado de lo limpio está mal definido, no mal calibrado: se reescribe o se desactiva. Mejor tres criterios calibrados que quince inventados.
 
@@ -931,7 +936,7 @@ Los invariantes temporales de la historia, **T1–T6**, son otro conjunto: viven
 
 **Por versión**, el código genera el `FicheroDeCronologia` desde una lista de eventos: la del outline propuesto o la de la tabla de cronología de SQLite (§4.3). Declara los datos y un teorema por invariante, que se cierra evaluando el comprobador. Va **seudonimizado**:
 
-- los identificadores son los de las filas de SQLite, sin nombres, así que no hace falta una tabla de seudónimos;
+- los identificadores son los de las filas de SQLite, sin nombres, así que no hace falta una tabla de seudónimos; los eventos de un outline propuesto, que aún no tienen fila, llevan el id que les da la propuesta;
 - las fechas se desplazan un múltiplo de 400 años, que conserva los años bisiestos y, con ellos, las edades y los cumpleaños.
 
 Lean no necesita saber cómo se llama nadie para decidir que un evento es anterior a otro. El fichero se guarda con su resultado y su testigo.
@@ -964,21 +969,21 @@ El adaptador lo elige un ajuste del servidor, no la config, porque depende de la
 
 ### 10.6 Validador formal del sistema (TLA+)
 
-**Las especificaciones** viven en `tla/`, cada una con su configuración de TLC (`.cfg`) y con el nombre de módulo en inglés. Se escriben en TLA+ directo, no en PlusCal: cada acción es un operador con nombre, y la tabla del README la corresponde una a una con una transición del orquestador.
+**Las especificaciones** viven en `tla/`, cada una con su configuración de TLC (`.cfg`) y con el nombre de módulo en inglés. Se escriben en TLA+ directo, no en PlusCal: cada acción es un operador con nombre, y la tabla del README la corresponde una a una con una transición del orquestador o de la API, que es quien confirma un cambio y encola sus ejecuciones (§9.5).
 
-- **`Harness.tla`** modela la máquina de estados de §9.1: la configuración; la planificación; el bucle de capítulos con sus intentos; el punto de control, la caída y la reanudación, también desde `blocked`; el gate y la publicación de versiones; y la regeneración por cambio del lector.
+- **`Harness.tla`** modela la máquina de estados de §9.1: el brief confirmado, que es la «configuración» del encargo; la planificación; el bucle de capítulos con sus intentos; el punto de control, la caída y la reanudación, también desde `blocked`; el gate y la publicación de versiones; y la regeneración por cambio del lector.
 - **`Regenerations.tla`** modela la concurrencia entre regeneraciones: ejecuciones de cambio y de edición sobre la misma novela, en la cola global, con su versión base y su revalidación (§9.1, §9.5).
 - **`Confirmation.tla`** modela el código de confirmación de un cambio (§13.2).
 
 Lo que comprueba TLC:
 
-- **Invariantes de seguridad.** En `Harness.tla`, los invariantes 8, 9, 10 y 11 de §10.4. En `Regenerations.tla`, la historia de versiones lineal: ninguna solicitud confirmada se pierde, y ninguna se publica sobre una versión que ya no es la vigente. En `Confirmation.tla`, que un código se usa una sola vez, no vale caducado y solo lo presenta el cliente propietario de su solicitud.
+- **Invariantes de seguridad.** En `Harness.tla`, los invariantes 8, 9, 10 y 11 de §10.4. En `Regenerations.tla`, la historia de versiones lineal: ninguna solicitud confirmada ni edición en cola se pierde, y ninguna se publica sobre una versión que ya no es la vigente. En `Confirmation.tla`, que un código se usa una sola vez, no vale caducado y solo lo presenta el cliente propietario de su solicitud.
 - **Propiedad de vivacidad:** toda ejecución termina publicando una versión o deteniéndose con error —`blocked`, `interrupted` o `cancelled`—, también a través de sus reanudaciones; nunca queda en un bucle infinito. Se comprueba bajo equidad débil y se sostiene porque todos los bucles están acotados, las reanudaciones incluidas (§7.6).
-- **Modelo pequeño para TLC:** 5 capítulos, 2 reintentos, 2 reanudaciones y 2 solicitudes de cambio, con la configuración de las tres especificaciones en el repositorio. TLC corre en CI y en local, con un JDK portable. No corre por generación.
+- **Modelo pequeño para TLC:** 5 capítulos, `max_retries` = 2, `max_resumes` = 2, 2 solicitudes de cambio, 1 edición manual y 2 clientes —para que haya un cliente ajeno que presente un código—, con la configuración de las tres especificaciones en el repositorio. TLC corre en CI y en local, con un JDK portable. No corre por generación.
 
 **Diagrama.** El de la máquina de estados completa que especifica `Harness.tla` se añade a esta sección con la spec 006; hasta entonces, el de §9.1 la resume.
 
-**Correspondencia con el código.** Cada acción de la especificación es una transición del orquestador, y la tabla de correspondencia vive en el README de la raíz, como pide el encargo. La especificación se escribe antes que el orquestador (`specs/006-tla-especificacion-del-harness/`), así que un contraejemplo de TLC cambia el diseño antes que el código. Si cambia el código, se documenta en el registro de iteraciones (`verification.md` §8).
+**Correspondencia con el código.** Cada acción de la especificación es una transición del orquestador o de la API, y la tabla de correspondencia vive en el README de la raíz, como pide el encargo. La especificación se escribe antes que el orquestador (`specs/006-tla-especificacion-del-harness/`), así que un contraejemplo de TLC cambia el diseño antes que el código. Si cambia el código, se documenta en el registro de iteraciones (`verification.md` §8).
 
 ### 10.7 Revisión humana
 
@@ -988,7 +993,7 @@ Una comparación calcula, criterio a criterio, el acuerdo entre la persona y el 
 
 ### 10.8 Evaluación del sistema
 
-La evaluación usa **cinco briefs de prueba, todos ficticios**. Uno es adversarial, con una inyección en el texto libre, y otro está diseñado para provocar una incoherencia temporal. La CLI reproduce cada brief y lanza las evals (§14.2).
+La evaluación usa **seis briefs de prueba, todos ficticios**. Uno es adversarial, con una inyección en el texto libre; otro está diseñado para provocar una incoherencia temporal, y otro pide un deseo que no cabe en el presente post-IA. El encargo pide cinco; el sexto prueba los marcos. La CLI reproduce cada brief y lanza las evals (§14.2).
 
 - **Tabla por brief.** Una ejecución por brief produce la tabla de qué validadores pasaron y cuáles fallaron, a partir de los scores de Langfuse.
 - **Cambios reales del lector.** Sobre las novelas generadas se piden cambios reales. Miden el coste de una revisión y sirven de demo de la propagación a los capítulos afectados.
@@ -1009,7 +1014,7 @@ El método está en `verification.md` §4.2.
 - **cliente**, gestionado por el cliente para todas sus novelas;
 - **novela**, declarado en el brief.
 
-Cada ejecución guarda una copia de las listas con las que corre, y la renueva al reanudar (§9.2). En la entrevista, la regla C6 cruza los tres niveles con los elementos obligatorios y con la dedicatoria (§3.2): una entrada prohibida no puede ser a la vez obligatoria.
+Cada ejecución guarda una copia de las listas con las que corre, y la renueva al reanudar (§9.2). En la entrevista, la regla C6 cruza los tres niveles con los elementos obligatorios, con la dedicatoria y con los deseos de trama (§3.2): una entrada prohibida no puede ser a la vez obligatoria ni pedida.
 
 **La normalización** se aplica igual al texto y a los términos:
 
@@ -1018,7 +1023,7 @@ Cada ejecución guarda una copia de las listas con las que corre, y la renueva a
 - espacios colapsados;
 - variantes simples: singular y plural (-s, -es) y género (-o/-a, -os/-as).
 
-Un término de varias palabras se busca como secuencia de palabras normalizadas.
+Un término de varias palabras se busca como secuencia de palabras normalizadas, y uno de una palabra, como secuencia de una: la coincidencia es siempre por palabras enteras, así que «ex» no coincide con «examen». Las variantes valen en los dos sentidos: un término dado en plural o en femenino coincide también con el singular o el masculino del texto.
 
 **Dónde se aplica:**
 
@@ -1061,14 +1066,14 @@ Es una tabla que **solo admite inserciones**. Guarda cada `DecisionDePolitica`:
 | Código de motivo | Por qué |
 | Detalle | Las coincidencias, con su nivel y la variante encontrada |
 
-Registra también las detecciones de inyección, con la decisión marcar, y cada escritura MCP (§13.2). El propietario la consulta por la API. Cada decisión se envía además a Langfuse como evento de la traza.
+Registra también las detecciones de inyección, con la decisión marcar, y cada escritura MCP (§13.2). El propietario la consulta por la API, en orden cronológico. Cada decisión tomada dentro de una traza se envía además a Langfuse como evento de esa traza; la del guardado de una edición manual, que no tiene traza (§9.6), queda solo aquí.
 
 ### 11.5 Presupuesto en dinero
 
-Cada ejecución y cada entrevista tienen un techo en dinero, `config.operation.budget`, en USD. Es la única cota de la salida, que no computa en el techo de ventana (§6.10). La interpretación de un cambio no tiene techo en dinero propio: su coste lo acotan `max_turns`, `max_output` y `max_retries` (§9.5).
+Cada ejecución, cada entrevista y cada importación de un brief tienen un techo en dinero, `config.operation.budget`, en USD. Es la única cota de la salida, que no computa en el techo de ventana (§6.10). La interpretación de un cambio no tiene techo en dinero propio: su coste lo acotan `max_turns`, `max_output` y `max_retries` (§9.5).
 
 - **El coste de una sesión de rol** es su uso exacto —tokens de entrada, de salida, de lectura de caché y de escritura de caché, que el SDK da al cerrar la sesión— por el precio de su modelo en `operation.pricing`, en USD por millón de tokens y copiado de OpenRouter. No se usa el coste que estima el SDK, que calcula con precios de Anthropic.
-- **Al superar el techo**, la ejecución se bloquea con `presupuesto excedido`. En la entrevista, el turno responde 503 (§3.5).
+- **Al superar el techo**, la ejecución se bloquea con `presupuesto excedido`. En la entrevista, el turno responde 503 (§3.5), y en la importación, la petición.
 - **Contraste.** En la evaluación se compara una vez con lo que factura OpenRouter por generación (`GET /api/v1/generation?id=`), que responde 404 hasta que la procesa (§10.8).
 
 ### 11.6 Sin escritura fuera del directorio de datos
@@ -1080,6 +1085,8 @@ Los roles no tienen tools de ficheros. El backend solo escribe en su directorio 
 - la salida de Playwright MCP del revisor visual;
 - los PDF de las versiones publicadas (§9.7).
 
+Solo escribe fuera la orden de la CLI que reproduce el brief de ejemplo: deja el PDF de su novela en la ruta que recibe, que es `ejemplos/novela-ejemplo.pdf` cuando se commitea (§10.8).
+
 ---
 
 ## 12. Observabilidad
@@ -1088,8 +1095,8 @@ Langfuse Cloud, región UE, con el SDK de Python v4. Los spans se abren con `sta
 
 ### 12.1 Trazas, sesiones y spans
 
-- **Sesión:** una por novela, con el identificador de la novela como `session_id`. Agrupa la entrevista, la generación y las regeneraciones posteriores.
-- **Traza:** una por entrevista, por importación de un brief, por interpretación de un cambio, por ejecución y por llamada MCP. Una ejecución reanudada conserva la suya. Cada traza lleva el commit del código y la huella de la config; la de una ejecución reanudada, los de cada tramo (§9.2).
+- **Sesión:** una por novela, con el identificador de la novela como `session_id`. Agrupa la entrevista, la generación y las regeneraciones posteriores. Una llamada MCP que toca una sola novela va en su sesión; la que toca varias o ninguna, y la importación que falla antes de crear la novela (§3.4), van sin sesión.
+- **Traza:** una por entrevista, por importación de un brief, por interpretación de un cambio, por ejecución y por llamada MCP, con el nombre de su clase: `entrevista`, `importacion`, `interpretacion`, `ejecucion` o `mcp`. Una ejecución reanudada conserva la suya. Cada traza lleva el commit del código y la huella de la config; la de una ejecución reanudada, los de cada tramo (§9.2).
 - **Spans con nombre identificable:**
   - `capitulo-<n>`;
   - `rol:<etiqueta>` por cada sesión de rol, con la etiqueta del rol: `entrevistador`, `extractor`, `planner`, `writer`, `critico`, `editor`, `registrador`, `juez` o `revisor-visual`;
@@ -1099,7 +1106,7 @@ Langfuse Cloud, región UE, con el SDK de Python v4. Los spans se abren con `sta
 
 ### 12.2 Tokens, coste y latencia
 
-Se ven por llamada (la observación), por capítulo (la suma de su span) y por novela (la suma de las trazas de su sesión). Se guardan también en SQLite, porque el presupuesto (§11.5) y el informe no pueden depender de un servicio externo.
+Se ven por llamada (la observación), por capítulo (la suma de su span) y por novela (la suma de las trazas de su sesión, cambios incluidos). Este acumulado no es el coste de producir una novela de §10.8, que solo suma su entrevista o su importación y su generación. Se guardan también en SQLite, porque el presupuesto (§11.5) y el informe no pueden depender de un servicio externo.
 
 ### 12.3 Scores
 
@@ -1112,7 +1119,7 @@ Cada validador envía un score agregado con su nombre, que vale 1 si pasa y 0 si
 El prompt de sistema de cada rol es un **fichero del workspace del harness** (`backend/harness_workspace/`), revisado en git como el resto del código.
 
 - **Sincronización.** Una orden de la CLI sube el fichero a Langfuse como versión nueva de `rol/<etiqueta>`, como `rol/critico`, sin etiqueta, cuando cambia su huella.
-- **Promoción.** Otra orden de la CLI mueve la etiqueta a una versión, tras pasar las evals (`verification.md` §4.8). Así el paso que decide qué prompt corre queda en el repositorio.
+- **Promoción.** Otra orden de la CLI mueve la etiqueta a una versión, tras pasar las evals (`verification.md` §4.8). Así el paso que decide qué prompt corre queda en el repositorio. Antes de promoverla, las evals corren la versión nueva con la etiqueta `latest`, que Langfuse pone siempre a la última versión, como etiqueta de los prompts.
 - **Lectura.** En ejecución, el prompt se lee de Langfuse por la etiqueta de los prompts, que es un ajuste del servidor, y la llamada de modelo queda enlazada a su versión.
 - **Sin Langfuse no hay sesión.** Si Langfuse no responde al abrir una sesión, la ejecución pasa a `interrupted`; fuera de una ejecución, el turno responde 503.
 
@@ -1120,7 +1127,7 @@ La iteración de ajuste compara versiones de prompt sobre los mismos briefs.
 
 ### 12.5 Máscara de datos personales
 
-El cliente de Langfuse se crea con una **función de máscara**, que es de cada novela: cubre los datos personales de su brief y los hechos de origen brief de todas sus versiones. Antes de exportar nada, los sustituye por etiquetas (`[DESTINATARIO]`, `[ALLEGADO_1]`, `[FECHA]`, `[RECUERDO_2]`, …) en todas las entradas y salidas: nombres, fechas de nacimiento, textos de recuerdos, dedicatoria. Añade patrones genéricos para correos y teléfonos. Tokens, coste, latencia y scores llegan intactos.
+El cliente de Langfuse se crea con una **función de máscara**, que es de cada novela: cubre los datos personales de su brief y los hechos de origen brief o texto libre de todas sus versiones. Antes de exportar nada, los sustituye por etiquetas (`[DESTINATARIO]`, `[ALLEGADO_1]`, `[FECHA]`, `[RECUERDO_2]`, …) en todas las entradas y salidas: nombres, fechas de nacimiento, rasgos, textos de recuerdos, dedicatoria, entradas prohibidas de nivel novela y hechos extraídos desde que se verifican, también los que el cliente aún no aceptó. Añade patrones genéricos para correos y teléfonos. Tokens, coste, latencia y scores llegan intactos.
 
 Una llamada MCP que toca varias novelas usa la unión de sus máscaras (§13.2).
 
@@ -1128,7 +1135,7 @@ Una llamada MCP que toca varias novelas usa la unión de sus máscaras (§13.2).
 
 Con claves inválidas, el exportador falla sin error visible: solo registra un 401 y el proceso termina bien. Por eso:
 
-- el arranque llama a `auth_check()` y falla si no pasa;
+- el arranque llama a `auth_check()` y falla si no pasa, y también si el prompt `rol/<etiqueta>` de algún rol no tiene la etiqueta de los prompts;
 - una prueba de CI lee de vuelta una traza por la API v2 de observaciones, porque la API heredada de trazas no está disponible para esta organización. Reintenta durante un tiempo acotado, porque la ingesta tarda de 15 a 30 segundos.
 
 ---
@@ -1224,7 +1231,7 @@ La organización es Feature-Sliced Design (§14.2).
 
 | Capa | Tecnología |
 |---|---|
-| Backend | Python 3.12+, FastAPI servida con uvicorn, Pydantic v2, SQLAlchemy 2; dependencias con `uv`; Ruff y mypy estricto |
+| Backend | Python 3.12 —no una posterior, porque Smart App Control bloquea el wheel de spaCy para 3.14—, FastAPI servida con uvicorn, Pydantic v2, SQLAlchemy 2; dependencias con `uv`; Ruff y mypy estricto |
 | Persistencia | SQLite en WAL, con migraciones Alembic desde el principio; `sqlite-vec` y FTS5 para el índice; `fastembed` para los vectores (§6.12) |
 | Harness | Claude Agent SDK para Python, que ejecuta como subproceso el CLI de Claude Code que trae empaquetado. El proveedor de modelo es un endpoint compatible con la API de Anthropic; en este proyecto, OpenRouter, con modelos de Anthropic: con otros, OpenRouter avisa de que Claude Code puede fallar |
 | Observabilidad | SDK de Langfuse v4, Langfuse Cloud UE |
@@ -1271,7 +1278,7 @@ backend/
 | `platform` | Adaptadores sin términos de `definitions.md`: SDK, SQLite, vectores, Langfuse, Lean, Playwright, PDF | Ningún término de `definitions.md`, ni imports de `domain` |
 | `harness` | Lo que comparten los roles de todas las fases: hooks, tools, guardián de ventana y ensamblado. Y las piezas del bucle que usan varias fases: la sesión del editor, el registrador y la aceptación, que llama a la transacción de `store` | Política de consulta de cada fase |
 | `lint` | Los cuatro linters, usados por la producción, los cambios y la edición manual | — |
-| `execution` | La API, el servidor MCP, la autenticación, las ejecuciones con su cola y su worker, el SSE, el informe y la CLI, que reproduce el brief de ejemplo, lanza las evals (§10.8) y sube y promueve los prompts (§12.4) | Lógica de fase |
+| `execution` | La API, el servidor MCP, la autenticación, las ejecuciones con su cola y su worker, el SSE, el informe y la CLI, que reproduce el brief de ejemplo, lanza las evals (§10.8) y sube y promueve los prompts (§12.4), además de sus órdenes de operación: migrar, arrancar, exportar el esquema OpenAPI, comprobar el entorno y lanzar la mutación. Es la raíz de composición: construye los adaptadores de `platform` y se los pasa al resto | Lógica de fase |
 
 **Regla de dependencia**, comprobada en CI (`verification.md` §3.9):
 
@@ -1289,6 +1296,7 @@ graph TD
     PH --> DOM
     PH --> PLT
     EXE --> STO
+    EXE --> PLT
     EXE --> DOM
     PHA[phases.a] -.prohibido.-> PHB[phases.b]
     DOM -.prohibido.-> PLT
@@ -1329,15 +1337,17 @@ La API va bajo `/api`, en el mismo origen que la lectura (§9.7). `{v}` es el n�
 ```
 POST   /api/auth/register                                { email, password }       -> 201
 POST   /api/auth/login                                   { email, password }       -> 200 { access_token }
-GET    /api/banned-terms  POST /api/banned-terms  DELETE /api/banned-terms/{id}    lista de nivel cliente
+GET    /api/banned-terms                                                           -> la lista de nivel cliente
+POST   /api/banned-terms                                 { term, type }            -> 201, la entrada creada
+DELETE /api/banned-terms/{id}                                                      -> 204
 POST   /api/novels                                       {} | { brief }            -> 201 { novel_id }
 GET    /api/novels                                                                 -> novelas del cliente, con estado y versión vigente
-GET    /api/novels/{id}                                                            -> novela, estado y ejecución activa
+GET    /api/novels/{id}                                                            -> novela, estado y ejecuciones sin terminar
 GET    /api/novels/{id}/interview/messages                                         -> turnos guardados
 POST   /api/novels/{id}/interview/messages               { text }                  -> turno del entrevistador
 POST   /api/novels/{id}/free-texts                       { content }               -> hechos verificados
 PATCH  /api/novels/{id}/brief/extracted-facts/{fact_id}  { accepted, mandatory }
-GET    /api/novels/{id}/brief                                                      -> brief, faltantes, contradicciones
+GET    /api/novels/{id}/brief                                                      -> brief, errores de schema, faltantes, contradicciones, cota
 POST   /api/novels/{id}/brief/confirm                                              -> 200
 POST   /api/novels/{id}/runs                                                       -> 202 { run_id, position }
 GET    /api/novels/{id}/runs                                                       -> ejecuciones de la novela
@@ -1357,13 +1367,14 @@ GET    /api/change-requests/{id}                                                
 POST   /api/change-requests/{id}/confirm                 { code }                  -> 202 { run_id, position }
 POST   /api/novels/{id}/chapters/{n}/lint                { text }                  -> diagnósticos
 PUT    /api/novels/{id}/chapters/{n}                     { text, version }         -> 202 { run_id, position }
-GET    /api/novels/{id}/audit-log                                                  -> decisiones de política
+GET    /api/novels/{id}/audit-log                                                  -> decisiones de política, en orden cronológico
 /mcp                                                                               -> servidor MCP
 ```
 
 | Código | Endpoint | Cuándo |
 |---|---|---|
 | 401 | Todos salvo registro, acceso y vista previa | Sin token válido (§13.1) |
+| 401 | `POST /auth/login` | El email no tiene cuenta o la contraseña no es la suya: la misma respuesta en los dos casos |
 | 404 | Todos | Lo inexistente o ajeno (§13.1). En la vista previa, un token o una cookie que no valen para esa candidata |
 | 409 | `POST /auth/register` | El email ya tiene cuenta |
 | 422 | `POST /auth/register` | El email no tiene formato válido o la contraseña tiene menos de 8 caracteres |
@@ -1380,8 +1391,9 @@ GET    /api/novels/{id}/audit-log                                               
 | 422 | `POST /novels/{id}/change-requests` | La policy deniega la petición, o se agotan los intentos sin una propuesta válida. La solicitud se guarda `rejected`, y la respuesta lleva su id y el motivo |
 | 422 | `POST /change-requests/{id}/confirm` | El código no es el de esa solicitud |
 | 422 | `PUT /novels/{id}/chapters/{n}` | Los validadores deterministas del capítulo fallan; la respuesta lleva los diagnósticos |
+| 422 | `POST /banned-terms` | El término queda vacío al normalizarlo (§11.1) |
 | 422 | Cualquiera | Una entrada que no cumple su schema |
-| 503 | `POST /interview/messages`, `POST /free-texts`, `POST /novels` con un brief importado | El proveedor falla, la sesión agota un límite o el presupuesto de la entrevista, o Langfuse no responde; no se guarda nada (§3.5) |
+| 503 | `POST /interview/messages`, `POST /free-texts`, `POST /novels` con un brief importado | El proveedor falla, la sesión agota un límite o el presupuesto de la entrevista o de la importación, o Langfuse no responde; no se guarda el turno, ni el brief, ni hechos, ni la novela importada. Sí la sesión de rol con su coste, si llegó a abrirse y hay novela (§3.4, §3.5) |
 | 503 | `POST /novels/{id}/change-requests` | El proveedor falla o Langfuse no responde; no se guarda nada. Los turnos o el tiempo agotados son un intento fallido, no un 503 (§9.5) |
 
 La edición del brief durante la entrevista va siempre por el entrevistador. La excepción son los hechos extraídos, que el cliente acepta o rechaza directamente.
@@ -1400,7 +1412,7 @@ Un solo fichero SQLite, en el directorio de datos, guarda todo: cuentas, novelas
 
 - Cada tabla lleva en plural el identificador de `definitions.md` §12 (`facts`, `canon_cards`), salvo los incontables (`traceability`, `audit_log`). Las tablas virtuales de FTS5 llevan el nombre de su tabla con `_fts`.
 - El `Novum` no tiene tabla propia: es una fila por versión en `worlds`, con el mundo.
-- Las tablas de ámbito versión llevan la versión, y son las que una candidata copia de la vigente (§9.3). Las de ámbito ejecución llevan la ejecución.
+- Las tablas de ámbito versión llevan la versión, directamente o a través de su tabla padre, y son las que una candidata copia de la vigente (§9.3). Las de ámbito ejecución llevan la ejecución, del mismo modo.
 - Una relación de muchos a muchos se dibuja como relación; en el design es una tabla de unión.
 - **Solo inserción** quiere decir que el código nunca actualiza ni borra una fila: un cambio añade otra. La única excepción es volver a registrar un capítulo de la candidata, que reemplaza lo que escribió su registro anterior (§8.3).
 - Las filas de ámbito versión de una versión publicada no cambian (invariante 9). Quién escribe cada tabla lo dice §9.1.
@@ -1451,8 +1463,10 @@ erDiagram
     versions ||--|| outlines : planifica
     outlines ||--|{ outline_chapters : "10 capitulos"
     outline_chapters ||--|{ beats : "3 a 6 beats"
-    beats ||--|| events : "su evento"
+    beats |o--o| events : "su evento, salvo en un marco"
+    beats }o--o{ facts : usa
     outlines ||--o{ arcs : despliega
+    arcs }o--o{ characters : "protagonizado por"
     outlines ||--o{ element_assignments : asigna
     versions ||--|| style_sheets : sigue
     versions ||--|{ chapters : "10 capitulos"
@@ -1485,7 +1499,7 @@ erDiagram
     runs ||--o{ chronology_files : verifica
     runs |o--o{ role_sessions : abre
     interviews |o--o{ role_sessions : abre
-    novels |o--o{ role_sessions : "importacion de un brief"
+    novels ||--o{ role_sessions : "de la novela, también la importacion"
     change_requests |o--o{ role_sessions : "se interpreta en"
     role_sessions ||--|| context_windows : recibe
     runs ||--o{ verdicts : agrega
@@ -1502,7 +1516,7 @@ erDiagram
 | `novels` | usuario | | La `Novela`, con su fecha de creación; su estado se deriva |
 | `banned_terms` | global, usuario o novela, según el nivel | | Las `EntradaProhibida` de los tres niveles, en una sola tabla (§11.1) |
 | `audit_log` | usuario | sí | Las `DecisionDePolitica` (§11.4) |
-| `interviews`, `interview_messages` | novela | los turnos | La `Entrevista`, con su coste, y sus turnos (§3.5) |
+| `interviews`, `interview_messages` | novela | los turnos | La `Entrevista` y sus turnos (§3.5); su coste se deriva de sus sesiones de rol |
 | `briefs`, `free_texts`, `extracted_facts`, `personal_elements` | novela | | El `Brief` y lo que sale de él (§3) |
 | `change_requests`, `manual_edits` | novela | | Las `SolicitudDeCambio`, con su propuesta y su código, y las `EdicionManual` (§9.5, §9.6) |
 | `versions` | novela | | La `Version`: número al publicar, estado, capítulos cambiados y ruta del PDF (§9.3) |
@@ -1555,7 +1569,7 @@ Cada una existe como campo y ninguna tiene valor acordado. Fijarlas hoy sería i
 | Modelo de cada rol | Sesiones de rol (§7.2) |
 | Modelo de incrustación (`retrieval.embedding_model`) | Índice (§6.9); se congela al crear la novela |
 
-Tienen valor el techo de ventana —100.000 tokens, que fija el encargo— y las dos caducidades: 24 horas el `TokenDeAcceso` y 15 minutos el código de confirmación. `operation.pricing` tampoco es una cifra por calibrar: es un dato de OpenRouter, y se rellena con su tabla de precios. Mientras las demás no tengan valor, el código las lee de config y falla de forma accionable si faltan. Ninguna spec ni ningún plan las inventa.
+Tienen valor el techo de ventana —100.000 tokens, que fija el encargo— y las dos caducidades: 24 horas el `TokenDeAcceso` y 15 minutos el código de confirmación. `operation.pricing` tampoco es una cifra por calibrar: es un dato de OpenRouter, y se rellena con su tabla de precios. Mientras las demás no tengan valor, el código las lee de config y falla de forma accionable si faltan. Dentro de una ejecución, ese fallo la bloquea con `config infactible` y la clave en el detalle: se le da valor en la config, se reinicia el servidor y se reanuda, y el tramo nuevo la toma (§9.2). Ninguna spec ni ningún plan las inventa.
 
 ### 15.3 Por comprobar en el entorno
 
@@ -1599,7 +1613,12 @@ Registro de lo acordado: cada fila da las opciones consideradas, el criterio y l
 | Cambios del lector | Confirmar sin ver la interpretación · ver la propuesta antes; interpretar en la ejecución · en la API al pedirse | El lector confirma lo que va a cambiar; el mismo flujo en la web y en MCP; el código valida lo que propone el planner | Propuesta antes de confirmar, interpretada en la API y validada por código, con un código de confirmación; al confirmar se encola con su versión base y revalida al arrancar (§9.5) |
 | Género | Subgéneros post-IA · fijo · libre | Lo más simple que cumple el encargo | Enumerado cerrado de seis subgéneros como parámetro de poética |
 | Extensión | Objetivos en los extremos del rango · objetivos con margen dentro de él | Que `longitud-capitulo` no rechace un capítulo que se queda cerca de su objetivo | Corta 1.100, media 1.250 y larga 1.400 palabras; `longitud-capitulo` sigue comprobando 1.000–1.500 (§1.2, §10.2) |
-| Deseos de trama | Sin deseos · lista opcional en el brief | Un tropo pedido es una elección legítima, no un cliché (`domain-knowledge.md` §6) | Lista opcional; llega al planner, y `no-cliche` no penaliza un tropo pedido (§4.2, §10.3) |
+| Dedicatoria propuesta | `propose_dedication` la escribe en el brief · solo la propone | La portada es del cliente: nada entra en el brief sin que él lo acepte | Solo la propone: sale en la respuesta del turno, y entra en el brief por `update_brief` cuando el cliente la acepta (§3.1) |
+| Deseos de trama | Sin deseos · lista opcional en el brief · lista con un marco opcional por deseo | Un tropo pedido es una elección legítima, no un cliché (`domain-knowledge.md` §6). Reabierta el 2026-09-23: la novela se personaliza por completo sin dejar de ser post-IA | Lista opcional de `DeseoDeTrama`, cada uno con su marco opcional; llega al planner, y `no-cliche` no penaliza un tropo pedido ni el marco de un deseo (§4.2, §10.3) |
+| Deseos fuera de la ambientación | Rechazarlos · planificarlos como reales · reencauzarlos con un marco | Personalización total sin perder el tema post-IA ni la cronología que verifica Lean | Reencauzarlos con un marco; de un deseo solo se rechaza lo prohibido, por C6, y la novela empieza y termina fuera de todo marco (§3.1, §5.2, `domain-knowledge.md` §4.5) |
+| Catálogo de marcos | Cuatro, con la recreación con IA · los tres ficticios · solo los de IA · abierto | Lo más simple que cumple | Tres ficticios con un solo tratamiento: simulación, sueño y relato dentro del relato. La recreación con IA es mundo post-IA normal (`definitions.md` §1) |
+| Quién elige el marco | Siempre el entrevistador · siempre el planner · el entrevistador, o libre | No resolver en silencio y dejar libertad al cliente, como en la zona libre | El entrevistador lo propone y el cliente lo fija o lo deja libre, y entonces lo elige el planner (§3.1, §4.2) |
+| Lo que pasa dentro de un marco | Canon normal · canon con ámbito · no cambia el mundo | Que T1–T6 y Lean sigan valiendo sin cambios, con una sola regla | No cambia el mundo: sin eventos ni cambios de hechos; cuentan sus hechos usados y sus personajes y lugares nuevos. Un detalle del marco que no es un hecho se cambia con una edición manual (§4.3) |
 | Tiempo de la historia | Presente alternativo · futuro cercano · lo fija el planner | Reconocimiento y fechas concretas para Lean | Presente alternativo (`domain-knowledge.md` §5.2) |
 | Novum | N candidatos con selector · uno guiado por el catálogo | En un regalo el mundo es escenario | Uno, con el catálogo como lista de evitación (§4.2) |
 | Catálogo de tropos | Extracción del modelo · derivación de 20–30 mundos propios · fuentes del género | Lo más barato que pasa la prueba de validez | Extracción del modelo y poda a mano, con marcadores al nivel de mecanismo narrativo; se valida con cinco mundos buenos y cinco malos; los tropos que se repitan en las evals entran como aprendidos (`domain-knowledge.md` §6.2) |
@@ -1614,6 +1633,7 @@ Registro de lo acordado: cada fila da las opciones consideradas, el criterio y l
 | Especificaciones TLA+ | Solo `Harness.tla` · más la concurrencia entre regeneraciones · más el código de confirmación | El opcional del encargo, y la seguridad de la única escritura que expone MCP | Tres: `Harness.tla`, `Regenerations.tla` y `Confirmation.tla` (§10.6) |
 | Concurrencia de cambios | Cola por novela · control optimista por versión · cola global con versión base y revalidación al arrancar | Linealidad demostrable con una sola ejecución activa; el lector confirma sobre la versión que vio | Cola global en orden de llegada; cada ejecución de cambio o de edición lleva su versión base y revalida al arrancar (§9.1, §9.5) |
 | Reanudación | Automática al arrancar · manual con techo; `blocked` terminal · `blocked` reanudable; con la copia de la config y las listas del primer tramo · con las vigentes al reanudar · sin reanudar los bloqueos por presupuesto, config o contenido prohibido | Lo más simple que el encargo admite; un bloqueo por una causa que se corrige no debe tirar la candidata, y con la copia congelada esos tres motivos volverían a bloquear en el acto | Manual, con `max_resumes`, desde `interrupted` y desde `blocked`, con intentos nuevos para el evaluable que bloqueó y con la config y las listas vigentes, copiadas para el tramo nuevo; solo `finished` y `cancelled` son terminales, y la candidata solo se rechaza al cancelar (§9.1, §9.2) |
+| Cifra sin valor dentro de una ejecución | Bloquear con `config infactible` · bloquear con `error interno` · rechazar el lanzamiento si le falta alguna cifra | Es un error de config que se corrige y se reanuda sin tirar la candidata, como los demás bloqueos por config; no mezclarlo con las violaciones de invariantes. Decidido por el usuario el 2026-09-23 | Bloquear con `config infactible` y la clave en el detalle; el tramo nuevo toma la config corregida (§15.2, §9.2) |
 | Número de versión | Al crear la candidata · al publicar | Una candidata cancelada no deja huecos en la numeración que ve el lector | Al publicar; la candidata se identifica por su id (§9.3) |
 | Palabras prohibidas | Dos niveles · tres niveles | El encargo pide tres | Global, cliente y novela (§11.1) |
 | Observabilidad | Langfuse Cloud UE con máscara · sin máscara · autoalojado | Datos personales de terceros; sin Docker en el portátil | Cloud UE con máscara (§12.5) |
@@ -1638,7 +1658,7 @@ Registro de lo acordado: cada fila da las opciones consideradas, el criterio y l
 | Organización del backend | Capas técnicas · slices por fase con módulos nombrados | Leer, mover y borrar una fase entera | Slices por fase, más `execution`, `domain`, `store`, `platform`, `harness` y `lint`; sin `commons` (§14.2) |
 | Organización del frontend | FSD completo · FSD con `app`, `pages` y `shared` | Empezar por lo simple | FSD v2.1 pages-first; `widgets` descartada (§14.2) |
 | Tipos del cliente de API | A mano · generados y commiteados | Sin deriva entre backend y frontend | Generados del esquema OpenAPI, con comprobación de deriva en CI |
-| CLI | Solo la API y la interfaz · una CLI | Reproducir el brief de ejemplo y las evals sin interfaz, desde el terminal o CI | Una CLI en `execution` para el brief de ejemplo, las evals y la subida y promoción de los prompts (§14.2, §12.4) |
+| CLI | Solo la API y la interfaz · una CLI | Reproducir el brief de ejemplo y las evals sin interfaz, desde el terminal o CI | Una CLI en `execution` para el brief de ejemplo, las evals y la subida y promoción de los prompts, más las órdenes de operación (§14.2, §12.4) |
 | Migraciones | Crear el esquema y recrear la base · Alembic desde el principio | El esquema cambia con cada spec, y las novelas y sus versiones se conservan | Alembic desde el principio (§14.1) |
 | Nombres | Todo en español · código en inglés | Un idioma por medio | Código, tablas, API, MCP y JSON en inglés; docs, prompts e interfaz en español; los nombres que se ven en Langfuse, etiquetas en español ASCII (`definitions.md` §12) |
 | Carpeta de la presentación y fichero de instrucciones | `presentacion/` · `presentation/`; `AGENTS.md` y `CLAUDE.md` · solo `CLAUDE.md` | El encargo la llama `@presentation` en el repositorio y exige `CLAUDE.md` en la raíz; un solo fichero de instrucciones no diverge | `presentation/`, y el README explica que es la `/presentacion/` del encargo; `CLAUDE.md` en la raíz, que absorbió el antiguo `AGENTS.md` ([README](../README.md)) |

@@ -1,0 +1,74 @@
+# 004 — OBS · Plan
+
+- [ ] Plan approved   <- only the user marks this
+
+Spec: [spec.md](spec.md). Verificación: integración que lee de vuelta de Langfuse y propiedad de que ningún dato personal del brief sale sin máscara, «Observabilidad: trazas, spans, scores, máscara»; las órdenes de subir y de promover, integración con el doble, «CLI» (`docs/verification.md` §5).
+
+Hechos del SDK que fijan los pasos, leídos en el código de `langfuse` 4.15.4 y pendientes en [001 design.md](../001-base/design.md) §5.3:
+
+- **Máscara:** `mask`, no `mask_otel_spans`. `mask` corre al poner la entrada, la salida o los metadatos de una observación, en el hilo de quien llama, así que puede saber de qué traza es; `mask_otel_spans` corre en el hilo del exportador, sin ese contexto. Si la función lanza, el SDK exporta `<fully masked due to failed mask function>`. `create_score` no pasa el comentario por la máscara.
+- **Un cliente:** el SDK comparte sus recursos, máscara incluida, entre todos los clientes de la misma clave pública, y se queda con la del primero. La máscara de cada novela no puede ser un cliente propio: es una función que aplica la de la novela de la traza en curso.
+- **Promover:** `update_prompt(name=…, version=…, new_labels=[…])`. Las etiquetas son únicas entre versiones y `latest` la reserva y la mueve Langfuse.
+- **Lectura sin caché:** `get_prompt(name, label=…, cache_ttl_seconds=0)` sin `fallback` lee siempre del servidor y, si falla, lanza la excepción.
+
+### Steps
+- [ ] Ninguna prueba de CI salvo la de RF-OBS-22 envía nada a Langfuse: las demás usan un doble del cliente que guarda lo que se exportaría (RNF-1)
+  - El doble de las observaciones es el cliente real con un exportador de spans en memoria (`span_exporter`), así que lo que guarda ya ha pasado por la máscara. Los scores, los prompts y `auth_check()`, que van por la API REST, los sirve un doble del adaptador de `platform`.
+  - Una prueba falla si otra cualquiera abre una conexión con `LANGFUSE_BASE_URL`.
+- [ ] Una sesión de rol termina con su uso exacto → su coste es cada tipo de token por su precio en `operation.pricing` para su modelo, en USD por millón; nunca el coste que estima el SDK. Con un uso y unos precios fijados, el coste es el calculado a mano. Si el modelo del rol no tiene sus cuatro precios, la sesión no se abre, con un error que nombra el modelo (RF-OBS-8)
+  - `total_cost_usd` del SDK no se lee (001 design.md §5.1). Los precios del caso son de la prueba, no de `config.json`.
+- [ ] Antes de exportar nada de una novela → su máscara sustituye por etiquetas (`[DESTINATARIO]`, `[ALLEGADO_1]`, `[FECHA]`, `[RECUERDO_2]`, …), en todas las entradas y salidas, los datos personales de su brief —nombres, fechas de nacimiento, rasgos, textos de los recuerdos, dedicatoria, entradas prohibidas de nivel novela y hechos extraídos desde que se verifican, aceptados o no— y los valores de los hechos de origen brief o texto libre de todas sus versiones; además, los correos y los teléfonos por patrón. Tokens, coste, latencia y scores llegan intactos (RF-OBS-15)
+  - El caso lleva un dato de cada clase, un hecho extraído verificado y sin aceptar, y un hecho de origen brief que solo está en una versión anterior. Un hecho extraído entra en la máscara al pasar `citas-verificadas`.
+  - También pasan por la máscara los metadatos, los eventos y el comentario de cada score, que el SDK no enmascara. El valor del score y los `usage_details` y `cost_details` salen sin tocar.
+  - Lo que recibe `platform` es la tabla de sustituciones y los patrones, sin términos del dominio; quien la construye desde el brief y los hechos está fuera de `platform` (`architecture.md` §14.2, regla 5).
+- [ ] Para todo brief ficticio generado → ningún dato personal del brief aparece en lo que se exporta a Langfuse (RF-OBS-16)
+  - Propiedad con Hypothesis sobre el doble de RNF-1: el brief generado va en entradas, salidas, metadatos, eventos y comentarios, y cada uno de sus datos se busca en lo exportado. Los valores generados no son subcadena de una etiqueta.
+- [ ] Una traza que toca varias novelas → aplica la unión de sus máscaras (RF-OBS-17)
+  - El caso abre una traza `mcp` sobre dos novelas y exporta datos de las dos; quien la abre en producción es 016.
+- [ ] Toda traza de una novela → lleva como sesión el identificador de la novela: su entrevista o su importación, sus ejecuciones, las interpretaciones de sus cambios y las llamadas MCP que la tocan solo a ella quedan en la misma sesión. Una llamada MCP que toca varias novelas o ninguna, y una importación que falla antes de crear la novela, van sin sesión (RF-OBS-2)
+  - La importación abre su traza sin sesión, porque la novela aún no existe, y se la pone al crearla (005). unsure: que Langfuse agrupe en la sesión una traza cuyo `session_id` llega después de abrirla; el caso de 005 lo comprueba en la lectura de vuelta si hace falta.
+- [ ] Se abre la traza de una entrevista, de la importación de un brief, de la interpretación de un cambio, de una ejecución o de una llamada MCP → la traza lleva el nombre de su clase: `entrevista`, `importacion`, `interpretacion`, `ejecucion` o `mcp`. Abrirla para algo que ya tiene traza —el turno siguiente de una entrevista, una ejecución reanudada— continúa la misma, sin crear otra (RF-OBS-3)
+  - Continuar es abrir con el `trace_id` guardado (`interviews.trace_id`, `runs.trace_id`, `change_requests.trace_id`) como `trace_context`. Quién abre cada traza y cuándo es de 005, 007, 015 y 016.
+- [ ] Se abre una traza, o empieza un tramo nuevo de la traza de una ejecución → se le añaden el commit del código y la huella de la config con que corre; la traza de una ejecución reanudada lleva los de cada tramo (RF-OBS-4)
+  - La huella es la de 001 design.md §3.2. En una ejecución, el commit y la huella son los de su tramo (`run_segments`, 007).
+- [ ] Dentro de una traza → cada capítulo es un span `capitulo-<n>`; cada sesión de rol, un span `rol:<etiqueta>` con la etiqueta de su rol —`entrevistador`, `extractor`, `planner`, `writer`, `critico`, `editor`, `registrador`, `juez` o `revisor-visual`—; cada llamada a tool, un span `tool:<identificador>`, con el identificador de la tool sin el prefijo que le añade el SDK; y cada validador, un span `validador:<nombre>`. Los nombres de traza, de span, de prompt y de score son ASCII de 200 caracteres como mucho (RF-OBS-5)
+  - El prefijo es el `mcp__<servidor>__` de las tools (001 design.md §5.1). Un nombre que no es ASCII o pasa de 200 caracteres es un error antes de exportarlo.
+- [ ] Una tool en proceso → abre y cierra su span en su manejador. Una tool de Playwright MCP o `Skill`, que no tienen manejador propio → su span se abre en el hook de policy y lo cierra un `PostToolUse` de observabilidad. Una denegación → no abre span: queda como evento de la traza (RF-OBS-6)
+  - Con `ScriptedAgent`: una sesión con una tool en proceso, una llamada a `Skill`, una de Playwright MCP y una denegada da tres spans `tool:` y un evento. El hook de policy es de 003; 004 añade la apertura del span y el `PostToolUse` de observabilidad.
+- [ ] Se cierra una sesión de rol → su span `rol:` tiene su llamada de modelo (`LlamadaDeModelo`), una observación de generación con el modelo, la latencia, la versión del prompt que usó, `usage_details` con el uso exacto —entrada, salida, lectura y escritura de caché—, `cost_details` con el coste de RF-OBS-8 y la lista de ids de generación `gen-…` de sus turnos (RF-OBS-7)
+  - `usage_details` y `cost_details` usan las claves de `operation.pricing`: `input`, `output`, `cache_read` y `cache_write`. El uso es el de `ResultMessage.usage` y los ids, los `message_id` de sus turnos (001 design.md §5.1).
+- [ ] Se cierra una sesión de rol, dentro o fuera de una ejecución → queda en SQLite con su novela; lo que la abrió —una ejecución, una entrevista, una importación o una interpretación—; su capítulo, si es de uno; su rol, su modelo, la versión de su prompt, su desenlace, su uso exacto, su coste, su duración, sus ids `gen-…`, su traza y su llamada de modelo. Desde SQLite, sin llamar a Langfuse, se calculan el coste de un capítulo y de una ejecución, el acumulado de una novela y el de producirla: su entrevista o su importación más su generación (`architecture.md` §10.8, §12.2) (RF-OBS-9)
+  - La fila es la de `role_sessions` (001 design.md §4.4). Una sesión de la importación solo lleva `novel_id`; la de una importación que falla no queda, porque no queda nada en SQLite (`architecture.md` §3.4).
+  - El evaluable y el intento los pone 007, y la ventana y la entrada estimada, 008: 004 los deja vacíos.
+  - Una sesión que no llegó a abrirse, por RF-OBS-8 o RF-OBS-21, no deja fila.
+- [ ] Las sesiones de rol de un capítulo → quedan anidadas bajo su span `capitulo-<n>`, así que Langfuse da sus tokens, su coste y su latencia por llamada, por capítulo y, sumando las trazas de la sesión, por novela (RF-OBS-10)
+  - El caso comprueba en el doble que las generaciones de un capítulo cuelgan de su span y que la suma de sus `cost_details` es el coste del capítulo calculado desde SQLite.
+- [ ] Un validador da su resultado dentro de una traza → Langfuse recibe un score agregado con el nombre del validador, 1 si pasa y 0 si no, y uno por criterio, `<validador>/<criterio>`, en 0/1 o de 1 a 5 según el criterio. Un validador de un solo criterio envía un solo score, con su nombre. Cada score lleva un comentario con los motivos y se asocia a su traza y, si es de capítulo, a su span `capitulo-<n>` (RF-OBS-11)
+  - El tipo es `BOOLEAN` para 0/1 y `NUMERIC` para 1–5 (001 design.md §4.4), según el método del criterio en el catálogo. Los criterios del caso son de un catálogo de prueba: los reales los añade la spec de cada validador.
+- [ ] Se envía un score → se copia en SQLite con su novela, su ejecución si la hay, su nombre, su valor, su tipo, su comentario, su traza, su observación y su capítulo (RF-OBS-12)
+  - La fila es la de `scores`. La copia guarda el comentario sin máscara: la máscara solo actúa sobre lo que sale hacia Langfuse (`architecture.md` §12.5).
+- [ ] `harness-tla`, un validador que corre en el linter en vivo o uno que pasa en el acto de guardar una edición manual → no envía score ni deja fila en SQLite (RF-OBS-13)
+  - Un resultado sin traza no se envía ni se copia, y `harness-tla` no se envía ni con traza. El caso cubre los tres.
+- [ ] El motor de políticas toma una decisión dentro de una traza → la traza recibe un evento con la decisión, el origen, el código de motivo y el detalle: cada coincidencia con su nivel y la variante encontrada. Una decisión sin traza, como la del guardado de una edición manual, queda solo en el audit log (RF-OBS-14)
+  - El caso usa una `DecisionDePolitica` construida en la prueba; el motor que la toma es de 003. El detalle pasa por la máscara, porque las entradas de nivel novela son datos personales (RF-OBS-15).
+- [ ] El prompt de sistema de cada rol es un fichero del workspace del harness → la orden de subir de la CLI crea en Langfuse una versión nueva de `rol/<etiqueta>`, sin la etiqueta de los prompts, para cada rol cuyo fichero tiene una huella distinta de la de su última versión; un fichero sin cambios no crea nada (RF-OBS-18)
+  - El fichero es `backend/harness_workspace/prompts/<etiqueta>.md` (001 design.md §2.1). La huella de la última versión se calcula de su texto, leído con `latest`; un rol sin versión crea la primera.
+  - Un rol sin fichero es un error que lo nombra: el fichero de cada rol existe desde 004, y su texto lo escribe la spec de su rol.
+- [ ] La orden de promover de la CLI, con un rol y una versión → mueve a esa versión la etiqueta de los prompts (`LANGFUSE_PROMPT_LABEL`), y la versión que la tenía la pierde (RF-OBS-19)
+  - No comprueba las evals (spec, «Alcance»). Promover con `latest` como etiqueta es un error: esa etiqueta la mueve Langfuse.
+- [ ] Se abre una sesión de rol → su prompt de sistema se lee de Langfuse por la etiqueta de los prompts del servidor, y la llamada de modelo y la fila de SQLite quedan enlazadas a esa versión. Con la etiqueta `latest`, que Langfuse pone a la última versión, las evals corren una versión recién subida antes de promoverla (RF-OBS-20)
+  - El prompt leído llega al puerto de agente como `system_prompt` y a la generación como `prompt`; la fila guarda `prompt_name` y `prompt_version`.
+- [ ] Langfuse no responde al abrir una sesión de rol, o el prompt del rol ya no tiene la etiqueta → la sesión no se abre y el fallo es de infraestructura, el mismo desenlace que el de un proveedor que falla (001). La lectura no sirve una versión en caché (RF-OBS-21)
+  - El desenlace es `infrastructure_failure`. El caso lee una vez con éxito y después con Langfuse caído: la segunda no abre la sesión.
+- [ ] Al arrancar, las credenciales de Langfuse no pasan `auth_check()`, Langfuse no responde, o el prompt `rol/<etiqueta>` de algún rol no tiene la etiqueta de los prompts → el servidor no arranca, con un error accionable que dice cuál falla (RF-OBS-1)
+  - Un caso por fallo, y el del prompt nombra el rol. Las órdenes de subir y de promover no pasan esta comprobación, porque son las que la hacen posible.
+- [ ] En cada cambio, una prueba de CI envía a Langfuse una traza con un span `rol:`, su llamada de modelo con `usage_details` y `cost_details`, un score y un valor de un brief ficticio que la máscara debe sustituir, y la lee de vuelta por la API v2 de observaciones, reintentando durante un tiempo acotado porque la ingesta tarda de 15 a 30 s → la integración falla si no la encuentra a tiempo, si un nombre o una cifra no coinciden, o si el valor sin enmascarar aparece. La prueba no pasa de 30 peticiones por minuto (RF-OBS-22)
+  - Corre en `ci.yml`, con las credenciales de Langfuse como secretos del repositorio. La API heredada de trazas responde 410 (001 design.md §5.3).
+  - El score se lee por `GET /api/public/v2/scores`, porque la API de observaciones no devuelve scores.
+- [ ] Al cerrar 004 → la cabecera de `architecture.md` §12 lleva el explainer de la observabilidad con Langfuse y los prompts versionados, como asigna la lista de explainers del README (RF-OBS-23 · clase I)
+
+### Closing
+- [ ] Full suite green, type checks clean
+- [ ] Spec updated, or confirmed still true
+- [ ] Docs updated, or confirmed still true
+- [ ] Process records and explainers added, or none produced

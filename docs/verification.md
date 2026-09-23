@@ -205,23 +205,26 @@ Pruebas estructuradas del comportamiento de los roles o del sistema frente a un 
 |---|---|---|
 | **Conjunto dorado** | Extractor: textos libres con sus hechos esperados —sujeto, atributo, valor y cita—. Se cuentan los omitidos y los descartados por cita inexistente o por sujeto desconocido | T |
 | **Conjunto dorado** | Registrador: capítulos con su delta real esperado —eventos con todos sus atributos (`definitions.md` §2), usos de hechos, hechos nuevos, arcos resueltos y resumen—. Se cuentan los alucinados y los omitidos de cada tipo, y los atributos de evento erróneos | T |
-| **Conjunto dorado** | Entrevistador: conversaciones guionizadas con el brief esperado. Plantea cada dato faltante y cada contradicción, pregunta siempre por las prohibidas, anota los deseos de trama y no confirma un brief inválido | T |
-| **Defectos sembrados** | Crítico y juez: capítulos y novelas con un defecto sembrado por criterio —inconsistencia de personaje, salto temporal, contradicción entre capítulos, prosa repetitiva, final abrupto, personalización forzada—. Cada uno debe bajar su criterio. Un tropo pedido en los deseos de trama no debe bajar ninguno | I |
+| **Conjunto dorado** | Entrevistador: conversaciones guionizadas con el brief esperado. Plantea cada dato faltante y cada contradicción —también C6 sobre un deseo de trama—, pregunta siempre por las prohibidas, anota los deseos de trama, propone un marco al que no cabe en el presente post-IA sin rechazar ninguno por su ambientación, y no da por completo un brief inválido: confirma el cliente, no el entrevistador | T |
+| **Defectos sembrados** | Crítico y juez: capítulos y novelas con un defecto sembrado por criterio —inconsistencia de personaje, salto temporal, contradicción entre capítulos, prosa repetitiva, final abrupto, personalización forzada—. Cada uno debe bajar su criterio. Ni un tropo pedido en los deseos de trama ni el marco de un deseo deben bajar ninguno | I |
 | **Juicio humano** | El juez de novela frente a la revisión humana de la misma novela, criterio a criterio: diferencia absoluta media y tasa de acuerdo exacto (`architecture.md` §10.7) | I |
 | **Observación visual** | Revisor visual: vistas previas con defectos de estructura y de enlaces sembrados. Se cuenta lo que ve y lo que se le escapa frente a la estructura esperada, porque el veredicto del código solo es tan bueno como la observación | I |
-| **Datos de ejecución** | Writer y editor, sobre las ejecuciones de los cinco briefs: aceptación al primer intento del writer y defectos resueltos por corrección del editor, sacados de los intentos, los veredictos y los defectos guardados | D |
-| **Sistema** | Los cinco briefs de prueba (abajo): tabla de qué validadores pasan y cuáles fallan en cada uno | D |
+| **Datos de ejecución** | Writer y editor, sobre las ejecuciones de los seis briefs: aceptación al primer intento del writer y defectos resueltos por corrección del editor, sacados de los intentos, los veredictos y los defectos guardados | D |
+| **Sistema** | Los seis briefs de prueba (abajo): tabla de qué validadores pasan y cuáles fallan en cada uno | D |
 | **Cambios reales** | Cambios del lector sobre las novelas de la evaluación: capítulos afectados, continuidad tras la propagación y coste de cada revisión. Sirven además de demo de la propagación | D |
 | **Adversarial** | Inyección en el texto libre, en la petición de cambio y en la edición manual; peticiones que maximizan reintentos | T |
-| **Ajuste** | Una iteración de prompt, rúbrica o umbral: los cinco briefs antes y después, con la versión de prompt de cada resultado | D |
+| **Ajuste** | Una iteración de prompt, rúbrica o umbral: los seis briefs antes y después, con la versión de prompt de cada resultado | D |
 
-**Los cinco briefs de prueba** son todos ficticios y viven en el repositorio:
+**Los seis briefs de prueba** son todos ficticios y viven en el repositorio:
 
 1. **Ejemplo** — el brief del README, el caso nominal. Produce la novela de `ejemplos/`.
 2. **Infantil** — destinatario de siete años, fábula, tono tierno. Ejercita las reglas por franja de edad y la legibilidad.
 3. **Adversarial** — una carta pegada con instrucciones dirigidas al sistema. Ninguna debe llegar al brief ni a la novela.
 4. **Temporal** — recuerdos, edades y allegados preparados para que un plan ingenuo viole un invariante temporal. Es el caso en el que el validador formal debe detectar lo que los demás no detectan.
 5. **Prohibidas** — entradas prohibidas de nivel novela y cliente que la historia tiende a usar, con variantes de acento y de plural.
+6. **Fuera de ambientación** — un deseo de trama en la prehistoria, con el marco libre. Lo esperado: el planner lo enmarca, nada de la prehistoria entra en la cronología y pasan todos los validadores. Si lo planifica como real, lo caza la cronología planificada: el destinatario estaría presente antes de nacer (T5).
+
+El encargo pide cinco; el sexto prueba los marcos (`domain-knowledge.md` §4.5).
 
 La CLI reproduce el brief de ejemplo y lanza las evals.
 
@@ -242,8 +245,8 @@ Tres consecuencias directas del diseño:
 
 | Resultado | Qué recoge | Estado |
 |---|---|---|
-| Tabla por brief | Qué validadores pasaron y cuáles fallaron en cada uno de los cinco briefs, con sus scores | Pendiente |
-| Iteración de ajuste | Los cinco briefs antes y después, con la versión de prompt de cada resultado | Pendiente |
+| Tabla por brief | Qué validadores pasaron y cuáles fallaron en cada uno de los seis briefs, con sus scores | Pendiente |
+| Iteración de ajuste | Los seis briefs antes y después, con la versión de prompt de cada resultado | Pendiente |
 | Evals de rol | Extractor, registrador y entrevistador; crítico y juez con defectos sembrados; writer y editor con los datos de ejecución | Pendiente |
 | Juez frente a revisión humana | Diferencia absoluta media y tasa de acuerdo exacto, por criterio | Pendiente |
 | Caso de Lean | La incoherencia que solo detectó el validador formal, o por qué no apareció | Pendiente |
@@ -262,7 +265,7 @@ Ejecutar el agente en un entorno aislado para que una acción mala falle sin alc
   - la telemetría y la memoria automática del CLI están apagadas;
   - toda tool fuera de la lista del rol se deniega y queda en el audit log;
   - el revisor visual no navega fuera del origen de la vista previa;
-  - el backend solo escribe en el directorio de datos, también la configuración del CLI del SDK, las cachés de modelos y la salida de Playwright MCP (`architecture.md` §11.6);
+  - el backend solo escribe en el directorio de datos, también la configuración del CLI del SDK, las cachés de modelos y la salida de Playwright MCP, salvo el PDF que la orden de la CLI que reproduce el brief de ejemplo deja en la ruta que recibe (`architecture.md` §11.6);
   - todo bucle tiene techo, porque el riesgo real no es la acción destructiva sino **el rol en bucle sin límite**.
 
 ### 4.4 Guardarraíles — clase T
@@ -313,6 +316,7 @@ Los cambios generados por un agente pasan por el mismo pipeline y las mismas pru
   - Ruff, mypy, pruebas unitarias, de integración, de propiedades, de contrato y doradas;
   - TypeScript estricto, ESLint y el build de producción del frontend;
   - contratos de importación;
+  - que las migraciones de Alembic cubren los modelos del store;
   - deriva del cliente generado;
   - `detect-secrets`;
   - TLC sobre las tres especificaciones;
@@ -325,7 +329,7 @@ Los cambios generados por un agente pasan por el mismo pipeline y las mismas pru
 
 Exponer un cambio de forma limitada y compararlo antes de adoptarlo.
 
-- **Aplicación:** los prompts de los roles son ficheros del workspace del harness. Un comando los sube a Langfuse como versión nueva cuando cambia su huella, y en ejecución se leen por la etiqueta de los prompts, que es un ajuste del servidor. Una versión nueva se ejecuta sobre los cinco briefs de prueba antes de recibir la etiqueta de producción; es la iteración de ajuste de §4.2. El lote de evals hace el papel del porcentaje de tráfico.
+- **Aplicación:** los prompts de los roles son ficheros del workspace del harness. Un comando los sube a Langfuse como versión nueva cuando cambia su huella, y en ejecución se leen por la etiqueta de los prompts, que es un ajuste del servidor. Una versión nueva se ejecuta sobre los seis briefs de prueba antes de recibir la etiqueta de producción; es la iteración de ajuste de §4.2. El lote de evals hace el papel del porcentaje de tráfico.
 
 ### 4.9 Red-teaming — clase T
 
@@ -394,7 +398,7 @@ Deja un informe con severidad y cambio de resolución en `docs/security-report.m
 
 | Elemento del diseño | Método principal | Clase |
 |---|---|---|
-| Validación de la config al arrancar | Unitarias: toda config inválida —una cifra sin valor, `window_ceiling` por encima de 100.000, un criterio o un par desconocidos— falla con error accionable | T |
+| Validación de la config al arrancar | Unitarias: toda config inválida —`window_ceiling` por encima de 100.000, un criterio o un par desconocidos— impide arrancar con error accionable; una cifra sin valor arranca y falla con error accionable al leerse (`architecture.md` §15.2) | T |
 | Validación del brief (`schema-brief`): schema, faltantes, contradicciones C1–C7, cota | Unitarias exhaustivas por franja + propiedades de las reglas + mutación | T |
 | Verificación de citas del texto libre (`citas-verificadas`) | Unitarias + eval dorada del extractor | T |
 | Detector de inyección (`inyeccion-detectada`) | Unitarias: marca las frases dirigidas al sistema, nunca deniega y deja la detección en el audit log + red-team (§4.9) | T |
@@ -402,7 +406,8 @@ Deja un informe con severidad y cambio de resolución en `docs/security-report.m
 | Lista blanca de tools por rol y sandbox | Integración con el doble (§4.3): toda tool fuera de lista se deniega y queda en el audit log | T |
 | Salida de cada rol (`schema-salida`) | Pruebas de contrato del schema de cada tool + integración: una salida inválida cuenta como intento | T |
 | Grafo causal (`grafo-causal`, invariante 1) | Propiedad «si y solo si» (§3.6) + unitarias del orden y de la fecha del novum | T |
-| Outline (`outline`) | Unitarias: 10 capítulos, 3–6 beats, obligatorios asignados y arcos con resolución | T |
+| Outline (`outline`) | Unitarias: 10 capítulos, 3–6 beats, obligatorios asignados, arcos con resolución y extremos sin marco | T |
+| Beats dentro de un marco | Unitarias de la aplicación del delta: se descartan sus eventos y sus cambios de hechos, y se conservan sus hechos usados y sus personajes y lugares nuevos + el brief «Fuera de ambientación» (§4.2) | T, D |
 | Validadores del hook de capítulo | Unitarias + mutación | T |
 | Veredicto | Unitarias sobre la tabla de `architecture.md` §8.2 | T |
 | Delta real (`delta-real`) | Unitarias: los predicados de `delta-declarado` sobre el delta real, también tras una salida del editor | T |
@@ -431,7 +436,7 @@ Deja un informe con severidad y cambio de resolución en `docs/security-report.m
 | Extractor | Eval de conjunto dorado | T |
 | Registrador | Eval de conjunto dorado: hechos alucinados y omitidos, arcos resueltos y atributos de evento | T |
 | Entrevistador | Eval de conjunto dorado con conversaciones guionizadas | T |
-| Planner | Eval de sistema con los cinco briefs y los cambios reales, con sus salidas juzgadas por `outline`, `grafo-causal` y `cronologia-lean` | D |
+| Planner | Eval de sistema con los seis briefs y los cambios reales, con sus salidas juzgadas por `outline`, `grafo-causal` y `cronologia-lean` | D |
 | Crítico y juez | Eval con defectos sembrados + comparación con la revisión humana | I |
 | Writer y editor | Métricas de los datos de ejecución + inspección muestreada de trazas | D, I |
 | Revisión visual | Integración contra una vista previa con defectos de estructura y de enlaces sembrados, con el doble + eval de observación del revisor visual real (§4.2) | T, I |
@@ -449,7 +454,7 @@ Deja un informe con severidad y cambio de resolución en `docs/security-report.m
 | Presupuesto, límites y techo de entrada | Pruebas de los guardarraíles (§4.4) + trazas | T, D |
 | Coste por novela y por revisión | Protocolo de coste de §4.2, contrastado una vez con OpenRouter | D |
 | Generación completa del brief de ejemplo | Demostración de extremo a extremo | D |
-| Los cinco briefs de prueba | Eval de sistema, con tabla de validadores | D |
+| Los seis briefs de prueba | Eval de sistema, con tabla de validadores | D |
 | Seguridad del repositorio y la API | Auditoría del subagente | D |
 | Calidad literaria de la prosa | Rúbrica calibrada, sin patrón de referencia | **U** parcial |
 | Personalización natural | Rúbrica y revisión humana, sin patrón de referencia | **U** parcial |
@@ -495,7 +500,7 @@ No todo vale lo mismo al principio. El orden sigue el criterio económico de los
 5. **Pruebas doradas del recuperador y propiedades de los invariantes 1, 4 y 6.** No cuestan llamadas a modelo, y sin ellas cada defecto de capítulo es ambiguo entre «el modelo falló» y «el modelo no lo vio».
 6. **Evals del extractor, el registrador y el entrevistador.** Son los errores que ningún validador posterior revisa del todo.
 7. **Biblioteca Lean con sus demostraciones y sus ficheros negativos, y el verificador remoto.** Antes de la primera novela completa.
-8. **Evals del crítico y el juez con defectos sembrados; los cinco briefs; los cambios reales y el coste; la revisión humana.** Cuando exista una novela completa que evaluar.
+8. **Evals del crítico y el juez con defectos sembrados; los seis briefs; los cambios reales y el coste; la revisión humana.** Cuando exista una novela completa que evaluar.
 9. **Mutación sobre los guardarraíles, red-teaming y auditoría de seguridad.** Cuando haya una versión que defender.
 
 ---
@@ -569,6 +574,7 @@ Qué inspeccionó el agente, qué detectó y qué cambio provocó en el código 
 | 2026-09-23 | Cuatro subagentes de auditoría de solo lectura, en paralelo | Antes de las specs: cobertura del encargo por los docs, huecos de `architecture.md` recorriendo cada flujo, coherencia entre los cuatro docs y esquema SQLite derivable | Unos 270 hallazgos, muchos repetidos entre auditorías: 43 de los ~150 requisitos del encargo quedaban parciales, contradichos o ausentes. Veinte decisiones pasaron al usuario en cinco rondas de grill; el resto se resolvió con la opción más simple |
 | 2026-09-23 | Tres subagentes generales en paralelo, cada uno con el acuerdo de cohesión y su parte: `architecture.md`; `verification.md`; y `domain-knowledge.md`, ADR 0004, `config.json`, `.env.example` y el README | Aplicar a los docs las decisiones del grill, con `definitions.md` ya reescrito como autoridad de nombres | Los tres docs y los ficheros al día. Cada uno devolvió los huecos que había cerrado solo y las contradicciones que veía fuera de su fichero: de ahí salieron la regla de revalidación de una edición manual, el riesgo 14 sobre la seudonimización y la pregunta al usuario sobre con qué config se reanuda una ejecución bloqueada |
 | 2026-09-23 | Subagente de auditoría de solo lectura sobre los cuatro docs y los ADR; el primero se cortó al reiniciarse la sesión y se relanzó | Buscar contradicciones entre docs, términos sin definir, referencias rotas y requisitos del encargo sin cubrir antes de las specs | 29 hallazgos. Uno pasó al usuario: volver a registrar un capítulo reemplaza en la candidata lo que escribió su registro anterior (`architecture.md` §8.3). El resto se corrigió con la opción más simple, entre ellos dos validadores nuevos (`alcance-propuesta` y `valor-antiguo-ausente`) y los riesgos 19 y 20. Un segundo pase comprobó los arreglos y dejó diez cabos, también corregidos |
+| 2026-09-23 | Seis subagentes `auditor` de solo lectura, en paralelo, uno por spec 001–006 | Auditar cada borrador contra `architecture.md` antes de pedir su aprobación | 92 diferencias en total (29, 5, 15, 15, 15 y 13). Se corrigieron en las specs, y 40 incoherencias de los docs se arreglaron por reemplazo, sin reabrir `architecture.md` §16 |
 | — | Subagente de auditoría de seguridad, con su skill y su comando | `docs/security-report.md` (`architecture.md` §13.5) | Pendiente (spec 018) |
 
 ### 9.5 Memoria
