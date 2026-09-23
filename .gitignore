@@ -7,3 +7,6 @@ settings.local.json
 
 # Clon de trabajo que usa la skill react-expert
 .claude/react/
+
+# Instantáneas de Playwright MCP
+.playwright-mcp/

@@ -1,0 +1,15 @@
+{
+  // El .venv vive en backend/.venv (no en la raíz) porque el pyproject.toml, por ello hay que cambiar la ruta.
+  "python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/Scripts/python.exe",
+
+  // Ajustes que aplican solo a archivos Python.
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+
+    // Formatear automáticamente al guardar (Ctrl+S).
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports.ruff": "explicit"
+    }
+  }
+}
