@@ -1,0 +1,7 @@
+{
+  "positive.json": {"status": "pass"},
+  "negative-t1-orden.json": {"status": "fail", "invariant": "t1-orden", "witness": {"events": [203, 209], "characters": []}},
+  "negative-t2-edad.json": {"status": "fail", "invariant": "t2-edad", "witness": {"events": [202], "characters": [2]}},
+  "negative-t3-dos-lugares.json": {"status": "fail", "invariant": "t3-dos-lugares", "witness": {"events": [204, 205], "characters": [1]}},
+  "negative-t4-excluyente.json": {"status": "fail", "invariant": "t4-excluyente", "witness": {"events": [207, 211], "characters": [2]}}
+}

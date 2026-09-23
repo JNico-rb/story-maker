@@ -1,0 +1,14 @@
+name = "chronology"
+defaultTargets = ["Chronology"]
+
+[leanOptions]
+autoImplicit = false
+
+# The chronology types, the four invariants, the calendar checks and the axiom audit.
+[[lean_lib]]
+name = "Chronology"
+
+# The chronology under verification: Input/Data.lean, written by scripts/generate.py, and the
+# theorems over it in Input/Proofs.lean. Only scripts/verify.py builds it.
+[[lean_lib]]
+name = "Input"
