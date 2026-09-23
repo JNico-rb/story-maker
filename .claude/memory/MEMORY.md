@@ -2,3 +2,5 @@
 - [Máxima de simplicidad](feedback-maxima-simplicidad.md) — lo más fácil posible, tan difícil como haga falta; dificultad deliberada solo en RAG, Langfuse, MCP, Agent SDK, Lean, TLA+.
 - [Examen de Harness Engineering](project-examen-harness.md) — project-constraints.md es el encargo; lo opcional se hace entero; se mantiene el tema post-IA.
 - [docs/ limpio](feedback-docs-limpio.md) — solo los cuatro de referencia + adr/ + relational-matrix.md; ficheros nuevos solo si son imprescindibles o temporales.
+- [Respuestas cortas](feedback-respuestas-cortas.md) — ≤10 líneas, al grano, también en estrategia; ampliar solo si lo pide.
+- [Agent SDK sobre OpenRouter](project-agent-sdk-openrouter-hechos.md) — medido 2026-09-23: tools=[] quita Skill, CLAUDE.md de los padres y .mcp.json raíz se cuelan, usage por turno a cero; detalle de librería para las sesiones de rol.

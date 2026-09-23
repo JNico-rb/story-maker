@@ -1,6 +1,6 @@
-# Matriz de relación: planes contra arquitectura
+# Matriz de relación: specs contra docs y encargo
 
-Registro del bucle de gap del [proceso 3](../workflow/3-plan.md). Para cada spec anota qué secciones de [architecture.md](architecture.md) implementa su plan y cada diferencia entre los dos. Una spec no pasa a código mientras su apartado tenga una diferencia bloqueante abierta.
+Registro del bucle de gap del [proceso 2](../workflow/2-specs.md). Para cada spec anota qué secciones de [architecture.md](architecture.md) implementa y cada diferencia con los docs o con el encargo. Un requisito queda respaldado por una sección de `architecture.md` o de `verification.md`, o por un punto de [project-constraints.md](../project-constraints.md). Una spec no pasa a código mientras su apartado tenga una diferencia bloqueante abierta. El hook `guard` lo comprueba.
 
 ## 1. Cobertura
 

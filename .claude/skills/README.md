@@ -13,6 +13,7 @@ desde el origen.
 | `feature-sliced-design` | `feature-sliced/skills`, ruta `feature-sliced-design` | MIT | `fd71da4` |
 | `wayfinder` | `mattpocock/skills`, ruta `skills/engineering/wayfinder` | MIT | `959a8e9` — **adaptada**, ver abajo |
 | `writing-for-agents` | `mattpocock/skills`, ruta `skills/productivity/writing-for-agents` | MIT | `959a8e9` (plugin `mattpocock-skills` 1.2.3) |
+| `tdd` | `mattpocock/skills`, ruta `skills/engineering/tdd` | MIT | plugin `mattpocock-skills` 1.2.3; la usan los chats de código (`.claude/commands/codigo.md`) |
 | `sqlalchemy-sqlite` | propia del proyecto | — | **no escrita**: bloqueada a propósito, ver abajo |
 
 ## Notas

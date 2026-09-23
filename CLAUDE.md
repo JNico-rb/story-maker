@@ -1,10 +1,19 @@
 # CLAUDE.md — Instructions
 
-**`V2-test` is the main branch.** Each spec's code goes on its own branch `v2-test-NNN`, cut from `V2-test` into a worktree under `.claude/worktrees/`; the code chat commits there ([process 3](workflow/3-plan.md) has its line). A hyphen, since on Windows a `v2-test/` ref collides with `V2-test`. Every other branch predates the restart and is not a valid reference ([ADR 0002](docs/adr/0002-v2-desde-cero.md)).
+**`V2-test` is the main branch.** Each spec's code goes on its own branch `v2-test-NNN` (`v2-test-NNN-<lane>` for a lane), cut from `V2-test` into a worktree under `.claude/worktrees/`; the code chat commits there ([process 3](workflow/3-plan.md) has its line). A hyphen, since on Windows a `v2-test/` ref collides with `V2-test`. Every other branch predates the restart and is not a valid reference ([ADR 0002](docs/adr/0002-v2-desde-cero.md)).
 
 ## What is being built
 
 The final exam of a Harness Engineering course: personalized gift novels set after the AI revolution. [project-constraints.md](project-constraints.md) is the brief every doc and spec answers to; the optional items in it are in scope. What was decided and why, before any code: [ADR 0003](docs/adr/0003-pivote-al-encargo.md).
+
+## Current delivery: V1 in under 24 hours
+
+One spec is built now, [019-v1-entrega](specs/019-v1-entrega/spec.md); specs 001–018 are the full design, V2 ([ADR 0005](docs/adr/0005-entrega-v1-en-24-horas.md)). The work runs in sessions:
+
+- **Orchestrator**: the session `story-maker-9b`. It is the only one that talks to the user and merges into V2-test (`/integrar`), and the single writer of `docs/`, `workflow/`, `.claude/`, `CLAUDE.md` and `README.md`.
+- **Lanes 1–4**: one terminal each, in its own worktree. A lane works its section of `plan.md` through `/codigo` under `/goal`, and reports to the orchestrator with SendMessage.
+
+Commands, in `.claude/commands/`: `/spec`, `/plan`, `/codigo`, `/integrar` and `/estado`. Subagents, in `.claude/agents/`: `auditor` checks a spec against the docs and the brief; `verificador` checks a branch against its spec before it is integrated.
 
 ## Two harnesses
 
@@ -25,7 +34,7 @@ The dev laptop is Windows without admin rights, under Smart App Control. Lean ru
 
 ## Docs — `docs/`
 
-`docs/` holds the four reference docs below, `adr/`, and `relational-matrix.md` —the gap between each plan and `architecture.md` ([process 3](workflow/3-plan.md))—, nothing else. A new file goes there only when strictly necessary —`security-report.md`, which the brief names— or as a working file deleted once its job is done. Load only the one the task needs. One concern per doc; cross-reference instead of copying.
+`docs/` holds the four reference docs below, `adr/`, and `relational-matrix.md` —the gap between each spec and the docs and brief ([process 2](workflow/2-specs.md))—, nothing else. A new file goes there only when strictly necessary —`security-report.md`, which the brief names— or as a working file deleted once its job is done. Load only the one the task needs. One concern per doc; cross-reference instead of copying.
 
 **Reference docs are the source of truth:**
 
@@ -67,6 +76,14 @@ Each folder holds `spec.md` (what), `plan.md` (steps) and, when needed, `design.
 | Write tests or code | That `plan.md`'s approval box `[x]` + its gap zero in `docs/relational-matrix.md` —no blocking difference open; minor ones may stay `aceptada`— + a failing test |
 
 **Only the user marks an approval box.** Never mark one, never assume one, never read agreement in conversation as approval. Box unmarked → **stop and ask**.
+
+The `guard` hook (`scripts/dev/guard.mjs`, run from `.claude/settings.json`) enforces these gates in code. It denies:
+
+- an agent edit that marks an approval box;
+- a lane edit to `backend/` or `frontend/` while the lane's gate is closed;
+- a lane edit to a file the orchestrator owns.
+
+A denial is the gate working: report it instead of working around it.
 
 ### Grill (`grill-me` skill)
 
