@@ -64,7 +64,7 @@ Todos son **Obligatorio**. Las cifras `max_retries`, `max_resumes`, `max_agent_s
 | ID | Requisito | Prioridad | Clase |
 |---|---|---|---|
 | RF-RUN-10 | Una fase devuelve un motivo de bloqueo —`retries_exhausted`, `budget_exceeded`, `infeasible_config`, `render_failure`, `banned_content` o `internal_error`— → la ejecución pasa a `blocked` con ese motivo y un detalle legible, sin abrir ninguna sesión más | Obligatorio | T |
-| RF-RUN-11 | Un fallo de infraestructura —una sesión con desenlace «fallo de infraestructura» del puerto de agente (RF-BAS-23), también el de Langfuse al abrirla (RF-OBS-21), o un verificador formal no disponible (009)— → la ejecución pasa a `interrupted` con el motivo, y no cuenta ningún intento | Obligatorio | T |
+| RF-RUN-11 | Un fallo de infraestructura —una sesión con desenlace «fallo de infraestructura» del puerto de agente (RF-BAS-23), también el de Langfuse al abrirla (RF-OBS-23), o un verificador formal no disponible (009)— → la ejecución pasa a `interrupted` con el motivo, y no cuenta ningún intento | Obligatorio | T |
 | RF-RUN-12 | El orquestador comprueba en ejecución los invariantes 5, 8, 9 y 10 (`architecture.md` §10.4). Con un fallo inyectado —empezar un capítulo sin el punto de control del anterior, publicar sin haber pasado el gate, escribir en una versión publicada o reanudar hacia un capítulo ya aceptado o saltándose uno— → la ejecución pasa a `blocked` con `internal_error` y el invariante en el detalle, y no escribe nada más en la candidata | Obligatorio | T |
 
 ### Cancelar

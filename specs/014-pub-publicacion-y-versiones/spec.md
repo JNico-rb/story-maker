@@ -1,6 +1,6 @@
 # 014 — PUB · Publicación y versiones
 
-- [x] Spec approved   <- only the user marks this
+- [ ] Spec approved   <- only the user marks this
 
 ## Objetivo
 
@@ -15,7 +15,7 @@ Cubre:
 - el gate de publicación en tres etapas, con su orden, su tabla de enrutado y cada ciclo como intento;
 - los validadores `elementos-obligatorios` y `arcos-cerrados`, y la pasada de `nombres-exactos` y `palabras-prohibidas` sobre la novela entera;
 - el juez, con la rúbrica de novela (`rubrica-novela`);
-- el revisor visual con Playwright MCP y el veredicto de `revision-visual` por código.
+- el revisor visual con Playwright MCP y el veredicto de `revision-visual` por código, con cada fallo visual devuelto a quien puede arreglarlo: el registrador o, si es de render, el desarrollador.
 
 Columnas de `versions` y de las tablas de ámbito versión: [001 design.md](../001-base/design.md) §12; Playwright MCP del revisor visual: §11.
 
@@ -57,9 +57,9 @@ Todos son **Obligatorio**.
 | RF-PUB-9 | Etapa 3, solo si pasan la 1 y la 2 → se exporta el PDF de la candidata y pasa `pdf-enlaces` (013). Si falla, la ejecución queda `blocked` con motivo `render_failure` y la candidata no se publica | Obligatorio | T |
 | RF-PUB-10 | Cada ciclo del gate → usa una vista previa sin revocar de la candidata, y la emite si no la hay (013). Al terminar el gate —al publicar o al detenerse la ejecución en él—, la vista previa se revoca | Obligatorio | T |
 | RF-PUB-11 | Un fallo del gate que vuelve al editor → le llega con sus capítulos: un elemento obligatorio ausente, sobre los capítulos que el outline le asignó; un nombre no canónico o un término prohibido en un capítulo, sobre los capítulos implicados; un arco abierto, sobre su capítulo de resolución planificado; un invariante de Lean violado, con los eventos del testigo traducidos a capítulos y nombres (009); y un criterio de la rúbrica de novela bajo su umbral, sobre los capítulos que cita el juez | Obligatorio | T |
-| RF-PUB-12 | Falla `revision-visual/enlaces-ficha` → el registrador vuelve a extraer los usos del capítulo al que falta el enlace | Obligatorio | T |
+| RF-PUB-12 | Falla `revision-visual/enlaces-ficha` → el registrador, que es el rol correspondiente porque es quien escribe los usos, vuelve a extraer los usos del capítulo al que falta el enlace | Obligatorio | T |
 | RF-PUB-13 | Falla `beats-planificados` en el gate, que requiere regenerar → el writer regenera ese capítulo dentro del ciclo | Obligatorio | T |
-| RF-PUB-14 | Un término prohibido en la portada o la ficha → la ejecución queda `blocked` con motivo `banned_content`. Una portada, un índice, un capítulo o una ficha que no renderizan en la vista previa —también un capítulo vacío o sin título que en la base tiene texto y título— → `blocked` con motivo `render_failure`. En los dos casos no hay nada que un rol pueda corregir | Obligatorio | T |
+| RF-PUB-14 | Un término prohibido en la portada o la ficha → la ejecución queda `blocked` con motivo `banned_content`. Una portada, un índice, un capítulo o una ficha que no renderizan en la vista previa —también un capítulo vacío o sin título que en la base tiene texto y título— → `blocked` con motivo `render_failure`. En los dos casos no hay nada que un rol pueda corregir. Un `render_failure`, también el de `pdf-enlaces` (RF-PUB-9), llega al desarrollador en el informe de ejecución (007), con su motivo de bloqueo y el criterio que falló, porque el defecto está en el código. Ningún fallo visual vuelve al writer: el texto y el título que se ven ya pasaron sus validadores en la base | Obligatorio | T |
 | RF-PUB-15 | Toda corrección del gate → pasa el hook de validación, vuelve a pasar por el registrador y por la transacción de aceptación, que reemplaza el registro anterior del capítulo (011), y después el gate se repite desde la etapa 1. Las correcciones de un ciclo van juntas: el editor corrige y el registrador vuelve a registrar | Obligatorio | T |
 | RF-PUB-16 | Cada ciclo del gate, con sus correcciones → es un intento del evaluable `gate_cycle`, y las entregas de sus correcciones no cuentan como intentos del capítulo. Agotado `max_retries` (sin calibrar, `architecture.md` §15.2) con defectos bloqueantes → la ejecución queda `blocked` con `retries_exhausted` | Obligatorio | T |
 | RF-PUB-17 | El gate supera sus tres etapas → publica en una sola transacción: la candidata pasa a publicada con el número siguiente al de la última versión publicada de la novela —1 si no hay ninguna—, su fecha de publicación, la ruta del PDF y su lista de capítulos cambiados; la ejecución termina `finished` (007). Es la única operación que da número a una versión | Obligatorio | T |

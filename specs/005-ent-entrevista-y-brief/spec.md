@@ -1,6 +1,6 @@
 # 005 — ENT · Entrevista y brief
 
-- [x] Spec approved   <- only the user marks this
+- [ ] Spec approved   <- only the user marks this
 
 ## Objetivo
 
@@ -22,7 +22,7 @@ Cubre:
 - los validadores `schema-brief` y `citas-verificadas`;
 - la página de entrevista.
 
-Depende de 001, 002, 003 —el motor de políticas, la normalización y el detector de inyección— y 004 —las trazas y los scores—. La comprobación de que una sesión cabe en su ventana es del guardián de ventana de 008.
+Depende de 001, 002, 003 —el motor de políticas, la normalización y el detector de inyección— y 004 —las trazas y los scores—. La comprobación de que una sesión cabe en su ventana, y la reserva de su cuota en la parte de la API del techo de ventana, son del guardián de ventana de 008; aquí se responde a su resultado.
 
 **Fuera de alcance:**
 
@@ -45,7 +45,7 @@ Todos son **Obligatorio**.
 | RF-ENT-2 | `POST /api/novels/{id}/interview/messages` con un texto → se abre una sesión de rol del entrevistador en el proceso de la API, que recibe el historial guardado de la entrevista, el brief en curso, los hechos verificados y las cuatro comprobaciones de RF-ENT-12 a RF-ENT-24 calculadas en ese momento, con las tools `update_brief` y `propose_dedication`. Si la sesión termina bien, se guardan en una sola transacción el turno —el texto del cliente y la respuesta— y los cambios del brief, y la API responde con el turno del entrevistador | Obligatorio | T |
 | RF-ENT-3 | `GET /api/novels/{id}/interview/messages` → los turnos guardados, en orden | Obligatorio | T |
 | RF-ENT-4 | La entrevista tiene su traza (004): la abre el primer turno, y los turnos y textos libres siguientes la continúan. En ella quedan todas sus sesiones de rol, los resultados de `schema-brief`, `citas-verificadas` e `inyeccion-detectada` y las decisiones de política que se toman en ella | Obligatorio | T |
-| RF-ENT-5 | La sesión de un turno o de un texto libre termina con los turnos o el tiempo agotados o con un fallo del proveedor → 503; no se guardan el turno, los cambios del brief, el texto libre ni sus hechos, y sí la sesión de rol con su coste. Si Langfuse no responde, la sesión no llega a abrirse (004) y también es 503, sin nada que guardar | Obligatorio | T |
+| RF-ENT-5 | La sesión de un turno o de un texto libre termina con los turnos o el tiempo agotados o con un fallo del proveedor → 503; no se guardan el turno, los cambios del brief, el texto libre ni sus hechos, y sí la sesión de rol con su coste. Si Langfuse no responde (004), o si la sesión no cabe en la parte de la API del techo de ventana tras esperar `operation.api_window_wait_seconds` (sin calibrar, 008), la sesión no llega a abrirse y también es 503, sin nada que guardar | Obligatorio | T |
 | RF-ENT-6 | El coste acumulado de las sesiones de rol de una entrevista —del entrevistador y del extractor— pasa de `operation.budget` → el turno o el texto libre en que ocurre responde 503 sin guardar el turno, los cambios del brief, el texto libre ni sus hechos, y también los siguientes | Obligatorio | T |
 | RF-ENT-7 | El entrevistador llama a `update_brief` → los campos que entrega se aplican al brief en curso; las entradas prohibidas que registra quedan como lista de nivel novela, y la tool anota que se preguntó por ellas aunque la lista quede vacía. Cada deseo de trama lleva su enunciado y, si el cliente lo fija, un marco del catálogo cerrado —`simulation`, `dream` o `story_within_story`—; uno sin marco queda libre para el planner | Obligatorio | T |
 | RF-ENT-8 | Las tools del entrevistador declaran sus campos narrativos (003) → la dedicatoria de `update_brief` y la de `propose_dedication` son narrativas; las entradas prohibidas, no. Una dedicatoria con un término prohibido hace que el hook de policy deniegue la tool, y una lista de prohibidas con ese término no | Obligatorio | T |
@@ -98,7 +98,7 @@ Todos son **Obligatorio**.
 | ID | Requisito | Prioridad | Clase |
 |---|---|---|---|
 | RF-ENT-37 | `POST /api/novels` con un `brief` en JSON del mismo schema → se valida primero con las comprobaciones de RF-ENT-12 a RF-ENT-24, y después sus textos libres pasan por el mismo extractor y las mismas verificaciones. Si todo pasa, 201: la novela queda creada como en RF-ENT-1 pero sin entrevista, con el brief `confirmed`, sus hechos verificados aceptados, ninguno obligatorio, y sus elementos personales. La importación corre dentro de su propia traza, y sus sesiones de rol comparten el techo `operation.budget` | Obligatorio | T |
-| RF-ENT-38 | Un brief importado con errores de schema, datos faltantes, contradicciones o la cota superada → 422 sin crear nada y sin abrir ninguna sesión. Un texto libre que no cabe en la ventana del extractor → 422. Un fallo del proveedor, un límite o el presupuesto agotados, o Langfuse que no responde → 503; no queda nada en SQLite, y la traza de la importación queda en Langfuse sin sesión | Obligatorio | T |
+| RF-ENT-38 | Un brief importado con errores de schema, datos faltantes, contradicciones o la cota superada → 422 sin crear nada y sin abrir ninguna sesión. Un texto libre que no cabe en la ventana del extractor → 422. Un fallo del proveedor, un límite o el presupuesto agotados, una sesión del extractor que no cabe en la parte de la API del techo de ventana tras su espera (008), o Langfuse que no responde → 503; no queda nada en SQLite, y la traza de la importación queda en Langfuse sin sesión | Obligatorio | T |
 | RF-ENT-39 | La CLI importa un brief desde un fichero JSON a nombre de un cliente → sigue el mismo camino que la API y da el id de la novela o los errores | Obligatorio | T |
 
 ### Página y explainer
@@ -116,8 +116,8 @@ Todos son **Obligatorio**.
 
 ## Docs de referencia
 
-- `architecture.md` §3, §6.9 (modelo de incrustación congelado), §6.10 (punto 4), §7.2 (entrevistador y extractor), §7.3 (prompts), §7.4, §7.5 (qué escanea la policy), §7.7 (regla 6), §9.1 (quién escribe), §10.2 y §10.3 (`schema-brief`, `citas-verificadas`, `inyeccion-detectada`), §11.3, §11.4, §11.5, §12.1, §12.4, §13.6, §14.3 y §14.5.
-- `definitions.md` §1 (con `DeseoDeTrama` y `Marco`), §5 (`Presupuesto`), §11 (`budget`, `max_mandatory_elements`) y §12.
+- `architecture.md` §3, §6.9 (modelo de incrustación congelado), §6.10 (puntos 2 y 4), §7.2 (entrevistador y extractor), §7.3 (prompts), §7.4, §7.5 (qué escanea la policy), §7.7 (regla 6), §9.1 (quién escribe), §10.2 y §10.3 (`schema-brief`, `citas-verificadas`, `inyeccion-detectada`), §11.3, §11.4, §11.5, §12.1, §12.4, §13.6, §14.3 y §14.5.
+- `definitions.md` §1 (con `DeseoDeTrama` y `Marco`), §5 (`Presupuesto`), §11 (`budget`, `max_mandatory_elements`, `api_window_share`, `api_window_wait_seconds`) y §12.
 - `domain-knowledge.md` §4.3, §4.4, §4.5 y §5.2.
 - `verification.md` §3.6 (reglas C1–C7), §3.7, §4.2 (eval dorada del entrevistador), §4.9 (RT1 y RT8) y §5.
 - README de la raíz («Explainers») y `workflow/4-code.md`, paso 5.

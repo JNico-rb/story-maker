@@ -37,7 +37,7 @@ Las cifras `max_retries`, `max_resumes`, `max_agent_seconds`, `roles.<rol>.max_t
   - El veredicto es un doble que escala: su tabla es de 011.
 - [ ] Una fase devuelve un motivo de bloqueo —`retries_exhausted`, `budget_exceeded`, `infeasible_config`, `render_failure`, `banned_content` o `internal_error`— → la ejecución pasa a `blocked` con ese motivo y un detalle legible, sin abrir ninguna sesión más (RF-RUN-10)
   - Un caso por motivo. El detalle se guarda con la ejecución: si [001 design.md](../001-base/design.md) §4.4 no tiene su columna, la añade la migración de 007 y se anota en esa tabla al cerrar.
-- [ ] Un fallo de infraestructura —una sesión con desenlace «fallo de infraestructura» del puerto de agente (RF-BAS-23), también el de Langfuse al abrirla (RF-OBS-21), o un verificador formal no disponible (009)— → la ejecución pasa a `interrupted` con el motivo, y no cuenta ningún intento (RF-RUN-11)
+- [ ] Un fallo de infraestructura —una sesión con desenlace «fallo de infraestructura» del puerto de agente (RF-BAS-23), también el de Langfuse al abrirla (RF-OBS-23), o un verificador formal no disponible (009)— → la ejecución pasa a `interrupted` con el motivo, y no cuenta ningún intento (RF-RUN-11)
   - «No disponible» incluye el verificador que no concluye en `max_verifier_seconds` (RF-LEA-21).
 
 #### Presupuesto

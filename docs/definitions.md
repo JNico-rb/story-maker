@@ -840,7 +840,7 @@ Implementación de uno o varios criterios en uno o varios puntos del harness.
 - **Atributos:** nombre, familia (programático | semántico | formal de la historia | formal del sistema), puntos de ejecución, criterios, fiabilidad conocida.
 - **Puntos de ejecución:** validación del brief, extracción, salida de una tool, hook de validación, hook de policy, petición de cambio, crítico, registro, congelación del outline, entrega del mundo, gate de publicación, exportación del PDF, edición manual, linter en vivo, evaluación y CI.
 
-> Un validador bloquea cuando lo hace alguno de sus criterios. Todo validador del producto envía su resultado a Langfuse como `Score`, salvo cuando no hay traza: en el linter en vivo y en el acto de guardar una edición manual. `harness-tla`, que juzga el sistema en CI, tampoco envía ninguno. Un juez sin fiabilidad medida es ruido con formato de métrica.
+> Un validador bloquea cuando lo hace alguno de sus criterios. Todo validador del producto envía su resultado a Langfuse como `Score`, salvo en el linter en vivo, que no tiene traza. `harness-tla`, que juzga el sistema en CI, tampoco envía ninguno. Un juez sin fiabilidad medida es ruido con formato de métrica.
 
 ### Linter
 
@@ -972,7 +972,7 @@ Registro de todas las `DecisionDePolitica`, incluidas las detecciones de inyecci
 
 ### Traza
 
-Registro en Langfuse de una entrevista, de la importación de un brief, de la interpretación de un cambio, de una ejecución o de una llamada MCP. Una ejecución reanudada conserva la suya.
+Registro en Langfuse de una entrevista, de la importación de un brief, de la interpretación de un cambio, de una ejecución, del guardado de una edición manual o de una llamada MCP. Una ejecución reanudada conserva la suya.
 
 ### Sesion
 
@@ -980,11 +980,13 @@ Agrupa en Langfuse las trazas de una novela, desde la entrevista hasta las regen
 
 ### Span
 
-Observación con nombre dentro de una traza: un rol, una tool, un capítulo o un validador.
+Observación con nombre dentro de una traza: un rol, una llamada a tool —también la que deniega el hook de policy—, un capítulo o un validador.
 
 ### LlamadaDeModelo
 
-Observación de una sesión de rol, con su modelo, sus tokens, su coste, su latencia y el prompt versionado que usó.
+Un turno de una sesión de rol, que en OpenRouter es una generación con su id `gen-…`. Es una observación de tipo generación, hija del span de su sesión de rol, con su modelo, sus tokens de entrada, de salida y de caché, su coste, su latencia y el prompt versionado que usó. Sus cifras llegan al consultar la generación en OpenRouter tras cerrar la sesión.
+
+> Las llamadas que no se resuelven a tiempo se reúnen en una sola, `llamada-sin-detalle`, con la diferencia hasta el uso exacto de la sesión: la suma de las llamadas de una sesión siempre es su uso exacto (`architecture.md` §12.1).
 
 ### PromptVersionado
 
@@ -1047,8 +1049,9 @@ config
 ├── retrieval   { embedding_model, quotas }
 └── operation   { roles, pricing, max_retries, max_agent_seconds, max_verifier_seconds,
                   max_resumes, max_tool_output, budget, window_ceiling,
-                  count_drift_threshold, max_mandatory_elements,
-                  access_token_hours, confirmation_minutes }
+                  api_window_share, api_window_wait_seconds,
+                  generation_lookup_seconds, count_drift_threshold,
+                  max_mandatory_elements, access_token_hours, confirmation_minutes }
 ```
 
 - **quality:**
@@ -1067,7 +1070,10 @@ config
   - `max_resumes`: reanudaciones máximas de una ejecución.
   - `max_tool_output`: cota de la salida de una tool, que entra en la reserva de turnos.
   - `budget`: techo en USD de cada ejecución, de cada entrevista y de cada importación de un brief.
-  - `window_ceiling`: techo de tokens **de entrada** de una ejecución, que se reparten sus sesiones en vuelo; una sesión que no pertenece a una ejecución lo respeta ella sola. Al arrancar se valida que no pase de 100.000.
+  - `window_ceiling`: techo de tokens **de entrada** en vuelo a la vez en todo el servidor, sumadas todas sus sesiones de rol. Al arrancar se valida que no pase de 100.000.
+  - `api_window_share`: la parte del techo reservada a las sesiones que corren en la API, fuera de una ejecución; la ejecución activa se reparte el resto. Al arrancar se valida que sea menor que `window_ceiling`.
+  - `api_window_wait_seconds`: lo que espera una sesión de la API a que haya sitio en su parte antes de responder 503.
+  - `generation_lookup_seconds`: lo que se sigue consultando en OpenRouter una generación, tras cerrar su sesión de rol, antes de darla por no resuelta.
   - `count_drift_threshold`: proporción de divergencia tolerada entre el conteo propio y el del proveedor.
   - `max_mandatory_elements`: elementos obligatorios admitidos en un brief.
   - `access_token_hours`: caducidad del `TokenDeAcceso`, 24.

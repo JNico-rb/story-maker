@@ -1,6 +1,6 @@
 # 012 — LIN · Linters de prosa
 
-- [x] Spec approved   <- only the user marks this
+- [ ] Spec approved   <- only the user marks this
 
 ## Objetivo
 
@@ -39,7 +39,7 @@ Todos son **Obligatorio**. Los umbrales de cada criterio (`quality.thresholds`) 
 | RF-LIN-1 | El `CatalogoDeCriterios` → contiene los cuatro linters con sus criterios deterministas: `linter-repeticion` con `repeticion-parrafo` y `ngramas-entre-capitulos`; `linter-legibilidad` con `longitud-frase` y `fernandez-huerta`; `linter-estilo-ia` con `adverbios-mente`, `cliches` y `giros-generados`; y `linter-consistencia` con `narrador`, `tiempo-verbal` y `tratamiento`. Todos son no bloqueantes, con acción corregir, y siempre activos: `active_criteria` no los desactiva | Obligatorio | T |
 | RF-LIN-2 | Un linter mide un capítulo → cada criterio compara su métrica con su umbral de `quality.thresholds`; si la métrica queda del lado del defecto, da un defecto no bloqueante con acción corregir, causa raíz `style_drift`, su localización —capítulo, párrafo y desplazamiento— y el valor medido junto al umbral. Un umbral sin valor falla al leerse, con el error de RF-BAS-13, y el linter nunca se inventa uno | Obligatorio | T |
 | RF-LIN-3 | Un linter mide el mismo texto con la misma config y la misma colección de prosa → da los mismos avisos, sin llamar a ningún modelo | Obligatorio | T |
-| RF-LIN-4 | Un linter corre dentro de una traza → envía su score agregado, 1 si ningún criterio da aviso y 0 si alguno lo da, y uno por criterio, `<linter>/<criterio>`, 1 sin aviso y 0 con él, con el valor medido y el umbral en el comentario (004). En el linter en vivo y en el acto de guardar una edición manual no envía ninguno (RF-OBS-13) | Obligatorio | T |
+| RF-LIN-4 | Un linter corre dentro de una traza → envía su score agregado, 1 si ningún criterio da aviso y 0 si alguno lo da, y uno por criterio, `<linter>/<criterio>`, 1 sin aviso y 0 con él, con el valor medido y el umbral en el comentario (004). En el linter en vivo, que no tiene traza, no envía ninguno (RF-OBS-15) | Obligatorio | T |
 | RF-LIN-5 | Palabras y frases → un linter cuenta palabras con la regla de `longitud-capitulo` (`architecture.md` §10.2) y separa frases y lemas con el modelo de español de spaCy | Obligatorio | T |
 
 ### `linter-repeticion`

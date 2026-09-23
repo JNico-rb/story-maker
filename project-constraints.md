@@ -18,7 +18,7 @@ El sistema no puede optimizar solo para que los datos aparezcan: debe también p
 - **Repositorio storyMaker** — el proyecto de novelas personalizadas: código, README, brief de ejemplo reproducible, `.env.example` y carpeta `/docs` con toda la documentación de proceso.
 - La presentación formal y sus anexos en la carpeta `/presentacion/`, commiteados antes del plazo de entrega del repo storyMaker.
 
-Formato de los archivos en `/presentacion/` (@presentation en el repo):
+Formato de los archivos en `/presentacion/`:
 
 - el deck principal en PDF y en el formato original editable (PowerPoint, Keynote o similar);
 - los anexos como ficheros individuales nombrados de forma descriptiva (por ejemplo, `anexo-tla-spec.pdf`, `anexo-evals-tabla.pdf`);

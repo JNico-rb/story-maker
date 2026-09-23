@@ -1,6 +1,6 @@
 # 008 — MEM · Memoria
 
-- [x] Spec approved   <- only the user marks this
+- [ ] Spec approved   <- only the user marks this
 
 ## Objetivo
 
@@ -15,7 +15,7 @@ Cubre:
 - la recuperación: corte temporal, BM25 en código, fusión por rango recíproco dentro de cada colección, desempate estable, arrastre por el grafo, cuotas y escasez;
 - las consultas del writer, el crítico y el editor;
 - los residentes y las entradas de la llamada de cada consumidor, con la proyección del outline, el `ResumenRodante` y el `EstadoDelMundo`;
-- el guardián de ventana: la cuota de cada sesión dentro del techo de su ejecución, la reserva de turnos, los gastos fijos, el orden de recorte y la config infactible;
+- el guardián de ventana: la cuota de cada sesión dentro de su parte del techo —la de la ejecución o la de la API—, la reserva de la parte de la API con su espera, la reserva de turnos, los gastos fijos, el orden de recorte y la config infactible;
 - el conteo local y la reconciliación al cerrar cada sesión;
 - la `VentanaDeContexto` guardada y la `Trazabilidad` de cada capítulo.
 
@@ -25,7 +25,8 @@ Depende de 001, que entrega la infraestructura del índice: `sqlite-vec` cargado
 
 **Fuera de alcance:**
 
-- La infraestructura del índice y la validación de las cuotas y del techo al arrancar, que son de 001.
+- La infraestructura del índice y la validación de las cuotas, del techo y de su parte para la API al arrancar, que son de 001.
+- El 503 de una sesión de la API que no encuentra sitio en su parte: lo responde quien la abre, 005 y 015.
 - Las transacciones que escriben el índice con lo que esta spec deriva: el canon del brief y la congelación (010), la aceptación de un capítulo y el reemplazo de un registro repetido (011), la copia de la candidata (014) y la aplicación de un cambio (015).
 - Bloquear la ejecución cuando el guardián declara la config infactible, que es de 007.
 - El linter de repetición como consumidor de la prosa, que es de 012.
@@ -33,7 +34,7 @@ Depende de 001, que entrega la infraestructura del índice: `sqlite-vec` cargado
 
 ## Requisitos
 
-Todos son **Obligatorio**. Las cuotas (`retrieval.quotas`), el modelo de incrustación, `roles.<rol>.max_turns`, `roles.<rol>.max_output`, `max_tool_output` y `count_drift_threshold` están sin calibrar (`architecture.md` §15.2): las pruebas fijan los suyos.
+Todos son **Obligatorio**. Las cuotas (`retrieval.quotas`), el modelo de incrustación, `roles.<rol>.max_turns`, `roles.<rol>.max_output`, `max_tool_output`, `count_drift_threshold`, `api_window_share` y `api_window_wait_seconds` están sin calibrar (`architecture.md` §15.2): las pruebas fijan los suyos.
 
 ### Colecciones e índice
 
@@ -78,28 +79,29 @@ Todos son **Obligatorio**. Las cuotas (`retrieval.quotas`), el modelo de incrust
 | ID | Requisito | Prioridad | Clase |
 |---|---|---|---|
 | RF-MEM-24 | Se va a abrir una sesión de rol → antes, el orquestador invoca al guardián de ventana, que cierra la ventana: lo que no cabe se niega ahí. Ningún rol tiene una tool para pedir contexto, y ningún modelo elige qué se suelta | Obligatorio | T |
-| RF-MEM-25 | Cuota de una sesión → cuenta solo la entrada, y es `operation.window_ceiling` dividido entre las sesiones de su ejecución en vuelo a la vez en esa etapa; la suma de las cuotas de las sesiones en vuelo nunca pasa del techo. Una sesión sola de la producción recibe el techo entero; el juez y el revisor visual en el gate, la mitad cada uno, porque Lean no consume tokens; *k* editores de un cambio, un *k*-ésimo cada uno. Una sesión que no pertenece a una ejecución recibe el techo entero para ella sola | Obligatorio | T |
-| RF-MEM-26 | Unas sesiones paralelas no caben con su mínimo —gastos fijos, intocables y reserva de turnos— en su parte del techo → van en serie, una detrás de otra, cada una con el techo entero | Obligatorio | T |
-| RF-MEM-27 | Se ensambla la ventana de una sesión → en la cuota menos los gastos fijos de su rol y menos su reserva de turnos, que es (`max_turns` − 1) × (`max_output` + `max_tool_output`) de su rol. Los gastos fijos —prompt de sistema, `CLAUDE.md` del workspace y descripciones de skills y tools— se estiman en cada sesión con el estimador local sobre los textos que envía el código; lo que añada el CLI por su cuenta sale como deriva al reconciliar (RF-MEM-33). Frontera: con `max_turns` = 1, la reserva es 0 | Obligatorio | T |
-| RF-MEM-28 | La ventana no cabe → se recorta en el orden declarado y la sesión sigue: primero la prosa; después las CanonCards, de la de peor rango de su colección hacia arriba; y por último el `ResumenRodante`, de su resumen más antiguo al capítulo anterior literal. Son intocables los demás residentes, el arrastre y las entradas de la llamada. Cada unidad recortada va a los negados de la ventana y, en una ejecución, deja `missing_context` en el informe | Obligatorio | T |
-| RF-MEM-29 | Lo intocable, los gastos fijos y la reserva de turnos ya superan la cuota, con el `ResumenRodante` recortado entero → el guardián no abre la sesión y declara `infeasible_config` con las cifras: en una ejecución, la ejecución se bloquea con ese motivo (007); fuera de una ejecución, responde quien abre la sesión, según su spec (005 y 015) | Obligatorio | T |
-| RF-MEM-30 | Para toda ventana, config y conjunto de sesiones en vuelo generados → los gastos fijos estimados más la ventana más la reserva de turnos no pasan de la cuota de la sesión: la cuota se cumple por construcción, sin cortar ninguna sesión en vivo | Obligatorio | T |
-| RF-MEM-31 | Una tool devuelve algo al modelo —un acuse, un error de schema, la lista de defectos del hook o una denegación— → según el estimador local, nunca pasa de `max_tool_output`: lo que sobra se trunca con una nota que lo dice | Obligatorio | T |
+| RF-MEM-25 | Cuota de una sesión de una ejecución → cuenta solo la entrada, y es la parte de la ejecución del techo, `operation.window_ceiling` − `operation.api_window_share`, dividida entre las sesiones de su ejecución en vuelo a la vez en esa etapa; la suma de sus cuotas nunca pasa de esa parte. Una sesión sola de la producción recibe la parte entera; el juez y el revisor visual en el gate, la mitad cada uno, porque Lean no consume tokens; *k* editores de un cambio, un *k*-ésimo cada uno | Obligatorio | T |
+| RF-MEM-26 | Una sesión que corre en la API, fuera de una ejecución —un turno de la entrevista, el extractor o la interpretación de un cambio— → antes de abrirse reserva como cuota su mínimo —gastos fijos, entradas y reserva de turnos— en la parte de la API, `operation.api_window_share`, y la libera al cerrarse, también si termina mal. Si no cabe en lo que queda libre, espera como mucho `operation.api_window_wait_seconds` a que se libere sitio; si sigue sin caber, devuelve «sin sitio» sin abrirla, y quien la abre responde 503 (005, 015). Para toda secuencia generada de reservas y liberaciones concurrentes, la suma de las cuotas reservadas nunca pasa de `api_window_share`. La cuenta la lleva en memoria el proceso de la API, sin coordinarse con el worker | Obligatorio | T |
+| RF-MEM-27 | Unas sesiones paralelas de una ejecución no caben con su mínimo —gastos fijos, intocables y reserva de turnos— en su parte del techo → van en serie, una detrás de otra, cada una con la parte de la ejecución entera | Obligatorio | T |
+| RF-MEM-28 | Se ensambla la ventana de una sesión → en la cuota menos los gastos fijos de su rol y menos su reserva de turnos, que es (`max_turns` − 1) × (`max_output` + `max_tool_output`) de su rol. Los gastos fijos —prompt de sistema, `CLAUDE.md` del workspace y descripciones de skills y tools— se estiman en cada sesión con el estimador local sobre los textos que envía el código; lo que añada el CLI por su cuenta sale como deriva al reconciliar (RF-MEM-34). Frontera: con `max_turns` = 1, la reserva es 0 | Obligatorio | T |
+| RF-MEM-29 | La ventana no cabe → se recorta en el orden declarado y la sesión sigue: primero la prosa; después las CanonCards, de la de peor rango de su colección hacia arriba; y por último el `ResumenRodante`, de su resumen más antiguo al capítulo anterior literal. Son intocables los demás residentes, el arrastre y las entradas de la llamada. Cada unidad recortada va a los negados de la ventana y, en una ejecución, deja `missing_context` en el informe | Obligatorio | T |
+| RF-MEM-30 | Lo intocable, los gastos fijos y la reserva de turnos ya superan la cuota, con el `ResumenRodante` recortado entero → el guardián no abre la sesión y declara `infeasible_config` con las cifras: en una ejecución, la ejecución se bloquea con ese motivo (007); fuera de una ejecución, cuando la sesión no cabría ni con la parte de la API entera libre, no espera, y responde quien la abre, según su spec (005 y 015) | Obligatorio | T |
+| RF-MEM-31 | Para toda ventana, config y conjunto de sesiones en vuelo generados → los gastos fijos estimados más la ventana más la reserva de turnos no pasan de la cuota de la sesión, y la suma de las cuotas en vuelo de la ejecución y de la API no pasa de `window_ceiling`: la cuota se cumple por construcción, sin cortar ninguna sesión en vivo | Obligatorio | T |
+| RF-MEM-32 | Una tool devuelve algo al modelo —un acuse, un error de schema, la lista de defectos del hook o una denegación— → según el estimador local, nunca pasa de `max_tool_output`: lo que sobra se trunca con una nota que lo dice | Obligatorio | T |
 
 ### Conteo y reconciliación
 
 | ID | Requisito | Prioridad | Clase |
 |---|---|---|---|
-| RF-MEM-32 | Se cuenta la entrada → con un estimador local, sin llamar a ningún proveedor: antes de abrir la sesión, para ensamblar la ventana, y turno a turno sobre los mensajes que ve pasar el orquestador. La sesión guarda la suma estimada de todos sus turnos | Obligatorio | T |
-| RF-MEM-33 | Se cierra una sesión → su suma estimada se compara con su entrada exacta, los tokens de entrada más los de lectura y escritura de caché de su uso. Si \|estimada − exacta\| / exacta supera `count_drift_threshold`, se anota la causa raíz `count_drift`: en una ejecución, como defecto no bloqueante en el informe; fuera, la sesión guarda los dos conteos. No bloquea ni reintenta. Frontera: una divergencia igual al umbral no se anota | Obligatorio | T |
+| RF-MEM-33 | Se cuenta la entrada → con un estimador local, sin llamar a ningún proveedor: antes de abrir la sesión, para ensamblar la ventana, y turno a turno sobre los mensajes que ve pasar el orquestador. La sesión guarda la suma estimada de todos sus turnos | Obligatorio | T |
+| RF-MEM-34 | Se cierra una sesión → su suma estimada se compara con su entrada exacta, los tokens de entrada más los de lectura y escritura de caché de su uso. Si \|estimada − exacta\| / exacta supera `count_drift_threshold`, se anota la causa raíz `count_drift`: en una ejecución, como defecto no bloqueante en el informe; fuera, la sesión guarda los dos conteos. No bloquea ni reintenta. Frontera: una divergencia igual al umbral no se anota | Obligatorio | T |
 
 ### Ventana guardada y trazabilidad
 
 | ID | Requisito | Prioridad | Clase |
 |---|---|---|---|
-| RF-MEM-34 | Se abre una sesión de rol → queda guardada su `VentanaDeContexto`: consumidor, capítulo, residentes, entradas de la llamada, recuperados por colección, negados con su causa —cuota o recorte—, cuota de entrada y tokens de entrada ocupados | Obligatorio | T |
-| RF-MEM-35 | Se acepta un capítulo → su `Trazabilidad` registra los hechos que usa, las CanonCards de la ventana de la sesión que entregó el texto aceptado y los elementos obligatorios que le asigna el outline (invariante 7). Una prueba dorada con una ventana conocida da la trazabilidad esperada | Obligatorio | T |
-| RF-MEM-36 | Al cerrar 008 → la cabecera de `architecture.md` §6.1 lleva el explainer de contexto y memoria: RAG híbrido sin re-ranking, residentes y el techo de 100.000 tokens | Obligatorio | I |
+| RF-MEM-35 | Se abre una sesión de rol → queda guardada su `VentanaDeContexto`: consumidor, capítulo, residentes, entradas de la llamada, recuperados por colección, negados con su causa —cuota o recorte—, cuota de entrada y tokens de entrada ocupados | Obligatorio | T |
+| RF-MEM-36 | Se acepta un capítulo → su `Trazabilidad` registra los hechos que usa, las CanonCards de la ventana de la sesión que entregó el texto aceptado y los elementos obligatorios que le asigna el outline (invariante 7). Una prueba dorada con una ventana conocida da la trazabilidad esperada | Obligatorio | T |
+| RF-MEM-37 | Al cerrar 008 → la cabecera de `architecture.md` §6.1 lleva el explainer de contexto y memoria: RAG híbrido sin re-ranking, residentes y el techo de 100.000 tokens | Obligatorio | I |
 
 ## Requisitos no funcionales
 
@@ -110,5 +112,5 @@ Todos son **Obligatorio**. Las cuotas (`retrieval.quotas`), el modelo de incrust
 ## Docs de referencia
 
 - `architecture.md` §6 entero, §7.1 (guardián y recuperador son código), §7.2 (entradas fijas de los roles que no recuperan), §7.4 (ninguna tool pide contexto; `max_tool_output`), §8.3 (tarjetas y párrafos en la aceptación) y §9.3 (copia del índice).
-- `definitions.md` §3 (`Parrafo`, `Outline`), §4 entero, §5 (guardián de ventana, recuperador), §6 (causas raíz `contexto ausente` y `deriva del conteo`), §11 (`retrieval`, `window_ceiling`, `count_drift_threshold`) y §12.
-- `verification.md` §3.6 (invariantes 4 y 6), §3.11, §4.9 (RT6), §5 («Recuperador y guardián de ventana», invariantes 4, 6 y 7) y §6 (riesgos 5 y 19).
+- `definitions.md` §3 (`Parrafo`, `Outline`), §4 entero, §5 (guardián de ventana, recuperador), §6 (causas raíz `contexto ausente` y `deriva del conteo`), §11 (`retrieval`, `window_ceiling`, `api_window_share`, `api_window_wait_seconds`, `count_drift_threshold`) y §12.
+- `verification.md` §3.6 (invariantes 4 y 6), §3.11, §4.4, §4.9 (RT6), §5 («Recuperador y guardián de ventana», «Presupuesto, límites y techo de entrada», invariantes 4, 6 y 7) y §6 (riesgo 5).

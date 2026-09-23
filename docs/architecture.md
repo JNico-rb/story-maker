@@ -148,9 +148,9 @@ Un brief también se puede cargar directamente como JSON, con el mismo schema. E
 El entrevistador corre en el proceso de la API, no en el worker: la entrevista no es una ejecución.
 
 - **Una sesión de rol por turno HTTP.** Cada mensaje del cliente abre una sesión nueva, que recibe el historial guardado de la entrevista y el brief en curso. El turno —la respuesta y los cambios del brief— solo se guarda si la sesión termina bien. La sesión de rol, con su uso y su coste, se guarda siempre que se abrió, porque el presupuesto la cuenta (§11.5).
-- **Fallos.** Si el proveedor falla o la sesión agota un límite, el turno responde 503 y no se guarda: el cliente lo repite.
+- **Fallos.** Si el proveedor falla, la sesión agota un límite o no hay sitio para ella en la parte de la API del techo de ventana, el turno responde 503 y no se guarda: el cliente lo repite.
 - **Texto libre.** El extractor también corre en la API, una sesión por texto libre. Si el texto no cabe en su ventana, responde 422.
-- **Techo de ventana.** Cada sesión de la entrevista lo respeta ella sola (§6.10).
+- **Techo de ventana.** Cada sesión de la entrevista reserva su cuota de la parte de la API (§6.10).
 - **Presupuesto.** Cada entrevista tiene su techo en dinero, `budget` (§11.5).
 - **Traza.** Una por entrevista, dentro de la sesión de Langfuse de la novela (§12.1).
 
@@ -365,10 +365,14 @@ Por eso **el recuperador queda en clase T completa**. Las pruebas doradas admite
 El encargo fija **un máximo de 100.000 tokens concurrentes**. Es `config.operation.window_ceiling`, validado ≤ 100.000 al arrancar (§1.2).
 
 1. **Cuenta solo la entrada.** La salida no computa en este techo. Cada rol tiene una salida máxima operativa (`roles.<rol>.max_output`), porque la API la exige, y el control global de la salida es el presupuesto en dinero (§11.5).
-2. **Es un techo por ejecución, no por sesión.** Vale para la suma de la entrada de todas las sesiones de rol de la ejecución en vuelo a la vez. Como hay **una sola ejecución activa en todo el servidor** (§9.1), las novelas se generan de una en una y el techo de la ejecución activa es el de toda la generación del servidor. No es el de todo el servidor: las sesiones fuera de una ejecución corren a la vez en la API, cada una con su propio techo (punto 4), y es un riesgo aceptado (`verification.md` §6).
-3. **Dentro de una ejecución se mantiene el paralelismo fácil**, y las sesiones en vuelo se reparten el techo: el juez y el revisor visual en el gate, en paralelo con Lean, que no consume tokens (§9.4), y los editores de los capítulos afectados por un cambio (§9.5).
-4. **Una sesión que no pertenece a una ejecución** —un turno de la entrevista, el extractor, la interpretación de un cambio— respeta el techo ella sola (§3.5, §9.5).
-5. **La cuota de una sesión** es el techo dividido entre las sesiones realmente en vuelo en esa etapa. Si las sesiones paralelas no caben con su mínimo —gastos fijos, intocables y reserva de turnos—, van en serie.
+2. **Es un techo de todo el servidor, no por sesión.** Vale para la suma de la entrada de todas las sesiones de rol en vuelo a la vez, estén en una ejecución o en la API. Se reparte en dos partes fijas, sin préstamo entre ellas:
+   - **la de la API**, `operation.api_window_share`, para las sesiones que no pertenecen a una ejecución: un turno de la entrevista, el extractor y la interpretación de un cambio (§3.5, §9.5);
+   - **la de la ejecución**, el resto: `window_ceiling − api_window_share`. Como hay **una sola ejecución activa en todo el servidor** (§9.1), no la comparte con ninguna otra.
+
+   Cada proceso lleva la cuenta de su parte en memoria, sin coordinarse con el otro: el worker, la de su ejecución, y la API, que es un solo proceso de uvicorn, la suya. Al arrancar se valida `api_window_share < window_ceiling`.
+3. **Dentro de una ejecución se mantiene el paralelismo fácil**, y las sesiones en vuelo se reparten su parte: el juez y el revisor visual en el gate, en paralelo con Lean, que no consume tokens (§9.4), y los editores de los capítulos afectados por un cambio (§9.5).
+4. **En la API, una sesión reserva su cuota antes de abrirse** y la libera al cerrarse. Si no cabe en lo que queda de la parte de la API, espera como mucho `operation.api_window_wait_seconds` y, si sigue sin caber, responde 503 sin guardar nada, como un fallo del proveedor (§3.5, §9.5). Una sesión que no cabría ni con la parte entera libre es otro caso: el texto libre que no cabe en la ventana del extractor responde 422.
+5. **La cuota de una sesión** es su parte dividida entre las sesiones realmente en vuelo en esa etapa: en la ejecución, las de su etapa; en la API, la que reserva cada una. Si las sesiones paralelas de una ejecución no caben con su mínimo —gastos fijos, intocables y reserva de turnos—, van en serie.
 6. **Una sesión cuenta todos sus turnos.** Con el Agent SDK, cada turno reenvía el prompt de sistema, el `CLAUDE.md` del workspace, las descripciones de skills y tools, la ventana y los turnos anteriores. El guardián de ventana reserva por adelantado el crecimiento que admite `max_turns`:
 
    ```
@@ -456,7 +460,7 @@ La columna «Fase» usa las fases de una ejecución (§9.1).
 | **juez** | `publication` | La novela entera (unos 22k tokens), la story bible compacta, la rúbrica de novela y el `CatalogoDeTropos` | `submit_evaluation` | Puntuación y justificación por criterio de novela, con los capítulos que cita en un campo estructurado |
 | **revisor visual** | `publication` | URL de vista previa y estructura esperada | Playwright MCP (navegar, instantánea, clic) y `submit_visual_review` | Lo observado en portada, índice, capítulos y ficha |
 
-- **Dónde corren.** Los roles de una ejecución corren en el worker. El entrevistador, el extractor y el planner en modo cambio corren en el proceso de la API, fuera de toda ejecución: cada uno con su traza (§12.1) y respetando por sí solo el techo de ventana (§6.10).
+- **Dónde corren.** Los roles de una ejecución corren en el worker. El entrevistador, el extractor y el planner en modo cambio corren en el proceso de la API, fuera de toda ejecución: cada uno con su traza (§12.1) y con su cuota reservada de la parte de la API del techo de ventana (§6.10).
 - **La story bible compacta** del registrador y del juez es la story bible sin prosa ni cronología: cada personaje y lugar con su id, su forma canónica y el capítulo desde el que existe; cada hecho con su id y su capítulo de inicio; y los arcos del outline. El juez recibe además el mundo: novum, consecuencias y restricciones.
 
 > **Writer y editor se mantienen separados.** El argumento anticomplacencia aplica a criticar, no a corregir. Aun así, separarlos permite medir aparte la calidad de escritura y la de corrección.
@@ -494,7 +498,7 @@ Los dos hooks del encargo son hooks del SDK, registrados como funciones de Pytho
 
 **Qué escanea la policy.** Solo los campos de texto narrativo: el capítulo, la corrección, la edición, el mundo, el reparto, el outline, los títulos y la dedicatoria. Nunca los campos que son listas de prohibidas —las entradas que registra `update_brief` o el léxico a evitar de la StyleSheet—, porque contienen esos términos a propósito.
 
-**Spans de tool** (§12.1). Las tools en proceso abren y cierran el suyo en su manejador. Las de Playwright MCP y `Skill` no tienen manejador propio: su span va del hook de policy a un tercer hook, un `PostToolUse` de observabilidad. Una denegación no abre span: se registra como evento de la traza.
+**Spans de tool** (§12.1). Las tools en proceso abren y cierran el suyo en su manejador. Las de Playwright MCP y `Skill` no tienen manejador propio: su span va del hook de policy a un tercer hook, un `PostToolUse` de observabilidad. Una llamada denegada también tiene su span `tool:<identificador>`: el hook de policy lo abre y lo cierra en el acto, con nivel WARNING y el motivo en su mensaje. Así toda llamada a tool, permitida o no, aparece como span.
 
 Cada entrega de texto, denegada, bloqueada o aceptada, cuenta como un intento de su evaluable: del capítulo, al producirlo o al editarlo por un cambio o una propagación. En el gate las correcciones no cuentan por capítulo: el intento es el ciclo del gate entero (§9.4).
 
@@ -628,7 +632,7 @@ stateDiagram-v2
 | Solicitud de cambio | `revalidation` → `editing` de los capítulos afectados → `publication` |
 | Edición manual | `recording` del capítulo editado → `propagation` a otros capítulos → `publication` |
 
-**Una sola ejecución activa en todo el servidor.** Las demás esperan en la **cola**, en orden de llegada, sean de la novela que sean. Así las novelas se generan de una en una, y el techo de ventana de la ejecución activa vale para toda la generación; las sesiones de la API, fuera de una ejecución, respetan el suyo aparte (§6.10).
+**Una sola ejecución activa en todo el servidor.** Las demás esperan en la **cola**, en orden de llegada, sean de la novela que sean. Así las novelas se generan de una en una, y la parte del techo de ventana de la ejecución no se comparte con otra; las sesiones de la API tienen la suya (§6.10).
 
 - **Quién la lanza.** Cada ejecución corre en su propio proceso del sistema operativo, el worker. Cuando su ejecución sale de `running`, el worker lanza la siguiente de la cola y termina. Si no hay ninguna activa, la lanza la API: al encolar, al pasar una caída a `interrupted` y al arrancar, por si un worker cayó entre cerrar su ejecución y lanzar la siguiente.
 - **Cancelar.** El worker lee la marca de cancelación antes de abrir cada sesión y mientras corre la que está en curso. Si aparece, corta esa sesión con `interrupt()` y `disconnect()`, rechaza la candidata y termina: la ejecución se detiene en segundos y no paga el capítulo en curso.
@@ -637,7 +641,7 @@ stateDiagram-v2
 
 **Quién escribe en SQLite**, que trabaja en WAL:
 
-- **la API**: las cuentas, la entrevista, el brief, las listas prohibidas, la cola —con las solicitudes de cambio y las ediciones manuales—, la marca de cancelación, el paso a `interrupted` de una caída y la cancelación de una ejecución que no está `running`, que rechaza su candidata; y, de las sesiones que corren fuera de una ejecución —la entrevista, la importación y la interpretación de un cambio—, sus sesiones de rol, sus ventanas y sus scores;
+- **la API**: las cuentas, la entrevista, el brief, las listas prohibidas, la cola —con las solicitudes de cambio y las ediciones manuales—, la marca de cancelación, el paso a `interrupted` de una caída y la cancelación de una ejecución que no está `running`, que rechaza su candidata; y, de las sesiones que corren fuera de una ejecución —la entrevista, la importación y la interpretación de un cambio—, sus sesiones de rol, sus ventanas y sus scores, y los scores del guardado de una edición manual (§9.6);
 - **el worker**: su ejecución y su candidata, con el estado de la solicitud o la edición que aplica;
 - **los dos** añaden filas al audit log (§11.4).
 
@@ -693,6 +697,8 @@ El gate se ejecuta cuando la candidata tiene sus 10 capítulos aceptados. Sus va
 
 **La revisión visual** compara lo observado con lo esperado, calculado desde la base (§10.2). Los enlaces esperados de la ficha, para cada personaje y lugar, son los capítulos donde aparece su forma canónica más los de sus usos registrados. Un enlace que falta vuelve al registrador, para que vuelva a extraer los usos.
 
+Así se cumple el «lo devuelve al writer o al rol correspondiente» del encargo. El rol correspondiente de un enlace que falta es el registrador, que es quien escribe los usos. El de un fallo de render es el desarrollador, que lo recibe en el informe de ejecución con su motivo de bloqueo, porque el defecto está en el código. Ningún fallo visual es del writer: el texto y el título que se ven ya pasaron sus validadores en la base.
+
 **Toda corrección** pasa el hook de validación, vuelve a pasar por el registrador y por la transacción de aceptación (§8.3), y después se repite el gate. Cada ciclo del gate, con sus correcciones, es un intento de su evaluable, el ciclo del gate (§7.6). Superado el gate, la versión se publica: recibe su número y la vista previa se revoca (§9.3, §9.7).
 
 **En una ejecución de edición**, un fallo que implique el capítulo editado a mano rechaza la edición (§9.6).
@@ -726,7 +732,7 @@ graph TD
 **Interpretación**, en el proceso de la API, al pedirse:
 
 1. **La policy revisa la petición**, que es texto no confiable. Una prohibida la deniega; una inyección solo se marca y se registra (§11.3).
-2. **El planner la interpreta** en modo cambio, con su propia traza, como cambios de hechos: sujeto, atributo, valor antiguo y valor nuevo. Su única tool es `propose_change`. Lo acotan `max_turns`, `max_output` y `max_retries`, que cuenta las propuestas inválidas; agotado, la solicitud queda `rejected`.
+2. **El planner la interpreta** en modo cambio, con su propia traza, como cambios de hechos: sujeto, atributo, valor antiguo y valor nuevo. Su única tool es `propose_change`, y su sesión reserva su cuota de la parte de la API del techo de ventana (§6.10). Lo acotan `max_turns`, `max_output` y `max_retries`, que cuenta las propuestas inválidas; agotado, la solicitud queda `rejected`.
 3. **El código valida la propuesta** con el validador `alcance-propuesta`. Solo puede tocar el hecho seleccionado o hechos cuyo valor aparezca en el fragmento, y el valor nuevo pasa la policy. Puede tocar hechos de origen brief o texto libre, porque la solicitud es del cliente (invariante 2). Una propuesta inválida vuelve al planner como intento.
 4. **El lector ve la propuesta:** los hechos que cambian, los capítulos afectados y un código de confirmación que caduca a los 15 minutos (§13.2). La solicitud queda `proposed`; si el código caduca, `expired`.
 
@@ -751,7 +757,7 @@ graph TD
 El cliente, o un editor humano con su cuenta, modifica a mano el texto de un capítulo desde la lectura web, con el linter en vivo (§13.4). Guardar es un `PUT` con el texto y la versión base:
 
 1. Si la versión base ya no es la vigente, responde 409.
-2. Pasan en el acto los validadores deterministas del capítulo: la policy, `longitud-capitulo` y `nombres-exactos`. Si alguno bloquea, responde 422 con los diagnósticos y no se crea nada. En el acto no envían score, como en el linter en vivo, porque no hay traza; los mismos validadores vuelven a correr en la ejecución de edición, que sí los envía.
+2. Pasan en el acto los validadores deterministas del capítulo: la policy, `longitud-capitulo` y `nombres-exactos`. Si alguno bloquea, responde 422 con los diagnósticos y no se crea nada. El guardado tiene su propia traza, `guardado`, en la sesión de la novela (§12.1): la decisión de la policy va como evento y los validadores, como scores, pase o no. Si pasan, los mismos validadores vuelven a correr en la ejecución de edición, en su traza.
 3. Si pasan, la edición queda `queued` y se encola una ejecución de edición con su versión base.
 
 **La ejecución de edición:**
@@ -801,7 +807,7 @@ Desde la lectura se pide un cambio seleccionando texto o un hecho de la ficha (�
 
 ### 10.2 Los validadores
 
-Cada validador tiene nombre, se ejecuta en uno o varios puntos del harness y envía a Langfuse un score agregado con su nombre y uno por criterio (§12.3); un validador de un solo criterio envía un solo score, con su nombre. Hay tres excepciones, sin traza a la que asociar el score: `harness-tla`, que corre en CI; los validadores cuando corren en el linter en vivo (§13.4); y los que pasan en el acto al guardar una edición manual, que vuelven a correr en su ejecución (§9.6). La columna «Bloquea» no es un atributo del validador: la hereda de sus criterios (§10.3).
+Cada validador tiene nombre, se ejecuta en uno o varios puntos del harness y envía a Langfuse un score agregado con su nombre y uno por criterio (§12.3); un validador de un solo criterio envía un solo score, con su nombre. Hay dos excepciones, sin traza a la que asociar el score: `harness-tla`, que corre en CI, y los validadores cuando corren en el linter en vivo (§13.4). La columna «Bloquea» no es un atributo del validador: la hereda de sus criterios (§10.3).
 
 | Validador | Familia | Puntos de ejecución | Bloquea | Comprueba |
 |---|---|---|---|---|
@@ -1032,7 +1038,7 @@ Un término de varias palabras se busca como secuencia de palabras normalizadas,
 - sobre la edición manual, en el linter en vivo y al guardar;
 - en el gate, sobre la novela entera, portada y ficha incluidas.
 
-**Si hay coincidencia**, se deniega con los términos y sus posiciones. El writer o el editor reescriben, y cuenta como intento. **Agotados los intentos, la ejecución se bloquea con `intentos agotados` y el informe lo dice.** En la portada o la ficha no hay nada que reescribir, y la ejecución se bloquea con `contenido prohibido` (§9.4). En una ejecución, cada coincidencia queda en el audit log y en Langfuse, como score `palabras-prohibidas` y como evento con el nivel y la variante encontrada. El linter en vivo no registra nada (§13.4).
+**Si hay coincidencia**, se deniega con los términos y sus posiciones. El writer o el editor reescriben, y cuenta como intento. **Agotados los intentos, la ejecución se bloquea con `intentos agotados` y el informe lo dice.** En la portada o la ficha no hay nada que reescribir, y la ejecución se bloquea con `contenido prohibido` (§9.4). En una ejecución y al guardar una edición manual, cada coincidencia queda en el audit log y en Langfuse, como score `palabras-prohibidas` y como evento con el nivel y la variante encontrada. El linter en vivo no registra nada (§13.4).
 
 Un tema prohibido se trata además por su sentido: entra en el léxico a evitar de la `StyleSheet` y en la rúbrica del crítico (§10.3).
 
@@ -1066,7 +1072,7 @@ Es una tabla que **solo admite inserciones**. Guarda cada `DecisionDePolitica`:
 | Código de motivo | Por qué |
 | Detalle | Las coincidencias, con su nivel y la variante encontrada |
 
-Registra también las detecciones de inyección, con la decisión marcar, y cada escritura MCP (§13.2). El propietario la consulta por la API, en orden cronológico. Cada decisión tomada dentro de una traza se envía además a Langfuse como evento de esa traza; la del guardado de una edición manual, que no tiene traza (§9.6), queda solo aquí.
+Registra también las detecciones de inyección, con la decisión marcar, y cada escritura MCP (§13.2). El propietario la consulta por la API, en orden cronológico. Cada decisión se envía además a Langfuse como evento de la traza en la que se toma, también la del guardado de una edición manual (§9.6).
 
 ### 11.5 Presupuesto en dinero
 
@@ -1096,23 +1102,27 @@ Langfuse Cloud, región UE, con el SDK de Python v4. Los spans se abren con `sta
 ### 12.1 Trazas, sesiones y spans
 
 - **Sesión:** una por novela, con el identificador de la novela como `session_id`. Agrupa la entrevista, la generación y las regeneraciones posteriores. Una llamada MCP que toca una sola novela va en su sesión; la que toca varias o ninguna, y la importación que falla antes de crear la novela (§3.4), van sin sesión.
-- **Traza:** una por entrevista, por importación de un brief, por interpretación de un cambio, por ejecución y por llamada MCP, con el nombre de su clase: `entrevista`, `importacion`, `interpretacion`, `ejecucion` o `mcp`. Una ejecución reanudada conserva la suya. Cada traza lleva el commit del código y la huella de la config; la de una ejecución reanudada, los de cada tramo (§9.2).
+- **Traza:** una por entrevista, por importación de un brief, por interpretación de un cambio, por ejecución, por guardado de una edición manual y por llamada MCP, con el nombre de su clase: `entrevista`, `importacion`, `interpretacion`, `ejecucion`, `guardado` o `mcp`. Una ejecución reanudada conserva la suya. Cada traza lleva el commit del código y la huella de la config; la de una ejecución reanudada, los de cada tramo (§9.2).
 - **Spans con nombre identificable:**
   - `capitulo-<n>`;
   - `rol:<etiqueta>` por cada sesión de rol, con la etiqueta del rol: `entrevistador`, `extractor`, `planner`, `writer`, `critico`, `editor`, `registrador`, `juez` o `revisor-visual`;
-  - `tool:<identificador de la tool>` por cada llamada a tool, como `tool:submit_chapter`, abierto y cerrado según §7.5; una denegación es un evento, no un span;
+  - `tool:<identificador de la tool>` por cada llamada a tool, como `tool:submit_chapter`, abierto y cerrado según §7.5, también la denegada, con nivel WARNING;
   - `validador:<nombre>`.
-- **Llamada de modelo:** una observación de tipo generación por sesión de rol, con modelo, latencia, el prompt versionado que usó y sus cifras: `usage_details` con los tokens de entrada, salida y caché, y `cost_details` con el coste de §11.5. El coste enviado tiene prioridad sobre el que Langfuse infiere. Es la granularidad más fina con cifras exactas: por OpenRouter, el uso por turno del SDK llega a cero, y el uso exacto solo llega al cerrar la sesión. Cada turno es una generación de OpenRouter, con su id de mensaje como id de generación (`gen-…`); la observación guarda la lista, con la que se contrasta el coste (§11.5).
+- **Llamadas de modelo:** una observación de tipo generación por cada turno de una sesión de rol, hija del span `rol:<etiqueta>`, con modelo, latencia, el prompt versionado que usó y sus cifras: `usage_details` con los tokens de entrada, salida y caché, y `cost_details` con su coste. El coste enviado tiene prioridad sobre el que Langfuse infiere.
+  - **De dónde salen.** Por OpenRouter, el uso por turno del SDK llega a cero, pero cada turno es una generación de OpenRouter, con su id de mensaje como id de generación (`gen-…`), y `GET /api/v1/generation?id=` la resuelve con sus tokens, su caché, su coste y su latencia. Responde 404 hasta que la procesa, unos 10 segundos (medido el 2026-09-23).
+  - **Cuándo.** Al cerrar cada sesión de rol, una tarea en segundo plano de su mismo proceso consulta cada id con reintentos, durante `operation.generation_lookup_seconds` como mucho, y envía las llamadas resueltas. Nada espera por ella: ni la sesión siguiente ni el presupuesto. El worker termina las consultas pendientes antes de salir.
+  - **Lo no resuelto.** Las llamadas que no se resuelven a tiempo se envían juntas como una sola, `llamada-sin-detalle`, con la diferencia entre el uso exacto de la sesión y la suma de las resueltas. Así la suma de las llamadas de una sesión es siempre su uso exacto y Langfuse no cuenta nada dos veces.
+  - **El uso exacto de la sesión**, el de `ResultMessage`, sigue siendo la fuente del presupuesto, del informe y de SQLite (§11.5, §12.2), y va como metadato del span de la sesión. La sesión guarda la lista de ids, con la que se contrasta el coste (§11.5).
 
 ### 12.2 Tokens, coste y latencia
 
-Se ven por llamada (la observación), por capítulo (la suma de su span) y por novela (la suma de las trazas de su sesión, cambios incluidos). Este acumulado no es el coste de producir una novela de §10.8, que solo suma su entrevista o su importación y su generación. Se guardan también en SQLite, porque el presupuesto (§11.5) y el informe no pueden depender de un servicio externo.
+Se ven por llamada (cada llamada de modelo, §12.1), por capítulo (la suma de su span) y por novela (la suma de las trazas de su sesión, cambios incluidos). Este acumulado no es el coste de producir una novela de §10.8, que solo suma su entrevista o su importación y su generación. Se guardan también en SQLite, porque el presupuesto (§11.5) y el informe no pueden depender de un servicio externo.
 
 ### 12.3 Scores
 
-Cada validador envía un score agregado con su nombre, que vale 1 si pasa y 0 si no, y uno por criterio, `<validador>/<criterio>` (§10.3), en 0/1 o en 1–5 según el criterio. Un validador de un solo criterio envía uno solo, con su nombre. Cada score lleva un comentario con los motivos. Se asocia a la traza de su ejecución —o de la entrevista, la importación o la interpretación— y, si es de capítulo, a su span. Se copia en SQLite, de donde sale el informe (§12.2). De los scores de Langfuse salen la tabla de evaluación (§10.8) y la comparación con la revisión humana (§10.7).
+Cada validador envía un score agregado con su nombre, que vale 1 si pasa y 0 si no, y uno por criterio, `<validador>/<criterio>` (§10.3), en 0/1 o en 1–5 según el criterio. Un validador de un solo criterio envía uno solo, con su nombre. Cada score lleva un comentario con los motivos. Se asocia a la traza de su ejecución —o de la entrevista, la importación, la interpretación o el guardado— y, si es de capítulo, a su span. Se copia en SQLite, de donde sale el informe (§12.2). De los scores de Langfuse salen la tabla de evaluación (§10.8) y la comparación con la revisión humana (§10.7).
 
-`harness-tla` no envía score: corre en CI, no en una ejecución. Tampoco los validadores del linter en vivo ni los que pasan en el acto al guardar una edición manual, que no tienen traza (§10.2).
+`harness-tla` no envía score: corre en CI, no en una ejecución. Tampoco los validadores del linter en vivo, que no tiene traza (§10.2).
 
 ### 12.4 Prompts versionados
 
@@ -1195,7 +1205,7 @@ El modo de edición de la lectura web marca los problemas mientras se escribe:
 
 Todo son avisos para la persona que edita. Los de cronología no duplican a Lean, que sigue verificando en el gate (§10.5).
 
-El linter se consulta al backend con retardo entre pulsaciones. No registra nada por consulta: ni audit log ni scores. Al guardar, sigue §9.6, y la decisión de la policy sí queda en el audit log.
+El linter se consulta al backend con retardo entre pulsaciones. No registra nada por consulta: ni audit log ni scores. Al guardar, sigue §9.6: la decisión de la policy sí queda en el audit log y en la traza del guardado.
 
 ### 13.5 Auditoría de seguridad
 
@@ -1393,8 +1403,8 @@ GET    /api/novels/{id}/audit-log                                               
 | 422 | `PUT /novels/{id}/chapters/{n}` | Los validadores deterministas del capítulo fallan; la respuesta lleva los diagnósticos |
 | 422 | `POST /banned-terms` | El término queda vacío al normalizarlo (§11.1) |
 | 422 | Cualquiera | Una entrada que no cumple su schema |
-| 503 | `POST /interview/messages`, `POST /free-texts`, `POST /novels` con un brief importado | El proveedor falla, la sesión agota un límite o el presupuesto de la entrevista o de la importación, o Langfuse no responde; no se guarda el turno, ni el brief, ni hechos, ni la novela importada. Sí la sesión de rol con su coste, si llegó a abrirse y hay novela (§3.4, §3.5) |
-| 503 | `POST /novels/{id}/change-requests` | El proveedor falla o Langfuse no responde; no se guarda nada. Los turnos o el tiempo agotados son un intento fallido, no un 503 (§9.5) |
+| 503 | `POST /interview/messages`, `POST /free-texts`, `POST /novels` con un brief importado | El proveedor falla, la sesión agota un límite o el presupuesto de la entrevista o de la importación, no hay sitio en la parte de la API del techo de ventana (§6.10), o Langfuse no responde; no se guarda el turno, ni el brief, ni hechos, ni la novela importada. Sí la sesión de rol con su coste, si llegó a abrirse y hay novela (§3.4, §3.5) |
+| 503 | `POST /novels/{id}/change-requests` | El proveedor falla, no hay sitio en la parte de la API del techo de ventana (§6.10) o Langfuse no responde; no se guarda nada. Los turnos o el tiempo agotados son un intento fallido, no un 503 (§9.5) |
 
 La edición del brief durante la entrevista va siempre por el entrevistador. La excepción son los hechos extraídos, que el cliente acepta o rechaza directamente.
 
@@ -1565,6 +1575,8 @@ Cada una existe como campo y ninguna tiene valor acordado. Fijarlas hoy sería i
 | `max_resumes` | Reanudación (§9.2) |
 | `budget` | Presupuesto de cada ejecución y cada entrevista (§11.5) |
 | `count_drift_threshold` | Reconciliación del conteo (§6.10) |
+| `api_window_share` y `api_window_wait_seconds` | Parte del techo de ventana para las sesiones de la API y su espera (§6.10) |
+| `generation_lookup_seconds` | Consulta de cada llamada de modelo en OpenRouter (§12.1) |
 | `max_mandatory_elements` | Validación del brief (§3.2) |
 | Modelo de cada rol | Sesiones de rol (§7.2) |
 | Modelo de incrustación (`retrieval.embedding_model`) | Índice (§6.9); se congela al crear la novela |
@@ -1602,7 +1614,7 @@ Registro de lo acordado: cada fila da las opciones consideradas, el criterio y l
 | Memoria de largo plazo | RAG híbrido · story bible + resúmenes · solo FTS5 | Ingeniería de contexto demostrable y determinista | RAG híbrido sin re-ranking, con dos colecciones; resúmenes residentes (§6.2–§6.4) |
 | EstadoDelMundo | Story bible vigente entera · instantánea compacta más CanonCards | Una ventana acotada; el detalle estable ya llega por recuperación | Compacto, de unos cientos de tokens: el momento; por personaje, su último lugar, su exclusión y los hechos cambiados; y el estado de los arcos (§6.4) |
 | Unidad de generación | Escena · capítulo · beat | El encargo razona por capítulos; el estado cambia por suceso | Capítulo, con beats como unidad de cambio (§5.1) |
-| Techo de 100k | Solo entrada · entrada y salida reservada; por etapa de concurrencia · por ejecución, con una sola activa en el servidor | Simplicidad; la salida la acota el dinero; con una sola ejecución activa, su techo es el de toda la generación | Solo entrada y por ejecución, contando todos los turnos; una sola ejecución activa en todo el servidor, con cola global; las sesiones fuera de una ejecución lo respetan cada una sola (§6.10, §9.1) |
+| Techo de 100k | Solo entrada · entrada y salida reservada; por etapa de concurrencia · por ejecución, con una sola activa en el servidor · global, con un libro de reservas compartido · global, con una parte fija para la API. Reabierta el 2026-09-23: el usuario precisó que el techo es la entrada en vuelo a la vez, sin excepciones | Simplicidad; la salida la acota el dinero; lo literal del encargo; que un turno de la entrevista no espere a que termine una sesión larga de la ejecución, y que ningún proceso tenga que coordinarse con el otro | Solo entrada, contando todos los turnos, y global: `api_window_share` para las sesiones de la API y el resto para la única ejecución activa, cada parte contada en memoria por su proceso; una sesión de la API que no cabe espera `api_window_wait_seconds` y responde 503 (§6.10, §9.1) |
 | Cuota de una sesión | Corte en vivo leyendo la entrada por turno · corte con estimación local por turno · por construcción, con la reserva de turnos | Por OpenRouter el uso por turno llega a cero; lo más simple que acota la sesión | Por construcción: la reserva de turnos garantiza la cuota, sin corte en vivo, y al cerrar la sesión se reconcilia con su uso exacto; una divergencia por encima de `count_drift_threshold` es `deriva del conteo` (§6.10) |
 | Modelo de lectura | Web · PDF · ambos | Cambio desde la página; el PDF hace falta para `/ejemplos` | Web más PDF exportado, sin página de novedades (§9.7) |
 | Servir la lectura | Frontend en su propio servidor · compilado y servido por FastAPI | Un solo origen para la API, la cookie de la vista previa y la impresión del PDF, sin CORS | FastAPI sirve el frontend compilado y la API bajo `/api`; en desarrollo, Vite hace de proxy (§9.7) |
@@ -1661,5 +1673,5 @@ Registro de lo acordado: cada fila da las opciones consideradas, el criterio y l
 | CLI | Solo la API y la interfaz · una CLI | Reproducir el brief de ejemplo y las evals sin interfaz, desde el terminal o CI | Una CLI en `execution` para el brief de ejemplo, las evals y la subida y promoción de los prompts, más las órdenes de operación (§14.2, §12.4) |
 | Migraciones | Crear el esquema y recrear la base · Alembic desde el principio | El esquema cambia con cada spec, y las novelas y sus versiones se conservan | Alembic desde el principio (§14.1) |
 | Nombres | Todo en español · código en inglés | Un idioma por medio | Código, tablas, API, MCP y JSON en inglés; docs, prompts e interfaz en español; los nombres que se ven en Langfuse, etiquetas en español ASCII (`definitions.md` §12) |
-| Carpeta de la presentación y fichero de instrucciones | `presentacion/` · `presentation/`; `AGENTS.md` y `CLAUDE.md` · solo `CLAUDE.md` | El encargo la llama `@presentation` en el repositorio y exige `CLAUDE.md` en la raíz; un solo fichero de instrucciones no diverge | `presentation/`, y el README explica que es la `/presentacion/` del encargo; `CLAUDE.md` en la raíz, que absorbió el antiguo `AGENTS.md` ([README](../README.md)) |
+| Carpeta de la presentación y fichero de instrucciones | `presentacion/` · `presentation/`; `AGENTS.md` y `CLAUDE.md` · solo `CLAUDE.md` | El encargo la llama `/presentacion/` y exige `CLAUDE.md` en la raíz; un solo fichero de instrucciones no diverge. Reabierta el 2026-09-23: la auditoría de cobertura vio que un corrector que lee al pie de la letra busca `/presentacion/`, y la anotación `@presentation` no era del encargo | `presentacion/`; `CLAUDE.md` en la raíz, que absorbió el antiguo `AGENTS.md` ([README](../README.md)) |
 | Stack | — | Encargo y entorno sin administrador | §14.1 |

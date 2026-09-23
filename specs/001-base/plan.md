@@ -1,6 +1,6 @@
 # 001 — BAS · Plan
 
-- [x] Plan approved   <- only the user marks this
+- [ ] Plan approved   <- only the user marks this
 
 Spec: [spec.md](spec.md); columnas, versiones e interfaces externas: [design.md](design.md). Verificación (`docs/verification.md` §5): unitarias de la config, «Validación de la config al arrancar»; contratos de importación, «Aislamiento entre slices y capas»; tipos y validación en los bordes, «Fronteras de datos entre capas»; pruebas de contrato y regeneración del cliente en CI, «API, SSE y cliente generado» —el SSE es de 007—; TypeScript estricto, ESLint, `steiger`, build de producción e inspección con el browser MCP, «Frontend»; e integración con el doble, «CLI» —la demostración de extremo a extremo que la usa es de 017—. Las pruebas del workspace son parte de las de sandbox (`verification.md` §4.3), y las demostraciones de entorno, las de `architecture.md` §15.3.
 
@@ -24,7 +24,7 @@ Spec: [spec.md](spec.md); columnas, versiones e interfaces externas: [design.md]
 - [ ] Toda variable de los ajustes del servidor aparece en `.env.example`, y ninguna con un valor real; git ignora `.env` → una prueba compara las variables de `.env.example` con las de los ajustes, y `detect-secrets` pasa (RF-BAS-49)
 - [ ] El catálogo de criterios declara cada criterio con su id, dimensión, niveles, método, bloqueante, acción requerida, origen, parámetros y rúbrica si la tiene → su carga falla si dos criterios tienen el mismo id o si un id no es una etiqueta ASCII en kebab-case. 001 declara el de `schema-salida`, bloqueante y sin nivel ni acción (RF-BAS-14)
   - Cada spec añade los criterios de sus validadores.
-- [ ] Al arrancar, la config de `STORY_MAKER_CONFIG` se valida entera → el servidor no arranca, con un error que nombra la clave, ante: una clave desconocida en cualquier nivel; un tipo erróneo; en `retrieval.quotas`, una plaza negativa o no entera, una colección o un consumidor desconocidos, un par ausente o prosa con plazas para un consumidor que no sea el editor ni el linter de repetición; `window_ceiling` por encima de 100.000; un rol de `operation.roles` ausente o desconocido; un modelo con valor en `operation.roles` sin sus cuatro precios, si `operation.pricing` tiene valor; una franja desconocida en `readability_targets`; un id de `thresholds` que no esté en el catálogo de criterios, o uno de `active_criteria` que no sea un criterio de rúbrica del catálogo; `access_token_hours` o `confirmation_minutes` que no sean enteros positivos. Frontera: `window_ceiling` de 100.000 arranca y de 100.001 no (RF-BAS-11)
+- [ ] Al arrancar, la config de `STORY_MAKER_CONFIG` se valida entera → el servidor no arranca, con un error que nombra la clave, ante: una clave desconocida en cualquier nivel; un tipo erróneo; en `retrieval.quotas`, una plaza negativa o no entera, una colección o un consumidor desconocidos, un par ausente o prosa con plazas para un consumidor que no sea el editor ni el linter de repetición; `window_ceiling` por encima de 100.000; `api_window_share`, si tiene valor, que no sea menor que `window_ceiling`; un rol de `operation.roles` ausente o desconocido; un modelo con valor en `operation.roles` sin sus cuatro precios, si `operation.pricing` tiene valor; una franja desconocida en `readability_targets`; un id de `thresholds` que no esté en el catálogo de criterios, o uno de `active_criteria` que no sea un criterio de rúbrica del catálogo; `access_token_hours` o `confirmation_minutes` que no sean enteros positivos. Fronteras: `window_ceiling` de 100.000 arranca y de 100.001 no; `api_window_share` igual a `window_ceiling` no arranca, y uno menos sí (RF-BAS-11)
   - Una clave ausente también impide arrancar con un error que la nombra: ningún campo tiene valor por defecto (`design.md` §3.2).
   - Una plaza `null` es una cifra sin calibrar: la trata RF-BAS-13.
 - [ ] Se leen los criterios activos de la config → son los de rúbrica que lista `active_criteria` más, siempre, los programáticos y `tema-prohibido`, que no se pueden desactivar (RF-BAS-12)
@@ -88,7 +88,8 @@ Spec: [spec.md](spec.md); columnas, versiones e interfaces externas: [design.md]
 
 #### Servidor
 
-- [ ] La orden de arrancar el servidor → lanza uvicorn sin recarga automática (RF-BAS-36)
+- [ ] La orden de arrancar el servidor → lanza uvicorn en un solo proceso, sin `--workers` ni recarga automática: la parte de la API del techo de ventana se cuenta en la memoria de ese proceso (RF-BAS-36)
+  - La prueba comprueba los argumentos con que se lanza uvicorn. Un segundo proceso de la API contaría su propia parte, y la suma en vuelo podría pasar de `window_ceiling` (008).
 - [ ] Una petición cuyo cuerpo o parámetros no cumplen su schema → 422 con los errores de validación (RF-BAS-38)
   - En 001 no hay ruta de producto con cuerpo: la prueba monta una propia en la aplicación de prueba, y cada spec que añade una ruta la cubre con sus casos.
 - [ ] El frontend compila con Vite, React, TypeScript estricto y Tailwind CSS, con `pnpm` 10.x → su build de producción es el que sirve FastAPI (RF-BAS-47 · clase A)

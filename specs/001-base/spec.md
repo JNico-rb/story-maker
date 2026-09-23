@@ -1,6 +1,6 @@
 # 001 — BAS · Base técnica
 
-- [x] Spec approved   <- only the user marks this
+- [ ] Spec approved   <- only the user marks this
 
 ## Objetivo
 
@@ -65,7 +65,7 @@ Todos son **Obligatorio**.
 
 | ID | Requisito | Prioridad | Clase |
 |---|---|---|---|
-| RF-BAS-11 | Al arrancar, la config de `STORY_MAKER_CONFIG` se valida entera → el servidor no arranca, con un error que nombra la clave, ante: una clave desconocida en cualquier nivel; un tipo erróneo; en `retrieval.quotas`, una plaza negativa o no entera, una colección o un consumidor desconocidos, un par ausente o prosa con plazas para un consumidor que no sea el editor ni el linter de repetición; `window_ceiling` por encima de 100.000; un rol de `operation.roles` ausente o desconocido; un modelo con valor en `operation.roles` sin sus cuatro precios, si `operation.pricing` tiene valor; una franja desconocida en `readability_targets`; un id de `thresholds` que no esté en el catálogo de criterios, o uno de `active_criteria` que no sea un criterio de rúbrica del catálogo; `access_token_hours` o `confirmation_minutes` que no sean enteros positivos. Frontera: `window_ceiling` de 100.000 arranca y de 100.001 no | Obligatorio | T |
+| RF-BAS-11 | Al arrancar, la config de `STORY_MAKER_CONFIG` se valida entera → el servidor no arranca, con un error que nombra la clave, ante: una clave desconocida en cualquier nivel; un tipo erróneo; en `retrieval.quotas`, una plaza negativa o no entera, una colección o un consumidor desconocidos, un par ausente o prosa con plazas para un consumidor que no sea el editor ni el linter de repetición; `window_ceiling` por encima de 100.000; `api_window_share`, si tiene valor, que no sea menor que `window_ceiling`; un rol de `operation.roles` ausente o desconocido; un modelo con valor en `operation.roles` sin sus cuatro precios, si `operation.pricing` tiene valor; una franja desconocida en `readability_targets`; un id de `thresholds` que no esté en el catálogo de criterios, o uno de `active_criteria` que no sea un criterio de rúbrica del catálogo; `access_token_hours` o `confirmation_minutes` que no sean enteros positivos. Fronteras: `window_ceiling` de 100.000 arranca y de 100.001 no; `api_window_share` igual a `window_ceiling` no arranca, y uno menos sí | Obligatorio | T |
 | RF-BAS-12 | Se leen los criterios activos de la config → son los de rúbrica que lista `active_criteria` más, siempre, los programáticos y `tema-prohibido`, que no se pueden desactivar (`architecture.md` §10.3) | Obligatorio | T |
 | RF-BAS-13 | Una cifra sin calibrar (`architecture.md` §15.2) vale `null` en la config → el servidor arranca; leerla falla con un error que nombra la clave y dice que está sin calibrar, y nunca se sustituye por un valor por defecto | Obligatorio | T |
 | RF-BAS-14 | El catálogo de criterios (`definitions.md` §6) declara cada criterio con su id, dimensión, niveles, método, bloqueante, acción requerida, origen, parámetros y rúbrica si la tiene → su carga falla si dos criterios tienen el mismo id o si un id no es una etiqueta ASCII en kebab-case. Cada spec añade los criterios de sus validadores; 001, el de `schema-salida`, bloqueante y sin nivel ni acción | Obligatorio | T |
@@ -110,7 +110,7 @@ Todos son **Obligatorio**.
 | ID | Requisito | Prioridad | Clase |
 |---|---|---|---|
 | RF-BAS-35 | Cualquier ruta en la que escribe el backend —el fichero SQLite, la configuración del CLI del SDK, las cachés de modelos, la salida de Playwright MCP y los PDF— → cae dentro de `STORY_MAKER_DATA_DIR`, y una ruta que saldría de él se rechaza; una prueba de integración con el doble no deja ningún fichero fuera | Obligatorio | T |
-| RF-BAS-36 | La orden de arrancar el servidor → lanza uvicorn sin recarga automática (`architecture.md` §14.1) | Obligatorio | T |
+| RF-BAS-36 | La orden de arrancar el servidor → lanza uvicorn en un solo proceso, sin `--workers` ni recarga automática: la parte de la API del techo de ventana se cuenta en la memoria de ese proceso (`architecture.md` §6.10, §14.1) | Obligatorio | T |
 | RF-BAS-37 | Con el servidor en marcha → la API responde bajo `/api`; una ruta fuera de `/api` que no es un fichero del frontend compilado devuelve su página de entrada, y una ruta desconocida bajo `/api` responde 404 sin devolverla. En desarrollo, el servidor de Vite reenvía `/api` al backend | Obligatorio | T |
 | RF-BAS-38 | Una petición cuyo cuerpo o parámetros no cumplen su schema → 422 con los errores de validación (`architecture.md` §14.3) | Obligatorio | T |
 | RF-BAS-39 | Una orden exporta el esquema OpenAPI sin arrancar el servidor, y el cliente TypeScript de `shared/api` se genera de él; los dos se commitean → CI los regenera y falla si difieren de los del repositorio | Obligatorio | A |

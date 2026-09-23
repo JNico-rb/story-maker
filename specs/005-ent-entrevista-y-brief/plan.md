@@ -2,7 +2,7 @@
 
 - [ ] Plan approved   <- only the user marks this
 
-Spec: [spec.md](spec.md). Verificación: unitarias exhaustivas por franja, propiedades de las reglas y mutación sobre la validación del brief, «Validación del brief (`schema-brief`)»; unitarias de `citas-verificadas`, «Verificación de citas del texto libre»; pruebas del motor de políticas en el origen texto libre, «Invariante 12 — audit log»; pruebas de los guardarraíles del presupuesto, «Presupuesto, límites y techo de entrada»; integración con el doble de la CLI, «CLI»; y la página `interview` por inspección con el browser MCP, «Frontend» (`docs/verification.md` §5). Las evals doradas del entrevistador y del extractor son de 017.
+Spec: [spec.md](spec.md). Verificación: unitarias exhaustivas por franja, propiedades de las reglas y mutación sobre la validación del brief, «Validación del brief (`schema-brief`)»; unitarias de `citas-verificadas`, «Verificación de citas del texto libre»; pruebas del motor de políticas en el origen texto libre, «Invariante 12 — audit log»; pruebas de los guardarraíles del presupuesto y del 503 sin sitio en la parte de la API, «Presupuesto, límites y techo de entrada»; integración con el doble de la CLI, «CLI»; y la página `interview` por inspección con el browser MCP, «Frontend» (`docs/verification.md` §5). Las evals doradas del entrevistador y del extractor son de 017.
 
 ### Steps
 
@@ -40,8 +40,9 @@ Spec: [spec.md](spec.md). Verificación: unitarias exhaustivas por franja, propi
 - [ ] Las tools del entrevistador declaran sus campos narrativos (003) → la dedicatoria de `update_brief` y la de `propose_dedication` son narrativas; las entradas prohibidas, no. Una dedicatoria con un término prohibido hace que el hook de policy deniegue la tool, y una lista de prohibidas con ese término no (RF-ENT-8)
 - [ ] El entrevistador llama a `propose_dedication` → la dedicatoria propuesta llega al cliente en la respuesta del turno, y el brief no la tiene hasta que el entrevistador la registra con `update_brief` (RF-ENT-9)
 - [ ] La entrevista tiene su traza (004): la abre el primer turno, y los turnos y textos libres siguientes la continúan. En ella quedan todas sus sesiones de rol, los resultados de `schema-brief`, `citas-verificadas` e `inyeccion-detectada` y las decisiones de política que se toman en ella (RF-ENT-4)
-- [ ] La sesión de un turno o de un texto libre termina con los turnos o el tiempo agotados o con un fallo del proveedor → 503; no se guardan el turno, los cambios del brief, el texto libre ni sus hechos, y sí la sesión de rol con su coste. Si Langfuse no responde, la sesión no llega a abrirse (004) y también es 503, sin nada que guardar (RF-ENT-5)
+- [ ] La sesión de un turno o de un texto libre termina con los turnos o el tiempo agotados o con un fallo del proveedor → 503; no se guardan el turno, los cambios del brief, el texto libre ni sus hechos, y sí la sesión de rol con su coste. Si Langfuse no responde (004), o si la sesión no cabe en la parte de la API del techo de ventana tras esperar `operation.api_window_wait_seconds` (sin calibrar, 008), la sesión no llega a abrirse y también es 503, sin nada que guardar (RF-ENT-5)
   - `roles.<rol>.max_turns` y `max_agent_seconds` se leen de config; sin valor, fallan con error accionable (`architecture.md` §15.2).
+  - El caso sin sitio usa un guardián de 008 que devuelve «sin sitio» tras la espera: el doble del puerto de agente no recibe ninguna sesión y no queda fila de `role_sessions`.
 - [ ] El coste acumulado de las sesiones de rol de una entrevista —del entrevistador y del extractor— pasa de `operation.budget` → el turno o el texto libre en que ocurre responde 503 sin guardar el turno, los cambios del brief, el texto libre ni sus hechos, y también los siguientes (RF-ENT-6)
   - `operation.budget` se lee de config; sin valor, falla con error accionable. El coste de cada sesión sale de `operation.pricing` (`architecture.md` §11.5).
 
@@ -66,7 +67,7 @@ Spec: [spec.md](spec.md). Verificación: unitarias exhaustivas por franja, propi
 #### Brief importado
 
 - [ ] `POST /api/novels` con un `brief` en JSON del mismo schema → se valida primero con las comprobaciones de RF-ENT-12 a RF-ENT-24, y después sus textos libres pasan por el mismo extractor y las mismas verificaciones. Si todo pasa, 201: la novela queda creada como en RF-ENT-1 pero sin entrevista, con el brief `confirmed`, sus hechos verificados aceptados, ninguno obligatorio, y sus elementos personales. La importación corre dentro de su propia traza, y sus sesiones de rol comparten el techo `operation.budget` (RF-ENT-37)
-- [ ] Un brief importado con errores de schema, datos faltantes, contradicciones o la cota superada → 422 sin crear nada y sin abrir ninguna sesión. Un texto libre que no cabe en la ventana del extractor → 422. Un fallo del proveedor, un límite o el presupuesto agotados, o Langfuse que no responde → 503; no queda nada en SQLite, y la traza de la importación queda en Langfuse sin sesión (RF-ENT-38)
+- [ ] Un brief importado con errores de schema, datos faltantes, contradicciones o la cota superada → 422 sin crear nada y sin abrir ninguna sesión. Un texto libre que no cabe en la ventana del extractor → 422. Un fallo del proveedor, un límite o el presupuesto agotados, una sesión del extractor que no cabe en la parte de la API del techo de ventana tras su espera (008), o Langfuse que no responde → 503; no queda nada en SQLite, y la traza de la importación queda en Langfuse sin sesión (RF-ENT-38)
 - [ ] La CLI importa un brief desde un fichero JSON a nombre de un cliente → sigue el mismo camino que la API y da el id de la novela o los errores (RF-ENT-39)
 
 #### Página y explainer

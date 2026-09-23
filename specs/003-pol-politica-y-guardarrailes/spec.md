@@ -1,6 +1,6 @@
 # 003 — POL · Política y guardarraíles
 
-- [x] Spec approved   <- only the user marks this
+- [ ] Spec approved   <- only the user marks this
 
 ## Objetivo
 
@@ -26,7 +26,7 @@ Depende de 001 y de 002.
 - Dónde se invoca el motor fuera del hook y qué se hace con su decisión: la petición de un cambio, la edición manual y el linter en vivo son de 015; la novela entera, portada y ficha incluidas, del gate de 014.
 - La reescritura tras una denegación, que cuenta como intento, y el bloqueo al agotarlos, que son de 007 y 011. El caso RT7, que es ese flujo de extremo a extremo, es de 011.
 - La copia de las listas en cada tramo de una ejecución, que es de 007.
-- El envío a Langfuse de cada decisión como evento de la traza y de los scores, que es de 004.
+- El envío a Langfuse de cada decisión como evento de la traza, de los scores y del span `tool:` de cada llamada, también el de nivel WARNING que el hook de policy abre y cierra en el acto al denegar (`architecture.md` §7.5), que es de 004.
 - Una página para gestionar la lista de cliente: `architecture.md` §13.6 no la incluye, así que la lista se gestiona por la API.
 
 ## Requisitos

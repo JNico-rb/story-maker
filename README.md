@@ -20,7 +20,7 @@ story-maker/
 ├── backend/               # FastAPI service and the harness (roles on the Claude Agent SDK)
 ├── frontend/              # React + Vite web reader
 ├── images/                # corporate identity used by the frontend
-├── presentation/          # the brief's /presentacion/: deck, annexes, demo video
+├── presentacion/          # deck, annexes, budget and demo video
 └── .claude/               # Claude Code skills and settings
 ```
 
@@ -55,10 +55,12 @@ Planned, created by the spec that needs them: `lean/` (formal story validator), 
 | Hooks: chapter validation and policy | `architecture.md` §7.5 |
 | Skills and `CLAUDE.md`: the harness workspace vs the development one | `architecture.md` §7.3 |
 | Retries and limits: why no loop is unbounded | `architecture.md` §7.6 |
+| Checkpoints and resume: restarting from the last accepted chapter | `architecture.md` §9.2 |
 | Guardrails and the policy engine | `architecture.md` §11 |
 | Untrusted text and prompt injection | `architecture.md` §3.3 |
 | LLM-as-judge and rubrics | `architecture.md` §10.3 |
 | Human evaluation vs the judge | `architecture.md` §10.7 |
+| Evals: golden sets, seeded defects, system briefs and the tuning iteration | `verification.md` §4.2 |
 | Observability with Langfuse and versioned prompts | `architecture.md` §12 |
 | Formal verification of the story with Lean 4 | `architecture.md` §10.5 |
 | Formal verification of the system with TLA+ | `architecture.md` §10.6 |

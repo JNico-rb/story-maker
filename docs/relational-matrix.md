@@ -20,7 +20,9 @@ Una fila por par sección–spec. Toda sección de `architecture.md` que describ
 | §6.9 | 005-ent-entrevista-y-brief | |
 | §6.9 | 008-mem-memoria | |
 | §6.10 | 001-base | |
+| §6.10 | 005-ent-entrevista-y-brief | |
 | §6.10 | 008-mem-memoria | |
+| §6.10 | 015-cam-cambios-y-edicion-manual | |
 | §6.11 | 001-base | |
 | §6.11 | 008-mem-memoria | |
 | §6.11 | 010-pln-planificacion | |
@@ -86,7 +88,9 @@ Una fila por par sección–spec. Toda sección de `architecture.md` que describ
 | §11.5 | 017-evl-evaluacion-del-sistema | |
 | §11.6 | 001-base | |
 | §11.6 | 017-evl-evaluacion-del-sistema | |
+| §12.1 | 001-base | |
 | §12.1 | 004-obs-observabilidad | |
+| §12.1 | 015-cam-cambios-y-edicion-manual | |
 | §12.3 | 004-obs-observabilidad | |
 | §12.4 | 004-obs-observabilidad | |
 | §12.6 | 004-obs-observabilidad | |
@@ -182,6 +186,12 @@ Una menor se cierra igual o se queda en la matriz con estado **aceptada**.
 | 001-21 | §1.2, §6.10 | deriva | menor | `window_ceiling` ≤ 100.000 | `design.md` §3.2: «entero entre 1 y 100.000» | El mínimo es el de un entero positivo, no una cifra inventada | aceptada |
 | 001-22 | §6.5 | omisión | menor | «La config se valida entera al arrancar» | RF-BAS-11 no listaba una clave ausente | Plan corregido: una clave ausente impide arrancar, porque ningún campo tiene valor por defecto | cerrada |
 | 001-23 | §14.1, §16 «Nombres» | omisión | menor | Stack y nombres | R2 a R5 y R10 sin paso; R1, R7 y R8 como notas sin clase | Plan corregido: R4 y R10 con paso propio; R1–R3, R5, R7 y R8 como notas con ID y clase | cerrada |
+| 001-24 | §6.10, §14.4 | omisión | bloqueante | «la API, que es un solo proceso de uvicorn», cuenta su parte en memoria | RF-BAS-36 solo pedía uvicorn sin recarga: nada impedía `--workers` > 1 | Plan corregido: RF-BAS-36 lanza un solo proceso, sin `--workers` ni recarga, y la prueba lo comprueba | cerrada |
+| 001-25 | §6.10, §15.2 | contradicción | menor | «Al arrancar se valida `api_window_share < window_ceiling`», sin condición | RF-BAS-11: «`api_window_share`, si tiene valor, …» | Sin valor es una cifra sin calibrar, que arranca por §15.2 y RF-BAS-13; la comparación corre cuando la tiene | aceptada |
+| 001-26 | §6.10, §12.1, §15.2 | deriva | menor | Sin cota inferior para `api_window_share`, `api_window_wait_seconds` ni `generation_lookup_seconds` | `design.md` §3.2: entero ≥ 1 y número ≥ 0 | Es el dominio del tipo, como en 001-21 | aceptada |
+| 001-27 | §14.5 | contradicción | menor | `runs ||--o| versions : candidata` | `versions.run_id` sin `UNIQUE` | Design corregido: `versions.run_id` es `UNIQUE` | cerrada |
+| 001-28 | §14.5 | contradicción | menor | El diagrama da las tablas y sus relaciones | `design.md` §4 tiene 9 claves ajenas sin dibujar: `interview_messages.role_session_id`, `change_requests.base_version_id`, `manual_edits.base_version_id`, `facts.supersedes_id`, `events.excluded_character_id`, `element_assignments.personal_element_id`, `chronology_files.version_id`, `role_sessions.attempt_id`, `verdicts.attempt_id`; RF-BAS-53 no pasaría al cerrar | Doc corregido, por el proceso 1: añadirlas a §14.5. Pendiente | abierta |
+| 001-29 | §14.2 | omisión | menor | `harness` con el editor, el registrador y la aceptación; `execution` con autenticación, cola, SSE e informe | `design.md` §2.1 no los nombraba | Design corregido | cerrada |
 
 ### 002-aut-autenticacion
 

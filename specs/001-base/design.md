@@ -39,10 +39,12 @@ backend/
     store/         tablas SQLAlchemy, migraciones Alembic, repositorios, transacciones
     platform/      agent_port (SDK y doble), sqlite (conexión y extensiones), embedding, paths,
                    langfuse (004), formal_verifier (009), browser y pdf (013, 014)
-    harness/       tools y hooks de los roles, guardián y ensamblado de ventana (008)
+    harness/       tools y hooks de los roles, guardián y ensamblado de ventana (008),
+                   sesión del editor, registrador y aceptación (011)
     lint/          linters de prosa (012)
     phases/        interview/ planning/ chapter_production/ publication/ change/
-    execution/     app FastAPI, ajustes, carga de la config, CLI, worker (007), servidor MCP (016);
+    execution/     app FastAPI, ajustes, carga de la config, CLI, autenticación (002), cola, worker,
+                   SSE e informe (007), servidor MCP (016);
                    sus pruebas incluyen las de extremo a extremo
 .github/workflows/  ci.yml, mutation.yml, lean-smoke.yml (RF-BAS-43); tlc (006), lean-verify.yml (009)
 ```
@@ -109,6 +111,8 @@ El modelo de la config vive en `domain`, porque es política pura, y lo carga `e
 - `operation.roles`: exactamente los nueve roles de `definitions.md` §12, cada uno con `model`, `max_output` y `max_turns`.
 - `operation.pricing`: mapa modelo → `{input, output, cache_read, cache_write}` en USD por millón de tokens.
 - `operation.window_ceiling`: entero entre 1 y 100.000.
+- `operation.api_window_share`: entero ≥ 1 o `null`; con valor, un validador del modelo raíz comprueba que sea menor que `window_ceiling`.
+- `operation.api_window_wait_seconds` y `operation.generation_lookup_seconds`: número ≥ 0 o `null`.
 - `quality.readability_targets`: mapa franja (`children`, `teen`, `adult`) → `{sentence_length, fernandez_huerta}`.
 - `quality.active_criteria` y `quality.thresholds`: un validador del modelo raíz los comprueba contra el catálogo de criterios de `domain`.
 
@@ -309,7 +313,7 @@ Todas estas tablas, salvo `versions` y `embeddings`, son de ámbito versión: ll
 |---|---|---|---|
 | `id` | INTEGER | no | Identifica a una candidata, que no tiene número |
 | `novel_id` | INTEGER | no | FK `novels` |
-| `run_id` | INTEGER | no | FK `runs`: la ejecución que la produjo |
+| `run_id` | INTEGER | no | FK `runs`: la ejecución que la produjo; `UNIQUE`, porque una ejecución tiene como mucho una candidata |
 | `number` | INTEGER | sí | Al publicar; `UNIQUE (novel_id, number)` |
 | `status` | TEXT | no | `candidate`, `published`, `rejected` |
 | `changed_chapters` | TEXT | sí | JSON: números de capítulo; se guarda al publicar |
@@ -582,7 +586,7 @@ La candidata de una ejecución es la versión con su `run_id`. La posición en l
 | `duration_ms` | INTEGER | no | |
 | `generation_ids` | TEXT | no | JSON: ids `gen-…` de OpenRouter |
 | `trace_id` | TEXT | no | |
-| `observation_id` | TEXT | no | La observación de generación |
+| `observation_id` | TEXT | no | El span `rol:` de la sesión; sus llamadas de modelo cuelgan de él (004) |
 | `started_at`, `ended_at` | TEXT | no | |
 
 Una sesión de la importación de un brief solo lleva `novel_id`.
@@ -715,14 +719,14 @@ La salida máxima (`roles.<rol>.max_output`) llega al CLI por su variable de ent
 
 **Skills.** Con `Skill` activa, un rol puede cargar las skills que trae el CLI empaquetado; el hook de policy deniega toda llamada que no pida `personalizacion-natural` (003). El SDK admite además `skills=[<nombres>]`, que rechaza las demás; no se usa, porque la política la aplica el hook.
 
-**Windows.** uvicorn con `--reload` usa el bucle `Selector` de asyncio, que no lanza subprocesos: el SDK falla con `CLIConnectionError('Failed to start Claude Code: ')`. El servidor arranca siempre sin `--reload`.
+**Windows.** uvicorn con `--reload` usa el bucle `Selector` de asyncio, que no lanza subprocesos: el SDK falla con `CLIConnectionError('Failed to start Claude Code: ')`. El servidor arranca siempre sin `--reload`, y en un solo proceso, sin `--workers` (RF-BAS-36).
 
 **Doble.** `platform.agent_port` expone un protocolo (`AgentPort`) con dos implementaciones: el adaptador del SDK y `ScriptedAgent`, que recorre un guion de pasos —llamada a tool con su entrada, mensaje final, desenlace— pasando cada llamada por los mismos hooks y manejadores, en el orden `PreToolUse`, manejador y `PostToolUse`, y devuelve el uso y los ids que fije el guion.
 
 ### 5.2 OpenRouter
 
 - Base del Agent SDK: `https://openrouter.ai/api`, con `ANTHROPIC_AUTH_TOKEN`.
-- Coste facturado de una generación: `GET https://openrouter.ai/api/v1/generation?id=<gen-…>`, con la clave como `Bearer`. Responde 404 hasta que procesa la generación, así que quien la consulta reintenta con espera.
+- Detalle de una generación: `GET https://openrouter.ai/api/v1/generation?id=<gen-…>`, con la clave como `Bearer`, devuelve sus tokens, su caché, su coste y su latencia. Responde 404 hasta que procesa la generación, unos 10 s (medido el 2026-09-23), así que quien la consulta reintenta con espera: la llamada de modelo de cada turno (004) y el contraste de coste (017).
 - Con modelos que no son de Anthropic, OpenRouter avisa de que Claude Code puede fallar.
 
 ### 5.3 Langfuse (SDK de Python v4)
@@ -730,7 +734,8 @@ La salida máxima (`roles.<rol>.max_output`) llega al CLI por su variable de ent
 - Cliente: `Langfuse(public_key, secret_key, base_url, mask=<función de la novela>)`. `mask` es el parámetro heredado; `mask_otel_spans`, la alternativa del v4 (004 elige).
 - Arranque: `auth_check()` lanza una excepción si las claves no valen. Con claves inválidas el exportador falla en silencio: registra un 401 y el proceso termina bien.
 - Spans: `start_as_current_observation(as_type="span" | "generation", name=…)`. Sesión y nombre de traza: `propagate_attributes(session_id=…, trace_name=…)`, con valores ASCII de 200 caracteres como mucho.
-- Generación: `usage_details` y `cost_details`; el coste ingerido tiene prioridad sobre el que infiere Langfuse.
+- Generación: `usage_details` y `cost_details`; el coste ingerido tiene prioridad sobre el que infiere Langfuse. Se puede crear después de cerrar su padre, con el `trace_context` del span `rol:` (unsure: en 4.15.4; se confirma en el plan de 004).
+- Nivel: una observación lleva `level="WARNING"` y el motivo en `status_message` (unsure: los nombres en 4.15.4; se confirma en el plan de 004).
 - Scores: `create_score(name, value, data_type, trace_id, observation_id, comment)`.
 - Prompts: `create_prompt(name, prompt, labels=[])` crea una versión nueva; `get_prompt(name, label=…)` la lee por etiqueta; mover la etiqueta es actualizar las etiquetas de una versión (unsure: `update_prompt(name=…, version=…, new_labels=…)`; se confirma en el plan de 004). Langfuse pone la etiqueta `latest` a la última versión, y con ella corren las evals antes de promover (unsure: que la mueva solo). `get_prompt` guarda una caché y puede servir una versión vieja si Langfuse falla; para que un Langfuse caído no abra sesiones (§12.4), se lee sin caché ni respaldo (unsure: `cache_ttl_seconds=0` y sin `fallback`).
 - Lectura de vuelta: `GET /api/public/v2/observations`. La API heredada de trazas responde 410 para esta organización. La ingesta tarda de 15 a 30 s.
