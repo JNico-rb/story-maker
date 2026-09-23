@@ -1,6 +1,5 @@
 # IDE
 *.code-workspace
-.vscode/
 
 # API keys and secrets
 .env

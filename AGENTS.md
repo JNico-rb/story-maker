@@ -20,6 +20,8 @@ Entity names and diagram identifiers: ASCII without accents, no spaces (Mermaid)
 
 Language: a file keeps the language it is written in. New files: agent instructions (`AGENTS.md`, `workflow/`) in English; `docs/`, `specs/` and the product in Spanish.
 
+Editing `AGENTS.md`, `workflow/` or anything in `.claude/` → load the `writing-for-agents` skill first.
+
 ## Specs — `specs/NNN-slug/`, one folder per feature
 
 `specs/` sits at the repo root and is **not** a reference doc: `docs/*.md` states domain truth and design rationale; a spec states a feature's observable behaviour. Each folder holds `spec.md` (what), `plan.md` (steps) and, when needed, `design.md` (how). Tables and external interfaces of the whole backend: [specs/001-base/design.md](specs/001-base/design.md).
