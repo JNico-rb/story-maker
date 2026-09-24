@@ -270,4 +270,26 @@ describe("026 lectura", () => {
     expect(screen.getByRole("navigation", { name: "Índice" })).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Ficha" })).toBeInTheDocument();
   });
+
+  it("026-C12: failing to load the versions list shows an error with a retry", async () => {
+    const user = userEvent.setup();
+    let attempt = 0;
+    fakeApi({
+      [`GET ${BASE}`]: () => {
+        attempt += 1;
+        return attempt === 1 ? new Response(null, { status: 500 }) : json(200, LIST);
+      },
+      [`GET ${BASE}/2`]: () => json(200, detail(2)),
+    });
+    renderReading();
+
+    await screen.findByText(/no se pudo cargar/i);
+    expect(screen.queryByRole("combobox", { name: "Versión" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Portada" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /reintentar/i }));
+
+    expect(await screen.findByRole("combobox", { name: "Versión" })).toBeInTheDocument();
+    expect(await screen.findByRole("region", { name: "Portada" })).toBeInTheDocument();
+  });
 });
