@@ -28,6 +28,7 @@ from story_maker.store.models import Novel, User
 from story_maker.store.session import UnitOfWork, unit_of_work
 from story_maker.store.story_bible import change_fact_value
 from story_maker.store.version_copy import copy_version
+from story_maker.store.versions import current_version, publish
 
 CREATED_2026 = dt.datetime(2026, 9, 24, 10, 0)
 NOW = dt.datetime(2026, 9, 24, 11, 0)
@@ -336,6 +337,53 @@ class Store:
             assert base is not None
             copied = copy_version(uow, base, now=now)
         return copied.version.id, {t: dict(m) for t, m in copied.ids.items()}
+
+    def add_chapters(
+        self, version_id: int, texts: dict[int, tuple[str, str]] | None = None
+    ) -> None:
+        """Los 10 capítulos de una candidata; `texts` da (título, texto) de los que no son los de
+        V1."""
+        with unit_of_work(self.session_factory) as uow:
+            for n in range(1, 11):
+                title, text = (texts or {}).get(n, (f"Capítulo {n}", f"Texto del capítulo {n}."))
+                uow.add(
+                    models.Chapter(
+                        version_id=version_id,
+                        number=n,
+                        title=title,
+                        text=text,
+                        summary=f"Resumen {n}",
+                        word_count=1200,
+                        content_hash=chapter_hash(title, text),
+                    )
+                )
+
+    def rewrite_chapter(self, version_id: int, number: int, title: str, text: str) -> None:
+        with unit_of_work(self.session_factory) as uow:
+            chapter = (
+                uow.session.query(models.Chapter)
+                .filter_by(version_id=version_id, number=number)
+                .one()
+            )
+            chapter.title, chapter.text = title, text
+            chapter.content_hash = chapter_hash(title, text)
+
+    def publish(self, version_id: int, pdf_path: str = "novel.pdf") -> None:
+        with unit_of_work(self.session_factory) as uow:
+            version = uow.session.get(models.Version, version_id)
+            assert version is not None
+            publish(uow, version, pdf_path=pdf_path, now=self.now)
+
+    def version(self, version_id: int) -> models.Version:
+        with self.session() as session:
+            version = session.get(models.Version, version_id)
+            assert version is not None
+            return version
+
+    def current(self, novel_id: int) -> int | None:
+        with self.session() as session:
+            version = current_version(session, novel_id)
+            return version.id if version else None
 
     def change_fact(self, fact_id: int, value: str) -> None:
         with unit_of_work(self.session_factory) as uow:

@@ -446,7 +446,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 009-C15 · Cambiar el valor de un hecho de la candidata
 - [x] 009-C16 · Cambiar un hecho de nombre cambia a la vez el nombre canónico
 - [x] 009-I6 · El nombre canónico de cada personaje es el valor de su hecho de nombre
-- [ ] 009-C17 · Publicar la primera versión
+- [x] 009-C17 · Publicar la primera versión
 - [ ] 009-C18 · Publicar una copia: número siguiente y capítulos cambiados por huella
 - [ ] 009-C19 · Descartar una candidata
 - [ ] 009-C20 · Las transiciones que no salen de una candidata válida se rechazan
