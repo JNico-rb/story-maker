@@ -12,7 +12,7 @@ import datetime as dt
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pytest
 from sqlalchemy.orm import Session, sessionmaker
@@ -41,7 +41,7 @@ from story_maker.observability.port import Trace
 from story_maker.pipeline.acceptance import chapter_hash
 from story_maker.pipeline.gate.phase import Gate, PdfOutcome, VisualReviewOutcome
 from story_maker.pipeline.production import Production
-from story_maker.store.models import Chapter, Checkpoint, Run, World
+from story_maker.store.models import Attempt, Chapter, Checkpoint, Run, ValidatorResult, World
 
 RUBRIC = (
     "continuidad",
@@ -52,6 +52,7 @@ RUBRIC = (
     "personalizacion-natural",
     "no-cliche",
 )
+STAGE_1 = {"elementos-obligatorios", "nombres-exactos", "palabras-prohibidas"}
 PASSED = ChronologyResult("passed", dict.fromkeys(INVARIANTS, True))
 
 
@@ -156,9 +157,7 @@ def seed_world(session: Session, version_id: int) -> None:
     )
 
 
-def seed_chapters(
-    session: Session, version_id: int, texts: dict[int, str] | None = None
-) -> None:
+def seed_chapters(session: Session, version_id: int, texts: dict[int, str] | None = None) -> None:
     for number in range(1, 11):
         text = (texts or {}).get(number, text_of(1250))
         title = f"Capítulo {number}"
@@ -208,9 +207,7 @@ def make_kit(
 
 
 @pytest.fixture
-def kit(
-    production: Production, session_factory: sessionmaker[Session], tmp_path: Path
-) -> GateKit:
+def kit(production: Production, session_factory: sessionmaker[Session], tmp_path: Path) -> GateKit:
     return make_kit(production, session_factory, tmp_path)
 
 
@@ -236,3 +233,69 @@ def visual_defects(*chapters: int) -> VisualReviewOutcome:
 
 def lean_outcomes(kit: GateKit, outcomes: Iterable[VerificationOutcome]) -> None:
     kit.lean.outcomes.extend(outcomes)
+
+
+def with_gate_cycles(kit: GateKit, cycles: int) -> Gate:
+    """El gate del kit con otro `max_retries.gate_cycles`."""
+    production = kit.gate.production
+    config = dataclasses.replace(
+        production.config, max_retries={**production.config.max_retries, "gate_cycles": cycles}
+    )
+    return dataclasses.replace(kit.gate, production=dataclasses.replace(production, config=config))
+
+
+def results(session_factory: sessionmaker[Session], run_id: int) -> list[ValidatorResult]:
+    """Los resultados de los validadores de novela (sin capítulo) de la ejecución, en orden."""
+    with session_factory() as session:
+        return list(
+            session.query(ValidatorResult)
+            .filter(ValidatorResult.run_id == run_id, ValidatorResult.chapter.is_(None))
+            .order_by(ValidatorResult.id)
+            .all()
+        )
+
+
+def results_of_pass(
+    session_factory: sessionmaker[Session], run_id: int, cycle: int
+) -> list[ValidatorResult]:
+    return [
+        r
+        for r in results(session_factory, run_id)
+        if cast(dict[str, Any], r.detail)["gate_cycle"] == cycle
+    ]
+
+
+def run_of(session_factory: sessionmaker[Session], run_id: int) -> Run:
+    with session_factory() as session:
+        run = session.get(Run, run_id)
+        assert run is not None
+        return run
+
+
+def gate_passes(session_factory: sessionmaker[Session], run_id: int) -> list[tuple[int, str]]:
+    """Las pasadas contadas: (número, desenlace)."""
+    with session_factory() as session:
+        rows = session.query(Attempt).filter(
+            Attempt.run_id == run_id, Attempt.evaluable == "gate_cycle"
+        )
+        return [(a.number, cast(str, a.outcome)) for a in rows.order_by(Attempt.number)]
+
+
+def append_to_chapter(
+    session_factory: sessionmaker[Session], version_id: int, number: int, extra: str
+) -> None:
+    with session_factory() as session:
+        chapter = (
+            session.query(Chapter)
+            .filter(Chapter.version_id == version_id, Chapter.number == number)
+            .one()
+        )
+        chapter.text = f"{chapter.text} {extra}"
+        chapter.content_hash = chapter_hash(chapter.title, chapter.text)
+        session.commit()
+
+
+def chapter_hashes(session_factory: sessionmaker[Session], version_id: int) -> dict[int, str]:
+    with session_factory() as session:
+        rows = session.query(Chapter).filter(Chapter.version_id == version_id)
+        return {c.number: c.content_hash for c in rows}
