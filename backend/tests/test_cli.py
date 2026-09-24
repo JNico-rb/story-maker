@@ -334,6 +334,15 @@ def _use_fake_langfuse_client(monkeypatch: pytest.MonkeyPatch, client: FakeLangf
     monkeypatch.setattr(cli_module, "build_langfuse_client", lambda settings: client)
 
 
+def _write_role_prompt_files(base_env: Path, *identifiers: str) -> Path:
+    """Ficheros de prompt del workspace para los roles dados (los que sube `prompts push`)."""
+    prompts_dir = base_env / "backend" / "harness_workspace" / "prompts"
+    prompts_dir.mkdir(parents=True, exist_ok=True)
+    for identifier in identifiers:
+        (prompts_dir / f"{identifier}.md").write_text("prompt", encoding="utf-8")
+    return prompts_dir
+
+
 # --- C01: con las cuatro variables de Langfuse, se usa el adaptador real ----------------------
 
 
@@ -425,6 +434,9 @@ def test_check_env_reports_ok_for_langfuse_with_valid_credentials_and_prompts(
     _set_langfuse_env(monkeypatch)
     _register_all_role_prompts(fake_langfuse_client)
     _use_fake_langfuse_client(monkeypatch, fake_langfuse_client)
+    _write_role_prompt_files(
+        base_env, *(identifier for identifier in ROLE_LABELS if identifier != "visual_reviewer")
+    )
 
     result = runner.invoke(app, ["check-env"])
 
@@ -464,11 +476,36 @@ def test_check_env_fails_naming_the_role_missing_its_current_prompt(
     _register_all_role_prompts(fake_langfuse_client)
     del fake_langfuse_client._prompts[("writer", "produccion")]
     _use_fake_langfuse_client(monkeypatch, fake_langfuse_client)
+    _write_role_prompt_files(base_env, "writer")
 
     result = runner.invoke(app, ["check-env"])
 
     assert result.exit_code == 1
     assert "writer" in result.stdout
+
+
+# --- 004-bug: check-env solo exige los prompts de los roles con fichero en el workspace --------
+
+
+def test_check_env_does_not_require_a_prompt_for_a_role_without_a_workspace_file(
+    monkeypatch: pytest.MonkeyPatch, base_env: Path, fake_langfuse_client: FakeLangfuseClient
+) -> None:
+    """`visual_reviewer` (017, fuera de alcance) no tiene fichero en el workspace: `prompts push`
+    nunca lo sube, así que `check-env` no debe exigirle prompt vigente en Langfuse."""
+    runner.invoke(app, ["init-db"])
+    _set_langfuse_env(monkeypatch)
+    _register_all_role_prompts(fake_langfuse_client)
+    del fake_langfuse_client._prompts[("revisor-visual", "produccion")]
+    _use_fake_langfuse_client(monkeypatch, fake_langfuse_client)
+    _write_role_prompt_files(
+        base_env, *(identifier for identifier in ROLE_LABELS if identifier != "visual_reviewer")
+    )
+
+    result = runner.invoke(app, ["check-env"])
+
+    assert result.exit_code == 0
+    lines = result.stdout.strip().splitlines()
+    assert lines[3] == "observabilidad: ok (Langfuse)"
 
 
 # --- I3: auth_check() nunca falla en silencio --------------------------------------------------
@@ -514,6 +551,7 @@ def test_serve_refuses_to_start_when_a_role_is_missing_its_current_prompt(
     _register_all_role_prompts(fake_langfuse_client)
     del fake_langfuse_client._prompts[("juez", "produccion")]
     _use_fake_langfuse_client(monkeypatch, fake_langfuse_client)
+    _write_role_prompt_files(base_env, "judge")
 
     result = runner.invoke(app, ["serve"])
 

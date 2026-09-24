@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from contextlib import contextmanager
+from pathlib import Path
 
 from story_maker.observability.langfuse_client import LangfuseClientPort
 from story_maker.observability.mask import Mask
@@ -184,8 +185,12 @@ class LangfuseObservability:
         )
 
 
-def auth_check(client: LangfuseClientPort, label: str) -> str | None:
-    """Credenciales válidas y prompt vigente por rol; nunca falla en silencio (004-I3)."""
+def auth_check(client: LangfuseClientPort, label: str, prompts_dir: Path) -> str | None:
+    """Credenciales válidas y prompt vigente por rol; nunca falla en silencio (004-I3).
+
+    Solo exige prompt a los roles con fichero en `prompts_dir`, los mismos que sube
+    `prompts push` (004-bug): un rol sin fichero en el workspace, como `visual_reviewer`
+    (017, fuera de alcance), no bloquea `check-env` ni `serve`."""
     try:
         ok = client.auth_check()
     except Exception as exc:
@@ -193,6 +198,8 @@ def auth_check(client: LangfuseClientPort, label: str) -> str | None:
     if not ok:
         return "Langfuse: credenciales inválidas"
     for identifier, role_label in ROLE_LABELS.items():
+        if not (prompts_dir / f"{identifier}.md").is_file():
+            continue
         try:
             client.get_prompt(role_label, label=label)
         except Exception:
