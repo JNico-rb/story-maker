@@ -71,6 +71,7 @@ class ToolCall:
     errors: tuple[str, ...] = ()
     reason: str | None = None
     defects: tuple[Defect, ...] = ()
+    own: bool = False
 
 
 @dataclass
@@ -85,6 +86,11 @@ class SessionResult:
     latency_ms: int
     reserved_tokens: int
     role_session_id: int
+
+    @property
+    def deliveries(self) -> list[ToolCall]:
+        """Llamadas aceptadas a tools propias, en orden; la última es la que el rol entrega."""
+        return [call for call in self.calls if call.own and call.status == "accepted"]
 
 
 @dataclass
@@ -263,6 +269,7 @@ class LiveSession:
             self.telemetry.score(
                 self.request.trace, "schema-salida", 0 if rejected else 1, span=span
             )
+        call.own = True
         self.calls.append(call)
 
 

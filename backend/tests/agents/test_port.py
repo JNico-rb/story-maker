@@ -7,16 +7,16 @@ from typing import Any, Literal
 
 import pytest
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, sessionmaker
 
 from story_maker.agents.ceiling import TokenCeiling
 from story_maker.agents.fake import Call, FakeAgent, Say, Script
-from story_maker.agents.port import AgentPort, SessionRequest
+from story_maker.agents.port import ACK, AgentPort, SessionRequest
 from story_maker.agents.profiles import ToolsMismatch
 from story_maker.agents.tools import ToolSpec
 from story_maker.agents.usage import Usage
-from story_maker.store.models import RoleSession
+from story_maker.store.models import Base, RoleSession
 
 USAGE = Usage(input_tokens=10, output_tokens=5, cache_read_tokens=0, cache_write_tokens=0)
 
@@ -106,3 +106,39 @@ async def test_an_invalid_input_returns_to_the_model_as_an_error_and_is_fixed_in
     assert len(fake.sessions) == 1
     with session_factory() as session:
         assert len(session.scalars(select(RoleSession)).all()) == 1
+
+
+def fingerprint(session_factory: sessionmaker[Session]) -> dict[str, int]:
+    """Filas por tabla: la huella de la base antes y después de una sesión."""
+    with session_factory() as session:
+        return {
+            table.name: session.execute(select(func.count()).select_from(table)).scalar_one()
+            for table in Base.metadata.sorted_tables
+        }
+
+
+async def test_deliveries_stay_in_memory_in_order_and_nothing_is_persisted(
+    port: AgentPort,
+    fake: FakeAgent,
+    session_factory: sessionmaker[Session],
+    make_request: Callable[..., SessionRequest],
+) -> None:
+    inputs = [{"field": "occasion", "value": v} for v in ("birthday", "wedding", "other")]
+    fake.script(
+        "interviewer",
+        None,
+        Script(
+            steps=(*(Call("update_brief", data) for data in inputs), Say("¿Y el tono?")),
+            usage=USAGE,
+        ),
+    )
+    before = fingerprint(session_factory)
+
+    result = await port.run(make_request("interviewer"))
+
+    assert [c.value.model_dump() for c in result.deliveries if c.value] == inputs
+    assert [c.tool for c in result.deliveries] == ["update_brief"] * 3
+    assert result.text == "¿Y el tono?"
+    assert fake.sessions[0].reads == [ACK] * 3
+    after = fingerprint(session_factory)
+    assert {t: n - before[t] for t, n in after.items() if n != before[t]} == {"role_sessions": 1}
