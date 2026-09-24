@@ -283,3 +283,22 @@ CLICHES: tuple[str, ...] = (
     "el tiempo pareció detenerse",
     "sin lugar a dudas",
 )
+
+#: Marcas de primera persona, para `linter-consistencia` (018-C12, 018-C13).
+FIRST_PERSON_MARKS: frozenset[str] = frozenset(
+    {
+        "yo",
+        "me",
+        "mí",
+        "mi",
+        "mis",
+        "conmigo",
+        "nosotros",
+        "nosotras",
+        "nos",
+        "nuestro",
+        "nuestra",
+        "nuestros",
+        "nuestras",
+    }
+)
