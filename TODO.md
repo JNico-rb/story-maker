@@ -150,7 +150,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
-- [ ] 002-C01 · Registro válido
+- [x] 002-C01 · Registro válido
 - [ ] 002-C02 · El email se guarda normalizado
 - [ ] 002-C03 · Un email ya registrado no crea otra cuenta
 - [ ] 002-C04 · Email sin forma de email
