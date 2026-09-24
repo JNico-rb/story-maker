@@ -1223,7 +1223,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcada tras el recorte de casos C (usuario, 2026-09-24)
 
 ### Steps
-- [ ] 029-C01 · Entrevistar una novela nueva
+- [x] 029-C01 · Entrevistar una novela nueva
 - [ ] 029-C02 · Seguir una entrevista guardada (recortado)
 - [ ] 029-C03 · Cliente o novela ajenos (recortado)
 - [ ] 029-C04 · Un turno fallido no se guarda (recortado)
