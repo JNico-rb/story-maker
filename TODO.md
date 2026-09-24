@@ -334,43 +334,43 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
-- [ ] 007-C01 · El fichero lleva la cronología registrada de la versión y nada más
-- [ ] 007-C02 · Los ids son los de las filas y las fechas se desplazan 400·k años
-- [ ] 007-C03 · k se elige al azar en cada fichero, entre 1 y 10
-- [ ] 007-C04 · La misma cronología y el mismo k dan el mismo fichero
-- [ ] 007-C05 · El 29 de febrero y las edades se conservan al desplazar
-- [ ] 007-C06 · Solo entra la versión que se verifica
-- [ ] 007-C07 · Un testigo con eventos narrados da un defecto por capítulo
-- [ ] 007-C08 · Un testigo solo con eventos del brief da un defecto sin capítulo
-- [ ] 007-C09 · Una verificación que pasa deja su fichero y su fila
-- [ ] 007-C10 · Un invariante violado deja la fila `failed` y devuelve los defectos
-- [ ] 007-C11 · Un fichero que no compila por otra causa es `error` y nunca `passed`
-- [ ] 007-C12 · Sin veredicto no hay fila
-- [ ] 007-C13 · El modo local compila en el directorio de datos e interpreta la salida
-- [ ] 007-C14 · El modo github envía el fichero comprimido por `workflow_dispatch`
-- [ ] 007-C15 · El modo github sondea la ejecución y lee el resultado del artefacto
-- [ ] 007-C16 · El input cabe en el límite de 65.535 caracteres o no se envía
-- [ ] 007-C17 · Un GitHub inalcanzable o lento interrumpe sin reintentar
-- [ ] 007-C18 · El modo github sin sus ajustes no se construye
-- [ ] 007-C19 · El doble del `VerificadorFormal` devuelve lo programado sin red ni Lean
-- [ ] 007-C20 · El fichero dorado compila y cumple T1–T5
-- [ ] 007-C21 · Un fichero negativo por invariante falla con ese invariante y su primer testigo
-- [ ] 007-C22 · Los límites de cada invariante
-- [ ] 007-C23 · Cada comprobador decide su invariante para cualquier cronología
-- [ ] 007-C24 · La auditoría de axiomas no pasa en vacío
-- [ ] 007-I2 · Solo es `passed` lo que compila, pasa la auditoría y cumple los cinco invariantes
-- [ ] 007-I3 · El `FicheroDeCronologia` no lleva datos personales
-- [ ] 007-I4 · La seudonimización no cambia el resultado de ningún comprobador
-- [ ] 007-I6 · El fichero solo contiene filas de la versión que se verifica
-- [ ] 007-I7 · El verificador solo escribe en `STORY_MAKER_DATA_DIR`
-- [ ] 007-I8 · `GITHUB_TOKEN` nunca aparece en el fichero, el input, el resultado, la fila, un mensaje de error ni un registro
-- [ ] 007-I12 · La fila de `chronology_files` solo existe con un resultado (`passed`, `failed` o `error`), y su huella es la del fichero guardado
+- [x] 007-C01 · El fichero lleva la cronología registrada de la versión y nada más
+- [x] 007-C02 · Los ids son los de las filas y las fechas se desplazan 400·k años
+- [x] 007-C03 · k se elige al azar en cada fichero, entre 1 y 10
+- [x] 007-C04 · La misma cronología y el mismo k dan el mismo fichero
+- [x] 007-C05 · El 29 de febrero y las edades se conservan al desplazar
+- [x] 007-C06 · Solo entra la versión que se verifica
+- [x] 007-C07 · Un testigo con eventos narrados da un defecto por capítulo
+- [x] 007-C08 · Un testigo solo con eventos del brief da un defecto sin capítulo
+- [x] 007-C09 · Una verificación que pasa deja su fichero y su fila
+- [x] 007-C10 · Un invariante violado deja la fila `failed` y devuelve los defectos
+- [x] 007-C11 · Un fichero que no compila por otra causa es `error` y nunca `passed`
+- [x] 007-C12 · Sin veredicto no hay fila
+- [x] 007-C13 · El modo local compila en el directorio de datos e interpreta la salida
+- [x] 007-C14 · El modo github envía el fichero comprimido por `workflow_dispatch`
+- [x] 007-C15 · El modo github sondea la ejecución y lee el resultado del artefacto
+- [x] 007-C16 · El input cabe en el límite de 65.535 caracteres o no se envía
+- [x] 007-C17 · Un GitHub inalcanzable o lento interrumpe sin reintentar
+- [x] 007-C18 · El modo github sin sus ajustes no se construye
+- [x] 007-C19 · El doble del `VerificadorFormal` devuelve lo programado sin red ni Lean
+- [x] 007-C20 · El fichero dorado compila y cumple T1–T5
+- [x] 007-C21 · Un fichero negativo por invariante falla con ese invariante y su primer testigo
+- [x] 007-C22 · Los límites de cada invariante
+- [x] 007-C23 · Cada comprobador decide su invariante para cualquier cronología
+- [x] 007-C24 · La auditoría de axiomas no pasa en vacío
+- [x] 007-I2 · Solo es `passed` lo que compila, pasa la auditoría y cumple los cinco invariantes
+- [x] 007-I3 · El `FicheroDeCronologia` no lleva datos personales
+- [x] 007-I4 · La seudonimización no cambia el resultado de ningún comprobador
+- [x] 007-I6 · El fichero solo contiene filas de la versión que se verifica
+- [x] 007-I7 · El verificador solo escribe en `STORY_MAKER_DATA_DIR`
+- [x] 007-I8 · `GITHUB_TOKEN` nunca aparece en el fichero, el input, el resultado, la fila, un mensaje de error ni un registro
+- [x] 007-I12 · La fila de `chronology_files` solo existe con un resultado (`passed`, `failed` o `error`), y su huella es la del fichero guardado
 - [ ] 007-C25 · Una verificación real por GitHub Actions responde a tiempo (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-24: `uv run pytest` 793 passed; `uv run ruff check .` sin avisos; `uv run ruff format --check .` 140 ficheros formateados; `uv run mypy src` sin problemas en 71 ficheros; C20–C24 (Lean) verdes en la CI (ejecución 36003381493)
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 008 — brief-y-entrevista
 
