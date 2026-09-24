@@ -957,7 +957,7 @@ Todas dependen de 000. Carril B disuelto y C rehecho (decisión del usuario, 202
 - [x] 022-C03 · Errores de datos inválidos, campo a campo
 - [x] 022-C04 · Acceso válido guarda la sesión y entra
 - [x] 022-C05 · Credenciales incorrectas
-- [ ] 022-C06 · Cada petición a una pantalla protegida envía la sesión guardada
+- [x] 022-C06 · Cada petición a una pantalla protegida envía la sesión guardada
 - [ ] 022-C07 · Sin sesión guardada, una pantalla protegida redirige a acceso
 - [ ] 022-C08 · Una sesión rechazada por el servidor redirige a acceso
 - [ ] 022-C09 · Cerrar sesión borra la sesión guardada sin avisar al servidor

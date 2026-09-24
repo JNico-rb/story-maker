@@ -4,12 +4,16 @@ import { LoginPage } from "../pages/login";
 import { RegisterPage } from "../pages/register";
 import { BrandLayout } from "./BrandLayout";
 
-export function buildRoutes(): RouteObject[] {
+// Pantallas que exigen sesión; cada spec de pantalla añade la suya. `extra` sirve a las pruebas.
+const protectedScreens: RouteObject[] = [{ path: "/", element: null }];
+
+export function buildRoutes(extra: RouteObject[] = []): RouteObject[] {
   return [
     {
       element: <BrandLayout />,
       children: [
-        { path: "/", element: null },
+        ...protectedScreens,
+        ...extra,
         { path: "/acceso", element: <LoginPage /> },
         { path: "/registro", element: <RegisterPage /> },
       ],

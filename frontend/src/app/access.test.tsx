@@ -1,9 +1,11 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { useEffect, useState } from "react";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { clearSession, readSession } from "../shared/lib";
+import { apiFetch } from "../shared/api";
+import { clearSession, readSession, saveSession } from "../shared/lib";
 import { buildRoutes } from "./router";
 
 // API simulada en el límite del cliente: cada prueba declara qué responde cada ruta (spec 002).
@@ -29,8 +31,21 @@ function fakeApi(handlers: Record<string, Handler>) {
   return sent;
 }
 
+// Pantalla protegida de prueba: al abrirse pide dos datos a la API con el cliente compartido.
+function ProbeScreen() {
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    void Promise.all([apiFetch("/api/novels"), apiFetch("/api/banned-terms")]).then(() =>
+      setLoaded(true),
+    );
+  }, []);
+  return <p>{loaded ? "datos cargados" : "cargando"}</p>;
+}
+
+const probeRoute = { path: "/sonda", element: <ProbeScreen /> };
+
 function renderAt(path: string) {
-  const router = createMemoryRouter(buildRoutes(), { initialEntries: [path] });
+  const router = createMemoryRouter(buildRoutes([probeRoute]), { initialEntries: [path] });
   render(<RouterProvider router={router} />);
   return router;
 }
@@ -219,4 +234,24 @@ describe("022 acceso", () => {
       expectNoSession();
     },
   );
+});
+
+describe("022 rutas protegidas", () => {
+  const protectedData = {
+    "GET /api/novels": () => ({ status: 200, body: [] }),
+    "GET /api/banned-terms": () => ({ status: 200, body: [] }),
+  };
+
+  it("022-C06: every request of a protected screen carries the stored session in the authorization header, never in the address", async () => {
+    saveSession(TOKEN);
+    const sent = fakeApi(protectedData);
+    renderAt("/sonda");
+
+    expect(await screen.findByText("datos cargados")).toBeInTheDocument();
+    expect(sent.map((request) => request.url)).toEqual(["/api/novels", "/api/banned-terms"]);
+    for (const request of sent) {
+      expect(request.headers.get("Authorization")).toBe(`Bearer ${TOKEN}`);
+      expect(request.url).not.toContain(TOKEN);
+    }
+  });
 });
