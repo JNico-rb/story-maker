@@ -7,10 +7,12 @@ from __future__ import annotations
 import datetime as dt
 from typing import Any
 
+import pytest
 from sqlalchemy import text
 
 from story_maker.store import models
 from story_maker.store.session import unit_of_work
+from story_maker.store.version_copy import copy_version
 
 TABLES = (
     "worlds",
@@ -66,7 +68,13 @@ def test_the_copy_reproduces_the_whole_base_with_new_ids(store: Any) -> None:
 
     k_id, ids = store.copy(v1.version_id)
 
-    base, copy = store.dump(v1.version_id), store.dump(k_id)
+    _assert_is_a_full_copy(store, v1.version_id, k_id, ids)
+
+
+def _assert_is_a_full_copy(
+    store: Any, base_id: int, k_id: int, ids: dict[str, dict[int, int]]
+) -> None:
+    base, copy = store.dump(base_id), store.dump(k_id)
     k = copy["versions"][0]
     assert (
         k["status"],
@@ -76,7 +84,7 @@ def test_the_copy_reproduces_the_whole_base_with_new_ids(store: Any) -> None:
         k["pdf_path"],
     ) == (
         "candidate",
-        v1.version_id,
+        base_id,
         None,
         [],
         None,
@@ -95,9 +103,9 @@ def test_the_copy_reproduces_the_whole_base_with_new_ids(store: Any) -> None:
                 if row[column] is not None:
                     assert row[column] in ids[target].values(), (table, column)
 
-    in_v1 = _cards_matching(store, "feria", v1.version_id)
-    assert in_v1
-    assert _cards_matching(store, "feria", k_id) == {ids["canon_cards"][c] for c in in_v1}
+    in_base = _cards_matching(store, "feria", base_id)
+    assert in_base
+    assert _cards_matching(store, "feria", k_id) == {ids["canon_cards"][c] for c in in_base}
 
 
 def test_the_copy_does_not_embed_again_it_shares_the_vectors(store: Any) -> None:
@@ -175,3 +183,34 @@ def test_the_base_does_not_change_when_copied_nor_while_the_candidate_is_worked(
     ):
         in_k(change)
     assert store.fingerprint(k_id) != before
+
+
+def _table_sizes(store: Any) -> dict[str, int]:
+    with store.session() as session:
+        sizes = {
+            # nombres de tabla fijos de la prueba, no entrada externa
+            name: session.execute(text(f"SELECT count(*) FROM {name}")).scalar_one()  # noqa: S608
+            for name in (*TABLES, "versions", "canon_cards_fts", "embeddings")
+        }
+    return sizes
+
+
+def test_copying_is_all_or_nothing(store: Any, faults: Any) -> None:
+    v1 = store.build_v1()
+    before, sizes = store.fingerprint(v1.version_id), _table_sizes(store)
+    with store.session() as session:
+        last_card = session.query(models.CanonCard).filter_by(version_id=v1.version_id).count()
+
+    def copy_failing_at_the_last_table() -> None:
+        with unit_of_work(store.session_factory) as uow:
+            base = uow.session.get(models.Version, v1.version_id)
+            copy_version(faults.wrap(uow, models.CanonCard, nth=last_card), base, now=store.now)
+
+    with pytest.raises(faults.error):
+        copy_failing_at_the_last_table()
+
+    assert _table_sizes(store) == sizes
+    assert store.fingerprint(v1.version_id) == before
+
+    k_id, ids = store.copy(v1.version_id)
+    _assert_is_a_full_copy(store, v1.version_id, k_id, ids)

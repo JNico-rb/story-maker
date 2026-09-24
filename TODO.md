@@ -440,7 +440,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 009-C11 · La copia reproduce la base entera con identificadores nuevos
 - [x] 009-C12 · La copia no vuelve a incrustar: comparte los vectores
 - [x] 009-C13 · La base no cambia al copiarla ni al trabajar la candidata
-- [ ] 009-C14 · Copiar es todo o nada
+- [x] 009-C14 · Copiar es todo o nada
 - [ ] 009-I4 · Crear una candidata, de generación o por copia, es todo o nada
 - [ ] 009-I2 · Cada versión es autocontenida
 - [ ] 009-C15 · Cambiar el valor de un hecho de la candidata
