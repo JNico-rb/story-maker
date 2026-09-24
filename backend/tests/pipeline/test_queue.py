@@ -1,9 +1,12 @@
-"""Una sola ejecución activa en una cola FIFO global (011-C03)."""
+"""Una sola ejecución activa en una cola FIFO global y el arranque del servidor (011-C03, C25)."""
 
 from __future__ import annotations
 
+import asyncio
+import contextlib
 import datetime as dt
 
+import pytest
 from sqlalchemy.orm import Session, sessionmaker
 from tests.pipeline.conftest import NOW, seed_novel, seed_run, seed_user
 
@@ -89,3 +92,40 @@ async def test_the_worker_takes_nothing_while_another_run_is_running(
     assert await worker.run_next() is None
     assert called == []
     assert statuses(session_factory)[b] == "queued"
+
+
+@pytest.mark.parametrize(
+    ("resumes", "expected"),
+    [(1, ("interrupted", "crash")), (2, ("failed", "resumes_exhausted"))],
+)
+async def test_at_startup_what_was_running_is_interrupted_and_the_worker_takes_the_first_queued(
+    resumes: int,
+    expected: tuple[str, str],
+    session_factory: sessionmaker[Session],
+) -> None:
+    a, b, c = queue_three(session_factory)
+    with session_factory() as session:
+        run = session.get_one(Run, a)
+        run.status, run.resumes = "running", resumes
+        session.commit()
+    taken: list[tuple[int, dict[int, str]]] = []
+    done = asyncio.Event()
+
+    async def execute(run_id: int) -> None:
+        taken.append((run_id, statuses(session_factory)))
+        done.set()
+        await asyncio.Event().wait()
+
+    worker = Worker(session_factory, execute, max_resumes=2, clock=lambda: NOW)
+
+    task = asyncio.create_task(worker.run_forever())
+    async with asyncio.timeout(5):
+        await done.wait()
+    task.cancel()
+    with contextlib.suppress(asyncio.CancelledError):
+        await task
+
+    with session_factory() as session:
+        stopped = session.get_one(Run, a)
+        assert (stopped.status, stopped.reason) == expected
+    assert taken == [(b, {a: expected[0], b: "running", c: "queued"})]
