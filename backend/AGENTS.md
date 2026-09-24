@@ -43,7 +43,7 @@ A spec touches only its modules and their `tests/<module>/`. In a shared module 
 | 004 observabilidad | D | `observability/` (Langfuse adapter, mask, prompts, scores), `cli.py` (`prompts push`) |
 | 005 guardarrailes | C | `policy/`, `domain/` (banned-term normalization) |
 | 006 especificacion-tla | D | `tla/` (repo root) |
-| 007 validador-lean | B | `formal/`, `lean/` (repo root) |
+| 007 validador-lean | C | `formal/`, `lean/` (repo root) |
 | 008 brief-y-entrevista | C | `interview/`, `domain/` (brief rules, C1–C6), `api/` (novels, interview, free texts, brief, banned terms, audit log), `harness_workspace/` (interviewer and extractor prompts) |
 | 009 story-bible-y-versiones | A | `store/` (story bible and version-copy repositories), `api/` (story bible) |
 | 010 planificacion | A | `pipeline/` (planning), `validators/` (`outline`), planner prompt |
