@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import datetime as dt
 from typing import Any, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -9,7 +10,7 @@ from pydantic import BaseModel
 
 from story_maker.api.dependencies import get_current_user_id
 from story_maker.api.ownership import owned_or_404
-from story_maker.domain.brief import BriefContent, missing_fields
+from story_maker.domain.brief import BriefContent, Contradiccion, contradictions, missing_fields
 from story_maker.interview.novels import brief_of
 from story_maker.store.models import Brief, Novel
 from story_maker.store.session import unit_of_work
@@ -21,11 +22,17 @@ class BriefOut(BaseModel):
     status: Literal["draft", "confirmed"]
     content: BriefContent
     missing_fields: list[str]
+    contradictions: list[Contradiccion]
 
 
-def build_brief_out(brief: Brief) -> BriefOut:
+def build_brief_out(brief: Brief, novel_created_at: dt.datetime) -> BriefOut:
     content = BriefContent.model_validate(brief.content) if brief.content else BriefContent()
-    return BriefOut(status=brief.status, content=content, missing_fields=missing_fields(content))
+    return BriefOut(
+        status=brief.status,
+        content=content,
+        missing_fields=missing_fields(content),
+        contradictions=contradictions(content, novel_created_at.date()),
+    )
 
 
 def _missing_field_problems(content: BriefContent) -> list[dict[str, Any]]:
@@ -39,9 +46,22 @@ def _missing_field_problems(content: BriefContent) -> list[dict[str, Any]]:
     ]
 
 
-def brief_problems(content: BriefContent) -> list[dict[str, Any]]:
+def _contradiction_problems(
+    content: BriefContent, novel_created_at: dt.datetime
+) -> list[dict[str, Any]]:
+    return [
+        {
+            "loc": ["body", "brief", "contradictions", *item.fields],
+            "msg": f"contradicción {item.rule}",
+            "type": "contradiction",
+        }
+        for item in contradictions(content, novel_created_at.date())
+    ]
+
+
+def brief_problems(content: BriefContent, novel_created_at: dt.datetime) -> list[dict[str, Any]]:
     """Todo lo que bloquea la confirmación (008-C09 a 008-C13); cada paso añade su comprobación."""
-    return _missing_field_problems(content)
+    return _missing_field_problems(content) + _contradiction_problems(content, novel_created_at)
 
 
 @router.get("/api/novels/{novel_id}/brief", response_model=BriefOut)
@@ -50,9 +70,9 @@ def get_brief(
 ) -> BriefOut:
     session = request.app.state.session_factory()
     try:
-        owned_or_404(session, Novel, novel_id, lambda n: n.user_id == user_id)
+        novel = owned_or_404(session, Novel, novel_id, lambda n: n.user_id == user_id)
         brief = brief_of(session, novel_id)
-        return build_brief_out(brief)
+        return build_brief_out(brief, novel.created_at)
     finally:
         session.close()
 
@@ -64,14 +84,15 @@ def confirm_brief(
     state = request.app.state
     session = state.session_factory()
     try:
-        owned_or_404(session, Novel, novel_id, lambda n: n.user_id == user_id)
+        novel = owned_or_404(session, Novel, novel_id, lambda n: n.user_id == user_id)
         brief = brief_of(session, novel_id)
         if brief.status == "confirmed":
             raise HTTPException(status_code=409, detail="el brief ya está confirmado")
         content = BriefContent.model_validate(brief.content) if brief.content else BriefContent()
-        problems = brief_problems(content)
+        problems = brief_problems(content, novel.created_at)
         if problems:
             raise HTTPException(status_code=422, detail=problems)
+        created_at = novel.created_at
     finally:
         session.close()
 
@@ -81,6 +102,6 @@ def confirm_brief(
 
     session = state.session_factory()
     try:
-        return build_brief_out(brief_of(session, novel_id))
+        return build_brief_out(brief_of(session, novel_id), created_at)
     finally:
         session.close()

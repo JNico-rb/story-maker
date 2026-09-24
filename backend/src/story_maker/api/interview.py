@@ -97,7 +97,8 @@ async def post_interview_message(
 
     session = state.session_factory()
     try:
+        novel = owned_or_404(session, Novel, novel_id, lambda n: n.user_id == user_id)
         brief = brief_of(session, novel_id)
-        return TurnOut(reply=outcome.reply, brief=build_brief_out(brief))
+        return TurnOut(reply=outcome.reply, brief=build_brief_out(brief, novel.created_at))
     finally:
         session.close()

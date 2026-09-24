@@ -145,3 +145,123 @@ def missing_fields(content: BriefContent) -> list[str]:
     if not content.banned_asked:
         missing.append("banned_asked")
     return missing
+
+
+class Contradiccion(BaseModel):
+    """Par de datos incompatibles del brief (`definitions.md` §1, `domain-knowledge.md` §4.3)."""
+
+    model_config = ConfigDict(extra="forbid")
+    rule: Literal["C1", "C2", "C3", "C4", "C5", "C6"]
+    fields: list[str]
+    detail: dict[str, str] | None = None
+
+
+def _anniversary(created_at: dt.date, birth_date: dt.date) -> dt.date:
+    """El día en que se cumplen años en el año de `created_at`; un 29 de febrero cae el 1 de
+    marzo en un año no bisiesto (`domain-knowledge.md` §5.2)."""
+    try:
+        return birth_date.replace(year=created_at.year)
+    except ValueError:
+        return dt.date(created_at.year, 3, 1)
+
+
+def age_at(created_at: dt.date, birth_date: dt.date) -> int:
+    """La edad que da `birth_date` en `created_at` (`domain-knowledge.md` §5.2)."""
+    years = created_at.year - birth_date.year
+    if created_at < _anniversary(created_at, birth_date):
+        years -= 1
+    return years
+
+
+def derived_birth_year(
+    age: int | None, birth_date: dt.date | None, created_at: dt.date
+) -> int | None:
+    """El año de nacimiento: el declarado, o el derivado de la edad (año presente menos edad);
+    sin ninguno de los dos, ninguno (`domain-knowledge.md` §5.2)."""
+    if birth_date is not None:
+        return birth_date.year
+    if age is not None:
+        return created_at.year - age
+    return None
+
+
+def _c1(content: BriefContent) -> Contradiccion | None:
+    age = content.recipient.age
+    if age is None or content.genre is None:
+        return None
+    if age_band(age) == "children" and content.genre in _CHILDISH_GENRES:
+        return Contradiccion(rule="C1", fields=["recipient.age", "genre"])
+    return None
+
+
+def _c2(content: BriefContent) -> Contradiccion | None:
+    age = content.recipient.age
+    if age is None or content.tone is None:
+        return None
+    if age_band(age) == "children" and content.tone == _UNSETTLING_TONE:
+        return Contradiccion(rule="C2", fields=["recipient.age", "tone"])
+    return None
+
+
+def _c3(content: BriefContent) -> Contradiccion | None:
+    age = content.recipient.age
+    if age is None or content.occasion is None:
+        return None
+    if content.occasion in _AGE_GATED_OCCASIONS and age < 18:
+        return Contradiccion(rule="C3", fields=["occasion", "recipient.age"])
+    if content.occasion == "retirement" and age < 50:
+        return Contradiccion(rule="C3", fields=["occasion", "recipient.age"])
+    return None
+
+
+def _c4_for(
+    age: int | None, birth_date: dt.date | None, created_at: dt.date, prefix: str
+) -> Contradiccion | None:
+    if age is None or birth_date is None:
+        return None
+    if age_at(created_at, birth_date) != age:
+        return Contradiccion(rule="C4", fields=[f"{prefix}.birth_date", f"{prefix}.age"])
+    return None
+
+
+def _c4(content: BriefContent, created_at: dt.date) -> list[Contradiccion]:
+    found = []
+    recipient = _c4_for(
+        content.recipient.age, content.recipient.birth_date, created_at, "recipient"
+    )
+    if recipient is not None:
+        found.append(recipient)
+    for i, close_one in enumerate(content.close_ones):
+        result = _c4_for(close_one.age, close_one.birth_date, created_at, f"close_ones[{i}]")
+        if result is not None:
+            found.append(result)
+    return found
+
+
+def _c5(content: BriefContent, created_at: dt.date) -> list[Contradiccion]:
+    found = []
+    age = content.recipient.age
+    birth_year = derived_birth_year(age, content.recipient.birth_date, created_at)
+    for i, recollection in enumerate(content.recollections):
+        field = f"recollections[{i}]"
+        if recollection.age is not None and age is not None and recollection.age > age:
+            found.append(Contradiccion(rule="C5", fields=[field, "age"]))
+        elif (
+            recollection.year is not None
+            and birth_year is not None
+            and (recollection.year < birth_year or recollection.year > created_at.year)
+        ):
+            found.append(Contradiccion(rule="C5", fields=[field, "year"]))
+    return found
+
+
+def contradictions(content: BriefContent, created_at: dt.date) -> list[Contradiccion]:
+    """C1-C5 (008-C10); C6 (prohibidas) lo añade `contradictions_with_banned` (008-C11). Una
+    regla cuyos datos faltan no se evalúa (`architecture.md` §3.2)."""
+    found: list[Contradiccion] = []
+    for rule in (_c1(content), _c2(content), _c3(content)):
+        if rule is not None:
+            found.append(rule)
+    found += _c4(content, created_at)
+    found += _c5(content, created_at)
+    return found
