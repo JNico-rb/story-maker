@@ -26,6 +26,7 @@ from story_maker.store.brief_canon import (
 )
 from story_maker.store.models import Novel, User
 from story_maker.store.session import UnitOfWork, unit_of_work
+from story_maker.store.story_bible import change_fact_value
 from story_maker.store.version_copy import copy_version
 
 CREATED_2026 = dt.datetime(2026, 9, 24, 10, 0)
@@ -335,6 +336,10 @@ class Store:
             assert base is not None
             copied = copy_version(uow, base, now=now)
         return copied.version.id, {t: dict(m) for t, m in copied.ids.items()}
+
+    def change_fact(self, fact_id: int, value: str) -> None:
+        with unit_of_work(self.session_factory) as uow:
+            change_fact_value(uow, fact_id, value)
 
     def dump(self, version_id: int) -> dict[str, list[dict[str, Any]]]:
         """La fila de la versión y todas sus filas de ámbito versión, tabla a tabla."""

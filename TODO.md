@@ -443,7 +443,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 009-C14 · Copiar es todo o nada
 - [x] 009-I4 · Crear una candidata, de generación o por copia, es todo o nada
 - [x] 009-I2 · Cada versión es autocontenida
-- [ ] 009-C15 · Cambiar el valor de un hecho de la candidata
+- [x] 009-C15 · Cambiar el valor de un hecho de la candidata
 - [ ] 009-C16 · Cambiar un hecho de nombre cambia a la vez el nombre canónico
 - [ ] 009-I6 · El nombre canónico de cada personaje es el valor de su hecho de nombre
 - [ ] 009-C17 · Publicar la primera versión
