@@ -1,0 +1,99 @@
+"""MotorDePoliticas: función pura que decide allow | deny | flag (architecture.md §12.2)."""
+
+from story_maker.domain.banned_terms import find_term_matches
+from story_maker.policy.injection import find_injection_phrases
+from story_maker.policy.navigation import is_own_origin
+from story_maker.policy.types import DecisionDePolitica, EntradaProhibida, PeticionDePolitica
+from story_maker.policy.whitelist import ALLOWED_SKILL, is_tool_allowed
+
+
+def _applies(entry: EntradaProhibida, peticion: PeticionDePolitica) -> bool:
+    if entry.level == "global":
+        return True
+    if entry.level == "user":
+        return entry.owner == peticion.cliente
+    return entry.owner == peticion.novela
+
+
+def _check_banned_terms(peticion: PeticionDePolitica) -> DecisionDePolitica | None:
+    for entry in peticion.banned_entries:
+        if not _applies(entry, peticion):
+            continue
+        needles = entry.keywords if entry.type == "topic" else [entry.term]
+        for campo in peticion.campos:
+            if not campo.narrativo:
+                continue
+            for needle in needles:
+                for variant in find_term_matches(campo.texto, needle):
+                    return DecisionDePolitica(
+                        decision="deny",
+                        rule="palabras-prohibidas",
+                        detail=[{"term": entry.term, "level": entry.level, "variant": variant}],
+                    )
+    return None
+
+
+def _check_whitelist(peticion: PeticionDePolitica) -> DecisionDePolitica | None:
+    if peticion.rol is None or peticion.tool is None:
+        return None
+    if not is_tool_allowed(peticion.rol, peticion.tool):
+        return DecisionDePolitica(
+            decision="deny",
+            rule="lista-blanca",
+            detail=[{"role": peticion.rol, "tool": peticion.tool}],
+        )
+    if peticion.tool == "Skill" and peticion.skill is not None and peticion.skill != ALLOWED_SKILL:
+        return DecisionDePolitica(
+            decision="deny",
+            rule="skill-no-admitida",
+            detail=[{"skill": peticion.skill}],
+        )
+    return None
+
+
+def _check_navigation(
+    peticion: PeticionDePolitica, base_url: str | None
+) -> DecisionDePolitica | None:
+    if peticion.rol != "visual_reviewer" or peticion.tool != "browser_navigate":
+        return None
+    if peticion.url is None or base_url is None:
+        return None
+    if not is_own_origin(base_url, peticion.url):
+        return DecisionDePolitica(
+            decision="deny",
+            rule="origen-de-navegacion",
+            detail=[{"url": peticion.url}],
+        )
+    return None
+
+
+def _check_injection(peticion: PeticionDePolitica) -> DecisionDePolitica | None:
+    phrases = [
+        phrase
+        for campo in peticion.campos
+        if campo.narrativo
+        for phrase in find_injection_phrases(campo.texto)
+    ]
+    if not phrases:
+        return None
+    return DecisionDePolitica(
+        decision="flag",
+        rule="deteccion-de-inyeccion",
+        detail=[{"phrase": phrase} for phrase in phrases],
+    )
+
+
+def decide(peticion: PeticionDePolitica, base_url: str | None = None) -> DecisionDePolitica:
+    decision = _check_whitelist(peticion)
+    if decision is not None:
+        return decision
+    decision = _check_navigation(peticion, base_url)
+    if decision is not None:
+        return decision
+    decision = _check_banned_terms(peticion)
+    if decision is not None:
+        return decision
+    decision = _check_injection(peticion)
+    if decision is not None:
+        return decision
+    return DecisionDePolitica(decision="allow")
