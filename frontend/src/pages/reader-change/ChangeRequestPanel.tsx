@@ -59,7 +59,12 @@ export function ChangeRequestPanel({
       setState({ step: "proposal", text: state.text, created });
       return;
     }
-    const message = await errorMessage(response);
+    // Un 409 al pedir el cambio es siempre la versión de la selección ya no vigente
+    // (specs/backend/014-cambios-del-lector.md, alcance): mensaje fijo, no el texto del servidor.
+    const message =
+      response.status === 409
+        ? "La versión ha cambiado: hay que volver a seleccionar sobre la lectura vigente."
+        : await errorMessage(response);
     setState({ step: "form", text: state.text, submitting: false, error: message });
   }
 

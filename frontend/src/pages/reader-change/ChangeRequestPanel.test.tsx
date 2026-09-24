@@ -132,4 +132,16 @@ describe("027 cambio del lector", () => {
     expect(screen.getByRole("textbox", { name: "Petición" })).toHaveValue("el perro se llama Nala");
     expect(screen.queryByRole("section", { name: "Propuesta de cambio" })).not.toBeInTheDocument();
   });
+
+  it("027-C06: a request over a selection that is no longer valid asks to select again", async () => {
+    const user = userEvent.setup();
+    fakeApi(() => json(409, { detail: "stale_base" }));
+    renderPanel();
+
+    await sendRequest(user);
+
+    expect(await screen.findByText(/la versión ha cambiado.*volver a seleccionar/i)).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Petición" })).toHaveValue("el perro se llama Nala");
+    expect(screen.queryByRole("section", { name: "Propuesta de cambio" })).not.toBeInTheDocument();
+  });
 });
