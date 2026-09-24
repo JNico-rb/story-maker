@@ -15,6 +15,8 @@ from story_maker.store.session import create_schema, make_engine, make_session_f
 
 JWT_SECRET = "x" * 32
 PUBLIC_ROUTES = {("/api/auth/register", "POST"), ("/api/auth/login", "POST")}
+# Crece con cada spec de rutas: una ruta nueva sin su fila aquí hace fallar la prueba.
+PROTECTED_ROUTES = {("/api/novels/{novel_id}/story-bible", "GET")}  # 009
 
 
 @pytest.fixture
@@ -49,7 +51,7 @@ def test_every_api_route_requires_a_token_except_register_and_login(client: Test
     públicas tiene exactamente esas dos (002-I2)."""
     routes = _api_routes(client)
 
-    assert routes == PUBLIC_ROUTES  # hoy: solo registro y acceso; crece con cada spec de rutas
+    assert routes == PUBLIC_ROUTES | PROTECTED_ROUTES
 
     for path, method in routes - PUBLIC_ROUTES:
         response = client.request(method, path)

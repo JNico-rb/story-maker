@@ -313,7 +313,7 @@ class Event(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     version_id: Mapped[int] = mapped_column(ForeignKey("versions.id"))
     statement: Mapped[str]
-    moment: Mapped[dt.date]
+    moment: Mapped[dt.datetime]  # fecha y hora (`definitions.md` §2 Evento)
     place_id: Mapped[int] = mapped_column(ForeignKey("places.id"))
     type: Mapped[str]
     excluded_character_id: Mapped[int | None] = mapped_column(ForeignKey("characters.id"))

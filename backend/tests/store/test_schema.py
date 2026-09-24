@@ -724,6 +724,39 @@ def test_events_exclusion_without_excluded_character_is_rejected(
     session.close()
 
 
+def test_an_event_moment_keeps_its_date_hour_and_minute(
+    session_factory: sessionmaker[Session],
+) -> None:
+    """El momento de un Evento es fecha y hora (`definitions.md` §2 Evento): T1, T3, T4 y T5
+    comparan hasta el minuto (hallazgo de la 007, corregido en la 009)."""
+    session = session_factory()
+    version = make_version(session)
+    place = models.Place(version_id=version.id, canonical_name="p", description="", origin="brief")
+    session.add(place)
+    session.flush()
+    event = models.Event(
+        version_id=version.id,
+        statement="s",
+        moment=dt.datetime(2026, 5, 10, 18, 30),
+        place_id=place.id,
+        type="ordinary",
+        analepsis=False,
+        origin="recorded",
+        chapter=1,
+        beat=2,
+    )
+    session.add(event)
+    session.commit()
+    event_id = event.id
+    session.close()
+
+    reread = session_factory()
+    stored = reread.get(models.Event, event_id)
+    assert stored is not None
+    assert stored.moment == dt.datetime(2026, 5, 10, 18, 30)
+    reread.close()
+
+
 def test_runs_reason_stale_is_rejected(session_factory: sessionmaker[Session]) -> None:
     session = session_factory()
     novel = make_novel(session)

@@ -14,6 +14,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from story_maker.store.models import CANON_CARDS_FTS_DDL, INSERT_ONLY_TABLES, Base, CanonCard
+from story_maker.store.version_guard import check_version_writes, install_version_guard
 
 
 class RejectedWrite(ValueError):
@@ -98,6 +99,7 @@ class UnitOfWork:
         self.session = session
         self._new_cards: list[CanonCard] = []
         self._deleted_cards: list[CanonCard] = []
+        install_version_guard(session)  # solo una candidata admite escrituras (009-C21, 009-I1)
 
     def add(self, obj: Any) -> None:
         if isinstance(obj, CanonCard):
@@ -119,6 +121,9 @@ class UnitOfWork:
                 raise RejectedWrite("canon_cards no se edita, se sucede")
 
     def commit(self) -> None:
+        check_version_writes(
+            self.session
+        )  # antes: una CanonCard de una publicada nombra la versión
         self._reject_modified_insert_only()
         self.session.flush()
         for card in self._new_cards:

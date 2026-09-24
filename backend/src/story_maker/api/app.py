@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from story_maker.api.auth import Clock, utc_now
 from story_maker.api.auth import router as auth_router
 from story_maker.api.errors import validation_exception_handler
+from story_maker.api.story_bible import router as story_bible_router
 
 RESERVED_PREFIXES = ("api", "view", "mcp")
 
@@ -47,6 +48,7 @@ def create_app(
         app.state.access_token_hours = access_token_hours
         app.state.clock = clock
         app.include_router(auth_router)
+        app.include_router(story_bible_router)
 
     if frontend_dist is not None and frontend_dist.is_dir():
         assets_dir = frontend_dist / "assets"
