@@ -3,6 +3,8 @@ import { useParams } from "react-router";
 
 import { apiFetch } from "../../shared/api";
 import type { components } from "../../shared/api/schema";
+import type { Selection } from "../../shared/api";
+import { ChangeRequestPanel } from "../reader-change";
 
 type VersionsList = components["schemas"]["VersionsListResponse"];
 type VersionDetail = components["schemas"]["VersionDetailResponse"];
@@ -100,12 +102,68 @@ function News({ changedChapters }: { changedChapters: number[] }) {
   );
 }
 
-function Chapter({ chapter }: { chapter: VersionDetail["view"]["chapters"][number] }) {
+function Chapter({
+  chapter,
+  onSelectFragment,
+}: {
+  chapter: VersionDetail["view"]["chapters"][number];
+  onSelectFragment: (chapter: number, quote: string) => void;
+}) {
+  function handleMouseUp() {
+    const quote = window.getSelection()?.toString().trim() ?? "";
+    if (quote) onSelectFragment(chapter.number, quote);
+  }
   return (
-    <section id={`capitulo-${chapter.number}`} aria-label={`Capítulo ${chapter.number}`} className="mb-10">
+    <section
+      id={`capitulo-${chapter.number}`}
+      aria-label={`Capítulo ${chapter.number}`}
+      className="mb-10"
+      onMouseUp={handleMouseUp}
+    >
       <h3 className="font-reading text-xl font-semibold text-secondary">{chapter.title}</h3>
       <p className="mt-2">{chapter.text}</p>
     </section>
+  );
+}
+
+// 027: un fragmento seleccionado en un capítulo habilita «pedir un cambio», que abre el panel
+// de 027 con esa selección (versión vigente, capítulo, cita literal).
+function ChangeRequestEntryPoint({
+  novelId,
+  version,
+  fragment,
+  onClear,
+}: {
+  novelId: string;
+  version: number;
+  fragment: { chapter: number; quote: string } | null;
+  onClear: () => void;
+}) {
+  const [selection, setSelection] = useState<Selection | null>(null);
+
+  if (selection) {
+    return (
+      <ChangeRequestPanel
+        novelId={novelId}
+        selection={selection}
+        onDiscard={() => {
+          setSelection(null);
+          onClear();
+        }}
+      />
+    );
+  }
+
+  if (!fragment) return null;
+
+  return (
+    <button
+      type="button"
+      onClick={() => setSelection({ type: "fragment", version, chapter: fragment.chapter, quote: fragment.quote })}
+      className="mb-6 underline"
+    >
+      Pedir un cambio
+    </button>
   );
 }
 
@@ -160,6 +218,7 @@ function DownloadPdf({ novelId, version }: { novelId: string; version: number })
 
 function VersionContent({ novelId, version }: { novelId: string; version: number }) {
   const [load, retry] = useJson<VersionDetail>(`/api/novels/${novelId}/versions/${version}`);
+  const [fragment, setFragment] = useState<{ chapter: number; quote: string } | null>(null);
   if (load.status === "loading") return <p>Cargando la versión…</p>;
   if (load.status === "error") {
     return <LoadError message="No se pudo cargar esa versión." onRetry={retry} />;
@@ -172,9 +231,19 @@ function VersionContent({ novelId, version }: { novelId: string; version: number
       <News changedChapters={view.changed_chapters} />
       <Index chapters={view.chapters} changedChapters={view.changed_chapters} version={version} />
       {view.chapters.map((chapter) => (
-        <Chapter key={chapter.number} chapter={chapter} />
+        <Chapter
+          key={chapter.number}
+          chapter={chapter}
+          onSelectFragment={(chapterNumber, quote) => setFragment({ chapter: chapterNumber, quote })}
+        />
       ))}
       <Ficha entities={view.ficha} />
+      <ChangeRequestEntryPoint
+        novelId={novelId}
+        version={version}
+        fragment={fragment}
+        onClear={() => setFragment(null)}
+      />
     </>
   );
 }
