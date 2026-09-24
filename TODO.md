@@ -152,7 +152,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 ### Steps
 - [x] 002-C01 · Registro válido
 - [x] 002-C02 · El email se guarda normalizado
-- [ ] 002-C03 · Un email ya registrado no crea otra cuenta
+- [x] 002-C03 · Un email ya registrado no crea otra cuenta
 - [ ] 002-C04 · Email sin forma de email
 - [ ] 002-C05 · Contraseña en sus límites
 - [ ] 002-C06 · Registro con cuerpo incompleto

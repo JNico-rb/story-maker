@@ -70,3 +70,32 @@ def test_the_email_is_stored_normalized(
 
     (user,) = _users(session_factory)
     assert user.email == "cliente-a@example.com"
+
+
+def test_an_already_registered_email_does_not_create_another_account(
+    client: TestClient, session_factory: sessionmaker[Session]
+) -> None:
+    client.post(
+        "/api/auth/register",
+        json={"email": "cliente-a@example.com", "password": "contraseña-1"},
+    )
+
+    response = client.post(
+        "/api/auth/register",
+        json={"email": "CLIENTE-A@example.com", "password": "otra-contraseña"},
+    )
+
+    assert response.status_code == 409
+    assert len(_users(session_factory)) == 1
+
+    original_login = client.post(
+        "/api/auth/login",
+        json={"email": "cliente-a@example.com", "password": "contraseña-1"},
+    )
+    assert original_login.status_code == 200
+
+    new_login = client.post(
+        "/api/auth/login",
+        json={"email": "cliente-a@example.com", "password": "otra-contraseña"},
+    )
+    assert new_login.status_code == 401
