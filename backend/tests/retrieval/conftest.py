@@ -15,7 +15,17 @@ from sqlalchemy.orm import Session, sessionmaker
 from story_maker.retrieval.embedding import EmbeddingModel
 from story_maker.retrieval.fake import FixedVectors
 from story_maker.retrieval.vectors import fingerprint, store_vectors
-from story_maker.store.models import CanonCard, Character, Novel, Place, User, Version
+from story_maker.store.models import (
+    CanonCard,
+    Chapter,
+    Character,
+    Event,
+    Novel,
+    OutlineChapter,
+    Place,
+    User,
+    Version,
+)
 from story_maker.store.session import (
     create_schema,
     make_engine,
@@ -90,6 +100,55 @@ class Canon:
             uow.add(place)
             uow.session.flush()
             return place.id
+
+    def outline_chapter(self, version_id: int, number: int, beats: list[str]) -> None:
+        """El capítulo `number` del outline, con un beat por descripción, numerados desde 1."""
+        with unit_of_work(self.session_factory) as uow:
+            uow.add(
+                OutlineChapter(
+                    version_id=version_id,
+                    number=number,
+                    title=f"Capítulo {number}",
+                    arc_function="desarrollo",
+                    beats=[
+                        {"number": index, "description": description}
+                        for index, description in enumerate(beats, start=1)
+                    ],
+                    assigned_elements=[],
+                )
+            )
+
+    def planned_event(
+        self, version_id: int, chapter: int, beat: int, statement: str, place: int
+    ) -> None:
+        with unit_of_work(self.session_factory) as uow:
+            uow.add(
+                Event(
+                    version_id=version_id,
+                    statement=statement,
+                    moment=dt.date(2026, 5, 1),
+                    place_id=place,
+                    type="ordinary",
+                    analepsis=False,
+                    origin="planned",
+                    chapter=chapter,
+                    beat=beat,
+                )
+            )
+
+    def chapter(self, version_id: int, number: int, text: str) -> None:
+        with unit_of_work(self.session_factory) as uow:
+            uow.add(
+                Chapter(
+                    version_id=version_id,
+                    number=number,
+                    title=f"Capítulo {number}",
+                    text=text,
+                    summary=text,
+                    word_count=len(text.split()),
+                    content_hash=fingerprint(text),
+                )
+            )
 
     def card(
         self,
