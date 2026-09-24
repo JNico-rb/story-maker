@@ -17,6 +17,10 @@ def reservation(input_chars: int, max_turns: int, max_output_tokens: int) -> int
     return estimate_tokens(input_chars) + (max_turns - 1) * max_output_tokens
 
 
+class NeverFits(Exception):
+    """No cabe nunca: la reserva supera el techo entero; en una ejecución, config inviable."""
+
+
 class NoRoomInTime(Exception):
     """Sin sitio a tiempo: una sesión de la API no cupo en `api_wait_seconds`."""
 
@@ -39,6 +43,8 @@ class TokenCeiling:
 
     async def acquire(self, amount: int, timeout: float | None) -> Ticket:
         """Reserva `amount`; `timeout` None espera sin límite (una ejecución)."""
+        if amount > self.limit:
+            raise NeverFits(f"la reserva de {amount} tokens supera el techo de {self.limit}")
         ticket = Ticket(amount)
         self._queue.append(ticket)
         self._grant()

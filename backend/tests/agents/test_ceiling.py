@@ -12,7 +12,7 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
 
-from story_maker.agents.ceiling import NoRoomInTime, Ticket, TokenCeiling
+from story_maker.agents.ceiling import NeverFits, NoRoomInTime, Ticket, TokenCeiling
 from story_maker.agents.fake import FakeAgent, Say, Script
 from story_maker.agents.port import AgentPort, SessionRequest
 from story_maker.agents.tools import ToolSpec
@@ -217,3 +217,44 @@ async def test_an_api_session_that_gives_up_stops_blocking_the_one_behind(
     assert result.outcome == "completed"
     with pytest.raises(NoRoomInTime):
         await api
+
+
+def padded_to(request: SessionRequest, chars: int, workspace: Path) -> SessionRequest:
+    empty = dataclasses.replace(request, message="")
+    return dataclasses.replace(request, message="m" * (chars - sent_chars(empty, workspace)))
+
+
+@pytest.mark.parametrize("in_a_run", [False, True])
+async def test_a_reservation_larger_than_the_ceiling_does_not_wait(
+    in_a_run: bool,
+    config: Config,
+    fake: FakeAgent,
+    policy: Any,
+    session_factory: sessionmaker[Session],
+    workspace: Path,
+    run_id: int,
+    make_request: Callable[..., SessionRequest],
+) -> None:
+    ceiling = TokenCeiling(10_000)
+    port = build_port(
+        dataclasses.replace(config, token_ceiling=10_000),
+        fake,
+        policy,
+        session_factory,
+        workspace,
+        ceiling,
+    )
+    fake.script("interviewer", None, Script(steps=(Say("hola"),), usage=USAGE))
+    # 4 turnos de 2.000: 16.001 caracteres = 4.001 tokens estimados; reserva 10.001
+    request = padded_to(
+        make_request("interviewer", run_id=run_id if in_a_run else None), 16_001, workspace
+    )
+    assert port.reservation(request) == 10_001
+
+    with pytest.raises(NeverFits):
+        await asyncio.wait_for(port.run(request), timeout=0.5)
+
+    assert ceiling.in_use == 0
+    assert fake.sessions == []
+    with session_factory() as session:
+        assert session.scalars(select(RoleSession)).all() == []
