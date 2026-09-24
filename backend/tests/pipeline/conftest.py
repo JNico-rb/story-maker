@@ -9,6 +9,7 @@ from __future__ import annotations
 import dataclasses
 import datetime as dt
 from collections.abc import Callable, Iterator, Sequence
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -24,6 +25,7 @@ from story_maker.agents.usage import Usage
 from story_maker.config import Config, load_config
 from story_maker.observability.null import NullObservability
 from story_maker.observability.port import Trace
+from story_maker.pipeline.acceptance import CardSync
 from story_maker.pipeline.orchestrator import Orchestrator
 from story_maker.pipeline.production import ChapterProducer, Production, Prompts
 from story_maker.pipeline.windows import EditorWindow, WriterWindow
@@ -521,3 +523,45 @@ def script_accepted_chapters(fake: FakeAgent, count: int) -> None:
 
 def table_counts(session: Session, *models: type[Any]) -> dict[str, int]:
     return {m.__tablename__: session.query(m).count() for m in models}
+
+
+def make_production(
+    session_factory: sessionmaker[Session],
+    config: Config,
+    workspace: Path,
+    fake: FakeAgent,
+    cards: CardSync,
+    novel_id: int,
+) -> Production:
+    """La producción de las fixtures, fuera de ellas: para las pruebas de propiedades, que
+    necesitan una base nueva por ejemplo."""
+    telemetry = NullObservability()
+    port = AgentPort(
+        agent=fake,
+        config=config,
+        ceiling=TokenCeiling(config.token_ceiling),
+        policy=BannedPolicy(session_factory, novel_id),
+        telemetry=telemetry,
+        session_factory=session_factory,
+        workspace=workspace,
+    )
+    return Production(
+        port=port,
+        session_factory=session_factory,
+        telemetry=telemetry,
+        config=config,
+        windows=FixedWindows(),
+        cards=cards,
+        clock=lambda: dt.datetime(2026, 9, 24, 13, 0, tzinfo=dt.UTC),
+        prompts=Prompts(writer="Prompt del writer", editor="Prompt del editor"),
+    )
+
+
+@contextmanager
+def fresh_database(directory: Path) -> Iterator[sessionmaker[Session]]:
+    engine = make_engine(directory / "story-maker.db")
+    create_schema(engine)
+    try:
+        yield make_session_factory(engine)
+    finally:
+        engine.dispose()

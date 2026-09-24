@@ -601,8 +601,8 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 011-C30 · El informe de la ejecución se calcula al pedirlo
 - [x] 011-C31 · Trazas, spans y scores de la producción
 - [ ] 011-I1 · Hay como mucho una ejecución `running` en el servidor, y las `queued` salen en orden de fecha de creación (recortado)
-- [ ] 011-I2 · `ReanudacionSinDuplicarNiPerder`
-- [ ] 011-I3 · `ReintentosAcotados`
+- [x] 011-I2 · `ReanudacionSinDuplicarNiPerder`
+- [x] 011-I3 · `ReintentosAcotados`
 - [x] 011-I4 · La aceptación es atómica
 - [ ] 011-I5 · Ningún rol escribe canon (recortado)
 - [ ] 011-I6 · Ningún capítulo aceptado tiene un defecto bloqueante
