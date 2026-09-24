@@ -5,7 +5,6 @@ from __future__ import annotations
 import datetime as dt
 from typing import Any
 
-import pytest
 from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -15,7 +14,6 @@ from story_maker.store.brief_canon import (
     BriefCloseOne,
     BriefRecipient,
     BriefRecollection,
-    BriefTrait,
     ConfirmedBrief,
 )
 from story_maker.store.models import CanonCard, Character, Embedding, Fact, Place
@@ -25,21 +23,6 @@ from story_maker.store.version_copy import copy_version
 from story_maker.store.versions import publish
 
 NOW = dt.datetime(2026, 9, 24, 13, 0)
-
-BRIEF = ConfirmedBrief(
-    recipient=BriefRecipient(
-        name="Marta",
-        age=40,
-        name_element_id=1,
-        traits=(BriefTrait("curiosa", element_id=2, mandatory=False),),
-    ),
-    close_ones=(BriefCloseOne("Toby", "perro", "animal", element_id=3, mandatory=True),),
-    recollections=(
-        BriefRecollection(
-            "se perdió en la feria", "la feria del pueblo", element_id=4, mandatory=True, age=8
-        ),
-    ),
-)
 
 
 def entity_name(session: Session, card: CanonCard) -> str:
@@ -63,26 +46,6 @@ def chains(
         for card in canon.cards(version):
             out.setdefault(entity_name(session, card), []).append(card.from_chapter)
     return {name: sorted(chapters) for name, chapters in out.items()}
-
-
-@pytest.fixture
-def planned(canon: Any) -> dict[str, Any]:
-    """016-C1: story bible y outline recién aplicados, sin ningún capítulo aceptado."""
-    version = canon.candidate(BRIEF)
-    canon.world(version)
-    marta, _ = canon.named(version, "Marta")
-    nia = canon.character(version, "Nia", species="artificial")
-    port = canon.place(version, "el puerto nuevo")
-    canon.character(version, "Olvido")
-    for number in range(1, 11):
-        beats: list[Any] = [
-            {"description": f"Marta vive el capítulo {number}.", "characters": ["Marta"]}
-        ]
-        if number == 4:
-            beats.append({"description": "Nia se presenta.", "characters": ["Nia"]})
-        canon.outline_chapter(version, number, beats)
-    canon.event(version, "Marta llega al puerto nuevo.", port, origin="planned", chapter=2, beat=1)
-    return {"version": version, "marta": marta, "nia": nia, "port": port}
 
 
 def test_the_initial_cards_start_where_each_entity_first_appears(

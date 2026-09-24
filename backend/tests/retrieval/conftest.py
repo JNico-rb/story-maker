@@ -18,7 +18,14 @@ from story_maker.retrieval.cards import sync_canon_cards
 from story_maker.retrieval.embedding import EmbeddingModel
 from story_maker.retrieval.fake import FixedVectors
 from story_maker.retrieval.vectors import fingerprint, store_vectors
-from story_maker.store.brief_canon import ConfirmedBrief, create_generation_candidate
+from story_maker.store.brief_canon import (
+    BriefCloseOne,
+    BriefRecipient,
+    BriefRecollection,
+    BriefTrait,
+    ConfirmedBrief,
+    create_generation_candidate,
+)
 from story_maker.store.models import (
     CanonCard,
     Chapter,
@@ -43,6 +50,21 @@ from story_maker.store.session import (
 
 NOW = dt.datetime(2026, 9, 24, 12, 0)
 MOMENT = dt.datetime(2026, 5, 1, 12, 0)
+
+BRIEF = ConfirmedBrief(
+    recipient=BriefRecipient(
+        name="Marta",
+        age=40,
+        name_element_id=1,
+        traits=(BriefTrait("curiosa", element_id=2, mandatory=False),),
+    ),
+    close_ones=(BriefCloseOne("Toby", "perro", "animal", element_id=3, mandatory=True),),
+    recollections=(
+        BriefRecollection(
+            "se perdió en la feria", "la feria del pueblo", element_id=4, mandatory=True, age=8
+        ),
+    ),
+)
 
 # Una story bible generada: por entidad, su tipo y su cadena de (desde_capitulo, texto).
 Story = list[tuple[str, list[tuple[int, str]]]]
@@ -394,3 +416,23 @@ def embedder() -> FixedVectors:
 @pytest.fixture
 def canon(session_factory: sessionmaker[Session], embedder: FixedVectors) -> Canon:
     return Canon(session_factory, embedder)
+
+
+@pytest.fixture
+def planned(canon: Any) -> dict[str, Any]:
+    """016-C1: story bible y outline recién aplicados, sin ningún capítulo aceptado."""
+    version = canon.candidate(BRIEF)
+    canon.world(version)
+    marta, _ = canon.named(version, "Marta")
+    nia = canon.character(version, "Nia", species="artificial")
+    port = canon.place(version, "el puerto nuevo")
+    canon.character(version, "Olvido")
+    for number in range(1, 11):
+        beats: list[Any] = [
+            {"description": f"Marta vive el capítulo {number}.", "characters": ["Marta"]}
+        ]
+        if number == 4:
+            beats.append({"description": "Nia se presenta.", "characters": ["Nia"]})
+        canon.outline_chapter(version, number, beats)
+    canon.event(version, "Marta llega al puerto nuevo.", port, origin="planned", chapter=2, beat=1)
+    return {"version": version, "marta": marta, "nia": nia, "port": port}
