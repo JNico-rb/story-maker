@@ -70,6 +70,44 @@ def test_un_tema_coincide_por_cualquiera_de_sus_palabras_clave() -> None:
     assert d3.decision == "allow"
 
 
+def test_una_tool_fuera_de_la_lista_blanca_del_rol_deniega() -> None:
+    d1 = decide(PeticionDePolitica(origen="policy_hook", cliente="c1", rol="writer", tool="Bash"))
+    d2 = decide(
+        PeticionDePolitica(origen="policy_hook", cliente="c1", rol="editor", tool="submit_chapter")
+    )
+
+    assert d1.decision == "deny"
+    assert d1.rule == "lista-blanca"
+    assert d1.detail == [{"role": "writer", "tool": "Bash"}]
+    assert d2.decision == "deny"
+    assert d2.rule == "lista-blanca"
+
+
+def test_una_tool_de_la_lista_blanca_del_rol_sin_mas_causa_permite() -> None:
+    peticion = PeticionDePolitica(
+        origen="policy_hook", cliente="c1", rol="writer", tool="submit_chapter"
+    )
+
+    assert decide(peticion).decision == "allow"
+
+
+def test_solo_personalizacion_natural_se_admite_como_skill() -> None:
+    admitida = PeticionDePolitica(
+        origen="policy_hook",
+        cliente="c1",
+        rol="writer",
+        tool="Skill",
+        skill="personalizacion-natural",
+    )
+    otra = admitida.model_copy(update={"skill": "otra-skill"})
+
+    assert decide(admitida).decision == "allow"
+    d = decide(otra)
+    assert d.decision == "deny"
+    assert d.rule == "skill-no-admitida"
+    assert d.detail == [{"skill": "otra-skill"}]
+
+
 def test_nunca_escanea_un_campo_no_marcado_como_narrativo() -> None:
     entradas = [EntradaProhibida(term="marta", type="word", level="global")]
     peticion = PeticionDePolitica(

@@ -283,9 +283,9 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 005-C08 · Un tema coincide por cualquiera de sus palabras clave
 - [x] 005-C10 · La política nunca escanea un campo no marcado como narrativo (cubre 005-I4)
 - [x] 005-I3 · Normalización idempotente y coincidencia por tokens (propiedad hypothesis)
-- [ ] 005-C11 · Una tool fuera de la lista blanca del rol deniega
-- [ ] 005-C12 · Una tool de la lista blanca del rol, sin más causa, permite
-- [ ] 005-C13 · Solo personalizacion-natural se admite como skill
+- [x] 005-C11 · Una tool fuera de la lista blanca del rol deniega
+- [x] 005-C12 · Una tool de la lista blanca del rol, sin más causa, permite
+- [x] 005-C13 · Solo personalizacion-natural se admite como skill
 - [ ] 005-C14 · El revisor visual solo navega el origen de la vista
 - [ ] 005-C15 · Una frase dirigida al sistema en español se marca, no deniega
 - [ ] 005-C16 · Una frase dirigida al sistema en inglés se marca
