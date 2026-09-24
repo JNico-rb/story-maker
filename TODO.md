@@ -945,16 +945,16 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 **Cierre parcial** (C06–C09, I2: `evals table`) — verificador 2026-09-24: PASS; `uv run pytest` 959 passed, ruff y mypy limpios. El resto de la 020 sigue abierto.
 
 ### Steps
-- [ ] 020-C01 · Los cinco briefs del repositorio son válidos
-- [ ] 020-C02 · Sin un cliente registrado no se crea nada
-- [ ] 020-C03 · Una novela y una ejecución por brief, del cliente dado
-- [ ] 020-C04 · Un brief que no pasa no para a los demás
-- [ ] 020-C05 · `evals run` no corre en la CI
+- [x] 020-C01 · Los cinco briefs del repositorio son válidos
+- [x] 020-C02 · Sin un cliente registrado no se crea nada
+- [ ] 020-C03 · Una novela y una ejecución por brief, del cliente dado — bloqueado: necesita el gate de publicación (012) integrado en V2; `Orchestrator`/`Worker` aún no se instancian en `src/` (sin ellos ninguna ejecución llega a `published`)
+- [ ] 020-C04 · Un brief que no pasa no para a los demás — mismo bloqueo que C03
+- [x] 020-C05 · `evals run` no corre en la CI
 - [x] 020-C06 · Celdas de la tabla brief × validador
 - [x] 020-C07 · Resumen por brief
 - [x] 020-C08 · La tabla sale solo de SQLite
 - [x] 020-C09 · Sin ejecuciones de evals, la tabla lo dice
-- [ ] 020-I1 · Ninguna prueba de esta spec llama a un modelo ni a Langfuse
+- [x] 020-I1 · Ninguna prueba de esta spec llama a un modelo ni a Langfuse
 - [x] 020-I2 · `evals table` es determinista
 - [ ] 020-C15 · `example` produce la novela y su PDF (movido desde 013)
 - [ ] 020-C10 · Cinco briefs reales llenan (a) y (b) (D, al final)

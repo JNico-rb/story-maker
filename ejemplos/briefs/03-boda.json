@@ -60,7 +60,7 @@
         "age": 27,
         "year": null,
         "close_ones": [],
-        "place": null,
+        "place": "Oficina de la empresa tecnológica",
         "excludes": null,
         "mandatory": true
       },
