@@ -3,18 +3,22 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Any
+from typing import Any, Literal
 
 import pytest
+from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
 
 from story_maker.agents.ceiling import TokenCeiling
-from story_maker.agents.fake import FakeAgent, Say, Script
+from story_maker.agents.fake import Call, FakeAgent, Say, Script
 from story_maker.agents.port import AgentPort, SessionRequest
 from story_maker.agents.profiles import ToolsMismatch
 from story_maker.agents.tools import ToolSpec
+from story_maker.agents.usage import Usage
 from story_maker.store.models import RoleSession
+
+USAGE = Usage(input_tokens=10, output_tokens=5, cache_read_tokens=0, cache_write_tokens=0)
 
 
 @pytest.mark.parametrize(
@@ -58,3 +62,47 @@ async def test_tools_that_do_not_match_the_whitelist_prevent_opening(
     assert fake.sessions == []
     with session_factory() as session:
         assert session.scalars(select(RoleSession)).all() == []
+
+
+class ToneInput(BaseModel):
+    title: str
+    tone: Literal["tender", "funny", "epic"]
+
+
+async def test_an_invalid_input_returns_to_the_model_as_an_error_and_is_fixed_in_the_same_session(
+    port: AgentPort,
+    fake: FakeAgent,
+    session_factory: sessionmaker[Session],
+    make_request: Callable[..., SessionRequest],
+) -> None:
+    tool = ToolSpec(name="submit_plan", model=ToneInput)
+    fake.script(
+        "planner",
+        "plan",
+        Script(
+            steps=(
+                Call("submit_plan", {"tone": "sad"}),
+                Call("submit_plan", {"title": "Plan", "tone": "epic"}),
+                Say("Plan entregado."),
+            ),
+            usage=USAGE,
+        ),
+    )
+    request = make_request("planner", "plan", tools=(tool,))
+
+    result = await port.run(request)
+
+    first_read = fake.sessions[0].reads[0]
+    assert "title" in first_read
+    assert "tone" in first_read
+    assert [(c.status, len(c.errors)) for c in result.calls] == [
+        ("schema_rejected", 2),
+        ("accepted", 0),
+    ]
+    scores = [s for s in request.trace.scores if s.name == "schema-salida"]
+    assert [s.value for s in scores] == [0, 1]
+    assert [s.span.name if s.span else None for s in scores] == ["tool:submit_plan"] * 2
+    assert scores[0].span is not scores[1].span
+    assert len(fake.sessions) == 1
+    with session_factory() as session:
+        assert len(session.scalars(select(RoleSession)).all()) == 1
