@@ -31,9 +31,13 @@ PASSWORD = "contraseña-larga"
 
 @pytest.fixture
 def config() -> Config:
-    """La del repositorio, con el modelo de incrustación M1 y techo amplio para las pruebas."""
+    """La del repositorio, con el modelo de incrustación M1, techo amplio y más turnos para el
+    entrevistador y el extractor: caben los guiones largos de las pruebas de esta spec."""
     base = load_config(ROOT / "config.json")
-    return dataclasses.replace(base, embedding_model="M1", token_ceiling=50_000)
+    roles = dict(base.roles)
+    for role in ("interviewer", "extractor"):
+        roles[role] = dataclasses.replace(roles[role], max_turns=12)
+    return dataclasses.replace(base, embedding_model="M1", token_ceiling=50_000, roles=roles)
 
 
 @pytest.fixture
