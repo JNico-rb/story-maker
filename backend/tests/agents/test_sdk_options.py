@@ -127,3 +127,42 @@ def test_the_session_runs_isolated_in_the_workspace(
     assert options.session_id is None
     assert options.env["CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC"] == "1"
     assert options.env["CLAUDE_CODE_DISABLE_AUTO_MEMORY"] == "1"
+
+
+def external_servers(options: ClaudeAgentOptions) -> dict[str, Any]:
+    assert isinstance(options.mcp_servers, dict)
+    return {
+        name: server for name, server in options.mcp_servers.items() if server.get("type") != "sdk"
+    }
+
+
+def test_only_the_visual_reviewer_declares_the_browser_mcp(
+    config: Config,
+    make_settings: Callable[..., Settings],
+    build_options: Callable[..., ClaudeAgentOptions],
+) -> None:
+    data_dir = make_settings().data_dir
+    reviewer = build_options("visual_reviewer")
+
+    (browser,) = external_servers(reviewer).values()
+    args = browser["args"]
+    assert "@playwright/mcp@0.0.82" in args
+    assert args[args.index("--browser") + 1] == "msedge"
+    output = Path(args[args.index("--output-dir") + 1])
+    assert output.is_relative_to(data_dir)
+    browser_tools = {t for t in reviewer.allowed_tools if not t.startswith("mcp__harness__")}
+    assert browser_tools == {
+        "mcp__playwright__browser_navigate",
+        "mcp__playwright__browser_snapshot",
+        "mcp__playwright__browser_click",
+    }
+    for role, mode in [
+        ("interviewer", None),
+        ("extractor", None),
+        ("planner", "plan"),
+        ("planner", "change"),
+        ("writer", "write"),
+        ("editor", None),
+        ("judge", None),
+    ]:
+        assert external_servers(build_options(role, mode)) == {}

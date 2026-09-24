@@ -8,7 +8,8 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
-from claude_agent_sdk import ClaudeAgentOptions, McpSdkServerConfig
+from claude_agent_sdk import ClaudeAgentOptions, McpSdkServerConfig, McpServerConfig
+from claude_agent_sdk.types import McpStdioServerConfig
 from mcp.server import Server, ServerRequestContext
 from mcp.types import (
     CallToolRequestParams,
@@ -26,6 +27,7 @@ from story_maker.settings import Settings
 
 HARNESS = "harness"
 BROWSER = "playwright"
+PLAYWRIGHT_MCP = "@playwright/mcp@0.0.82"
 
 
 # Telemetría no esencial y memoria automática del CLI apagadas (`architecture.md` §12.6).
@@ -94,7 +96,9 @@ class SdkAgent:
     ) -> ClaudeAgentOptions:
         builtin = [SKILL] if profile.uses_skill else []
         allowed = [f"mcp__{HARNESS}__{spec.name}" for spec in request.tools] + builtin
+        servers: dict[str, McpServerConfig] = {HARNESS: _harness_server(request.tools, hooks)}
         if profile.role == "visual_reviewer":
+            servers[BROWSER] = self._browser_server()
             allowed += [f"mcp__{BROWSER}__{tool}" for tool in BROWSER_TOOLS]
         user_claude_dir = self._user_claude_dir or Path(
             os.environ.get("CLAUDE_CONFIG_DIR") or Path.home() / ".claude"
@@ -103,7 +107,7 @@ class SdkAgent:
         return ClaudeAgentOptions(
             tools=builtin,
             allowed_tools=allowed,
-            mcp_servers={HARNESS: _harness_server(request.tools, hooks)},
+            mcp_servers=servers,
             strict_mcp_config=True,
             permission_mode="dontAsk",
             model=profile.model,
@@ -113,6 +117,24 @@ class SdkAgent:
             setting_sources=["project"],
             settings=json.dumps({"claudeMdExcludes": excludes}),
             env=dict(CLI_SWITCHES),
+        )
+
+    def _browser_server(self) -> McpStdioServerConfig:
+        """Playwright MCP fijado (§15.1) sobre el Edge instalado, con su salida en los datos."""
+        output = self._settings.data_dir / "playwright-mcp"
+        return McpStdioServerConfig(
+            type="stdio",
+            command="cmd",
+            args=[
+                "/c",
+                "npx",
+                "-y",
+                PLAYWRIGHT_MCP,
+                "--browser",
+                "msedge",
+                "--output-dir",
+                str(output),
+            ],
         )
 
     def open(
