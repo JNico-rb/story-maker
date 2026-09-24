@@ -98,4 +98,26 @@ describe("027 cambio del lector", () => {
       },
     ]);
   });
+
+  it("027-C04: a proposal with no affected chapters shows the same, still with both actions", async () => {
+    const user = userEvent.setup();
+    fakeApi(() =>
+      json(201, {
+        id: "req-1",
+        proposal: { fact: "Nombre del perro", old_value: "Toby", new_value: "Nala" },
+        affected_chapters: [],
+        code: "SECRETO-123",
+        expires_at: "2026-09-25T12:00:00Z",
+      }),
+    );
+    renderPanel();
+
+    await sendRequest(user);
+
+    expect(await screen.findByText(/Nombre del perro/)).toBeInTheDocument();
+    expect(screen.getByText(/ningún capítulo cambiará/i)).toBeInTheDocument();
+    expect(screen.queryByRole("list", { name: "Capítulos afectados" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Confirmar" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Descartar" })).toBeInTheDocument();
+  });
 });

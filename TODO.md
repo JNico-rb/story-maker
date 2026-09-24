@@ -1169,7 +1169,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] 027-C01 · Seleccionar un fragmento o un hecho abre el formulario de petición
 - [x] 027-C02 · La petición vacía no se puede enviar
 - [x] 027-C03 · Enviar la petición muestra la propuesta, los afectados y la caducidad
-- [ ] 027-C04 · Una propuesta sin afectados se muestra igual
+- [x] 027-C04 · Una propuesta sin afectados se muestra igual
 - [ ] 027-C05 · Petición rechazada por la policy o por la propuesta
 - [ ] 027-C06 · Petición sobre una selección que ya no vale
 - [ ] 027-C07 · Fallo del servidor al pedir el cambio
