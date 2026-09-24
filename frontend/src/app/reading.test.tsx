@@ -157,4 +157,12 @@ describe("026 lectura", () => {
     expect(within(index).getByRole("link", { name: /Título 3 v2.*cambiado en v2/s })).toBeInTheDocument();
     expect(within(index).getByRole("link", { name: /Título 7 v2.*cambiado en v2/s })).toBeInTheDocument();
   });
+
+  it("026-C05: without changed chapters, there is no news page", async () => {
+    apiAtV1();
+    renderReading();
+
+    await screen.findByRole("region", { name: "Portada" });
+    expect(screen.queryByRole("region", { name: "Novedades" })).not.toBeInTheDocument();
+  });
 });
