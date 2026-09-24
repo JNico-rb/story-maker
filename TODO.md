@@ -575,7 +575,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 011-C04 · El progreso se consulta por sondeo
 - [x] 011-C05 · De la planificación a la escritura
 - [x] 011-C06 · Fallar descarta la candidata y libera la cola
-- [ ] 011-C07 · Ventana del writer
+- [x] 011-C07 · Ventana del writer
 - [ ] 011-C08 · Ventana del editor
 - [ ] 011-C09 · Cada sesión reserva en el techo, y una que no cabe nunca hace fallar
 - [x] 011-C10 · Una entrega que pasa los hooks llega al editor
