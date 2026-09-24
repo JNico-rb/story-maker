@@ -968,9 +968,9 @@ Todas dependen de 000. Carril B disuelto y C rehecho (decisión del usuario, 202
 - [ ] 022-C10 · El recorrido completo se observa en el navegador (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-24: front lint 0 errores · typecheck limpio · build OK · vitest 3 ficheros, 26 pruebas verdes; 022-C10 (D, al final)
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 023 — mis-novelas
 
