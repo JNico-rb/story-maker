@@ -92,7 +92,8 @@ Cada fila de una tabla es una variación de F con una sola causa.
     - el id de la solicitud;
     - la propuesta: el hecho, su valor antiguo «Toby» y el valor nuevo «Nala». El valor antiguo sale de v1, no del planner;
     - los capítulos afectados, `[2, 5, 7]`;
-    - un código de confirmación.
+    - un código de confirmación;
+    - su caducidad (`expires_at`), la misma que guarda la solicitud: la lectura de 027 la muestra.
   - **La solicitud.** La `SolicitudDeCambio` queda `proposed`, con versión base v1 y caducidad = ahora + `confirmation_minutes`. El código no aparece en claro en la base de datos.
   - **El planner.** Se abrió una sola `SesionDeRol` del planner en modo cambio. Se guarda con la novela y sin ejecución. Recibió la selección, la petición delimitada y declarada como dato, y la story bible de v1.
   - **Audit log.** Las decisiones del motor sobre la petición y sobre el valor nuevo quedan en él, con origen `change_request` y decisión `allow`.

@@ -1137,7 +1137,7 @@ POST   /api/runs/{id}/resume                                 desde interrupted
 GET    /api/runs/{id}/report                                 InformeDeEjecucion
 GET    /api/novels/{id}/versions ; GET /api/novels/{id}/versions/{v} ; GET .../versions/{v}/pdf
 GET    /api/novels/{id}/story-bible?version={v}
-POST   /api/novels/{id}/change-requests {selection, request} -> {id, proposal, affected_chapters, code}
+POST   /api/novels/{id}/change-requests {selection, request} -> {id, proposal, affected_chapters, code, expires_at}
 POST   /api/change-requests/{id}/confirm {code}              -> 202 {run_id}
 POST   /api/novels/{id}/chapters/{n}/lint {text}             -> diagnósticos
 PUT    /api/novels/{id}/chapters/{n} {text, base_version}    -> 202 {run_id}
