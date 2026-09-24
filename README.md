@@ -13,10 +13,12 @@ Diseño escrito (`docs/`) y scaffolding en marcha; el producto se construye spec
 Requisitos: Python 3.12 y `uv`; Node 24 y pnpm 10.x (en Windows, `pnpm.cmd`); Microsoft Edge instalado (PDF y revisión visual); Claude Code (`claude`) **con sesión iniciada**: los roles del producto usan ese login, sin claves de pago. Langfuse Cloud (UE) en plan Hobby y GitHub Free (Lean corre en GitHub Actions). Opcional: JDK 21 portable para TLC.
 
 ```sh
-cp .env.example .env           # rellena los marcadores; no hay claves de pago
+cp .env.example .env           # JWT_SECRET (32 caracteres o más) y FORMAL_VERIFIER (local | github); no hay claves de pago
 cd backend && uv sync
+uv run story-maker init-db     # crea la base en el directorio de datos; no pisa una existente sin --reset
+uv run story-maker check-env   # informa de cada comprobación de config, ajustes y base
 cd ../frontend && pnpm.cmd install && pnpm.cmd build
-cd ../backend && uv run story-maker serve     # sin --reload
+cd ../backend && uv run story-maker serve     # sin --reload; escucha en STORY_MAKER_BASE_URL
 ```
 
 Novela de ejemplo de principio a fin: `uv run story-maker example ../ejemplos/briefs/ejemplo.json` → `ejemplos/novela-ejemplo.pdf` (*pendiente, specs 013 y 020*; el brief de ejemplo se reproducirá aquí).

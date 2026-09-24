@@ -1499,3 +1499,6 @@ Registro de trade-offs: cada fila da opciones, criterio y elección. Reabrir una
 | Seguimiento tras guardar una edición manual en la SPA (028) | Pantalla propia · la de progreso de 025 | No duplicar sondeo, reanudar e informe | La pantalla de progreso de 025 |
 | Guardar sobre una base obsoleta (409) en la SPA (028) | Solo bloquear · ofrecer recargar el capítulo vigente | Coherencia con 026-C09 | Se ofrece recargar el capítulo vigente |
 | Espera antes del lint en vivo (028) | Valor fijado en la spec · constante de la pantalla | Lo más fácil; se prueba con reloj controlado | Constante de la pantalla, sin valor en la spec |
+| Dónde viven las constantes del encargo y los identificadores de la config (001) | Repetidos en config y esquema · una sola vez en `domain` | 001-I5 | Una sola vez en `domain`; config y esquema los importan |
+| Red saliente en las pruebas (001) | Bloquearla solo en las de 001 · en toda la suite de backend | 001-I3 y la regla de ninguna prueba T contra un servicio real | Bloqueada en toda la suite, salvo `127.0.0.1`, `::1` y `localhost` |
+| Camino de escritura en SQLite (001) | Sesión directa · siempre la unidad de trabajo | Solo inserción, sincronía del FTS5 y todo o nada los decide el código (001-C11–C13) | Toda escritura pasa por la unidad de trabajo; las specs siguientes no escriben con la sesión directa |
