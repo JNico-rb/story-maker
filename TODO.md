@@ -19,7 +19,7 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 - Contexto: cada spec nueva, un implementador nuevo. Retomar uno ya lanzado (SendMessage) solo para arreglos cortos de esa misma spec. En cada prompt: «HAZ EL TRABAJO TÚ MISMO: no lances subagentes» (uno que delegó no hizo nada) y la ruta absoluta del worktree.
 - Lean no corre en el portátil. La CI corre también en `carril-*`: para ver el Lean de un carril, `git push --force-with-lease origin carril-<x>` (solo en ramas de carril, nunca en V2) y leer la CI con la API pública de GitHub (`curl .../actions/runs?branch=carril-<x>`). `gh` no está instalado.
 
-**Integradas en V2:** 000 (D al final: C15, C16, C17, C19), 001, 002, 003, 004, 005, 006, 007, 009 y 022 (frontend).
+**Integradas en V2:** 000 (D al final: C15, C16, C17, C19), 001, 002, 003, 004, 005, 006, 007, 009, 013 y 022 (frontend).
 
 **En curso (a las 2026-09-24 ~16:00; los pasos, en el bloque de cada spec de su rama):**
 
@@ -28,12 +28,11 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 | 008 | B `../sm-b` | 11/38 | todo lo demás; cablea el adaptador del motor de políticas real (aviso abajo) |
 | 010 | G `../sm-g` | 22/36 | rebase sobre V2 (tiene la 009) y los pasos que aplican el plan a la story bible; comprobación de fallo de C09–C16 (se escribieron antes que su prueba) |
 | 011 | A `../sm-a` | 4/43 | parcial: todo lo que no usa 010, 008 ni 016; las costuras con ellas, según su código en sus carriles |
-| 013 | D `../sm-d` | 21/22 | 013-I4; después, verificador e integrar. C16 y C19 pasaron a 020 |
 | 016 | H `../sm-h` | 18/29 | rebase sobre V2 y las tarjetas desde la story bible de la 009 |
 | 018 | F `../sm-f` | 19/25 | C18–C23 esperan a la 011 (linters en el bucle) |
 
 **Siguiente — lanzar a la vez, cada uno en un worktree nuevo `../sm-<x>` (rama `carril-<x>` desde V2), por su parte que no usa lo que aún no está en V2 (dependencia *parcial*; lo demás queda [ ] hasta el rebase):**
-1. Integrar la 013 si su verificador dio PASS (si no, relanzar su verificador en `../sm-d`).
+1. (Hecho: la 013 está integrada, afb5764.)
 2. D (`../sm-d`, sonnet): 020 parcial, `evals table` (C06–C09, I2) sobre las tablas de la 001.
 3. I (nuevo, opus): 014 parcial: propuesta, afectados y confirmación (C01–C11 y sus invariantes) con el planner en modo cambio por el doble de la 003; la ejecución del cambio espera a 011 y 012.
 4. J (nuevo, sonnet): 015 parcial: servidor MCP, identidad y tools de lectura sobre 009 y 013; `list_novels` espera a la 008 y `request_change`/`confirm_change`, a la 014.
@@ -43,7 +42,6 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 8. Al integrar cada una: 010 → A completa la 011; 008 → avisar a `story-maker-f5` (023 y 024) con sus rutas de /api; 011 → A con la 012 (fusionando lo de L) y F con C18–C23 de la 018; 012 → 014, 017, 019 y 020 completas; 014 → 015 → 021.
 Tabla de carriles y fila de backend/AGENTS.md: actualizarlas al lanzar I, J, K y L (propiedad por spec, sin cambios).
 
-**Pendiente para §18 al integrar la 013:** la dedicatoria sale de `Brief.content["dedication"]`; el nombre del destinatario, del personaje `recipient` de la story bible; `changed_chapters` está congelado en una versión publicada y se calcula en vivo en una candidata.
 
 - **Avisos abiertos:**
   - La 008 cablea el adaptador del motor de políticas real para el puerto de agente (carga de las prohibidas por cliente y novela, `base_url` del revisor visual, `record_decision` en el audit log), y la 011 lo reutiliza. El patrón es `RealEngine` en `tests/agents/test_port.py`.
@@ -60,7 +58,7 @@ Tabla de carriles y fila de backend/AGENTS.md: actualizarlas al lanzar I, J, K y
 | A — ruta crítica | 001 → 002 → 009 → 011 → 012 → 014 → 015 → 021 | 003, 004 (010) · 010 (011) · 005, 006 (011) · 007 (012) · 008, 013 (015) | `../sm-a` | `carril-a` | 001, 002 y 009 integradas; 011 espera 010 |
 | B — agentes y entrada | 003 → 008 → 017 | 001 (003) · 002, 004, 005 (008) · 012, 013 (017) | `../sm-b` | `carril-b` | 003 integrada; 008 en curso |
 | C — formal y edición | 005 → 007 → 019 | 001 (005 parcial) · 009 (007 parcial) · 012, 018 (019) | `../sm-c` | `carril-c` | 005 y 007 integradas; 019 espera 012 y 018 |
-| D — formal y lectura | 006 → 004 → 013 → 020 | 001 (004) · 009 (013 parcial) · 012 (020) | `../sm-d` | `carril-d` | 006 y 004 integradas; 013 cerrando (I4) |
+| D — formal y lectura | 006 → 004 → 013 → 020 | 001 (004) · 009 (013 parcial) · 012 (020) | `../sm-d` | `carril-d` | 006, 004 y 013 integradas; siguiente, 020 parcial |
 | F — linters de prosa | 018 | 011 (018 parcial: C18–C23) | `../sm-f` | `carril-f` | 018: los 19 pasos de linters puros hechos; C18–C23 esperan 011 |
 | G — planificación | 010 | 003, 004 · 009 (010 parcial: aplicar el plan a la story bible) | `../sm-g` | `carril-g` | 010 en curso (lo que no usa la 009) |
 | H — recuperación | 016 | 009 (016 parcial: tarjetas desde la story bible) | `../sm-h` | `carril-h` | 016 en curso (canales, fusión y consultas) |
