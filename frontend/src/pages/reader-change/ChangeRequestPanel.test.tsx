@@ -174,4 +174,32 @@ describe("027 cambio del lector", () => {
 
     expect(await screen.findByText(/Nombre del perro/)).toBeInTheDocument();
   });
+
+  it("027-C08: sending disables the action while it is in progress", async () => {
+    const user = userEvent.setup();
+    let resolveResponse: (response: Response) => void = () => undefined;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => new Promise<Response>((resolve) => (resolveResponse = resolve))),
+    );
+    renderPanel();
+
+    await user.type(screen.getByRole("textbox", { name: "Petición" }), "el perro se llama Nala");
+    const submit = screen.getByRole("button", { name: "Pedir el cambio" });
+    await user.click(submit);
+
+    expect(submit).toBeDisabled();
+
+    resolveResponse(
+      json(201, {
+        id: "req-1",
+        proposal: { fact: "Nombre del perro", old_value: "Toby", new_value: "Nala" },
+        affected_chapters: [2],
+        code: "SECRETO-123",
+        expires_at: "2026-09-25T12:00:00Z",
+      }),
+    );
+
+    expect(await screen.findByText(/Nombre del perro/)).toBeInTheDocument();
+  });
 });
