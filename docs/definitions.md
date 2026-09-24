@@ -608,7 +608,7 @@ Política del servidor: un fichero en la raíz del repo, cuya ruta da `STORY_MAK
 | `operation.max_mandatory_elements` | elementos obligatorios admitidos en un brief | 8, provisional |
 | `operation.access_token_hours` | caducidad del `TokenDeAcceso` | 24 |
 | `operation.confirmation_minutes` | caducidad del código de `Confirmacion` | 15 |
-| `operation.roles.<rol>.model` | modelo del rol | provisional: `claude-sonnet-5` para planner, writer y judge; `claude-haiku-4-5` para interviewer, extractor, editor y visual_reviewer |
+| `operation.roles.<rol>.model` | modelo del rol | provisional: `claude-sonnet-5` para planner y judge; `claude-haiku-4-5` para writer, interviewer, extractor, editor y visual_reviewer |
 | `operation.roles.<rol>.max_turns` | turnos máximos de una sesión del rol | provisional (4 en el entrevistador) |
 | `operation.roles.<rol>.max_output_tokens` | salida máxima por turno | provisional (2000 en el entrevistador) |
 | `operation.pricing.<modelo>.input`, `.output`, `.cache_read`, `.cache_write` | USD por millón de tokens, a precio de lista de la API de Anthropic. Es lo que costaría en producción: con `claude_login` no se paga por token | `claude-sonnet-5`: 2.00 / 10.00 / 0.20 / 2.50; `claude-haiku-4-5`: 1.00 / 5.00 / 0.10 / 1.25 |

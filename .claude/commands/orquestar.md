@@ -5,31 +5,25 @@ argument-hint: "[sin-terminales]"
 
 # Orquestar story-maker
 
-Eres el integrador: la única sesión que trabaja en el checkout principal (rama `V2`), la única que hace merge en V2 y la única que escribe `docs/`, `.claude/`, `CLAUDE.md`, `README.md` y la cabecera de `TODO.md`. Modo: si `$ARGUMENTS` es `sin-terminales`, el paso 7 va por 7b; si no, por 7a.
+Eres el integrador (AGENTS.md → *Parallel lanes*), en el checkout principal, rama `V2`. `$ARGUMENTS` = `sin-terminales` → paso 7 por 7b; si no, por 7a.
 
 1. **Sitio.** `git branch --show-current` es `V2` y el directorio es el checkout principal, no un `../sm-*`. Si no, para y dilo.
-2. **Estado.** Lee la cabecera de `TODO.md` (hasta el primer `## 000`, con tablas de carriles y specs) y no sus bloques: de estos basta `awk -f .claude/scripts/resumen-todo.awk TODO.md`. Después `git worktree list` y, por cada rama `carril-<x>`, `git log --oneline V2..carril-<x>` y `git show carril-<x>:TODO.md | awk -f .claude/scripts/resumen-todo.awk`. Hecho cuando sabes, por spec: sin escribir · spec aprobada · plan aprobado · pasos hechos/total · cerrada en su rama · integrada en V2.
-3. **Spec 000 primero.** Mientras no esté cerrada en V2 es el único trabajo, y lo haces tú en V2: `/spec 000` y `/plan 000` si faltan; el scaffolding ya escrito se verifica paso a paso contra la spec (pasa → `[x]`; no pasa → se corrige); después `verificador` sobre el checkout principal y commit `000: scaffolding`. Sus pasos D quedan para el lote final. Ningún carril arranca antes.
-4. **Integrar.** Por cada carril con una spec cerrada que V2 aún no tiene, sigue `.claude/commands/integrar.md`.
-5. **Specs y planes por delante.** Para las specs sin aprobar (las siguientes de cada carril, y las de frontend del carril E, desde 022): `/spec NNN …` con **un `redactor-specs` por spec, en paralelo**; tú añades cada bloque a `TODO.md` de uno en uno, marcas tú spec y plan sin revisión (`/plan NNN`) y commiteas cada aprobación (`NNN: spec aprobada`, `NNN: plan aprobado`). Las decisiones que cierre un redactor van a `architecture.md` §18. Al añadir una spec de frontend, añade su fila a las tablas de `TODO.md` y a la de propiedad de `frontend/AGENTS.md`.
-6. **Worktrees.** Por cada carril con una spec desbloqueada y sin worktree: `git worktree add ../sm-<x> -b carril-<x> V2` (si la rama ya existe, `git worktree add ../sm-<x> carril-<x>`).
+2. **Estado.** Lee la cabecera de `TODO.md` (hasta `## 000`; sus bloques, con `awk -f .claude/scripts/resumen-todo.awk TODO.md`). Por rama `carril-<x>`: `git worktree list`, `git log --oneline V2..carril-<x>`, `git show carril-<x>:TODO.md | awk -f .claude/scripts/resumen-todo.awk`. Hecho: sabes por spec sin escribir · spec/plan aprobados · pasos hechos/total · cerrada en su rama · integrada en V2.
+3. **Spec 000 primero.** La haces tú y bloquea lo demás hasta cerrarla: `/spec 000` y `/plan 000` si faltan; verifica el scaffolding ya escrito contra la spec (pasa → `[x]`; si no, corrige); `verificador`; commit `000: scaffolding`. Pasos D al lote final.
+4. **Integrar.** Por cada carril con spec cerrada que falte en V2, sigue `.claude/commands/integrar.md`.
+5. **Specs y planes por delante.** Specs sin aprobar (siguientes de cada carril; frontend del carril E desde 022): `/spec NNN` con un `redactor-specs` por spec; añades el bloque a `TODO.md`, marcas spec y plan (`/plan NNN`) y commiteas. Spec de frontend nueva → fila en `TODO.md` y en la propiedad de `frontend/AGENTS.md`.
+6. **Worktrees.** Por cada carril con spec desbloqueada y sin worktree: `git worktree add ../sm-<x> -b carril-<x> V2` (rama existente: `git worktree add ../sm-<x> carril-<x>`).
 7. **Lanzar los carriles.**
-   - **7a. Con terminales.** Da al usuario este texto, con solo los carriles que tienen trabajo desbloqueado, en el orden A, C, D, B, E:
+   - **7a. Con terminales.** Da al usuario, solo con los carriles desbloqueados:
 
-     > Abre un terminal nuevo por carril (en VS Code, Terminal → New Terminal; se abre en `story-maker`), en este orden:
+     > Un terminal por carril (VS Code: Terminal → New Terminal, se abre en `story-maker`); en cada uno, `cd ..\sm-<x>; claude --permission-mode auto` y, dentro, `/carril <X>`. Orden: A, C, D, B (tras integrar 001), E (con specs de frontend aprobadas).
      >
-     > 1. `cd ..\sm-a; claude --permission-mode auto` y, dentro, `/carril A`
-     > 2. `cd ..\sm-c; claude --permission-mode auto` y, dentro, `/carril C`
-     > 3. `cd ..\sm-d; claude --permission-mode auto` y, dentro, `/carril D`
-     > 4. `cd ..\sm-b; claude --permission-mode auto` y, dentro, `/carril B` (en cuanto 001 esté integrada)
-     > 5. `cd ..\sm-e; claude --permission-mode auto` y, dentro, `/carril E` (en cuanto haya specs de frontend aprobadas)
-     >
-     > Si tu plan no admite el modo `auto`, usa `--permission-mode acceptEdits` (pedirá permiso para los comandos que no estén en la lista de permitidos). La primera vez Claude Code pide confiar en la carpeta y aprobar los MCP del proyecto: acepta. Deja este terminal (checkout principal, V2) para `/orquestar`: vuelve a lanzarlo cada vez que un carril avise de que cerró una spec, o déjalo en marcha con `/loop 30m /orquestar`.
+     > Sin `auto`: `--permission-mode acceptEdits` (pide permiso fuera de lo permitido). Primera vez, acepta confiar en la carpeta y los MCP. Cada carril termina con `LISTO <rama> <NNN> <hash> [parcial|cerrada]` o `BLOQUEADO <motivo>`: relánzalo con `/carril <X>` para su siguiente spec. Este terminal, para `/orquestar`: relánzalo cuando un carril avise, o `/loop 30m /orquestar`.
 
-   - **7b. Sin terminales.** Por cada carril con una spec desbloqueada y sin implementador en curso (como mucho uno por carril): prepara el worktree como `/carril` paso 2, con cada orden precedida de `cd <worktree> &&`; `git -C <worktree> rebase V2`; y lanza en segundo plano el subagente `implementador` con NNN, la ruta absoluta del worktree y la rama (en sonnet, su defecto; para 006, 007, 012 y 014, con `model: opus`). Cuando termine: `verificador` sobre ese worktree. PASS → commit `NNN: <nombre>` en la rama del carril y paso 4. FAIL → relanza el implementador con los hallazgos (≤2 veces) y después escala.
+   - **7b. Sin terminales.** Por carril con spec desbloqueada y sin implementador en curso (uno por carril; dos subagentes en el mismo worktree chocan en el índice de git): worktree listo (paso 2 de `/carril`, `cd <worktree> &&` por orden); `git -C <worktree> rebase V2`; `implementador` en segundo plano con NNN, ruta y rama (sonnet, salvo 012 y 014 en opus). Al terminar, `verificador` sobre ese worktree. PASS → commit `NNN: <nombre>` y paso 4. FAIL → relanza (≤2 veces) y escala.
 8. **Tabla.** Pon al día la columna Estado de la tabla de carriles y haz commit en V2: `orquestar: estado`.
 
-Hecho cuando nada cerrado queda sin integrar, cada carril con trabajo desbloqueado tiene su terminal indicado o su implementador en marcha, y la tabla dice la verdad.
+Hecho: nada cerrado sin integrar, cada carril desbloqueado con terminal o implementador en marcha, y la tabla dice la verdad.
 
 ## Informe al usuario (≤10 líneas)
 

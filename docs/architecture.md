@@ -347,7 +347,7 @@ Cada rol es una sesión del **Claude Agent SDK** con su prompt, sus tools, sus h
 | juez (`judge`) | Ejecución (`gate`) | Novela entera, story bible compacta, rúbrica de novela, catálogo de tropos | `submit_evaluation` | Puntuación 1–5 y justificación por criterio de novela, con los capítulos citados |
 | revisor visual (`visual_reviewer`) | Ejecución (`gate`) | URL de la `VistaDeVersion` candidata y estructura esperada | Playwright MCP (navegar, instantánea, clic), `submit_visual_review` | Lo observado en portada, índice, capítulos y ficha |
 
-- **Modelos provisionales** (§15.4): `claude-sonnet-5` para planner, writer y juez, que planifican, escriben o juzgan la novela; `claude-haiku-4-5` para entrevistador, extractor, editor y revisor visual. Se revisan en la iteración de tuning (§17).
+- **Modelos provisionales** (§15.4): `claude-sonnet-5` para planner y juez, que planifican o juzgan la novela; `claude-haiku-4-5` para writer, entrevistador, extractor, editor y revisor visual. El writer pasa a haiku por la cuota de la suscripción (usuario, 2026-09-24): es el rol que más tokens gasta y el juez sigue en sonnet como filtro. Se revisan en la iteración de tuning (§17).
 - **Writer y editor separados.** Quien escribe no se evalúa: el editor recibe el capítulo y su propia ventana, nunca el razonamiento del writer.
 - **El editor critica y registra, no reescribe.** Detectar y corregir son competencias distintas; corregir es escribir, y lo hace el writer con los defectos.
 
@@ -994,7 +994,7 @@ Política del servidor, en la raíz, **validada entera con Pydantic al arrancar*
 | `operation.max_mandatory_elements` | 8 | Provisional |
 | `operation.access_token_hours` | 24 | Decidido |
 | `operation.confirmation_minutes` | 15 | Decidido |
-| `operation.roles.<rol>.model` | `claude-sonnet-5`: planner, writer, judge; `claude-haiku-4-5`: interviewer, extractor, editor, visual_reviewer | Provisionales |
+| `operation.roles.<rol>.model` | `claude-sonnet-5`: planner, judge; `claude-haiku-4-5`: writer, interviewer, extractor, editor, visual_reviewer | Provisionales |
 | `operation.roles.<rol>.{max_turns, max_output_tokens}` | uno por rol (p. ej. interviewer: 4 turnos, 2000 tokens) | Provisionales |
 | `operation.pricing.claude-sonnet-5.{input, output, cache_read, cache_write}` | 2.00, 10.00, 0.20, 2.50 | Dato: precio de lista de la API de Anthropic, USD por millón de tokens |
 | `operation.pricing.claude-haiku-4-5.{input, output, cache_read, cache_write}` | 1.00, 5.00, 0.10, 1.25 | Dato: ídem |
@@ -1377,7 +1377,7 @@ Registro de trade-offs: cada fila da opciones, criterio y elección. Reabrir una
 | Editor que critica y registra | Crítico + registrador + editor corrector · editor que critica y registra, y el writer reescribe | El encargo pide editor/critic; corregir es escribir; menos sesiones y menos rutas de enrutado | El editor critica con rúbrica y registra usos, eventos y resumen; no reescribe (§7.2) (lean, ADR 0006) |
 | Runtime del harness | API directa con bucle propio · Claude Agent SDK · híbrido | CLAUDE.md, skill, hooks y tools nativos que pide el encargo | Agent SDK para todos los roles; orquestación propia en código (§7) |
 | Proveedor del LLM con 0 € | Login de Claude Code · OpenRouter con modelos `:free` (unas 50 peticiones al día) · Ollama local · Gemini gratis con un proxy LiteLLM | 0 € en créditos; calidad suficiente y tool calling fiable con el Agent SDK | Login de Claude Code de la máquina (`LLM_PROVIDER=claude_login`); proveedor configurable, con `anthropic_compatible` como camino de producción (§15.2). Decisión del usuario, 2026-09-24 |
-| Modelos por rol | Uno para todos · uno grande donde se escribe o juzga la novela entera y uno ligero en el resto | Calidad donde se nota; menos consumo del límite de uso | `claude-sonnet-5` en planner, writer y juez; `claude-haiku-4-5` en entrevistador, extractor, editor y revisor visual. Provisional (§17) |
+| Modelos por rol | Uno para todos · uno grande donde se escribe o juzga la novela entera y uno ligero en el resto | Calidad donde se nota; menos consumo del límite de uso | `claude-sonnet-5` en planner y juez; `claude-haiku-4-5` en writer (cuota, usuario 2026-09-24), entrevistador, extractor, editor y revisor visual. Provisional (§17) |
 | CLAUDE.md de producto vs desarrollo | Workspace propio · el de la raíz · ninguno | Dos lectores distintos; que las reglas de desarrollo no lleguen a los roles | `backend/harness_workspace/CLAUDE.md` para los roles, el de la raíz para el desarrollo; `claudeMdExcludes` y `strict_mcp_config` (§7.3) |
 | Formato de la story bible | SQLite relacional · documento JSON · grafo | SQLite obligatorio; consultas por hecho y por capítulo; transacción única con el índice | SQLite relacional, con FTS5 y `sqlite-vec` en el mismo fichero (§15.6) |
 | Versionado | Filas compartidas con validez · copia por versión | Versión autocontenida e inmutable; copiar diez capítulos es barato; consultas sin filtros de validez | Copia de todas las tablas de ámbito versión en una transacción; vectores compartidos por huella (§9.3) |

@@ -1,27 +1,22 @@
 ---
-description: Sesión de un carril en su worktree — implementa sus specs en orden con TDD, verifica, commitea en su rama y avisa.
+description: Sesión de un carril en su worktree — implementa la primera spec desbloqueada de su cola con TDD, verifica, commitea en su rama y termina con una línea.
 argument-hint: <A|B|C|D|E>
 ---
 
 # Carril $ARGUMENTS
 
-Eres la sesión del carril $ARGUMENTS; `<x>` es esa letra en minúscula. Tu sitio es el worktree `../sm-<x>` en la rama `carril-<x>`. El integrador trabaja en `../story-maker`, rama V2.
+Eres la sesión del carril $ARGUMENTS; `<x>` es esa letra en minúscula. Tu sitio: worktree `../sm-<x>`, rama `carril-<x>`. El integrador trabaja en `../story-maker`, rama V2.
 
 1. **Sitio.** `git branch --show-current` es `carril-<x>` y el directorio termina en `sm-<x>`. Si no, para y dile al usuario el `cd` correcto.
 2. **Primera vez.** Si falta `backend/.venv`: `cd backend && uv sync`. Si falta `frontend/node_modules`: `cd frontend && pnpm.cmd install`. Si falta `.env`: `cp ../story-maker/.env .env`, sin leerlo ni mostrarlo.
-3. **Tu cola.** De la tabla de carriles (`git show V2:TODO.md | sed -n '/^## Carriles/,/^## Specs/p'`; nunca leas `TODO.md` entero): tus specs en orden y sus dependencias. La spec 000 tiene que estar cerrada en V2; si no, para: esperas a la 000. Una spec está **cerrada** cuando sus tres casillas de cierre están `[x]`; sus pasos D siguen `[ ]` con `(D, al final)` y no la bloquean.
-4. Por cada spec de tu cola sin cerrar, en orden:
-   1. **Dependencias.** Cada una cerrada (`cierre 3/3`) en `git show V2:TODO.md | awk -f .claude/scripts/resumen-todo.awk`, o en tu rama si es de tu carril. Tu propio bloque se lee solo: `sed -n '/^## NNN /,/^## [0-9]/p' TODO.md`. Una dependencia marcada *parcial* en la tabla deja empezar los pasos que no la usan. Si falta alguna, pasa a la siguiente spec de tu cola que esté desbloqueada; si no queda ninguna, para y di a qué esperas (spec y carril).
-   2. **Rebase.** Con el árbol limpio, `git rebase V2`. Un conflicto fuera de tus módulos o de tus bloques → `git rebase --abort` y avisa.
-   3. **Spec y plan.** En tu `TODO.md`, las dos casillas `[x]` (las marca el integrador, sin revisión: ni autorrevisión, ni auditor, ni rondas, ni revisión del usuario). Si falta alguna, para y pídeselas al integrador: `/spec` y `/plan` solo se ejecutan en el checkout principal. Las decisiones para §18 van al aviso del paso 8, no a `docs/`.
-   4. **TDD.** Sigue `/implementar NNN` en esta sesión, o delega en el subagente `implementador` si el contexto se llena (para 006, 007, 012 y 014, delega siempre y con `model: opus`; el resto va en sonnet): paso a paso: prueba que falla por el motivo correcto → código mínimo → suite completa → `[x]` → commit. Las pruebas T usan siempre los dobles. **Los pasos D no se ejecutan**: quedan `[ ]` con `(D, al final)` y van en un lote cuando el backend esté completo (decisión del usuario, 2026-09-24); nada de modelo real ni de demostraciones antes.
-   5. **Suite completa** verde: los comandos de `CLAUDE.md` de cada lado que toques. Todos los pasos no D `[x]`.
-   6. **Verificador.** Subagente `verificador` con NNN y la ruta absoluta del worktree. FAIL → corrige y repite (≤3 veces); después, escala al usuario.
-   7. **Cierre.** Si el código probó que la spec estaba mal, corrígela y dilo en el aviso del paso 8; el integrador vuelve a marcar sus casillas. Con PASS (el verificador marcó el cierre): commit `NNN: <nombre>` en `carril-<x>`.
-   8. **Aviso.** Una línea al usuario: `Carril <X>: NNN cerrada en carril-<x> (<hash>). Lanza /orquestar en el checkout principal para integrarla.` Debajo, los hallazgos para el registro de proceso (TLC, Lean, evals, browser MCP) y las decisiones para §18.
+3. **Elige una spec.** De la tabla de carriles (`git show V2:TODO.md | sed -n '/^## Carriles/,/^## Specs/p'`; nunca `TODO.md` entero), toma la primera de tu cola sin cerrar con dependencias cerradas (cierre 3/3 en `git show V2:TODO.md | awk -f .claude/scripts/resumen-todo.awk`, o en tu rama si es tuya; una *parcial* deja empezar los pasos que no la usan) y con la 000 cerrada en V2. Ninguna elegible → `BLOQUEADO <spec y de qué depende>`.
+4. **Rebase.** Árbol limpio, `git rebase V2`. Conflicto fuera de tus módulos o bloques → `git rebase --abort` y `BLOQUEADO rebase: <conflicto>`.
+5. **Spec y plan.** En tu bloque `## NNN` de `TODO.md` (léelo solo: `sed -n '/^## NNN /,/^## [0-9]/p' TODO.md`), las dos casillas de arriba están `[x]`. Si falta alguna: `BLOQUEADO spec o plan sin aprobar: pide /spec o /plan al integrador`.
+6. **TDD.** `/implementar NNN` en esta sesión, o subagente `implementador` si el contexto se llena (012 y 014 en opus, resto sonnet; uno a la vez en este worktree, los commits chocan en el índice de git). Paso a paso: prueba que falla por el motivo correcto → código mínimo → suite completa → `[x]` → commit. Pruebas T con los dobles siempre. Pasos D quedan `[ ]` (`D, al final`): nada de modelo real antes.
+7. **Cierre.** Suite completa verde y todos los pasos no D en `[x]` → `verificador` con NNN y la ruta del worktree. FAIL → corrige y repite (≤3 veces); si persiste, `BLOQUEADO verificador: <hallazgo>`. PASS → commit `NNN: <nombre>` en `carril-<x>`, con hallazgos (TLC, Lean, evals, browser MCP) y decisiones §18 en el cuerpo. Spec probada mal por el código → corrígela y dilo en el commit; el integrador remarca sus casillas.
 
-Hecho cuando cada spec de tu cola está cerrada en tu rama o parada con el motivo dicho. Al cerrar una, sigue con la siguiente de tu cola que esté desbloqueada, sin esperar a la integración.
+Termina siempre con una sola línea: `LISTO carril-<x> NNN <hash> cerrada` (o `parcial` si el paso no cerró la spec) — o `BLOQUEADO <motivo>` en cualquier punto anterior.
 
 ## Límites
 
-Solo los módulos de tus specs y sus bloques en `TODO.md`. Ni `docs/`, ni `.claude/`, ni `CLAUDE.md`, ni la cabecera de `TODO.md`. Nunca merge en V2 ni push. Nunca leas `.env`.
+Solo los módulos y bloques de `TODO.md` de tus specs (ver AGENTS.md → *Parallel lanes*). Nunca merge en V2 ni push.

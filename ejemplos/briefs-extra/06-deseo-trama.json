@@ -1,0 +1,61 @@
+{
+  "name": "deseo-trama",
+  "purpose": "Deseable RF-V1-92: un deseo de trama fuera del presente post-IA (una travesía pirata del siglo XVII) que el planner debe enmarcar sin romper el mundo",
+  "brief": {
+    "recipient": {
+      "name": "Inés",
+      "age": 45,
+      "birth_date": null,
+      "traits": ["lectora de novelas de piratas", "capitana de un club de remo", "incapaz de perder al parchís"],
+      "relationship": "cuñada"
+    },
+    "close_ones": [
+      {
+        "key": "dani",
+        "name": "Dani",
+        "relationship": "su hijo mayor, que rema con ella",
+        "species": "person",
+        "age": 17,
+        "birth_date": null,
+        "mandatory": true
+      }
+    ],
+    "occasion": "birthday",
+    "recollections": [
+      {
+        "statement": "Ganó con Dani la regata del puerto viejo remando contra el viento y celebraron con churros en el muelle",
+        "age": 42,
+        "year": null,
+        "close_ones": ["dani"],
+        "place": "Puerto viejo",
+        "excludes": null,
+        "mandatory": true
+      },
+      {
+        "statement": "Leyó La isla del tesoro en una tienda de campaña con una linterna, sin dormir, la noche de sus diez años",
+        "age": 10,
+        "year": null,
+        "close_ones": [],
+        "place": null,
+        "excludes": null,
+        "mandatory": false
+      }
+    ],
+    "genre": "adventure",
+    "tone": "epic",
+    "length": "medium",
+    "dedication": "Para Inés, que siempre rema contra el viento.",
+    "banned_terms": [],
+    "banned_asked": true,
+    "plot_wishes": [
+      "Que Inés capitanee un barco pirata en una travesía por el Caribe del siglo XVII, con abordaje y mapa del tesoro"
+    ]
+  },
+  "free_texts": [],
+  "user_banned_terms": [],
+  "expect": {
+    "status": "finished",
+    "must_fail": [],
+    "notes": "La travesía del siglo XVII no cabe en el presente post-IA: el planner la enmarca (una simulación, un sueño o una historia dentro de la historia, declarado al entrar) y todos los validadores pasan; el juez no penaliza el tropo pedido. Sin marcos formales en la V1: el marco es narrativo."
+  }
+}

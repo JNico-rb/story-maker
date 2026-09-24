@@ -1,33 +1,31 @@
 # AGENTS.md — Instructions
 
-**Work only on the V2 branch. Ignore all other branches** — the project restarted from scratch; nothing before is a valid reference.
+**V2 only.** Restarted from scratch; nothing earlier is a valid reference.
 
 ## Stack
 
-- **Backend:** Python 3.12+, uv, FastAPI, Pydantic v2, SQLAlchemy 2, SQLite with `sqlite-vec` and FTS5. Lint: Ruff.
-- **Frontend:** Vite, React, TypeScript strict, Tailwind, pnpm. Lint: ESLint + production build.
+- **Backend:** Python 3.12+, FastAPI, SQLAlchemy 2, SQLite (`sqlite-vec`, FTS5).
+- **Frontend:** Vite, React, TypeScript strict, Tailwind.
 - Full flow is also verified with live evaluators and a manual browser walkthrough.
 
 ## Reference docs — `docs/*.md` is the source of truth
 
-Load only the one the task needs. One concern per doc; cross-reference, never duplicate.
+Load only the doc the task needs; one concern per doc, cross-referenced, never duplicated.
 
 - [definitions.md](docs/definitions.md) — entities, attributes, class models. **Naming authority: never invent a synonym for a term defined here.**
-- [domain-knowledge.md](docs/domain-knowledge.md) — why the genre works this way. For prompts, rubrics, trope scoring, novum logic.
-- [architecture.md](docs/architecture.md) — pipeline, context and memory, quality gates, config, the agents, API. §17 open decisions, §18 closed.
-- [verification.md](docs/verification.md) — T/A/I/D/U classes (§2), coverage table (§5), accepted risks (§6). For tests, evals, CI, guardrails.
+- [domain-knowledge.md](docs/domain-knowledge.md) — genre rationale: prompts, rubrics, trope scoring, novum logic.
+- [architecture.md](docs/architecture.md) — pipeline, context and memory, quality gates, config, agents, API. §17 open decisions, §18 closed.
+- [verification.md](docs/verification.md) — T/A/I/D/U classes (§2), coverage table (§5), accepted risks (§6): tests, evals, CI, guardrails.
 
-[specs/](specs/) sits at the repo root, next to `docs/`, and is **not** one of these reference docs: it is layer 2 of the workflow, one file per feature. `docs/*.md` states domain truth and design rationale; `specs/000-scaffolding.md` (cross-cutting), `specs/backend/NNN-nombre.md` and `specs/frontend/NNN-nombre.md` state a feature’s observable behaviour.
+`specs/` (repo root) is layer 2 below: behaviour, not domain truth. No accents/spaces in entity or diagram names (Mermaid). Quality gates judge the novel at runtime; `verification.md` covers the system in CI.
 
-Entity names and diagram identifiers: no accents, no spaces (Mermaid). Quality gates judge the novel at runtime; `verification.md` covers the system in CI.
-
-When touching `backend/` or `frontend/`, read `backend/AGENTS.md` and `frontend/AGENTS.md` too: it overrides this file on its own specifics, never on the gates or the layer order.
+Touching `backend/` or `frontend/`: read its `AGENTS.md` too — overrides this file on specifics, never on gates or layer order.
 
 ## Workflow — five layers, always in this order
 
-`docs/*.md` → `specs/` → `TODO.md` (plan) → tests → code. Never skip upward: code no plan asks for, a plan no approved spec asks for, or a spec no doc supports, is drift.
+`docs/*.md` → `specs/` → `TODO.md` (plan) → tests → code, never skipped upward: code with no plan, a plan with no approved spec, or a spec with no doc behind it, is drift.
 
-**No code is written before its spec and its plan are approved — scaffolding, tooling, CI and dev hooks included** (they belong to `specs/000-scaffolding.md`). If code slips through, it is not deleted: its spec is written after the fact and approved, and the existing code is verified against it like any other step. That spec is written from the docs, never from the code: the code is fixed to match the spec, never the spec bent to fit the code.
+**No code before its spec and plan are approved** — scaffolding, tooling, CI, dev hooks included (`specs/000-scaffolding.md`'s territory). Code that slips through stays: write its spec from the docs after the fact, get it approved, verify the code against it like any step — code bends to the spec, never the reverse.
 
 ### Gates
 
@@ -35,91 +33,65 @@ When touching `backend/` or `frontend/`, read `backend/AGENTS.md` and `frontend/
 |---|---|---|
 | Change `docs/*.md` | — | — |
 | Write or change a spec | Supporting docs | — |
-| Write the plan | That spec's approval box `[x]` | integrator, no review |
-| Write tests or code | That plan's approval box `[x]` + a failing test | integrator, no review |
-| Close a feature | Every C case and every kept I invariant green (D and «(recortado)» excepted), full suite green, types clean | `verificador` |
+| Write the plan | Spec's approval box `[x]` | integrator, no review |
+| Write tests or code | Plan's approval box `[x]` + a failing test | integrator, no review |
+| Close a feature | C cases + kept I invariants green (D, «(recortado)» excepted); full suite green; types clean | `verificador` |
 
-**No reviews (user's decision, 2026-09-24; it overrides any older rule here).** No self-review, no `auditor`, no review rounds, no reviews by the user. The integrator writes the spec and the plan straight from `docs/*.md` as they stand and marks both approval boxes itself, ending the line with `— integrador YYYY-MM-DD: sin revisión, decisión del usuario`. What stays: TDD (failing test → code) and `verificador` at the close, with the full suite green; it marks the three closing boxes. No other agent or session marks a box. Plan box unmarked → **stop**: no tests or code (`guard-plan` looks only at that box).
+Three user decisions (2026-09-24) still govern closing:
 
-**Class D waits until the end (user's decision, 2026-09-24).** No demonstration and no run with a real model until the backend is complete. A spec closes, and unblocks its dependants, when every step that is not class D is `[x]` and the full suite is green; its D steps stay `[ ]` with `(D, al final)` appended, and run in one batch at the end. Backend first; frontend after.
+- **No reviews.** No self-review, auditor, or review round, ever. Integrator writes spec + plan from `docs/*.md`, marks both boxes: `— integrador YYYY-MM-DD: sin revisión, decisión del usuario`. TDD still applies; closing is `verificador`'s job (Gates row above). Plan box unmarked → **stop**: no tests, no code (`guard-plan` checks only that box).
+- **Class D waits until the end.** No demo or real-model run before the backend closes. A spec closes once every non-D step is `[x]` and the suite is green — D steps stay `[ ]`, tagged `(D, al final)`, batched at the end: backend first, frontend after.
+- **Scope cut (overrides class D above).** A spec closes on its C cases plus the I invariants mapped to TLA+ (`ReanudacionSinDuplicarNiPerder`, `ReintentosAcotados`, `VersionAnteriorConservada`, atomicity) or protecting a validator; every other I invariant is tagged `(recortado)`, stays `[ ]`, doesn't block the close — same for any `(recortado)`-tagged spec or step. Out-of-scope and deferred specs: `TODO.md` → *Estado* → *Alcance*.
 
-**Scope cut (user's decision, 2026-09-24; overrides the closing rule above).** A spec closes with its C cases plus the I invariants that map to TLA+ (`ReanudacionSinDuplicarNiPerder`, `ReintentosAcotados`, `VersionAnteriorConservada`, atomicity) or that protect a validator. Every other I invariant is marked `(recortado)` in its step, stays `[ ]` and does not block the close; a spec or step marked `(recortado)` in `TODO.md` is out of the close too. Specs out of scope and deferred ones are listed in `TODO.md` → *Estado* → *Alcance*.
+Escalations only: a persistent `verificador` FAIL, or a human-only task — novel review, demo video, accounts/tokens, final check.
 
-The user steps in only on escalations (a `verificador` FAIL that persists) and on human-only tasks: the human review of a novel, the demo video, accounts and tokens, the final check.
+### 1. Changing the reference docs
 
-### 1. Changing the reference docs (`docs/*.md`)
-
-Source of truth about domain and design, never a description of today's code.
-
-1. Pick the **single owning doc**.
-2. New or renamed terms go to `definitions.md` first and nowhere else.
-3. Closing a decision = moving it from `architecture.md` §17 to §18 with its reason. Reopening a §18 decision needs a stated reason in the same commit.
-4. A new verification method goes to `verification.md` + its row in §5; an accepted risk goes to §6 with name and motive.
-5. Before finishing, name every spec, plan block and piece of code the change now contradicts — fix or list them.
-
-A doc change alone changes no behaviour; it must be followed by spec, plan and code.
+1. New or renamed terms go to `definitions.md` first, nowhere else.
+2. Closing a decision moves it `architecture.md` §17→§18 with its reason; reopening one needs a reason in the same commit.
+3. A new verification method goes to `verification.md` + its §5 row; an accepted risk goes to §6 with name and motive.
+4. Before finishing, name every spec, plan block and piece of code the change now contradicts, and fix or list them.
 
 ### 2. Changing `specs/`
 
-One file per feature: `specs/backend/NNN-nombre.md` or `specs/frontend/NNN-nombre.md`; the one cross-cutting spec, `specs/000-scaffolding.md`, sits at the root of `specs/`. `NNN` is global and sequential across both folders (backend 001–021, frontend from 022). Two features = two files.
+One file per feature: `specs/backend/NNN-nombre.md` or `specs/frontend/NNN-nombre.md`, plus cross-cutting `specs/000-scaffolding.md` at the root. `NNN` global: backend 001–021, frontend from 022.
 
-Required contents: **objective**; **scope** / **out of scope**; **observable behaviour** as concrete, named cases (input → expected output, including rejections and boundaries); **invariants**, each with its T/A/I/D/U class; **docs referenced**.
+Required: **objective**; **scope**/**out of scope**; **observable behaviour** as named cases (input → expected output, rejections, boundaries); **invariants** with T/A/I/D/U class; **docs referenced**.
 
-- Behaviour only: no file names, signatures or libraries. The one exception is `specs/000-scaffolding.md`: its observable behaviour is the commands a developer runs and what they produce, so it names commands, paths and tools.
-- Never contradicts `docs/*.md` — change the doc first (process 1).
-- Dependent specs reference each other by name; they never duplicate cases.
-- Specs are drafted in parallel, one `redactor-specs` per spec. Writers never edit `TODO.md`: the integrator (main checkout, V2) adds each block, one at a time, with every box unmarked, and marks its boxes itself (no review).
-- A missing or incomplete spec is completed only as far as its plan needs, from `docs/*.md` as they stand. A design decision the writer closes goes to `architecture.md` §18.
-- One commit per approved spec (`NNN: spec aprobada`) and one per approved plan (`NNN: plan aprobado`), both by the integrator.
-- Changing one: edit the cases, unmark **both** boxes, re-mark them (integrator), re-run processes 3 and 4 for what changed. A deleted case means a deleted test.
+- Behaviour only, no file names, signatures or libraries — except `specs/000-scaffolding.md`, whose behaviour is the commands a developer runs.
+- Never contradicts `docs/*.md` (process 1); dependent specs reference each other by name, never duplicating cases.
+- An incomplete spec is completed only as far as its plan needs; a design decision closed this way goes to `architecture.md` §18.
+- One commit per approved spec (`NNN: spec aprobada`) and plan (`NNN: plan aprobado`), both by the integrator.
+- Changing a spec: edit the cases, unmark **both** boxes, re-mark, redo processes 3–4 for what changed — a deleted case means a deleted test.
 
 ### 3. The plan — `TODO.md`
 
-Single file at the repo root: a header with the lane table (owned by the integrator), then one block per spec in numeric order. One step per acceptance case and one per class-T invariant, in implementation order. A step names the behaviour it delivers, not the files it touches — if it can't be phrased as a case of the spec, it belongs in the spec first. The writer may draft the plan outside `TODO.md`; the integrator pastes it into the block. Written → the integrator marks its box (no review). Mark a step `[x]` only when its case goes green, never ahead. If implementation proves the plan wrong, stop, change the plan and have the integrator re-mark it; never improvise a step.
-
-    ## NNN — <feature name>
-
-    - [ ] Spec `specs/<side>/NNN-nombre.md` approved               <- integrator, with its record
-    - [ ] Plan below approved                                      <- integrator, with its record
-
-    ### Steps
-    - [ ] <case 1, as named in the spec>
-    - [ ] <case 2, as named in the spec>
-
-    ### Closing                                                    <- verificador
-    - [ ] Full suite green, type checks clean
-    - [ ] Spec updated, or confirmed still true
-    - [ ] Docs updated, or confirmed still true
-
-A marked box reads, for example: `- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario`.
+Header (lane table, integrator's), then one numbered block per spec — added by the integrator, boxes unmarked — in the format its blocks already use: spec approved, plan approved, steps, closing. One step per acceptance case and class-T invariant, in implementation order, named by behaviour delivered, not files touched — unphraseable as a spec case, it belongs in the spec first. A plan may be drafted outside `TODO.md`; the integrator pastes it in and marks the box. Mark `[x]` only when the case goes green, never ahead — a plan proven wrong stops the work: fix it, integrator re-marks, don't improvise a step.
 
 ### 4. Changing code — TDD
 
-Per step of the approved plan: write the test → run it and watch it fail **for the right reason** → minimum code to pass, no speculative generality → run the **full** suite → refactor green (tests unchanged) → mark the step `[x]`.
+Per step: write the test → watch it fail **for the right reason** → minimum code to pass, no speculative generality → run the **full** suite → refactor green (tests unchanged) → mark `[x]`.
 
-- A bug gets a failing test reproducing it before the fix; that test stays.
-- Only **class T** becomes a test. **A** → strict typing + static analysis, **I** → review, **D** → demonstration run, **U** → `verification.md` §6.
+- A bug gets a failing test reproducing it first; that test stays.
+- Only **class T** becomes a test: **A** → strict typing + static analysis, **I** → review, **D** → demonstration run, **U** → `verification.md` §6.
 - Test names state the behaviour, not the function.
-- Backend via `uv`, frontend via `pnpm` (`pnpm.cmd` on this machine). Never disable, skip or weaken a test for a green run.
+- `uv` for backend, `pnpm` (`pnpm.cmd` on this machine) for frontend. Keep every test enabled and at full strength, even for a green run.
 
-**Closing a feature** (all four, in order): every step that is neither D nor `(recortado)` `[x]`, full suite green and types clean → fix the spec if the code proved it wrong (the integrator re-marks its boxes) → fix the owning doc if the work contradicted `docs/*.md`, or state nothing changed → `verificador` marks the three closing boxes.
+**Closing a feature**: every non-D, non-`(recortado)` step `[x]`, full suite green, types clean → fix the spec if the code proved it wrong (integrator re-marks) → fix the owning doc if contradicted, or confirm nothing changed → `verificador` marks the three closing boxes.
 
 ## Parallel lanes
 
-- A lane is a sibling worktree `../sm-<x>` on branch `carril-<x>`, created from V2 with `git worktree add ../sm-<x> -b carril-<x> V2`. Paths stay short: long paths are disabled on this machine.
-- The lane table in `TODO.md` gives each lane its specs in order and their dependencies. Spec 000 comes first and blocks every lane; the integrator delivers it on V2. A spec starts when every dependency is closed in V2, or in the lane's own branch when it is the same lane's.
-- A lane touches only the modules its specs own (ownership tables in `backend/AGENTS.md` and `frontend/AGENTS.md`). A change another lane's module needs goes to the integrator.
-- `git rebase V2` before starting each spec.
-- In `TODO.md` a lane edits only the blocks of its own specs; the header and the lane table belong to the integrator. Editing only your own blocks is what keeps `TODO.md` free of merge conflicts.
-- Integration happens only in the main checkout on V2: `git merge --no-ff` of the lane's closing commit, then the full suite. Red → undo the merge and tell the lane.
-- `docs/`, `.claude/`, `CLAUDE.md` and `README.md` have one writer, the integrator on V2; a lane sends it what they need.
+- A lane is a sibling worktree `../sm-<x>` on branch `carril-<x>`, from V2: `git worktree add ../sm-<x> -b carril-<x> V2`.
+- The lane table in `TODO.md` orders each lane's specs and dependencies. Spec 000, delivered by the integrator on V2, blocks every lane. A spec starts once its dependencies close in V2, or in its own lane when the dependency is the same lane's.
+- A lane touches only the modules its specs own (ownership tables in `backend/AGENTS.md`, `frontend/AGENTS.md`); a change to another lane's module goes to the integrator. `git rebase V2` before each spec.
+- In `TODO.md` a lane edits only its own specs' blocks; header and lane table are the integrator's — keeps `TODO.md` conflict-free.
+- Integration only in the main checkout on V2: `git merge --no-ff` the lane's closing commit, then the full suite. Red → undo the merge, tell the lane.
+- `docs/`, `.claude/`, `CLAUDE.md`, `README.md`: one writer, the integrator on V2; a lane sends it what it needs.
 
 ## Code style (universal)
 
 - **Small, obvious functions.** A 15-line function with clear names beats a three-class abstraction.
-- **No premature abstraction.** Three similar lines is better than a badly-named base class. Extract when there's a third caller, not a hypothetical one.
-- **No error handling for cases that can't happen.** Trust internal callers and framework guarantees. Validate only at boundaries: HTTP input, external APIs, DB writes, untrusted parsing.
-- **No backwards-compat shims** unless explicitly asked for.
-- **No feature flags** added speculatively.
-- **Comments:** explain *why* when non-obvious, never *what*. Remove stale TODOs.
+- **No premature abstraction, shims or speculative flags.** Three similar lines beats a badly-named base class; extract at a third caller, not a hypothetical one. Shims and flags only when explicitly asked for.
+- **Error handling at boundaries.** Trust internal callers and framework guarantees; validate HTTP input, external APIs, DB writes, untrusted parsing.
+- **Comments explain *why*** when non-obvious, never *what*. Remove stale TODOs.
 - **Keep files focused.** Prefer small modules.

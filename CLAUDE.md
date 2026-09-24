@@ -39,13 +39,13 @@ Resumen: cinco capas en orden, sin revisiones (ni autorrevisión ni auditor: el 
 
 - `docs/*.md`, las specs y `TODO.md` pesan mucho (`architecture.md` ≈ 36k tokens). Nunca enteros: `grep -n '^## ' <fichero>` para el índice y lee solo la sección que toca, con `offset`/`limit`.
 - `TODO.md`: la cabecera, o tu bloque (`sed -n '/^## NNN /,/^## [0-9]/p' TODO.md`); el estado de todas las specs, con `awk -f .claude/scripts/resumen-todo.awk TODO.md`.
-- Modelos en el frontmatter de cada agente: opus donde un fallo es posible (`redactor-specs`, `verificador`, `seguridad`, `auditor`); sonnet solo el `implementador`, salvo 006, 007, 012 y 014, que se lanzan con `model: opus`.
+- Modelos en el frontmatter de cada agente: opus en `redactor-specs` y `seguridad`; sonnet en `implementador` y `verificador`. El `implementador` de 012 y 014 se lanza con `model: opus`. Roles del producto: `config.json`.
 
 ## Harness de desarrollo
 
 | Pieza | Nombres | Para qué |
 |---|---|---|
-| Subagentes (`.claude/agents/`) | `redactor-specs`, `auditor`, `implementador`, `verificador`, `seguridad` | escribir specs, (auditor: ya no se lanza), implementar con TDD, cerrar, auditar la seguridad |
+| Subagentes (`.claude/agents/`) | `redactor-specs`, `implementador`, `verificador`, `seguridad` | escribir specs, implementar con TDD, cerrar, auditar la seguridad |
 | Comandos (`.claude/commands/`) | `/orquestar`, `/carril`, `/spec`, `/plan`, `/implementar`, `/integrar`, `/estado` | integrar, llevar un carril, cada capa del flujo, ver el estado |
 | Hooks (`.claude/hooks/`) | `guard-secretos`, `guard-plan` | bloquear claves reales en lo escrito; bloquear código sin plan aprobado con pasos pendientes |
 | MCP (`.mcp.json`) | `playwright`, `langfuse` | inspeccionar la lectura web en Edge; consultar trazas y prompts |
