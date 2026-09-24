@@ -569,7 +569,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
-- [ ] 011-C01 · Lanzar la generación la encola
+- [x] 011-C01 · Lanzar la generación la encola
 - [ ] 011-C02 · Solo se lanza una generación desde una novela lista
 - [ ] 011-C03 · Una sola ejecución activa en una cola FIFO global
 - [ ] 011-C04 · El progreso se consulta por sondeo
