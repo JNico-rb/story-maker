@@ -13,7 +13,7 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 - **Decisión del usuario (2026-09-24):** backend completo primero; sin revisiones (el integrador escribe y marca spec y plan); casos D y ejecuciones con modelo real al final, en un lote; como mucho 3 sesiones activas (integrador + 2 carriles); frontend después.
 - **000:** cerrada en V2. Pendientes D para el lote final: C15, C16, C17, C19.
 - **Aprobadas (spec y plan):** 001, 002, 003, 006, 007, 008, 009, 010, 011, 012, 014, 015, 016, 017, 018, 019. **En redacción:** 004, 005. **Sin redactar:** 013, 020, 021.
-- **Ruta crítica:** 000 → 001 → 002 → 009 → 010 → 011 → 012 → 014 → 015 → 021 (carril A). B lleva 003, 008, 016 y 017; C, 005, 007 y 019; F, 018; D, 006, 004, 013 y 020.
+- **Ruta crítica:** 000 → 001 → 002 → 009 → 010 → 011 → 012 → 014 → 015 → 021 (carril A). B lleva 003, 008 y 017; C, 005, 007 y 019; F, 018; G, 010; H, 016; D, 006, 004, 013 y 020.
 - **Avisos abiertos:**
   - Adaptador del motor de políticas real para el puerto de agente (carga de prohibidas por cliente y novela, `base_url` del revisor visual, `record_decision` en el audit log): lo cablea la primera spec que abre sesiones reales, 008, y lo reutiliza 011; patrón en `tests/agents/test_port.py` (`RealEngine`) de carril-b.
   - 009 ofrece la lectura de la `Cronologia` y la escritura de `chronology_files` (lo pide 007).
@@ -26,11 +26,13 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 | Carril | Specs en orden | Depende de (fuera del carril) | Worktree | Rama | Estado |
 |---|---|---|---|---|---|
 | 0 — scaffolding (integrador) | 000 | — | checkout principal | `V2` | cerrada (D al final) |
-| A — ruta crítica | 001 → 002 → 009 → 010 → 011 → 012 → 014 → 015 → 021 | 003, 004 (010) · 005, 006 (011) · 007 (012) · 008, 013 (015) | `../sm-a` | `carril-a` | 001 y 002 integradas; 009 en curso |
-| B — agentes y entrada | 003 → 008 → 016 → 017 | 001 (003) · 002, 004, 005 (008) · 009 (016) · 012, 013 (017) | `../sm-b` | `carril-b` | 003 integrada; 008 en curso |
+| A — ruta crítica | 001 → 002 → 009 → 011 → 012 → 014 → 015 → 021 | 003, 004 (010) · 010 (011) · 005, 006 (011) · 007 (012) · 008, 013 (015) | `../sm-a` | `carril-a` | 001 y 002 integradas; 009 en curso |
+| B — agentes y entrada | 003 → 008 → 017 | 001 (003) · 002, 004, 005 (008) · 012, 013 (017) | `../sm-b` | `carril-b` | 003 integrada; 008 en curso |
 | C — formal y edición | 005 → 007 → 019 | 001 (005 parcial) · 009 (007 parcial) · 012, 018 (019) | `../sm-c` | `carril-c` | 005 integrada; 007: 21/32, el resto espera 009 |
-| D — formal y lectura | 006 → 004 → 013 → 020 | 001 (004) · 009 (013) · 012 (020) | `../sm-d` | `carril-d` | 006 y 004 integradas; 013 espera 009 |
+| D — formal y lectura | 006 → 004 → 013 → 020 | 001 (004) · 009 (013 parcial) · 012 (020) | `../sm-d` | `carril-d` | 006 y 004 integradas; 013 en curso (lo que no usa la 009) |
 | F — linters de prosa | 018 | 011 (018 parcial: C18–C23) | `../sm-f` | `carril-f` | 018: los 19 pasos de linters puros hechos; C18–C23 esperan 011 |
+| G — planificación | 010 | 003, 004 · 009 (010 parcial: aplicar el plan a la story bible) | `../sm-g` | `carril-g` | 010 en curso (lo que no usa la 009) |
+| H — recuperación | 016 | 009 (016 parcial: tarjetas desde la story bible) | `../sm-h` | `carril-h` | 016 en curso (canales, fusión y consultas) |
 | E — frontend | 022 → 023 → 024 → 025 → 026 → 027 → 028 (`specs/frontend/`) | las de backend de la tabla de specs, cerradas en V2 | `../sm-e` | `carril-e` | 022–028 con spec y plan aprobados; implementación cuando se cierren sus dependencias |
 
 **Frontend (022–028, decisión del usuario 2026-09-24).** Las specs se redactan ya, de dos en dos, mientras los carriles programan el backend: spec → plan en `TODO.md` → casillas marcadas por el integrador, sin revisión. **Revisión solo como excepción:** únicamente ante un error claro que impide que funcione o que deja sin cubrir un requisito de `project-constraints.md`; una sola corrección, sin rondas. El carril E (`../sm-e`) empieza cada spec cuando sus dependencias de backend están cerradas en V2, sin adelantarse. El backend manda: si hay que elegir, primero se integran A, C y D.
@@ -49,13 +51,13 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 | 007 | validador-lean | backend | C | 009 *parcial*: solo el adaptador a SQLite |
 | 008 | brief-y-entrevista | backend | B | 002, 003, 004, 005 |
 | 009 | story-bible-y-versiones | backend | A | 001, 002 |
-| 010 | planificacion | backend | A | 003, 004, 009 |
+| 010 | planificacion | backend | G | 003, 004, 009 *parcial*: lo que no usa la 009 empieza antes |
 | 011 | produccion-de-capitulos | backend | A | 002, 005, 006, 010 |
 | 012 | gate-de-publicacion | backend | A | 007, 011 |
-| 013 | lectura-y-pdf | backend | D | 009 |
+| 013 | lectura-y-pdf | backend | D | 009 *parcial*: el token de vista, el PDF y `pdf-enlaces` empiezan antes |
 | 014 | cambios-del-lector | backend | A | 012 |
 | 015 | servidor-mcp | backend | A | 002, 008, 013, 014 |
-| 016 | recuperacion-hibrida | backend | B | 009 |
+| 016 | recuperacion-hibrida | backend | H | 009 *parcial*: lo que no usa la 009 empieza antes |
 | 017 | revision-visual | backend | B | 012, 013 |
 | 018 | linters-de-prosa | backend | F | 011 *parcial*: los linters puros no la necesitan; el punto de ejecución en el bucle (C18–C23) sí |
 | 019 | edicion-manual | backend | C | 012, 018 |
