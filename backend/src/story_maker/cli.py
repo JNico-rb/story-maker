@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import subprocess
 from importlib.metadata import version
 from pathlib import Path
 from typing import Annotated, cast
@@ -10,6 +11,8 @@ from urllib.parse import urlparse
 
 import typer
 import uvicorn
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
 
 from story_maker import settings as settings_module
 from story_maker.api.app import create_app
@@ -23,7 +26,16 @@ from story_maker.render.pdf import render_pdf
 from story_maker.render.version_view import render_version_view
 from story_maker.render.view_data import load_version_view_data
 from story_maker.settings import Settings, SettingsError, load_settings, resolve_paths
-from story_maker.store.models import Novel
+from story_maker.store.models import (
+    Attempt,
+    AuditLog,
+    ExtractedFact,
+    FreeText,
+    Novel,
+    RoleSession,
+    Run,
+    ValidatorResult,
+)
 from story_maker.store.session import (
     create_schema,
     dense_channel_ok,
@@ -259,5 +271,306 @@ def export_pdf_command(
             pdf_bytes = render_pdf(html)
             path.write_bytes(pdf_bytes)
         typer.echo(str(path))
+    finally:
+        engine.dispose()
+
+
+# --- `evals table` (020-C06..C09, 020-I2) -------------------------------------------------------
+#
+# Cada brief de eval es una `Novel` cuyo `title` es su slug (`ejemplo`, `infantil`, `boda`,
+# `adversarial`, `temporal`), tal y como los crea `evals run` (020-C02..C05, fuera de este paso);
+# `evals table` no depende de esa orden, solo de lo que ya haya en SQLite.
+
+evals_app = typer.Typer(no_args_is_help=True, add_completion=False)
+app.add_typer(evals_app, name="evals")
+
+EVAL_BRIEF_SLUGS: tuple[str, ...] = ("ejemplo", "infantil", "boda", "adversarial", "temporal")
+
+_BLOCKING = "blocking"
+_SEMANTIC = "semantic"
+_LINTER = "linter"
+_FACTS_DISCARDED = "facts_discarded"
+_AUDIT_FLAG = "audit_flag"
+_AUDIT_DENY = "audit_deny"
+
+# Orden y leyenda: `verification.md` §4.2 (a).
+_VALIDATOR_ROWS: tuple[tuple[str, str], ...] = (
+    ("`schema-brief`", _BLOCKING),
+    ("`citas-verificadas` (hechos descartados)", _FACTS_DISCARDED),
+    ("`schema-salida`", _BLOCKING),
+    ("`outline`", _BLOCKING),
+    ("`longitud-capitulo`", _BLOCKING),
+    ("`nombres-exactos`", _BLOCKING),
+    ("`palabras-prohibidas`", _BLOCKING),
+    ("`elementos-obligatorios`", _BLOCKING),
+    ("`rubrica-capitulo`", _SEMANTIC),
+    ("`juez-novela`", _SEMANTIC),
+    ("`cronologia-lean`", _BLOCKING),
+    ("`revision-visual`", _BLOCKING),
+    ("`pdf-enlaces`", _BLOCKING),
+    ("`linter-repeticion`", _LINTER),
+    ("`linter-legibilidad`", _LINTER),
+    ("`linter-estilo-ia`", _LINTER),
+    ("`linter-consistencia`", _LINTER),
+    ("Detector de inyección (flags en `audit_log`)", _AUDIT_FLAG),
+    ("Hook de policy (denegaciones en `audit_log`)", _AUDIT_DENY),
+)
+
+
+def _eval_novel(session: Session, slug: str) -> Novel | None:
+    return session.scalar(select(Novel).where(Novel.title == slug))
+
+
+def _eval_run(session: Session, novel_id: int) -> Run | None:
+    return session.scalar(
+        select(Run).where(Run.novel_id == novel_id, Run.type == "generation").order_by(Run.id)
+    )
+
+
+def _validator_results(session: Session, run_id: int, validator: str) -> list[ValidatorResult]:
+    return list(
+        session.scalars(
+            select(ValidatorResult)
+            .where(ValidatorResult.run_id == run_id, ValidatorResult.validator == validator)
+            .order_by(ValidatorResult.id)
+        )
+    )
+
+
+def _cell_blocking(results: list[ValidatorResult]) -> str:
+    if not results:
+        return "n/a"
+    rejected = sum(1 for r in results if not r.passed)
+    final = "pasa" if results[-1].passed else "falla"
+    return f"{final} · {rejected}"
+
+
+def _cell_semantic(results: list[ValidatorResult]) -> str:
+    if not results:
+        return "n/a"
+    criteria = cast(list[float], results[-1].detail)
+    average = sum(criteria) / len(criteria)
+    minimum = min(criteria)
+    minimum_text = str(int(minimum)) if float(minimum).is_integer() else str(minimum)
+    return f"{average:.1f} ({minimum_text})"
+
+
+def _cell_linter(results: list[ValidatorResult]) -> str:
+    if not results:
+        return "n/a"
+    score = results[-1].score
+    return "n/a" if score is None else str(int(score))
+
+
+def _cell_facts_discarded(session: Session, novel_id: int) -> str:
+    count = session.scalar(
+        select(func.count(ExtractedFact.id))
+        .join(FreeText, ExtractedFact.free_text_id == FreeText.id)
+        .where(FreeText.novel_id == novel_id, ExtractedFact.accepted.is_(False))
+    )
+    return str(count or 0)
+
+
+def _cell_audit(session: Session, novel_id: int, origin: str, decision: str) -> str:
+    count = session.scalar(
+        select(func.count(AuditLog.id)).where(
+            AuditLog.novel_id == novel_id,
+            AuditLog.origin == origin,
+            AuditLog.decision == decision,
+        )
+    )
+    return str(count or 0)
+
+
+def _cell(session: Session, novel: Novel | None, run: Run | None, validator: str, kind: str) -> str:
+    if novel is None:
+        return "n/a"
+    if kind == _FACTS_DISCARDED:
+        return _cell_facts_discarded(session, novel.id)
+    if kind == _AUDIT_FLAG:
+        return _cell_audit(session, novel.id, "free_text", "flag")
+    if kind == _AUDIT_DENY:
+        return _cell_audit(session, novel.id, "policy_hook", "deny")
+    if run is None:
+        return "n/a"
+    results = _validator_results(session, run.id, validator)
+    if kind == _BLOCKING:
+        return _cell_blocking(results)
+    if kind == _SEMANTIC:
+        return _cell_semantic(results)
+    return _cell_linter(results)
+
+
+EvalBrief = tuple[Novel | None, Run | None]
+
+
+def _table_a(session: Session, briefs: dict[str, EvalBrief]) -> str:
+    header = (
+        "| Validador | "
+        + " | ".join(f"{i + 1} {slug}" for i, slug in enumerate(EVAL_BRIEF_SLUGS))
+        + " |"
+    )
+    separator = "|" + "---|" * (len(EVAL_BRIEF_SLUGS) + 1)
+    lines = [header, separator]
+    for validator, kind in _VALIDATOR_ROWS:
+        cells = [_cell(session, *briefs[slug], validator, kind) for slug in EVAL_BRIEF_SLUGS]
+        lines.append(f"| {validator} | " + " | ".join(cells) + " |")
+    return "\n".join(lines)
+
+
+def _row_status(_session: Session, _novel: Novel | None, run: Run | None) -> str:
+    if run is None:
+        return "n/a"
+    if run.status == "failed":
+        return f"failed ({run.reason})"
+    return run.status
+
+
+def _row_first_try(session: Session, _novel: Novel | None, run: Run | None) -> str:
+    if run is None:
+        return "n/a"
+    count = session.scalar(
+        select(func.count(Attempt.id)).where(
+            Attempt.run_id == run.id,
+            Attempt.evaluable == "chapter",
+            Attempt.number == 1,
+            Attempt.outcome == "accept",
+        )
+    )
+    return str(count or 0)
+
+
+def _row_gate_cycles(session: Session, _novel: Novel | None, run: Run | None) -> str:
+    if run is None:
+        return "n/a"
+    count = session.scalar(
+        select(func.count(Attempt.id)).where(
+            Attempt.run_id == run.id, Attempt.evaluable == "gate_cycle"
+        )
+    )
+    return str(count or 0)
+
+
+def _role_sessions(session: Session, run: Run) -> list[RoleSession]:
+    return list(session.scalars(select(RoleSession).where(RoleSession.run_id == run.id)))
+
+
+def _row_tokens(session: Session, _novel: Novel | None, run: Run | None) -> str:
+    if run is None:
+        return "n/a"
+    sessions = _role_sessions(session, run)
+    input_tokens = sum(s.input_tokens or 0 for s in sessions)
+    output_tokens = sum(s.output_tokens or 0 for s in sessions)
+    return f"{input_tokens} / {output_tokens}"
+
+
+def _row_cost(session: Session, _novel: Novel | None, run: Run | None) -> str:
+    if run is None:
+        return "n/a"
+    cost = sum(s.cost_usd or 0.0 for s in _role_sessions(session, run))
+    return f"{cost:.4f}"
+
+
+def _row_latency(session: Session, _novel: Novel | None, run: Run | None) -> str:
+    if run is None:
+        return "n/a"
+    total = sum(s.latency_ms for s in _role_sessions(session, run))
+    return f"{total} ms"
+
+
+def _row_peak_tokens(session: Session, _novel: Novel | None, run: Run | None) -> str:
+    # Sin marca de tiempo por sesión en el esquema, la aproximación es el máximo de una sola
+    # sesión: no hay forma de saber, desde `role_sessions`, cuáles se solaparon (decisión, 020).
+    if run is None:
+        return "n/a"
+    sessions = _role_sessions(session, run)
+    if not sessions:
+        return "n/a"
+    return str(max(s.reserved_tokens for s in sessions))
+
+
+def _git_commit() -> str:
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],  # noqa: S607 — comando fijo, sin shell
+            cwd=settings_module.ROOT,
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=5,
+        )
+        return result.stdout.strip() or "n/a"
+    except (OSError, subprocess.SubprocessError):
+        return "n/a"
+
+
+def _row_prompt_commit(session: Session, _novel: Novel | None, run: Run | None) -> str:
+    if run is None:
+        return "n/a"
+    label = next(
+        (s.prompt_version for s in _role_sessions(session, run) if s.prompt_version), "n/a"
+    )
+    return f"{label} · {_git_commit()}"
+
+
+def _table_b(session: Session, briefs: dict[str, EvalBrief]) -> str:
+    rows = (
+        ("Estado final (`published`/`failed` + motivo)", _row_status),
+        ("Capítulos aceptados al primer intento", _row_first_try),
+        ("Ciclos de gate", _row_gate_cycles),
+        ("Tokens (entrada / salida)", _row_tokens),
+        ("Coste USD (Langfuse)", _row_cost),
+        ("Latencia total", _row_latency),
+        ("Pico de tokens concurrentes reservados", _row_peak_tokens),
+        ("Etiqueta de prompts y commit", _row_prompt_commit),
+    )
+    header = (
+        "| Métrica | "
+        + " | ".join(f"{i + 1} {slug}" for i, slug in enumerate(EVAL_BRIEF_SLUGS))
+        + " |"
+    )
+    separator = "|" + "---|" * (len(EVAL_BRIEF_SLUGS) + 1)
+    lines = [header, separator]
+    for label, row_fn in rows:
+        cells = [row_fn(session, *briefs[slug]) for slug in EVAL_BRIEF_SLUGS]
+        lines.append(f"| {label} | " + " | ".join(cells) + " |")
+    return "\n".join(lines)
+
+
+@evals_app.command(name="table")
+def evals_table_command() -> None:
+    """Tabla (a) brief x validador y resumen (b) de `verification.md` §4.2, en Markdown, solo
+    desde SQLite (020-C06..C09). Sin ejecuciones de evals, pide correr `evals run` y no escribe
+    nada (020-C09)."""
+    try:
+        settings = load_settings()
+    except SettingsError as exc:
+        for error in exc.errors:
+            typer.echo(error)
+        raise typer.Exit(1) from None
+
+    engine = make_engine(_db_path(settings.data_dir))
+    try:
+        session_factory = make_session_factory(engine)
+        with session_factory() as session:
+            briefs: dict[str, EvalBrief] = {}
+            found = False
+            for slug in EVAL_BRIEF_SLUGS:
+                novel = _eval_novel(session, slug)
+                if novel is None:
+                    briefs[slug] = (None, None)
+                    continue
+                found = True
+                briefs[slug] = (novel, _eval_run(session, novel.id))
+
+            if not found:
+                typer.echo("sin ejecuciones de evals: ejecuta `story-maker evals run`")
+                raise typer.Exit(1)
+
+            table_a = _table_a(session, briefs)
+            table_b = _table_b(session, briefs)
+        typer.echo(table_a)
+        typer.echo("")
+        typer.echo(table_b)
     finally:
         engine.dispose()
