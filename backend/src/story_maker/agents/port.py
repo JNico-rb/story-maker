@@ -280,8 +280,14 @@ class LiveSession:
             pending.span.close()
             self.calls.append(ToolCall(tool, pending.input, "accepted"))
         elif pending.value is not None and self.request.chapter_checks is not None:
-            self.request.chapter_checks(pending.value)
-            self._resolve_own(ToolCall(tool, pending.input, "accepted", value=pending.value))
+            defects = tuple(self.request.chapter_checks(pending.value))
+            blocking = tuple(d for d in defects if d.blocking)
+            if blocking:
+                # PostToolUse no puede bloquear: sustituye lo que lee el modelo (§7.5, H5).
+                self._resolve_own(ToolCall(tool, pending.input, "blocked", defects=blocking))
+                return _defects_text(blocking)
+            call = ToolCall(tool, pending.input, "accepted", value=pending.value, defects=defects)
+            self._resolve_own(call)
         return None
 
     def close(self) -> None:
@@ -301,14 +307,25 @@ class LiveSession:
 
     def _resolve_own(self, call: ToolCall) -> None:
         rejected = call.status == "schema_rejected"
-        level = "WARNING" if rejected else "DEFAULT"
-        reason = "; ".join(call.errors) if rejected else None
+        level = "WARNING" if rejected or call.status == "blocked" else "DEFAULT"
+        reason = (
+            "; ".join(call.errors)
+            if rejected
+            else _defects_text(call.defects)
+            if call.status == "blocked"
+            else None
+        )
         with self._tool_span(call.tool, level, reason) as span:
             self.telemetry.score(
                 self.request.trace, "schema-salida", 0 if rejected else 1, span=span
             )
         call.own = True
         self.calls.append(call)
+
+
+def _defects_text(defects: Sequence[Defect]) -> str:
+    lines = [f"- [{d.validator}] {d.message}" for d in defects]
+    return "\n".join(["Defectos bloqueantes:", *lines])
 
 
 def _fields(tool_input: dict[str, Any], narrative: tuple[str, ...]) -> tuple[PolicyField, ...]:

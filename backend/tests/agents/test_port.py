@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from story_maker.agents.ceiling import TokenCeiling
 from story_maker.agents.fake import Call, FakeAgent, Say, Script
 from story_maker.agents.policy_port import PolicyDecision, PolicyRequest
-from story_maker.agents.port import ACK, AgentPort, SessionRequest
+from story_maker.agents.port import ACK, AgentPort, Defect, SessionRequest
 from story_maker.agents.profiles import ToolsMismatch
 from story_maker.agents.tools import ToolSpec
 from story_maker.agents.usage import Usage
@@ -395,3 +395,36 @@ async def test_a_session_only_writes_its_role_session_and_what_the_policy_record
     after = fingerprint(session_factory)
     changed = {t: n - before[t] for t, n in after.items() if n != before[t]}
     assert changed == {"role_sessions": 1, "audit_log": 5}
+
+
+async def test_with_blocking_defects_the_model_reads_the_defects_instead_of_the_ack(
+    port: AgentPort,
+    fake: FakeAgent,
+    make_request: Callable[..., SessionRequest],
+) -> None:
+    too_short = Defect("longitud-capitulo", "el capítulo tiene 12 palabras; mínimo 1.000", True)
+    results = iter([[too_short], []])
+    first = {"title": "Uno", "text": "corto"}
+    second = {"title": "Uno", "text": "largo"}
+    fake.script(
+        "writer",
+        "write",
+        Script(
+            steps=(Call("submit_chapter", first), Call("submit_chapter", second), Say("Fin.")),
+            usage=USAGE,
+        ),
+    )
+
+    result = await port.run(
+        make_request("writer", "write", chapter_checks=lambda value: next(results))
+    )
+
+    reads = fake.sessions[0].reads
+    assert "el capítulo tiene 12 palabras; mínimo 1.000" in reads[0]
+    assert reads[0] != ACK
+    assert reads[1] == ACK
+    assert [(c.status, c.defects) for c in result.calls] == [
+        ("blocked", (too_short,)),
+        ("accepted", ()),
+    ]
+    assert len(fake.sessions) == 1
