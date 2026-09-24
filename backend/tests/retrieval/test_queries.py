@@ -8,7 +8,12 @@ import pytest
 from sqlalchemy.orm import Session, sessionmaker
 
 from story_maker.retrieval.fake import FixedVectors
-from story_maker.retrieval.queries import prospective_query, retrieve_for_writer
+from story_maker.retrieval.queries import (
+    prospective_query,
+    retrieve_for_editor,
+    retrieve_for_writer,
+    retrospective_query,
+)
 
 TOP_K = {"writer": 1, "editor": 1}
 
@@ -49,3 +54,33 @@ def test_the_writer_gets_the_card_its_beats_name_in_any_mode(
         cards = retrieve_for_writer(session, lighthouse_and_market["version"], 5, TOP_K, embedder)
 
     assert [card.id for card in cards] == [lighthouse_and_market["cards"]["lighthouse"]]
+
+
+def test_the_editor_query_has_one_fragment_per_paragraph() -> None:
+    text = "Marta compra pan.\n\nLuego pasea por el mercado.\n\n\n  Y vuelve a casa.\n"
+
+    assert retrospective_query(text) == [
+        "Marta compra pan.",
+        "Luego pasea por el mercado.",
+        "Y vuelve a casa.",
+    ]
+
+
+def test_the_editor_gets_the_card_its_text_names_and_the_writer_another_one(
+    session_factory: sessionmaker[Session],
+    lighthouse_and_market: dict[str, Any],
+    embedder: FixedVectors,
+) -> None:
+    version, cards = lighthouse_and_market["version"], lighthouse_and_market["cards"]
+    text = "Marta madruga.\n\nCompra pan en el mercado."
+
+    with session_factory() as session:
+        editor = retrieve_for_editor(session, version, 5, text, TOP_K, embedder)
+        writer = retrieve_for_writer(session, version, 5, TOP_K, embedder)
+        about_lighthouse = retrieve_for_editor(
+            session, version, 5, "Marta mira hacia su faro.", TOP_K, embedder
+        )
+
+    assert [card.id for card in editor] == [cards["market"]]
+    assert [card.id for card in writer] == [cards["lighthouse"]]
+    assert [card.id for card in about_lighthouse] == [cards["lighthouse"]]
