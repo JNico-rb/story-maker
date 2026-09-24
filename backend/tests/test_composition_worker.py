@@ -8,9 +8,11 @@ from __future__ import annotations
 import asyncio
 import datetime as dt
 import io
-from collections.abc import Callable
+import sys
+import types
+from collections.abc import Callable, Iterable
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 import pytest
 from fastapi import FastAPI
@@ -30,7 +32,7 @@ from story_maker.agents.port import SessionRequest
 from story_maker.agents.profiles import role_profile
 from story_maker.agents.sdk import SdkAgent, provider_env
 from story_maker.agents.usage import Usage
-from story_maker.composition import real_adapters
+from story_maker.composition import Adapters, real_adapters
 from story_maker.config import Config, load_config
 from story_maker.formal.double import ProgrammedFormalVerifier
 from story_maker.formal.result import INVARIANTS, ChronologyResult
@@ -352,3 +354,51 @@ async def test_stopping_the_server_stops_the_worker_without_losing_anything(
     with session_factory() as session:
         run = session.get_one(Run, running_id)
         assert (run.status, run.reason) == ("interrupted", "crash")
+
+
+class LocalTextEmbedding:
+    """Doble de la clase de `fastembed`: apunta con qué modelo se carga y qué incrusta."""
+
+    loaded: ClassVar[list[str]] = []
+    embedded: ClassVar[list[str]] = []
+
+    def __init__(self, model_name: str) -> None:
+        self.loaded.append(model_name)
+
+    def embed(self, documents: Iterable[str]) -> Iterable[list[float]]:
+        texts = list(documents)
+        self.embedded.extend(texts)
+        return [[0.5, 0.5] for _ in texts]
+
+
+async def test_a_new_novel_syncs_its_cards_with_the_local_embedding_model_of_the_mount(
+    data_dir: Path,
+    tmp_path: Path,
+    session_factory: sessionmaker[Session],
+    config: Config,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setitem(
+        sys.modules, "fastembed", types.SimpleNamespace(TextEmbedding=LocalTextEmbedding)
+    )
+    monkeypatch.setattr(LocalTextEmbedding, "loaded", [])
+    monkeypatch.setattr(LocalTextEmbedding, "embedded", [])
+    run_id = queue_generation(session_factory, config)
+    with session_factory() as session:
+        novel_model = session.get_one(Novel, session.get_one(Run, run_id).novel_id).embedding_model
+    settings = make_settings(data_dir, tmp_path / "sin-dist")
+    fake = FakeAgent()
+    script_published_novel(fake)
+    mounted = real_adapters(settings, config)
+    adapters = Adapters(
+        agent=fake,
+        formal_verifier=ProgrammedFormalVerifier([PASSED]),
+        render_pdf=novel_pdf,
+        embedder=mounted.embedder,
+    )
+
+    await serve_until(served_app(settings, adapters), finished(session_factory, run_id))
+
+    assert status_of(session_factory, run_id) == "published"
+    assert LocalTextEmbedding.loaded == [novel_model]
+    assert LocalTextEmbedding.embedded != []
