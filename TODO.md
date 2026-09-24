@@ -349,7 +349,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 007-C13 · El modo local compila en el directorio de datos e interpreta la salida
 - [x] 007-C14 · El modo github envía el fichero comprimido por `workflow_dispatch`
 - [x] 007-C15 · El modo github sondea la ejecución y lee el resultado del artefacto
-- [ ] 007-C16 · El input cabe en el límite de 65.535 caracteres o no se envía
+- [x] 007-C16 · El input cabe en el límite de 65.535 caracteres o no se envía
 - [ ] 007-C17 · Un GitHub inalcanzable o lento interrumpe sin reintentar
 - [ ] 007-C18 · El modo github sin sus ajustes no se construye
 - [ ] 007-C19 · El doble del `VerificadorFormal` devuelve lo programado sin red ni Lean

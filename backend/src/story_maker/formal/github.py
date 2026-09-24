@@ -21,11 +21,13 @@ from contextlib import asynccontextmanager
 import httpx
 
 from story_maker.formal.lean_output import LeanOutput, interpret
-from story_maker.formal.result import VerificationOutcome, VerifierInterruption
+from story_maker.formal.result import ChronologyResult, VerificationOutcome, VerifierInterruption
 
 API = "https://api.github.com"
 API_VERSION = "2022-11-28"
 INPUT = "fichero"
+MAX_INPUTS_CHARS = 65_535
+DOES_NOT_FIT = "el fichero no cabe en los inputs del workflow"
 ARTIFACT = "resultado-cronologia"
 RESULT_FILE = "resultado.json"
 # La biblioteca Lean y el workflow viven en V2.
@@ -54,6 +56,11 @@ def read_result(content: bytes) -> LeanOutput:
     if not valid:
         raise Unreachable("el artefacto no cumple el schema del resultado")
     return LeanOutput(payload["exit_code"], payload["output"])
+
+
+def inputs_fit(inputs: dict[str, str]) -> bool:
+    """Los inputs de un `workflow_dispatch` admiten 65.535 caracteres en total (ADR 0004)."""
+    return sum(len(value) for value in inputs.values()) <= MAX_INPUTS_CHARS
 
 
 def encode_input(source: str) -> str:
@@ -102,6 +109,8 @@ class GithubFormalVerifier:
 
     async def verify(self, source: str) -> VerificationOutcome:
         inputs = {INPUT: encode_input(source)}
+        if not inputs_fit(inputs):
+            return ChronologyResult("error", reason=DOES_NOT_FIT)
         async with self._session() as client:
             try:
                 return await self._verify(client, inputs)

@@ -4,9 +4,12 @@
 from __future__ import annotations
 
 import base64
+import functools
 import gzip
 import io
 import json
+import random
+import string
 import zipfile
 from collections.abc import Iterator
 from typing import Any
@@ -14,7 +17,7 @@ from typing import Any
 import httpx
 import pytest
 
-from story_maker.formal.github import GithubFormalVerifier
+from story_maker.formal.github import GithubFormalVerifier, encode_input, inputs_fit
 from story_maker.formal.result import ChronologyResult, VerifierInterruption
 
 REPOSITORY = "cliente/story-maker"
@@ -228,3 +231,58 @@ async def test_a_finished_run_without_a_valid_result_artifact_gives_no_verdict(
 
     assert isinstance(result, VerifierInterruption), label
     assert result.reason == "verifier_unreachable"
+
+
+# --- 007-C16 ---------------------------------------------------------------------------------
+
+
+@functools.cache
+def source_encoding_to(chars: int) -> str:
+    """Un fichero cuyo input codificado mide exactamente `chars` caracteres (múltiplo de 4:
+    base64 con relleno). Texto al azar con semilla fija, que gzip apenas comprime."""
+    rng = random.Random(7)  # noqa: S311 — datos de prueba deterministas, no criptografía
+    text = "".join(rng.choices(string.ascii_letters + string.digits, k=4 * chars))
+    low, high = 0, len(text)
+    while low < high:  # el prefijo más corto cuyo input llega a `chars`
+        middle = (low + high) // 2
+        if len(encode_input(text[:middle])) < chars:
+            low = middle + 1
+        else:
+            high = middle
+    assert len(encode_input(text[:low])) == chars
+    return text[:low]
+
+
+@pytest.mark.parametrize(
+    ("sizes", "fits"),
+    [((65_535,), True), ((65_536,), False), ((65_000, 535), True), ((65_000, 536), False)],
+)
+def test_the_inputs_fit_while_their_encoded_sizes_add_up_to_65535(
+    sizes: tuple[int, ...], fits: bool
+) -> None:
+    inputs = {f"input{i}": "A" * size for i, size in enumerate(sizes)}
+
+    assert inputs_fit(inputs) is fits
+
+
+async def test_the_largest_file_that_fits_is_sent(clock: FakeClock) -> None:
+    github = FakeGithub()
+
+    result = await make_verifier(github, clock).verify(source_encoding_to(65_532))
+
+    assert isinstance(result, ChronologyResult)
+    assert github.endpoints()[0] == "dispatch"
+    assert len(json.loads(github.requests[0].content)["inputs"]["fichero"]) == 65_532
+
+
+async def test_a_file_whose_input_does_not_fit_is_not_sent_and_is_an_error(
+    clock: FakeClock,
+) -> None:
+    github = FakeGithub()
+
+    result = await make_verifier(github, clock).verify(source_encoding_to(65_536))
+
+    assert result == ChronologyResult(
+        "error", reason="el fichero no cabe en los inputs del workflow"
+    )
+    assert github.requests == []
