@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from story_maker.retrieval.embedding import EmbeddingModel
-from story_maker.retrieval.lexical import candidates, words
+from story_maker.retrieval.lexical import bm25, candidates, words
 from story_maker.store.models import CanonCard
 
 
@@ -19,6 +19,7 @@ class RankedCard:
 
     card: CanonCard
     lexical_rank: int | None
+    lexical_score: float | None = None
 
 
 def eligible_cards(session: Session, version_id: int, chapter: int) -> list[CanonCard]:
@@ -45,11 +46,10 @@ def rank_cards(
     eligible = eligible_cards(session, version_id, chapter)
     query_words = {word for fragment in fragments for word in words(fragment)}
     lexical = candidates(session, query_words, [card.id for card in eligible])
-    lexical_ranks = {
-        card.id: rank
-        for rank, card in enumerate((card for card in eligible if card.id in lexical), start=1)
-    }
-    return [RankedCard(card, lexical_ranks.get(card.id)) for card in eligible]
+    scores = bm25(query_words, {card.id: card.text for card in eligible}, lexical)
+    by_score = sorted(scores, key=lambda card_id: -scores[card_id])
+    lexical_ranks = {card_id: rank for rank, card_id in enumerate(by_score, start=1)}
+    return [RankedCard(card, lexical_ranks.get(card.id), scores.get(card.id)) for card in eligible]
 
 
 def retrieve(
