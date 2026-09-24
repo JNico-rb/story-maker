@@ -274,8 +274,8 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 ### Steps
 - [x] 005-C09 · Sin coincidencia, permite
 - [x] 005-C01 · Una entrada de nivel global deniega
-- [ ] 005-C02 · Una entrada de nivel user deniega solo para su cliente
-- [ ] 005-C03 · Una entrada de nivel novel deniega solo para su novela
+- [x] 005-C02 · Una entrada de nivel user deniega solo para su cliente
+- [x] 005-C03 · Una entrada de nivel novel deniega solo para su novela
 - [ ] 005-C04 · Una variante de acento coincide
 - [ ] 005-C05 · Una variante de plural coincide
 - [ ] 005-C06 · Letras repetidas y leetspeak simple coinciden

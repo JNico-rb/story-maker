@@ -22,6 +22,37 @@ def test_entrada_global_deniega() -> None:
     assert decision.detail == [{"term": "idiota", "level": "global", "variant": "idiota"}]
 
 
+def test_entrada_user_deniega_solo_para_su_cliente() -> None:
+    entradas = [EntradaProhibida(term="marta", type="word", level="user", owner="cliente-a")]
+    peticion_a = PeticionDePolitica(
+        origen="policy_hook",
+        cliente="cliente-a",
+        campos=[CampoNarrativo(path="c", narrativo=True, texto="la protagonista se llama Marta")],
+        banned_entries=entradas,
+    )
+    peticion_b = peticion_a.model_copy(update={"cliente": "cliente-b"})
+
+    assert decide(peticion_a).decision == "deny"
+    assert decide(peticion_a).detail == [{"term": "marta", "level": "user", "variant": "Marta"}]
+    assert decide(peticion_b).decision == "allow"
+
+
+def test_entrada_novel_deniega_solo_para_su_novela() -> None:
+    entradas = [EntradaProhibida(term="cristina", type="word", level="novel", owner="n1")]
+    peticion_n1 = PeticionDePolitica(
+        origen="policy_hook",
+        cliente="cliente-a",
+        novela="n1",
+        campos=[CampoNarrativo(path="c", narrativo=True, texto="la ex se llamaba Cristina")],
+        banned_entries=entradas,
+    )
+    peticion_n2 = peticion_n1.model_copy(update={"novela": "n2"})
+
+    assert decide(peticion_n1).decision == "deny"
+    assert decide(peticion_n1).detail[0]["level"] == "novel"
+    assert decide(peticion_n2).decision == "allow"
+
+
 def test_sin_coincidencia_permite() -> None:
     entradas = [
         EntradaProhibida(term="idiota", type="word", level="global"),
