@@ -193,7 +193,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 003-C29 · Una sesión sin guion hace fallar la prueba
 - [x] 003-I6 · Ninguna prueba T llega a un modelo
 - [x] 003-I7 · Solo el puerto de agente usa el Agent SDK
-- [ ] 003-C01 · Cada rol abre con su lista blanca y nada más
+- [x] 003-C01 · Cada rol abre con su lista blanca y nada más
 - [ ] 003-C02 · Unas tools que no cuadran con la lista blanca impiden abrir
 - [ ] 003-C03 · La sesión corre aislada en el workspace
 - [ ] 003-C04 · Solo el revisor visual declara el browser MCP

@@ -43,7 +43,7 @@ async def test_the_sdk_adapter_cannot_open_a_session_in_the_suite_and_launches_n
     monkeypatch.setattr(subprocess, "Popen", record)
     monkeypatch.setattr(asyncio, "create_subprocess_exec", record)
     port = AgentPort(
-        agent=SdkAgent(make_settings()),
+        agent=SdkAgent(make_settings(), workspace=workspace),
         config=config,
         ceiling=ceiling,
         policy=policy,
