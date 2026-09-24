@@ -422,7 +422,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 008-C03 · Un turno aplica lo que entrega el entrevistador
 - [x] 008-C04 · `update_brief` actúa como parche del borrador
 - [x] 008-C05 · `update_brief` no alcanza lo que decide el cliente
-- [ ] 008-C06 · Una dedicatoria con una prohibida no entra por `update_brief`
+- [x] 008-C06 · Una dedicatoria con una prohibida no entra por `update_brief`
 - [ ] 008-C07 · Un turno fallido no se guarda
 - [ ] 008-C08 · Mensaje rechazado antes de abrir la sesión
 - [ ] 008-C09 · Datos faltantes, uno por campo
