@@ -123,13 +123,13 @@ class RubricJudgement:
 
 
 def judge_review(review: ChapterReview, thresholds: Mapping[str, int]) -> RubricJudgement:
-    """Un criterio bloqueante bajo su umbral crea un defecto bloqueante con la justificación del
-    editor; un defecto marcado bloqueante solo bloquea en un criterio bloqueante. Determinista:
-    la misma revisión con los mismos umbrales da siempre lo mismo."""
+    """Un criterio bajo su umbral crea un defecto con la justificación del editor, bloqueante
+    solo si el criterio lo es; un defecto marcado bloqueante solo bloquea en un criterio
+    bloqueante. Determinista: la misma revisión con los mismos umbrales da siempre lo mismo."""
     below = [
-        RubricDefect(s.criterion, True, s.justification)
+        RubricDefect(s.criterion, s.criterion in BLOCKING_CRITERIA, s.justification)
         for s in review.scores
-        if s.criterion in BLOCKING_CRITERIA and s.score < thresholds[s.criterion]
+        if s.score < thresholds[s.criterion]
     ]
     typed = [
         RubricDefect(d.criterion, d.blocking and d.criterion in BLOCKING_CRITERIA, d.message)

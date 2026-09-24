@@ -152,7 +152,11 @@ def rubric_run(judgement: RubricJudgement) -> ValidatorRun:
     return ValidatorRun(
         validator=RUBRIC,
         passed=judgement.passed,
-        comment="; ".join(d.message for d in judgement.blocking) or "sin defectos bloqueantes",
+        comment="; ".join(
+            f"{'bloqueante' if d.blocking else 'no bloqueante'} [{d.criterion}]: {d.message}"
+            for d in judgement.defects
+        )
+        or "sin defectos",
         defects=tuple(
             defect_entry(RUBRIC, d.message, d.blocking, d.criterion) for d in judgement.defects
         ),
