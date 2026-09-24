@@ -309,7 +309,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcado con el cambio de C4
 
 ### Steps
-- [ ] C4 — Las transiciones de `Harness.tla` son las de §9.1
+- [x] C4 — Las transiciones de `Harness.tla` son las de §9.1 — modelo con el cambio de C10 (en `gate`, solo el ciclo fallido cuenta un intento); fila `Validar` de C4 y §9.2/§9.4 por actualizar (integrador)
 - [ ] C1 — `Harness.tla` pasa en el modelo pequeño
 - [ ] C5 — Las transiciones de `Regenerations.tla` son las de §10.2
 - [ ] C2 — `Regenerations.tla` pasa con dos cambios
