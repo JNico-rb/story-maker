@@ -469,3 +469,21 @@ def test_check_env_fails_naming_the_role_missing_its_current_prompt(
 
     assert result.exit_code == 1
     assert "writer" in result.stdout
+
+
+# --- I3: auth_check() nunca falla en silencio --------------------------------------------------
+
+
+def test_check_env_reports_an_unexpected_auth_check_error_instead_of_ok_or_a_crash(
+    monkeypatch: pytest.MonkeyPatch, base_env: Path, fake_langfuse_client: FakeLangfuseClient
+) -> None:
+    runner.invoke(app, ["init-db"])
+    _set_langfuse_env(monkeypatch)
+    fake_langfuse_client.auth_raises = RuntimeError("langfuse cloud unreachable")
+    _use_fake_langfuse_client(monkeypatch, fake_langfuse_client)
+
+    result = runner.invoke(app, ["check-env"])
+
+    assert result.exit_code == 1
+    assert "observabilidad: ok" not in result.stdout
+    assert "Langfuse" in result.stdout

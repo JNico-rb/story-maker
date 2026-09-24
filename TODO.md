@@ -246,7 +246,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 004-C03 · `check-env` informa «ok» con credenciales válidas y prompts vigentes
 - [x] 004-C04 · `check-env` falla si las credenciales de Langfuse no son válidas
 - [x] 004-C05 · `check-env` falla si a un rol le falta el prompt con la etiqueta vigente
-- [ ] 004-I3 · `auth_check()` nunca falla en silencio
+- [x] 004-I3 · `auth_check()` nunca falla en silencio
 - [ ] 004-C06 · `serve` no arranca en las mismas situaciones que `check-env`
 - [ ] 004-C07 · `prompts push` sube una versión nueva si cambia la huella del fichero
 - [ ] 004-C08 · `prompts push` no sube si la huella no cambió
