@@ -10,7 +10,7 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 
 ## Estado (2026-09-24)
 
-**Integradas en V2:** 000 (D al final), 026 (frontend, lectura), presentación (esqueleto del deck en Marp, `presentacion/deck.md`), 001, 002, 003, 004, 005, 006, 007, 008, 009, 010, 011, 013, 020 parcial (C06–C09, I2), 016 (cerrada recortada) y 022 (frontend).
+**Integradas en V2:** 029 (cli, cerrada recortada), 000 (D al final), 026 (frontend, lectura), presentación (esqueleto del deck en Marp, `presentacion/deck.md`), 001, 002, 003, 004, 005, 006, 007, 008, 009, 010, 011, 013, 020 parcial (C06–C09, I2), 016 (cerrada recortada) y 022 (frontend).
 
 ### Alcance
 
@@ -37,9 +37,10 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 | 0 — integrador | 000 | — | checkout principal | `V2` | cerrada (D al final) |
 | A | 014 (parte A: C01–C11, I1–I4, I6, I11; parte B tras 012) | 012 | `../sm-a` | `carril-a` | en curso |
 | D | 020 (C01–C05, I1; después C15 tras 012) | — | `../sm-d` | `carril-d` | en curso |
-B6 cerrada e integrada; 027 espera a 014 parte A en V2 |
+| E | 026 → 027 (027 tras 014 parte A) | 014 parte A | `../sm-e` | `carril-e` | 026 cerrada e integrada; 027 espera a 014 parte A en V2 |
 | I | 012 (con el WIP de la rama `wip-012-gate`) | 007, 011 | `../sm-i` | `carril-i` | en curso, ruta crítica |
-| K | 029 (C01, C05–C08) | — | `../sm-k` | `carril-k` | en curso |
+| K | 029 (C01, C05–C08) | — | `../sm-k` | `carril-k` | cerrada e integrada |
+| W | workspace de producto: 010-I8, 011-I12–I14 (solo `backend/harness_workspace/`) | — | `../sm-w` | `carril-w` | en curso |
 | P | presentación (solo `presentacion/`) | — | `../sm-p` | `carril-p` | esqueleto integrado; faltan los [PENDIENTE] tras la tanda D |
 
 Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs alternativos están en `ejemplos/briefs-extra/`.
@@ -520,6 +521,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] 010-I4 · Los intentos del evaluable `plan` nunca superan 1 + `max_retries.plan`, contando los de antes de una reanudación; el cortado por una caíd…
 - [x] 010-I5 · El punto de control 0 existe si y solo si el plan está aplicado, se escribe una sola vez, y relanzar con él nunca abre el planner
 - [x] 010-I6 · `outline` es determinista y exhaustivo
+- [ ] 010-I8 · El prompt del planner en modo `plan` (entrega tardía, carril W; lo lee el `verificador`)
 - [ ] 010-C30 · Planificación con el modelo real (D, al final)
 
 ### Closing
@@ -575,6 +577,9 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [ ] 011-I9 · Las ventanas solo llevan datos de la candidata de su novela, nunca de otra novela del mismo cliente ni de otro cliente (recortado)
 - [ ] 011-I10 · El tamaño estimado de la ventana entra en la reserva de su sesión (recortado)
 - [ ] 011-I11 · Los usos y los eventos registrados solo citan hechos y entidades de la candidata (recortado)
+- [ ] 011-I12 · El `CLAUDE.md` de producto (entrega tardía, carril W; lo lee el `verificador`)
+- [ ] 011-I13 · La skill `personalizacion-natural` (entrega tardía, carril W)
+- [ ] 011-I14 · Los prompts del writer (`write`, `rewrite`) y del editor (entrega tardía, carril W)
 - [ ] 011-C32 · Una producción real con el login de Claude Code llega al gate y se reanuda (D, al final)
 
 ### Closing
