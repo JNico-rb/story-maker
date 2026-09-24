@@ -163,7 +163,7 @@ Cada fila de una tabla es una variación de F con una sola causa.
   - las listas prohibidas de los tres niveles no cambian y no se encola nada.
 
 #### 014-C06 — El código valida la propuesta y una inválida vuelve al planner con sus defectos (RT4) (T)
-- **Dado** F y la selección de la fila. La primera entrega del planner falso es la de la fila; la segunda es la de 014-C01.
+- **Dado** F y la selección de la fila. La primera entrega del planner falso es la de la fila; la segunda es la de 014-C01, salvo en la fila del fragmento del capítulo 3: ahí el perro no está en la selección y esa entrega también sería inválida, así que la segunda cambia el postre favorito del destinatario, que sí aparece en ese capítulo.
 - **Cuando** el cliente A pide el cambio.
 - **Entonces:**
   - Cada entrega inválida es un `Intento` del evaluable `change`, con desenlace `rewrite`.
