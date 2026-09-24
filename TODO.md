@@ -458,3 +458,58 @@ Todas dependen de 000. Arranque en paralelo cuando 000 esté cerrada: A (001), C
 - [ ] Full suite green, type checks clean
 - [ ] Spec updated, or confirmed still true
 - [ ] Docs updated, or confirmed still true
+
+## 011 — produccion-de-capitulos
+
+- [x] Spec `specs/backend/011-produccion-de-capitulos.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
+
+### Steps
+- [ ] 011-C01 · Lanzar la generación la encola
+- [ ] 011-C02 · Solo se lanza una generación desde una novela lista
+- [ ] 011-C03 · Una sola ejecución activa en una cola FIFO global
+- [ ] 011-C04 · El progreso se consulta por sondeo
+- [ ] 011-C05 · De la planificación a la escritura
+- [ ] 011-C06 · Fallar descarta la candidata y libera la cola
+- [ ] 011-C07 · Ventana del writer
+- [ ] 011-C08 · Ventana del editor
+- [ ] 011-C09 · Cada sesión reserva en el techo, y una que no cabe nunca hace fallar
+- [ ] 011-C10 · Una entrega que pasa los hooks llega al editor
+- [ ] 011-C11 · `longitud-capitulo` en sus límites
+- [ ] 011-C12 · `nombres-exactos` sobre el título y el texto
+- [ ] 011-C13 · Qué cuenta como intento en la sesión del writer
+- [ ] 011-C14 · Una sesión del writer que termina sin entrega válida es un intento fallido
+- [ ] 011-C15 · La revisión del editor tiene schema y solo cita lo que existe
+- [ ] 011-C16 · El veredicto lo decide el código
+- [ ] 011-C17 · Reescribir es una sesión nueva con los defectos
+- [ ] 011-C18 · Los intentos de un capítulo se agotan con motivo
+- [ ] 011-C19 · Aceptar un capítulo es una transacción
+- [ ] 011-C20 · Los usos son los declarados más la coincidencia literal de los hechos nominales
+- [ ] 011-C21 · Si la transacción de aceptación falla, no queda nada del capítulo
+- [ ] 011-C22 · Volver a aceptar un capítulo reemplaza lo que dejó su aceptación anterior
+- [ ] 011-C23 · Tras el décimo capítulo, el gate
+- [ ] 011-C24 · Un error del proveedor interrumpe y no cuenta como intento
+- [ ] 011-C25 · Al arrancar el servidor, lo que estaba en curso se interrumpe
+- [ ] 011-C26 · Reanudar vuelve a encolar la ejecución en su puesto
+- [ ] 011-C27 · Reanudar sigue tras el último punto de control
+- [ ] 011-C28 · Caer con las reanudaciones agotadas es fallar
+- [ ] 011-C29 · Un error imprevisto del worker falla con `internal_error`
+- [ ] 011-C30 · El informe de la ejecución se calcula al pedirlo
+- [ ] 011-C31 · Trazas, spans y scores de la producción
+- [ ] 011-I1 · Hay como mucho una ejecución `running` en el servidor, y las `queued` salen en orden de fecha de creación
+- [ ] 011-I2 · `ReanudacionSinDuplicarNiPerder`
+- [ ] 011-I3 · `ReintentosAcotados`
+- [ ] 011-I4 · La aceptación es atómica
+- [ ] 011-I5 · Ningún rol escribe canon
+- [ ] 011-I6 · Ningún capítulo aceptado tiene un defecto bloqueante
+- [ ] 011-I7 · El writer nunca recibe prosa recuperada
+- [ ] 011-I8 · Writer y editor son sesiones distintas
+- [ ] 011-I9 · Las ventanas solo llevan datos de la candidata de su novela, nunca de otra novela del mismo cliente ni de otro cliente
+- [ ] 011-I10 · El tamaño estimado de la ventana entra en la reserva de su sesión
+- [ ] 011-I11 · Los usos y los eventos registrados solo citan hechos y entidades de la candidata
+- [ ] 011-C32 · Una producción real con el login de Claude Code llega al gate y se reanuda (D, al final)
+
+### Closing
+- [ ] Full suite green, type checks clean
+- [ ] Spec updated, or confirmed still true
+- [ ] Docs updated, or confirmed still true
