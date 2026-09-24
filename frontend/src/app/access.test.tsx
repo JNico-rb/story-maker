@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { clearSession, readSession } from "../shared/lib";
 import { buildRoutes } from "./router";
 
 // API simulada en el límite del cliente: cada prueba declara qué responde cada ruta (spec 002).
@@ -41,15 +42,22 @@ function storedValues(): string {
   return all.join("\n");
 }
 
+function expectNoSession() {
+  expect(readSession()).toBeNull();
+  expect(storedValues()).toBe("");
+}
+
 // Cuerpo 422 de FastAPI: `loc` señala el campo que no tiene forma válida.
 function invalid(field: "email" | "password") {
   return { detail: [{ type: "value_error", loc: ["body", field], msg: "no válido" }] };
 }
 
-const EMAIL ="persona@example.com";
+const EMAIL = "persona@example.com";
 const PASSWORD = "contrasena-de-prueba";
+const TOKEN = "token-de-prueba";
 
 beforeEach(() => {
+  clearSession();
   localStorage.clear();
   sessionStorage.clear();
 });
@@ -76,7 +84,7 @@ describe("022 registro", () => {
     expect(screen.getByLabelText("Contraseña")).toHaveValue("");
     expect(sent).toHaveLength(1);
     expect(sent[0]?.body).toEqual({ email: EMAIL, password: PASSWORD });
-    expect(storedValues()).toBe("");
+    expectNoSession();
   });
 
   it("022-C02: an email that already has an account keeps the registration form, says so next to the email and clears the password", async () => {
@@ -94,7 +102,7 @@ describe("022 registro", () => {
     expect(screen.getByRole("heading", { name: "Crear cuenta" })).toBeInTheDocument();
     expect(screen.getByLabelText("Email")).toHaveValue(EMAIL);
     expect(screen.getByLabelText("Contraseña")).toHaveValue("");
-    expect(storedValues()).toBe("");
+    expectNoSession();
   });
 
   it("022-C03: an invalid registration shows the message next to the field the API pointed at, keeps the email, clears the password and can be resent", async () => {
@@ -168,6 +176,23 @@ describe("022 acceso", () => {
     await user.click(screen.getByRole("button", { name: "Entrar" }));
 
     await vi.waitFor(() => expect(sent).toHaveLength(2));
-    expect(storedValues()).toBe("");
+    expectNoSession();
+  });
+
+  it("022-C04: a valid login stores the session with the token and leaves the access screen for the main screen", async () => {
+    const sent = fakeApi({
+      "POST /api/auth/login": () => ({ status: 200, body: { access_token: TOKEN } }),
+    });
+    const user = userEvent.setup();
+    const router = renderAt("/acceso");
+
+    await user.type(screen.getByLabelText("Email"), EMAIL);
+    await user.type(screen.getByLabelText("Contraseña"), PASSWORD);
+    await user.click(screen.getByRole("button", { name: "Entrar" }));
+
+    await vi.waitFor(() => expect(router.state.location.pathname).toBe("/"));
+    expect(screen.queryByRole("heading", { name: "Entrar" })).not.toBeInTheDocument();
+    expect(readSession()).toBe(TOKEN);
+    expect(sent[0]?.body).toEqual({ email: EMAIL, password: PASSWORD });
   });
 });

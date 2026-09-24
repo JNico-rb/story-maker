@@ -955,7 +955,7 @@ Todas dependen de 000. Carril B disuelto y C rehecho (decisión del usuario, 202
 - [x] 022-C01 · Registro válido lleva a la pantalla de acceso
 - [x] 022-C02 · Registro con un email ya usado
 - [x] 022-C03 · Errores de datos inválidos, campo a campo
-- [ ] 022-C04 · Acceso válido guarda la sesión y entra
+- [x] 022-C04 · Acceso válido guarda la sesión y entra
 - [ ] 022-C05 · Credenciales incorrectas
 - [ ] 022-C06 · Cada petición a una pantalla protegida envía la sesión guardada
 - [ ] 022-C07 · Sin sesión guardada, una pantalla protegida redirige a acceso

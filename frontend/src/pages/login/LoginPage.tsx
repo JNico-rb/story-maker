@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from "react";
-import { Link, useLocation } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 
 import { invalidFields } from "../../shared/api";
+import { saveSession } from "../../shared/lib";
 import { TextField } from "../../shared/ui";
 
 type ArrivalState = { registeredEmail?: string } | null;
@@ -17,6 +18,7 @@ async function errorsFor(response: Response): Promise<FieldErrors> {
 }
 
 export function LoginPage() {
+  const navigate = useNavigate();
   const arrival = useLocation().state as ArrivalState;
   const [email, setEmail] = useState(arrival?.registeredEmail ?? "");
   const [password, setPassword] = useState("");
@@ -30,7 +32,13 @@ export function LoginPage() {
       body: JSON.stringify({ email, password }),
     });
     setPassword("");
-    setErrors(await errorsFor(response));
+    if (response.ok) {
+      const { access_token } = (await response.json()) as { access_token: string };
+      saveSession(access_token);
+      await navigate("/");
+    } else {
+      setErrors(await errorsFor(response));
+    }
   }
 
   return (
