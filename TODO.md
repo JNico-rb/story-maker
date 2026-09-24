@@ -522,11 +522,11 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
-- [ ] 010-C01 · La candidata nace con el canon del brief
-- [ ] 010-C02 · Fechas de nacimiento del canon
-- [ ] 010-C03 · Fechado de los recuerdos
-- [ ] 010-C04 · Eventos y lugares de los recuerdos
-- [ ] 010-C05 · Hechos extraídos en el canon
+- [x] 010-C01 · La candidata nace con el canon del brief
+- [x] 010-C02 · Fechas de nacimiento del canon
+- [x] 010-C03 · Fechado de los recuerdos
+- [x] 010-C04 · Eventos y lugares de los recuerdos
+- [x] 010-C05 · Hechos extraídos en el canon
 - [x] 010-C06 · Ventana del planner
 - [x] 010-C07 · Catálogo de tropos curado
 - [x] 010-C08 · Schema de `submit_plan`
