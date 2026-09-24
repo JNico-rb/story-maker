@@ -139,9 +139,9 @@ Todas dependen de 000. Carril B disuelto y C rehecho (decisión del usuario, 202
 - [ ] 001-C23 · Un clon limpio arranca siguiendo el README (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-24: `uv run pytest` 278 passed; `uv run ruff check .` All checks passed; `uv run ruff format --check .` 38 files already formatted; `uv run mypy src` Success, no issues found in 23 source files
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 002 — autenticacion
 
