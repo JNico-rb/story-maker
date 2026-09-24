@@ -1,6 +1,7 @@
 ---
 name: seguridad
 description: Auditoría de seguridad del repo y de la API del harness (inyección de prompts, exfiltración entre clientes, dependencias, secretos en el historial) con informe en docs/security-report.md. Úsalo en la spec 021 o antes de una entrega; pásale el alcance y la ruta del checkout.
+model: opus
 tools: Read, Grep, Glob, Bash, Write
 ---
 

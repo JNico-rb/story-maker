@@ -1,6 +1,7 @@
 ---
 name: verificador
 description: Verifica que la rama de un carril entrega lo que el plan de una spec marca como hecho, ejecuta la suite completa y los tipos y, si todo pasa, marca las tres casillas de cierre. Úsalo al terminar una spec, antes del commit de cierre; pásale NNN y la ruta absoluta del worktree.
+model: opus
 tools: Read, Grep, Glob, Bash, Edit
 ---
 

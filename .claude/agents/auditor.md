@@ -1,6 +1,7 @@
 ---
 name: auditor
 description: Audita una spec o un plan de TODO.md contra los docs, el encargo y las specs vecinas; sin huecos bloqueantes marca su casilla de aprobación y deja acta. Úsalo después de redactar o corregir una spec o un plan; pásale NNN, qué auditar (spec | plan) y el número de ronda.
+model: opus
 tools: Read, Grep, Glob, Edit
 ---
 

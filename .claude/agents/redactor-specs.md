@@ -1,6 +1,7 @@
 ---
 name: redactor-specs
 description: Escribe o corrige una spec (specs/backend|frontend/NNN-nombre.md) desde los docs tal como están, sin autorrevisión ni auditoría. Uno por spec, en paralelo. Úsalo en /spec y cuando el auditor devuelva huecos; pásale NNN, nombre, lado y, en una ronda de corrección, los huecos.
+model: opus
 tools: Read, Grep, Glob, Write, Edit
 ---
 

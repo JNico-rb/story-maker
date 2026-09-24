@@ -1,6 +1,7 @@
 ---
 name: implementador
 description: Implementa con TDD el plan aprobado de una spec en el worktree de su carril, paso a paso, con commit por paso verde. Úsalo desde /carril, /implementar o /orquestar sin terminales; pásale NNN, la ruta absoluta del worktree y la rama.
+model: sonnet
 permissionMode: acceptEdits
 ---
 
