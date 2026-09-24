@@ -90,8 +90,8 @@ Las filas son los validadores de `verification.md` §4.2 (a), en ese orden; las 
 ### Demostraciones (con modelo real, al final)
 
 #### 020-C16 — La novela de ejemplo real (D)
-- **Entrada:** `story-maker example` sobre el brief del README, con el modelo real.
-- **Salida:** `ejemplos/novela-ejemplo.pdf`, con 10 capítulos, pasa `pdf-enlaces`. Es el fichero que se commitea.
+- **Entrada:** la ejecución real de 020-C10 sobre el brief 1 (`ejemplo`, el del README); no se genera aparte (usuario, 2026-09-25: plazo).
+- **Salida:** el PDF de su versión publicada, copiado a `ejemplos/novela-ejemplo.pdf`, con 10 capítulos, pasa `pdf-enlaces`. Es el fichero que se commitea. `example` (020-C15) sigue siendo la vía reproducible del README.
 
 
 #### 020-C10 — Cinco briefs reales llenan (a) y (b) (D)

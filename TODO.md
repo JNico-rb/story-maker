@@ -22,6 +22,8 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 
 **Arranque de la tanda D (decisión del usuario, 2026-09-25, por velocidad):** empieza en cuanto 031 y 020-C03, C04, C15 estén en V2, sin esperar a 014 parte B. El cambio del lector (020-C14, 014-C20) y el tuning (020-C11) van cuando llegue la parte B.
 
+**Aceleración (usuario, 2026-09-25, plazo < 10 h):** 5 generaciones completas en total; la novela de ejemplo es la del brief 1 de las evals (020-C16), que se genera primero. En cuanto se publica, en paralelo a los briefs 2–5: recorridos de Playwright (026-C14, 000-C15/C16) sobre una copia de la base (un segundo `serve` sobre la misma base tomaría la cola y marcaría `interrupted` la ejecución en curso) y la plantilla de revisión humana lista. Durante un paso, el implementador corre solo las pruebas de su módulo; la suite completa, una vez antes de cada commit, nunca se salta. Reintentos, umbrales y rúbricas no se tocan.
+
 **Modelos:** implementador sonnet por defecto, opus en 012 y 014; verificador sonnet.
 
 **Protocolo de integración:** verificador PASS → commit en el carril → `git merge --no-ff` en V2 → suite completa → `git push origin V2`. Rojo → `git reset --merge ORIG_HEAD`.
@@ -947,8 +949,8 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 
 ## 020 — evals
 
-- [x] Spec `specs/backend/020-evals.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; recibe `example` desde 013 (C15, C16); re-marcada 2026-09-25 (integrador: sin revisión, decisión del usuario) con C17 y la identidad del brief de eval
-- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; pasos C15 y C16 añadidos; re-marcado 2026-09-25 (integrador: sin revisión, decisión del usuario) con C17
+- [x] Spec `specs/backend/020-evals.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; recibe `example` desde 013 (C15, C16); re-marcada 2026-09-25 (integrador: sin revisión, decisión del usuario) con C17, la identidad del brief de eval y C16 servida por la ejecución del brief 1
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; pasos C15 y C16 añadidos; re-marcado 2026-09-25 (integrador: sin revisión, decisión del usuario) con C17 y C16 servida por el brief 1
 
 **Cierre parcial** (C06–C09, I2: `evals table`) — verificador 2026-09-24: PASS; `uv run pytest` 959 passed, ruff y mypy limpios. El resto de la 020 sigue abierto.
 
@@ -971,7 +973,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [ ] 020-C12 · Juez frente a revisión humana (D, al final)
 - [ ] 020-C13 · El caso que solo detecta Lean (D, al final)
 - [ ] 020-C14 · Un cambio del lector propagado y su coste (D, al final)
-- [ ] 020-C16 · La novela de ejemplo real (D, al final)
+- [ ] 020-C16 · La novela de ejemplo real: el PDF de la ejecución del brief 1 de 020-C10 (D, al final)
 
 ### Closing
 - [ ] Full suite green, type checks clean
