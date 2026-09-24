@@ -15,6 +15,7 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 - **Aprobadas (spec y plan):** 001, 002, 003, 006, 007, 008, 009, 010, 011, 012, 014, 015, 016, 017, 018, 019. **En redacción:** 004, 005. **Sin redactar:** 013, 020, 021.
 - **Ruta crítica:** 000 → 001 → 002 → 009 → 010 → 011 → 012 → 014 → 015 → 021 (carril A). B lleva 003, 016 y 017; C, 005, 007, 008 y 019; F, 018; D, 006, 004, 013 y 020.
 - **Avisos abiertos:**
+  - Adaptador del motor de políticas real para el puerto de agente (carga de prohibidas por cliente y novela, `base_url` del revisor visual, `record_decision` en el audit log): lo cablea la primera spec que abre sesiones reales, 008, y lo reutiliza 011; patrón en `tests/agents/test_port.py` (`RealEngine`) de carril-b.
   - 009 ofrece la lectura de la `Cronologia` y la escritura de `chronology_files` (lo pide 007).
   - 012 decide qué hace el gate con el `error` de 007; la propuesta es `failed` con `internal_error`.
   - 014: la propuesta pedida por MCP cuelga de `mcp:request_change` (lo pide 015).
