@@ -70,6 +70,23 @@ def test_un_tema_coincide_por_cualquiera_de_sus_palabras_clave() -> None:
     assert d3.decision == "allow"
 
 
+def test_nunca_escanea_un_campo_no_marcado_como_narrativo() -> None:
+    entradas = [EntradaProhibida(term="marta", type="word", level="global")]
+    peticion = PeticionDePolitica(
+        origen="policy_hook",
+        cliente="cliente-1",
+        campos=[
+            CampoNarrativo(path="capitulo.texto", narrativo=True, texto="un texto tranquilo"),
+            CampoNarrativo(
+                path="brief.prohibidas", narrativo=False, texto="marta es un termino prohibido"
+            ),
+        ],
+        banned_entries=entradas,
+    )
+
+    assert decide(peticion).decision == "allow"
+
+
 def test_sin_coincidencia_permite() -> None:
     entradas = [
         EntradaProhibida(term="idiota", type="word", level="global"),
