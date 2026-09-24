@@ -809,7 +809,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 016-C18 · La consulta retrospectiva del editor tiene otro punto ciego
 - [x] 016-C19 · `top_k` por rol y escasez
 - [x] 016-C20 · Sin modelo no hay recuperación a medias
-- [ ] 016-I1 · Determinista
+- [x] 016-I1 · Determinista
 - [ ] 016-I2 · Corte temporal
 - [ ] 016-I3 · Solo la versión pedida
 - [ ] 016-I4 · Las CanonCards son función de la story bible

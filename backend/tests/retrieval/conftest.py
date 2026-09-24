@@ -177,6 +177,55 @@ class Canon:
             uow.session.flush()
             return card.id
 
+    def story(
+        self, version_id: int, entities: Story, embedder: EmbeddingModel | None = None
+    ) -> dict[int, tuple[int, int]]:
+        """Las entidades de `entities` y sus cadenas de tarjetas, en una unidad de trabajo, como
+        la escribiría una sincronización. Devuelve tarjeta → (índice de la entidad, capítulo)."""
+        with unit_of_work(self.session_factory) as uow:
+            placed: list[tuple[CanonCard, int, int]] = []
+            for index, (kind, chain) in enumerate(entities):
+                character = place = None
+                if kind == "character":
+                    row: Character | Place = Character(
+                        version_id=version_id,
+                        type="invented",
+                        species="person",
+                        canonical_name=f"Personaje {index}",
+                        origin="invented",
+                    )
+                elif kind == "place":
+                    row = Place(
+                        version_id=version_id,
+                        canonical_name=f"Lugar {index}",
+                        description=f"Lugar {index}",
+                        origin="invented",
+                    )
+                if kind != "world":
+                    uow.add(row)
+                    uow.session.flush()
+                    character = row.id if kind == "character" else None
+                    place = row.id if kind == "place" else None
+                for from_chapter, text in chain:
+                    card = CanonCard(
+                        version_id=version_id,
+                        entity_type=kind,
+                        character_id=character,
+                        place_id=place,
+                        from_chapter=from_chapter,
+                        text=text,
+                        content_hash=fingerprint(text),
+                    )
+                    uow.add(card)
+                    placed.append((card, index, from_chapter))
+            store_vectors(uow, [card for card, _, _ in placed], embedder or self.embedder)
+            uow.session.flush()
+            return {card.id: (index, chapter) for card, index, chapter in placed}
+
+
+# Una story bible generada: por entidad, su tipo y su cadena de (desde_capitulo, texto).
+Story = list[tuple[str, list[tuple[int, str]]]]
+
 
 @pytest.fixture
 def engine(tmp_path: Path) -> Iterator[Engine]:
