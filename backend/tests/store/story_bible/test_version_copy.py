@@ -11,6 +11,7 @@ import pytest
 from sqlalchemy import text
 
 from story_maker.store import models
+from story_maker.store.brief_canon import create_generation_candidate
 from story_maker.store.session import unit_of_work
 from story_maker.store.version_copy import copy_version
 
@@ -214,3 +215,69 @@ def test_copying_is_all_or_nothing(store: Any, faults: Any) -> None:
 
     k_id, ids = store.copy(v1.version_id)
     _assert_is_a_full_copy(store, v1.version_id, k_id, ids)
+
+
+GENERATION_ROWS = {
+    models.Version: 1,
+    models.Character: 4,
+    models.Place: 3,
+    models.Fact: 13,
+    models.Event: 3,
+    models.EventCharacter: 5,
+}
+
+
+@pytest.mark.parametrize("position", ["first", "last"])
+@pytest.mark.parametrize("model", list(GENERATION_ROWS), ids=lambda m: m.__tablename__)
+def test_a_generation_candidate_that_fails_at_any_row_leaves_nothing(
+    store: Any, faults: Any, f1: Any, model: Any, position: str
+) -> None:
+    novel_id = store.new_novel()
+    sizes = _table_sizes(store)
+    nth = 1 if position == "first" else GENERATION_ROWS[model]
+
+    def create() -> None:
+        with unit_of_work(store.session_factory) as uow:
+            novel = uow.session.get(models.Novel, novel_id)
+            create_generation_candidate(faults.wrap(uow, model, nth=nth), novel, f1, now=store.now)
+
+    with pytest.raises(faults.error):
+        create()
+    assert _table_sizes(store) == sizes
+
+
+COPIED_MODELS = [
+    models.Version,
+    models.World,
+    models.Character,
+    models.Place,
+    models.Fact,
+    models.FactUsage,
+    models.Event,
+    models.EventCharacter,
+    models.OutlineChapter,
+    models.StyleSheet,
+    models.Chapter,
+    models.CanonCard,
+]
+
+
+@pytest.mark.parametrize("position", ["first", "last"])
+@pytest.mark.parametrize("model", COPIED_MODELS, ids=lambda m: m.__tablename__)
+def test_a_copy_that_fails_at_any_row_leaves_nothing_and_the_base_intact(
+    store: Any, faults: Any, model: Any, position: str
+) -> None:
+    v1 = store.build_v1()
+    before, sizes = store.fingerprint(v1.version_id), _table_sizes(store)
+    rows = len(store.dump(v1.version_id)[model.__tablename__])
+    nth = 1 if position == "first" else rows
+
+    def copy() -> None:
+        with unit_of_work(store.session_factory) as uow:
+            base = uow.session.get(models.Version, v1.version_id)
+            copy_version(faults.wrap(uow, model, nth=nth), base, now=store.now)
+
+    with pytest.raises(faults.error):
+        copy()
+    assert _table_sizes(store) == sizes
+    assert store.fingerprint(v1.version_id) == before
