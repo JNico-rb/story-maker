@@ -893,7 +893,7 @@ Registro e inicio de sesión con email y contraseña (**bcrypt**) en SQLite. `To
 **FastMCP montado en `/mcp`** de la misma aplicación FastAPI (sin infraestructura nueva), con su lifespan. Identidad: el mismo `TokenDeAcceso` en la cabecera de autorización; cada tool lee el usuario del token.
 
 - **Lectura** (no modifican nada): `list_novels` (estado y versión vigente), `get_chapter` (un capítulo de una versión), `list_versions` (historial y capítulos cambiados), `query_story_bible` (personajes, lugares, hechos, cronología), `download_novel` (el PDF guardado, como recurso incrustado). Solo devuelven lo del usuario del token.
-- **Escritura en dos pasos, con confirmación**: `request_change` hace la misma interpretación que la web (§10.1) y devuelve propuesta, afectados y código; `confirm_change(code)` encola la ejecución. Funciona con cualquier cliente MCP, sin depender de elicitation.
+- **Escritura en dos pasos, con confirmación**: `request_change` hace la misma interpretación que la web (§10.1) y devuelve propuesta, afectados y código; `confirm_change(change_request_id, code)` encola la ejecución. Funciona con cualquier cliente MCP, sin depender de elicitation.
 - Cada tool con **schema validado**; cada llamada, **una traza** en Langfuse; cada escritura, una entrada del audit log (`mcp_write`).
 
 El README explica cómo conectarlo desde MCP Inspector (y Claude Code) con el token.
@@ -977,6 +977,7 @@ Portátil sin administrador, sin VC++ Redistributable y con Smart App Control en
 - Linters sin spaCy: evita DLL bloqueadas.
 - pnpm 10.x, invocado como `pnpm.cmd` en Git Bash.
 - Playwright y Playwright MCP usan el Edge instalado.
+- Git guarda el texto con LF (`* text=auto eol=lf` en `.gitattributes`) aunque Windows tenga `core.autocrlf=true`; los binarios, sin conversión.
 
 ### 15.4 Config (`config.json`)
 
@@ -1006,7 +1007,7 @@ Política del servidor, en la raíz, **validada entera con Pydantic al arrancar*
 
 Dependen de la máquina, no de la política; `.env.example` los lista sin valores:
 
-- Servidor: `STORY_MAKER_DATA_DIR`, `STORY_MAKER_CONFIG`, `STORY_MAKER_BASE_URL`, `STORY_MAKER_FRONTEND_DIST`, `JWT_SECRET`.
+- Servidor: `STORY_MAKER_DATA_DIR`, `STORY_MAKER_CONFIG`, `STORY_MAKER_BASE_URL`, `STORY_MAKER_FRONTEND_DIST`, `JWT_SECRET`. Sin `STORY_MAKER_DATA_DIR`, el directorio de datos es `backend/data/` (las órdenes canónicas corren desde `backend/`), que git ignora.
 - Proveedor del LLM (§15.2): `LLM_PROVIDER` (`claude_login` | `anthropic_compatible`); opcionales `CLAUDE_CODE_OAUTH_TOKEN`, `ANTHROPIC_BASE_URL`, `ANTHROPIC_AUTH_TOKEN`, `OPENROUTER_API_KEY`.
 - Verificador formal: `FORMAL_VERIFIER` (`local` | `github`), `GITHUB_REPOSITORY`, `LEAN_WORKFLOW`, `GITHUB_TOKEN`.
 - Langfuse: `LANGFUSE_PROMPT_LABEL`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_BASE_URL`.
@@ -1142,18 +1143,19 @@ POST   /api/novels/{id}/chapters/{n}/lint {text}             -> diagnósticos
 PUT    /api/novels/{id}/chapters/{n} {text, base_version}    -> 202 {run_id}
 GET    /api/novels/{id}/audit-log
 GET    /view/versions/{version_id}?token=...                 VistaDeVersion (interna: PDF y revisor visual)
+GET    /health                                               -> 200, sin token (fuera de /api)
 /mcp                                                         servidor MCP
 ```
 
 | Código | Cuándo |
 |---|---|
-| 409 | Confirmar o editar un brief ya confirmado; lanzar sin brief confirmado, con una generación sin terminar o con versión publicada; reanudar lo que no está `interrupted`; confirmar una solicitud que no está `proposed`; editar sobre una base que ya no es la vigente; pedir cambios o editar sin versión publicada |
+| 409 | Registrar un email ya registrado; confirmar o editar un brief ya confirmado; lanzar sin brief confirmado, con una generación sin terminar o con versión publicada; reanudar lo que no está `interrupted`; confirmar una solicitud que no está `proposed`; editar sobre una base que ya no es la vigente; pedir cambios o editar sin versión publicada |
 | 422 | Brief inválido; texto libre que no cabe en el techo; petición denegada por la policy o sin propuesta válida (la solicitud queda `rejected`); código de confirmación incorrecto; guardado de edición con validadores bloqueantes (con diagnósticos) |
 | 503 | Entrevista, extracción o propuesta de cambio con el proveedor caído, un límite de la sesión agotado o sin sitio en el techo tras `api_wait_seconds`; no se guarda el turno |
 
 ### 15.8 CLI
 
-`story-maker` (typer): `serve`, `init-db`, `check-env`, `example <brief.json>` (brief → novela → PDF), `resume <run_id>`, `evals run|table`, `prompts push`, `export-pdf <novel> <v>`.
+`story-maker` (typer): `serve`, `init-db`, `check-env`, `example <brief.json>` (brief → novela → PDF), `resume <run_id>`, `evals run|table`, `prompts push`, `export-pdf <novel> <v>`. Las órdenes que crean novelas (`example`, `evals run`) reciben `--email` de un usuario ya registrado, que es su propietario: así la revisión humana las lee en la web con su cuenta.
 
 ### 15.9 Organización del backend
 
@@ -1406,8 +1408,13 @@ Registro de trade-offs: cada fila da opciones, criterio y elección. Reabrir una
 | Integración de TLA+ con el flujo real | Especificar después del código · antes, con correspondencia | Que un contraejemplo cambie el diseño antes que el código | Antes del orquestador; nombres de transición = acciones; tabla en el README (§9.1, §11.5) |
 | Especificaciones TLA+ | Solo `Harness.tla` · + concurrencia de regeneraciones · + confirmación | Opcional del encargo con el menor coste | `Harness.tla` + `Regenerations.tla` (§11.5) (lean, ADR 0006) |
 | Revisión humana | Formulario propio · cola de anotación de Langfuse · anotar la traza en la interfaz de Langfuse | Misma rúbrica y mismo sitio que los scores del juez, sin interfaz nueva ni coste | Langfuse: cola de anotación si el plan Hobby la incluye; si no, anotación de la traza con el mismo score `revision-humana`. La persona lee en la web o el PDF (§11.6) |
-| Confirmación MCP | Elicitation del cliente · dos tools con código | Funcionar con cualquier cliente MCP | `request_change` + `confirm_change(code)` (§14.4) |
+| Confirmación MCP | Elicitation del cliente · dos tools con código | Funcionar con cualquier cliente MCP; mismo flujo que `POST /api/change-requests/{id}/confirm`, y RT11 distingue código ajeno de solicitud ajena | `request_change` + `confirm_change(change_request_id, code)` (§14.4). Reabierta por la spec 015: antes solo `code` |
 | Autenticación | Sesiones de servidor · JWT | El mismo token para API y MCP | JWT HS256 de 24 h con bcrypt, sin gestión de cuentas (§14.3) |
+| Credenciales | Sin reglas · mínimo 8 y tope 72 bytes · política de complejidad | NIST 800-63B; límite de bcrypt; lo más simple | Email con forma sintáctica, ≤254 caracteres, sin espacios en los extremos y guardado en minúsculas; contraseña de 8 caracteres a 72 bytes UTF-8 (spec 002) |
+| `aud` e `iss` de los JWT | Sin `aud` · `aud` común · `aud` por tipo de token | Los dos tokens se firman con `JWT_SECRET`: un token de vista no debe valer como `TokenDeAcceso` | `iss=story-maker`; `aud=access_token` en el `TokenDeAcceso` y `aud=view_token` en el token de vista (§14.2, §14.3) |
+| Email ya registrado | 201 silencioso · 422 · 409 | Sin verificación de email, el cliente necesita saber por qué no entra | 409 (§15.7); enumeración de cuentas aceptada (`verification.md` §6 U29) |
+| Prueba de propiedad | Una por spec · parametrizada sobre las rutas reales de la app | Cubrir las rutas de otros carriles sin tocar sus ficheros | Parametrizada por tipo de identificador de §15.7; una ruta con un tipo nuevo sin caso hace fallar la prueba (spec 002) |
+| Dueño de `GET /api/novels/{id}/audit-log` | 005 (escribe el audit log) · 008 (rutas de la novela) | La ruta necesita la propiedad de 002; en el carril C, 008 va después de 002 y de 005 | Spec 008 |
 | Palabras prohibidas | Dos niveles · tres niveles | El encargo pide tres | Global, user y novel en una tabla (§12.1) |
 | Observabilidad y datos personales | Cloud sin máscara · Cloud UE con máscara · autoalojado | Datos personales de terceros; sin Docker en el portátil; 0 € | Langfuse Cloud UE, plan Hobby, con máscara de nombres y fechas del brief (§13.5). La evidencia de evals y costes vive en SQLite y se exporta al repo, por la retención limitada (§11.7) |
 | Instrumentación | Instrumentador automático · spans propios | Nombres de span del encargo; todo pasa por la máscara | Spans propios con el SDK de Langfuse (§13.1) |
@@ -1415,8 +1422,25 @@ Registro de trade-offs: cada fila da opciones, criterio y elección. Reabrir una
 | Cálculo del coste | `total_cost_usd` del SDK · coste facturado · consulta por generación a OpenRouter · uso real × precio de lista de la API de Anthropic | Con el login no se paga por token, pero la slide necesita lo que costaría en producción; por OpenRouter `total_cost_usd` salió ~250× por encima (medido) y la consulta por generación añade latencia y 404 | Uso del `ResultMessage` × `operation.pricing` = precio de lista; `total_cost_usd` solo como contraste (§13.2) (lean, ADR 0006) |
 | Organización del backend | Capas técnicas · slices por fase · módulos por responsabilidad | Carriles paralelos sin choques; dependencias legibles | Módulos por responsabilidad con dueño por carril y regla de dependencias (§15.9) (lean, ADR 0006) |
 | Organización del frontend | FSD completo · FSD pages-first | Empezar por lo simple | FSD v2.1 pages-first; sin `widgets` (§14.8) |
+| Valores de la marca | Paleta y tipografías libres · muestreadas del logotipo, con tipografías por CDN · muestreadas del logotipo, con tipografías empaquetadas | Una sola definición que no se inventa; ningún tercero ve al lector y la SPA no depende de red externa | Primario `#ff7932` y secundario `#233441` del logotipo; fondo `#faf8f5`, texto `#233441`, acento `#ffe8da`; Inter Tight (interfaz) y Literata (lectura) como paquetes, sin CDN; mientras no haya pantallas, la ruta raíz muestra la cabecera de marca (logotipo y nombre) (§14.8, spec 000) |
 | Cliente API del frontend | A mano · generado con job de deriva en CI · generado y commiteado | Tipos fiables sin otro job | `openapi-typescript`, commiteado (§14.8) (lean, ADR 0006) |
 | Nombres | Todo en español · código en inglés | Un idioma por medio | Código, tablas, API, MCP y JSON en inglés; docs e interfaz en español; etiquetas de Langfuse en español ASCII kebab-case |
 | Aprobaciones de specs y planes (proceso) | Solo el usuario · agentes `auditor` y `verificador` | Carriles paralelos sin cuello de botella; gap cero verificable | Delegadas: el `auditor` aprueba spec y plan, el `verificador` cierra; el usuario ve escalados y hace lo solo humano (decisión del usuario, 2026-09-24; `verification.md` §9.7) |
 | Supervisión | Autonomía total · humano en tres momentos | El encargo | Entrevista; cambio o edición sobre una versión publicada; revisión humana (§2) |
 | Ante lo imposible | Degradar · detener | Una degradación silenciosa es indistinguible del éxito | `failed` con motivo e informe (§2) |
+| Relanzar una ejecución reanudada | Acción nueva · `Reanudar` hasta `running` · la acción de entrada de su tipo | Sin términos nuevos; `Reanudar` acaba en `queued` (§9.1) | `Planificar` (generación) o `Regenerar` (cambio o edición) la toman de la cola y siguen desde el último punto de control; en un cambio, revalidan la base (§9.2, spec 006) |
+| Caída con las reanudaciones agotadas | `Caer` a `interrupted` · `Fallar` | `Caer` lleva siempre a `interrupted` y `Fallar` a `failed` (§9.1); ningún estado sin salida | `Fallar` con `resumes_exhausted` (§7.6, spec 006) |
+| Puntos de control en la reescritura dirigida | Uno por capítulo vuelto a aceptar · ninguno | Solo inserción y sin duplicados (`ReanudacionSinDuplicarNiPerder`); reanudar en `gate` o `rewriting` ya vuelve al gate | Ninguno: solo el plan (0) y los capítulos aceptados en `writing` (§8.3, §9.2, spec 006) |
+| Capítulo editado a mano que no pasa sus validadores dentro de la ejecución | Reintentar con el writer · fallar | Un rol no corrige lo que una persona escribió a propósito (§10.3) | `failed` con `edit_rejected`, igual que si el gate se lo atribuye (§10.3, specs 006 y 019) |
+| Control del comprobador TLC | Una config con un invariante falso · un defecto por propiedad en modelos aparte · un defecto por propiedad, activado desde la config sobre el mismo modelo | Que ninguna propiedad se cumpla en vacío sin duplicar el modelo; que el control falle por su propiedad y no por un error | Seis configs de control, una por propiedad, sobre el mismo modelo; TLC debe nombrar la propiedad violada. Además, cobertura: ninguna acción sin disparar (`verification.md` §4.10, spec 006) |
+| Abstracción de los modelos TLA+ | Veredictos y fallos del entorno deterministas · no deterministas | Que el modelo permita al menos lo que hace el código | Lo que decide un modelo o el entorno (veredicto, atribución, afectados, caídas) es no determinista; lo que decide el código, una guarda. Fuera `internal_error` e `infeasible_config`, que solo añaden salidas a `failed` (§11.5, spec 006) |
+| Tamaño de `Regenerations.tla` y tiempo de TLC | Más cambios y reanudaciones · el mínimo que pone a prueba la revalidación | Modelo pequeño que termine en la CI | 2 cambios y 1 reanudación por ejecución; TLC tarda 10 minutos o menos por config en la CI (§11.5, spec 006) |
+| T1 dentro de un beat | Ordenar por id · sin orden | El doc solo ordena por capítulo y beat | Sin orden dentro del beat; los eventos sin capítulo quedan fuera de T1 (spec 007) |
+| Límites de T3–T5 | Instantes con tolerancia · límites exactos | Lo más simple | T3 exige el mismo instante exacto; T4, estrictamente posterior; T5 cuenta el instante de nacimiento como ya nacido (spec 007) |
+| Primer testigo de Lean | El primero de la historia · el menor por ids | Determinista | La tupla menor en orden lexicográfico de ids (spec 007) |
+| *k* de la seudonimización | Fijo · 0 · al azar | *k* = 0 dejaría las fechas reales | Entero al azar entre 1 y 10 por fichero, hacia el futuro (§11.4, spec 007) |
+| Axiomas admitidos en Lean | Admitir la evaluación por compilador · solo los estándar | Confianza en el veredicto | Solo `propext`, `Classical.choice` y `Quot.sound`; si evaluar en el núcleo no cabe en `verifier_timeout_seconds`, se reabre (spec 007) |
+| Salidas del `VerificadorFormal` | Una sola salida de fallo · separar historia mala de fallo del entorno | El gate trata distinto una historia inválida y un entorno caído | `error` para toda causa que no sea un invariante (no compila, auditoría, JSON incoherente, input de más de 65.535 caracteres); sin artefacto legible, `verifier_unreachable`; el modo `github` no reintenta y sin sus ajustes no se construye, con un error que nombra el ajuste (spec 007) |
+| Errores del servidor MCP | Errores JSON-RPC · texto libre · error de tool con el código de §15.7 | Una sola tabla de errores para web y MCP | Error de tool con el código de estado de §15.7; la entrada fuera de schema, como error de schema (spec 015) |
+| Autenticación del servidor MCP | En cada tool · en el transporte de `/mcp` | Un solo punto para API y MCP (spec 002) | En el transporte, en cada petición; el mismo 401 que `/api` (spec 015) |
+| Trazas y audit del servidor MCP | Traza por petición · traza por llamada a una tool | Una traza por llamada (`verification.md` §5 O.4) | Una traza `mcp:<tool>` por llamada, errores incluidos con nivel WARNING; ninguna por inicializar, listar tools ni por un 401; la propuesta de `request_change` cuelga de `mcp:request_change`; una fila `mcp_write` por escritura que supera el schema (`allow` con efecto, `deny` con motivo, 503 incluido), sin novela si es ajena; `download_novel` traza solo metadatos (spec 015) |

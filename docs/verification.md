@@ -450,7 +450,7 @@ Una fila por viñeta de `project-constraints.md`. **Spec** = numeración de `TOD
 | O.4 | Cada llamada MCP registrada en Langfuse | Doble nulo: una traza por llamada | T | 004, 015 |
 | O.5 | README explica cómo conectarlo | Conexión desde MCP Inspector o Claude Code siguiendo el README | D | 015 |
 | O.6 | Respeta la identidad del usuario (`list_novels`, `download_novel` solo lo suyo) | RT7 | T | 002, 015 |
-| O.7 | Tools de escritura MCP con permisos y confirmación | Integración de `request_change` → `confirm_change(code)` + RT11 | T | 014, 015 |
+| O.7 | Tools de escritura MCP con permisos y confirmación | Integración de `request_change` → `confirm_change(change_request_id, code)` + RT11 | T | 014, 015 |
 | O.8 | Linters de prosa: repeticiones, legibilidad, adverbios/clichés/IA, consistencia de estilo | Unitarias por linter con un texto que dispara y uno limpio (tiempo verbal: §6 U18) | T | 018 |
 | O.9 | Linter de edición manual integrado en el editor web | Contrato de `POST .../lint` + Vitest del editor | T | 019, F |
 | O.10 | Comprueba contra story bible (nombres, hechos, cronología) y prohibidas | Unitarias del lint en vivo: nombres, prohibidas, dos avisos de cronología; los hechos, al re-registrar | T | 019 |
@@ -525,6 +525,9 @@ Una fila por viñeta de `project-constraints.md`. **Spec** = numeración de `TOD
 | U25 | **Aprobación delegada correlacionada** | `auditor` y redactor comparten familia de modelo y pueden compartir puntos ciegos | Auditoría contra §5 fila a fila; escalado tras 3 rondas; comprobación final del usuario |
 | U26 | **El límite de uso de la suscripción puede cortar una generación** | Los roles corren con el login de Claude Code de la máquina, sin créditos de API; el límite no es nuestro | `interrupted` + reanudación desde el punto de control (RT19); presupuesto de cuota (§4.2) |
 | U27 | **Las generaciones reales solo corren en una máquina** | Requieren la sesión de Claude Code iniciada: no hay D ni evals en CI | Toda la lógica es T con dobles en CI; lo D se ejecuta y se registra aquí con commit y etiqueta de prompts |
+| U28 | **Escrituras por Bash sin `guard-secretos`** | El hook mira `Edit`, `Write` y `MultiEdit`; una redirección o un `node -e` en Bash no pasa por él, y cubrir Bash exigiría analizar órdenes arbitrarias | `detect-secrets` bloqueante en la CI (§4.6); `.env` denegado en los permisos (§9.6) |
+| U29 | **Fuerza bruta en el acceso y enumeración de cuentas** | Sin límite de intentos en `login` y con 409 en el registro de un email existente; limitar intentos o verificar emails es gestión de cuentas, fuera de alcance (`architecture.md` §14.3) | bcrypt encarece cada intento; despliegue en producción fuera de alcance |
+| U30 | **Modelo pequeño de TLC** | El encargo pide un modelo pequeño y el espacio de estados crece de forma exponencial: un defecto que solo aparezca con más de 5 capítulos, más reintentos o reanudaciones, o más cambios de los modelados, escapa a TLC | Límites como constantes de la config; pruebas T de 011, 012 y 014 con 10 capítulos; correspondencia revisada por el `verificador` (§4.10) |
 
 ---
 
@@ -658,7 +661,7 @@ En `.claude/settings.json`, scripts Node en `.claude/hooks/`.
 | Hook | Evento | Qué hace | Casos de prueba (T) | Resultado |
 |---|---|---|---|---|
 | `guard-secretos` | PreToolUse `Edit\|Write\|MultiEdit` | Bloquea contenido con claves: `sk-lf-`, `pk-lf-`, `sk-or-v1-`, `sk-ant-`, `ghp_`, `github_pat_` seguidos de su cuerpo, y `Basic <base64 largo>` | Clave de prueba con cuerpo → deniega; texto limpio → permite; un prefijo citado sin cuerpo en un doc → permite | pendiente |
-| `guard-plan` | PreToolUse `Edit\|Write\|MultiEdit` sobre `backend/src/**` y `frontend/src/**` | Bloquea si ningún bloque de `TODO.md` tiene el plan aprobado y pasos pendientes | Sin plan aprobado → deniega; con plan aprobado y paso pendiente → permite; desde un subdirectorio → mismo resultado | pendiente |
+| `guard-plan` | PreToolUse `Edit\|Write\|MultiEdit` sobre las rutas de la puerta «Write tests or code» de `AGENTS.md`: `backend/src/**`, `backend/tests/**`, `frontend/src/**`, `frontend/tests/**`, `lean/**`, `tla/**` y `.github/workflows/**`. Manifiestos, `backend/harness_workspace/` y `.claude/` quedan fuera: los escribe solo el integrador y los revisan `/integrar` y el `verificador` | Bloquea si ningún bloque de `TODO.md` tiene el plan aprobado y pasos pendientes | Sin plan aprobado → deniega; con plan aprobado y paso pendiente → permite; desde un subdirectorio → mismo resultado | pendiente |
 | Permisos | `deny`/`allow` | Deniega `Read(.env)`, `Read(**/.env)`, `Read(.claude/settings.local.json)`, `Bash(git push --force*)`; permite `uv`, `pnpm.cmd`, `node`, `java` y git de lectura, commit, worktree, merge y rebase | Intento de leer `.env` → denegado | pendiente |
 
 Cada hook se prueba con cargas JSON simuladas por stdin antes de activarse, y una vez en una sesión real.

@@ -65,7 +65,7 @@ One file per feature: `specs/backend/NNN-nombre.md` or `specs/frontend/NNN-nombr
 
 Required contents: **objective**; **scope** / **out of scope**; **observable behaviour** as concrete, named cases (input → expected output, including rejections and boundaries); **invariants**, each with its T/A/I/D/U class; **docs referenced**.
 
-- Behaviour only: no file names, signatures or libraries.
+- Behaviour only: no file names, signatures or libraries. The one exception is `specs/000-scaffolding.md`: its observable behaviour is the commands a developer runs and what they produce, so it names commands, paths and tools.
 - Never contradicts `docs/*.md` — change the doc first (process 1).
 - Dependent specs reference each other by name; they never duplicate cases.
 - Specs are drafted in parallel, one `redactor-specs` per spec. Writers never edit `TODO.md`: the integrator (main checkout, V2) adds each block, one at a time, with every box unmarked, and then runs `auditor` until gap zero.
