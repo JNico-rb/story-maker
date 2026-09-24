@@ -5,25 +5,14 @@ from __future__ import annotations
 
 from collections.abc import Collection, Sequence
 
-from sqlalchemy import bindparam, select, text
+from sqlalchemy import bindparam, text
 from sqlalchemy.orm import Session
-
-from story_maker.store.models import Novel, Version
 
 _DISTANCES = text(
     "SELECT c.id, vec_distance_cosine(e.vector, :query) FROM canon_cards c "
     "JOIN embeddings e ON e.content_hash = c.content_hash AND e.model = :model "
     "WHERE c.id IN :ids"
 ).bindparams(bindparam("ids", expanding=True))
-
-
-def novel_model(session: Session, version_id: int) -> str:
-    """El modelo de incrustación de la novela de la versión, fijo desde que se creó."""
-    return session.scalars(
-        select(Novel.embedding_model)
-        .join(Version, Version.novel_id == Novel.id)
-        .where(Version.id == version_id)
-    ).one()
 
 
 def min_distances(

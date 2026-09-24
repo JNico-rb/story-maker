@@ -42,7 +42,6 @@ class Canon:
     def __init__(self, session_factory: sessionmaker[Session], embedder: FixedVectors) -> None:
         self.session_factory = session_factory
         self.embedder = embedder
-        self.models: dict[int, str] = {}
         self._users = count(1)
 
     def version(self, model: str = "modelo-a") -> int:
@@ -59,7 +58,6 @@ class Canon:
             uow.add(novel)
             uow.session.flush()
             version_id = self._new_version(uow.session, novel.id)
-        self.models[version_id] = model
         return version_id
 
     def other_version(self, version_id: int) -> int:
@@ -68,7 +66,6 @@ class Canon:
             version = uow.session.get(Version, version_id)
             assert version is not None
             other = self._new_version(uow.session, version.novel_id)
-        self.models[other] = self.models[version_id]
         return other
 
     def _new_version(self, session: Session, novel_id: int) -> int:
@@ -176,7 +173,7 @@ class Canon:
                 content_hash=fingerprint(text),
             )
             uow.add(card)
-            store_vectors(uow, self.models[version_id], [card], embedder or self.embedder)
+            store_vectors(uow, [card], embedder or self.embedder)
             uow.session.flush()
             return card.id
 

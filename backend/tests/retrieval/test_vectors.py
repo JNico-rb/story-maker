@@ -1,15 +1,20 @@
-"""016-C7 (la parte de los vectores): un vector por (huella, modelo), compartido y de solo
-inserción. La sincronización de una copia (primer punto de C7) espera a la 009."""
+"""016-C7 (la parte de los vectores) y 016-C8: un vector por (huella, modelo de la novela),
+compartido y de solo inserción. La sincronización de una copia (primer punto de C7) espera a la
+009."""
 
 from __future__ import annotations
 
+import dataclasses
 from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
 
+from story_maker.config import load_config
 from story_maker.retrieval.fake import FixedVectors
+from story_maker.retrieval.queries import retrieve_for_editor, retrieve_for_writer
 from story_maker.retrieval.vectors import fingerprint, store_vectors
+from story_maker.settings import ROOT
 from story_maker.store.models import CanonCard, Embedding
 from story_maker.store.session import unit_of_work
 
@@ -54,7 +59,7 @@ def test_each_new_text_is_embedded_exactly_once(
         ]
         for card in cards:
             uow.add(card)
-        store_vectors(uow, "modelo-a", cards, counting)
+        store_vectors(uow, cards, counting)
 
     assert sorted(counting.embedded) == sorted([("modelo-a", TOBY), ("modelo-a", FARO)])
     assert set(stored_vectors(session_factory)) == {
@@ -79,3 +84,26 @@ def test_retiring_a_card_keeps_its_vector_and_no_vector_ever_changes(
 
     assert other.embedded == []
     assert stored_vectors(session_factory) == before
+
+
+def test_cards_and_queries_use_the_model_of_their_novel_and_never_the_config(
+    canon: Any, session_factory: sessionmaker[Session]
+) -> None:
+    config = dataclasses.replace(load_config(ROOT / "config.json"), embedding_model="modelo-b")
+    created_before = canon.version("modelo-a")
+    created_after = canon.version(config.embedding_model)
+    doubles = {created_before: FixedVectors(), created_after: FixedVectors()}
+    for version, double in doubles.items():
+        canon.card(version, TOBY, character=canon.character(version, "Toby"), embedder=double)
+        canon.outline_chapter(version, 1, ["Toby ladra en el patio."])
+        with session_factory() as session:
+            retrieve_for_writer(session, version, 1, config.top_k, double)
+            retrieve_for_editor(session, version, 1, "Toby ladra.", config.top_k, double)
+
+    assert {model for model, _ in doubles[created_before].embedded} == {"modelo-a"}
+    assert {model for model, _ in doubles[created_after].embedded} == {"modelo-b"}
+    assert len(doubles[created_before].embedded) == 3
+    assert set(stored_vectors(session_factory)) == {
+        (fingerprint(TOBY), "modelo-a"),
+        (fingerprint(TOBY), "modelo-b"),
+    }

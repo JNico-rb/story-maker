@@ -9,9 +9,10 @@ from fractions import Fraction
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from story_maker.retrieval.dense import min_distances, novel_model
+from story_maker.retrieval.dense import min_distances
 from story_maker.retrieval.embedding import EmbeddingModel, embed_texts
 from story_maker.retrieval.lexical import bm25, candidates, words
+from story_maker.retrieval.vectors import novel_model
 from story_maker.store.models import CanonCard
 
 RRF_K = 60
