@@ -122,13 +122,14 @@ async def request_change(
                 }
                 for change in proposal.changes
             ],
-            "new_fact": None,
+            "new_fact": proposal.new_fact.model_dump() if proposal.new_fact else None,
         }
 
     code = secrets.token_urlsafe(16)
     with unit_of_work(session_factory) as uow:
         old_values = [(c.fact_id, values[c.fact_id]) for c in proposal.changes]
-        affected = affected_chapters(uow.session, base.id, old_values)
+        fragment_chapter = selection.chapter if isinstance(selection, FragmentSelection) else None
+        affected = affected_chapters(uow.session, base.id, old_values, fragment_chapter)
         row = ChangeRequest(
             novel_id=novel_id,
             base_version_id=base.id,

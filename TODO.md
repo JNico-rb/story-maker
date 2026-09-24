@@ -677,7 +677,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 
 ### Steps
 - [x] 014-C01 · Una petición sobre un hecho devuelve la propuesta, los afectados y el código
-- [ ] 014-C02 · Los afectados son los usos, más el valor antiguo literal, más el capítulo del fragmento
+- [x] 014-C02 · Los afectados son los usos, más el valor antiguo literal, más el capítulo del fragmento
 - [ ] 014-C03 · Lo que no admite una petición se rechaza antes de la policy
 - [ ] 014-C04 · Una prohibida en la petición la deniega sin abrir el planner
 - [ ] 014-C05 · Una inyección en la petición se marca y no deniega (RT3)
