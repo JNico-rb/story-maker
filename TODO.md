@@ -430,7 +430,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 009-C02 · El destinatario y los allegados pasan a personajes con su hecho de nombre
 - [x] 009-C03 · La fecha de nacimiento es la declarada, la derivada de la edad o ninguna
 - [x] 009-C04 · Los rasgos, las relaciones y los hechos extraídos aceptados pasan a hechos
-- [ ] 009-C05 · Cada recuerdo da su hecho, su evento fechado y su lugar
+- [x] 009-C05 · Cada recuerdo da su hecho, su evento fechado y su lugar
 - [ ] 009-C06 · Un recuerdo excluyente nombra a su excluido
 - [ ] 009-C07 · Hay un lugar del brief por cada nombre de lugar exacto
 - [ ] 009-C08 · El fechado respeta los límites del calendario

@@ -22,6 +22,8 @@ RECOLLECTION = "recollection"
 RELATIONSHIP = "relationship"
 NOMINAL_ATTRIBUTES = frozenset({NAME})
 
+NOON = dt.time(12, 0)
+
 
 @dataclass(frozen=True)
 class BriefTrait:
@@ -134,11 +136,12 @@ def create_generation_candidate(
             subject = characters[extracted.subject]
             _fact(uow, version, subject, extracted.attribute, extracted.value, "free_text")
 
+    recipient_birth = recipient.birth_date or dt.date(present_year - recipient.age, 1, 1)
     for recollection, place in zip(brief.recollections, places, strict=True):
         event = Event(
             version_id=version.id,
             statement=recollection.statement,
-            moment=dt.datetime(novel.created_at.year, 1, 1, 12),
+            moment=recollection_moment(recipient_birth, recollection.age, recollection.year),
             place_id=place.id,
             type="ordinary",
             analepsis=True,
@@ -146,9 +149,11 @@ def create_generation_candidate(
         )
         uow.add(event)
         uow.session.flush()
-        present = [me] + [characters[name] for name in recollection.present]
-        for character in present:
-            uow.add(EventCharacter(event_id=event.id, character_id=character.id))
+        uow.add(
+            EventCharacter(event_id=event.id, character_id=me.id, declared_age=recollection.age)
+        )
+        for name in recollection.present:
+            uow.add(EventCharacter(event_id=event.id, character_id=characters[name].id))
     uow.session.flush()
     return version
 
@@ -161,6 +166,28 @@ def birth_date(present_year: int, age: int | None, declared: dt.date | None) -> 
     if age is None:
         return None
     return dt.date(present_year - age, 1, 1)
+
+
+def recollection_moment(birth: dt.date, age: int | None, year: int | None) -> dt.datetime:
+    """A mediodía: con edad, el día en que el destinatario la cumple; con año, su 1 de enero, o
+    el día siguiente al nacimiento si es el año en que nació (`domain-knowledge.md` §5.2)."""
+    if age is not None:
+        day = _birthday(birth, birth.year + age)
+    elif year is None:
+        raise ValueError("un recuerdo lleva la edad del destinatario o el año")
+    elif year == birth.year:
+        day = birth + dt.timedelta(days=1)
+    else:
+        day = dt.date(year, 1, 1)
+    return dt.datetime.combine(day, NOON)
+
+
+def _birthday(birth: dt.date, year: int) -> dt.date:
+    """El 29 de febrero cae el 1 de marzo en un año no bisiesto."""
+    try:
+        return birth.replace(year=year)
+    except ValueError:
+        return dt.date(year, 3, 1)
 
 
 def _character(

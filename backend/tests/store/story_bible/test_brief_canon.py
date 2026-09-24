@@ -12,6 +12,7 @@ from story_maker.store import models
 from story_maker.store.brief_canon import (
     NAME,
     NOMINAL_ATTRIBUTES,
+    RECOLLECTION,
     RELATIONSHIP,
     TRAIT,
     ConfirmedBrief,
@@ -158,3 +159,52 @@ def test_traits_relationships_and_accepted_extracted_facts_become_facts(
         ("free_text", False, "comida favorita")
     ]
     assert characters["Marta"].id == x1[0].character_id
+
+
+def _events(store: Any, version_id: int) -> dict[str, dict[str, Any]]:
+    """Eventos de la versión por enunciado, con su lugar y sus presentes (nombre → edad)."""
+    with store.session() as session:
+        places = {p.id: p.canonical_name for p in session.query(models.Place).all()}
+        names = {c.id: c.canonical_name for c in session.query(models.Character).all()}
+        events = session.query(models.Event).filter_by(version_id=version_id).all()
+        out = {}
+        for event in events:
+            presents = session.query(models.EventCharacter).filter_by(event_id=event.id).all()
+            out[event.statement] = {
+                "row": event,
+                "place": places[event.place_id],
+                "present": {names[p.character_id]: p.declared_age for p in presents},
+                "excluded": names.get(event.excluded_character_id or 0),
+            }
+        return out
+
+
+def test_each_recollection_gives_its_fact_its_dated_event_and_its_place(
+    store: Any, f1: ConfirmedBrief
+) -> None:
+    version_id, characters, facts = _canon(store, f1)
+    events = _events(store, version_id)
+
+    assert ("Marta", RECOLLECTION, "se perdió en la feria de su pueblo", "brief") in _triples(
+        facts, characters
+    )
+    r1 = events["se perdió en la feria de su pueblo"]
+    row = r1["row"]
+    assert row.moment == dt.datetime(1994, 1, 1, 12, 0)
+    assert r1["place"] == "la feria del pueblo"
+    assert r1["present"] == {"Marta": 8, "Luis": None}
+    assert (row.type, row.chapter, row.beat, row.analepsis, row.origin) == (
+        "ordinary",
+        None,
+        None,
+        True,
+        "brief",
+    )
+
+    r2 = events["su primer baño en el mar"]
+    assert ("Marta", RECOLLECTION, "su primer baño en el mar", "brief") in _triples(
+        facts, characters
+    )
+    assert r2["row"].moment == dt.datetime(1990, 1, 1, 12, 0)
+    assert r2["place"] == "la playa del faro"
+    assert r2["present"] == {"Marta": None}
