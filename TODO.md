@@ -1187,9 +1187,9 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [ ] 027-C15 · Recorrido real: pedir, confirmar y ver la versión nueva (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-25: lint, typecheck, build y test (6 ficheros, 53 pruebas) verdes en `frontend/`; contrato de la API simulada (rutas, 201/409/422/202, `expires_at`, `Selection`, campos de confirmar) coincide con 014 ya en V2
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 028 — edicion-manual
 
