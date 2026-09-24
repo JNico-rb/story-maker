@@ -1,0 +1,255 @@
+/* Qaracter brand theme for Marp */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Lato:wght@400;700&display=swap');
+
+:root {
+  /* Qaracter brand colors */
+  --primary-orange: #FF7A42;
+  --primary-dark: #2D3E50;
+  --accent-light: #F5F5F5;
+  --text-dark: #1A1A1A;
+  --text-light: #FFFFFF;
+  --border-color: #E0E0E0;
+
+  /* Typography */
+  --font-heading: 'Poppins', sans-serif;
+  --font-body: 'Lato', sans-serif;
+}
+
+/* Marp theme base */
+.marp {
+  font-family: var(--font-body);
+  color: var(--text-dark);
+  background-color: var(--accent-light);
+}
+
+section {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 60px;
+  font-size: 28px;
+  background: linear-gradient(135deg, var(--accent-light) 0%, #FAFAFA 100%);
+}
+
+/* Default slide */
+section {
+  background: linear-gradient(135deg, var(--accent-light) 0%, #FAFAFA 100%);
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  color: var(--primary-dark);
+  margin: 0.5em 0;
+  line-height: 1.2;
+}
+
+h1 { font-size: 2.8em; margin-bottom: 0.4em; }
+h2 { font-size: 2.2em; margin-bottom: 0.3em; }
+h3 { font-size: 1.8em; }
+
+/* Cover slide */
+section.lead {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  background: linear-gradient(135deg, var(--primary-dark) 0%, #1A2E3E 100%);
+  color: var(--text-light);
+  padding: 100px 60px;
+}
+
+section.lead h1 {
+  font-size: 3.2em;
+  color: var(--primary-orange);
+  margin-bottom: 0.3em;
+  font-weight: 700;
+}
+
+section.lead h2 {
+  font-size: 1.8em;
+  color: var(--text-light);
+  font-weight: 400;
+  margin-bottom: 1.5em;
+}
+
+section.lead p {
+  font-size: 1.2em;
+  color: var(--accent-light);
+  margin: 0.5em 0;
+}
+
+section.lead .subtitle {
+  font-size: 1.4em;
+  color: var(--primary-orange);
+  margin-top: 2em;
+  font-weight: 600;
+}
+
+/* Content sections */
+section:not(.lead) {
+  text-align: left;
+  justify-content: flex-start;
+  padding-top: 80px;
+}
+
+section:not(.lead) h2 {
+  width: 100%;
+  color: var(--primary-dark);
+  border-bottom: 4px solid var(--primary-orange);
+  padding-bottom: 0.3em;
+  margin-bottom: 0.8em;
+}
+
+/* Lists */
+ul, ol {
+  margin: 0.8em 0;
+  padding-left: 1.5em;
+  font-size: 0.95em;
+  line-height: 1.6;
+}
+
+li {
+  margin: 0.4em 0;
+  color: var(--text-dark);
+}
+
+li strong {
+  color: var(--primary-dark);
+}
+
+/* Emphasis */
+strong {
+  color: var(--primary-orange);
+  font-weight: 700;
+}
+
+em {
+  color: var(--primary-dark);
+  font-style: italic;
+}
+
+/* Code blocks */
+code {
+  background-color: #F0F0F0;
+  color: var(--primary-dark);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+}
+
+pre {
+  background-color: #2D3E50;
+  color: #F5F5F5;
+  padding: 1em;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-size: 0.85em;
+  margin: 1em 0;
+}
+
+pre code {
+  background-color: transparent;
+  color: inherit;
+  padding: 0;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+  font-size: 0.9em;
+}
+
+table thead {
+  background-color: var(--primary-dark);
+  color: var(--text-light);
+}
+
+table th {
+  padding: 0.7em;
+  text-align: left;
+  font-weight: 700;
+}
+
+table td {
+  padding: 0.6em 0.7em;
+  border-bottom: 1px solid var(--border-color);
+}
+
+table tbody tr:nth-child(even) {
+  background-color: rgba(255, 122, 66, 0.05);
+}
+
+table tbody tr:hover {
+  background-color: rgba(255, 122, 66, 0.1);
+}
+
+/* Links */
+a {
+  color: var(--primary-orange);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+a:hover {
+  text-decoration: underline;
+  color: var(--primary-dark);
+}
+
+/* Blockquote */
+blockquote {
+  border-left: 4px solid var(--primary-orange);
+  padding-left: 1em;
+  margin-left: 0;
+  color: #666;
+  font-style: italic;
+  font-size: 1.1em;
+}
+
+/* Horizontal rule */
+hr {
+  border: none;
+  border-top: 2px solid var(--primary-orange);
+  margin: 1.5em 0;
+}
+
+/* Special slide: last slide / back cover */
+section.lead:last-of-type {
+  background: linear-gradient(135deg, var(--primary-dark) 0%, #1A2E3E 100%);
+  color: var(--text-light);
+}
+
+section.lead:last-of-type h1 {
+  color: var(--primary-orange);
+}
+
+/* Appendix sections */
+section[data-appendix] h2 {
+  color: var(--primary-orange);
+  border-color: var(--primary-dark);
+}
+
+/* Highlight / pending placeholder */
+.highlight {
+  background-color: rgba(255, 122, 66, 0.15);
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  color: var(--primary-dark);
+  font-weight: 600;
+}
+
+/* Footer-like positioning for slide numbers, etc. */
+section::after {
+  font-size: 0.8em;
+  color: #999;
+}
+
+/* Tweak for readability on accent-light background */
+section:not(.lead) {
+  color: var(--text-dark);
+}
