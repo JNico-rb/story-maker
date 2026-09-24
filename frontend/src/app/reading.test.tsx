@@ -70,6 +70,15 @@ const LIST: VersionsList = {
   ],
 };
 
+// N vista en V1: la lista publicada acaba en V1, así que es la vigente al entrar.
+function apiAtV1(extra: Record<string, Reply> = {}): string[] {
+  return fakeApi({
+    [`GET ${BASE}`]: () => json(200, { versions: LIST.versions.slice(0, 1) }),
+    [`GET ${BASE}/1`]: () => json(200, detail(1)),
+    ...extra,
+  });
+}
+
 function renderReading() {
   const router = createMemoryRouter(buildRoutes(), {
     initialEntries: [`/novelas/${NOVEL}/lectura`],
@@ -99,5 +108,15 @@ describe("026 lectura", () => {
     expect(within(cover).getByRole("heading", { name: "La casa del faro" })).toBeInTheDocument();
     expect(screen.getByRole("combobox", { name: "Versión" })).toHaveValue("2");
     expect(sent).toEqual([`GET ${BASE}`, `GET ${BASE}/2`]);
+  });
+
+  it("026-C02: the cover shows the title, the recipient's name and the dedication", async () => {
+    apiAtV1();
+    renderReading();
+
+    const cover = await screen.findByRole("region", { name: "Portada" });
+    expect(within(cover).getByRole("heading", { name: "La casa del faro" })).toBeInTheDocument();
+    expect(within(cover).getByText(/Destinataria de prueba/)).toBeInTheDocument();
+    expect(within(cover).getByText("Para quien espera la luz.")).toBeInTheDocument();
   });
 });

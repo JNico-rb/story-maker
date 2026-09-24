@@ -30,6 +30,8 @@ function Cover({ view }: { view: VersionDetail["view"] }) {
   return (
     <section aria-label="Portada" className="mb-10 text-center">
       <h2 className="font-reading text-3xl font-semibold text-secondary">{view.title}</h2>
+      <p className="mt-2">Para {view.recipient}</p>
+      <p className="mt-6 font-reading italic">{view.dedication}</p>
     </section>
   );
 }
