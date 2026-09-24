@@ -1,0 +1,426 @@
+"""Registro y acceso (002-C01 a 002-C10, 002-I1)."""
+
+from __future__ import annotations
+
+import datetime as dt
+from collections.abc import Iterator
+from pathlib import Path
+
+import bcrypt
+import jwt
+import pytest
+from fastapi.testclient import TestClient
+from sqlalchemy import text
+from sqlalchemy.orm import Session, sessionmaker
+
+from story_maker.api.app import create_app
+from story_maker.store.models import User
+from story_maker.store.session import create_schema, make_engine, make_session_factory
+
+JWT_SECRET = "x" * 32
+
+
+class FakeClock:
+    """Reloj controlable para las pruebas de emisión y caducidad del token (002-C07, 002-C14)."""
+
+    def __init__(self, now: dt.datetime) -> None:
+        self._now = now
+
+    def __call__(self) -> dt.datetime:
+        return self._now
+
+    def set(self, now: dt.datetime) -> None:
+        self._now = now
+
+
+@pytest.fixture
+def session_factory(tmp_path: Path) -> Iterator[sessionmaker[Session]]:
+    engine = make_engine(tmp_path / "story-maker.db")
+    create_schema(engine)
+    yield make_session_factory(engine)
+    engine.dispose()
+
+
+@pytest.fixture
+def client(session_factory: sessionmaker[Session]) -> TestClient:
+    app = create_app(session_factory=session_factory, jwt_secret=JWT_SECRET)
+    return TestClient(app)
+
+
+@pytest.fixture
+def clock() -> FakeClock:
+    return FakeClock(dt.datetime(2026, 1, 1, 12, 0, 0, tzinfo=dt.UTC))
+
+
+@pytest.fixture
+def clocked_client(session_factory: sessionmaker[Session], clock: FakeClock) -> TestClient:
+    app = create_app(session_factory=session_factory, jwt_secret=JWT_SECRET, clock=clock)
+    return TestClient(app)
+
+
+def _users(session_factory: sessionmaker[Session]) -> list[User]:
+    session = session_factory()
+    try:
+        return list(session.query(User).all())
+    finally:
+        session.close()
+
+
+def test_valid_registration_creates_a_bcrypt_hashed_user(
+    client: TestClient, session_factory: sessionmaker[Session]
+) -> None:
+    response = client.post(
+        "/api/auth/register",
+        json={"email": "cliente-a@example.com", "password": "contraseña-1"},
+    )
+
+    assert response.status_code == 201
+    assert set(response.json()) == {"id", "email"}
+    assert response.json()["email"] == "cliente-a@example.com"
+
+    (user,) = _users(session_factory)
+    assert user.created_at is not None
+    assert user.password_hash != "contraseña-1"
+    assert bcrypt.checkpw("contraseña-1".encode(), user.password_hash.encode("utf-8"))
+
+
+def test_the_email_is_stored_normalized(
+    client: TestClient, session_factory: sessionmaker[Session]
+) -> None:
+    response = client.post(
+        "/api/auth/register",
+        json={"email": "  Cliente-A@Example.COM ", "password": "contraseña-1"},
+    )
+
+    assert response.status_code == 201
+    assert response.json()["email"] == "cliente-a@example.com"
+
+    (user,) = _users(session_factory)
+    assert user.email == "cliente-a@example.com"
+
+
+def test_an_already_registered_email_does_not_create_another_account(
+    client: TestClient, session_factory: sessionmaker[Session]
+) -> None:
+    client.post(
+        "/api/auth/register",
+        json={"email": "cliente-a@example.com", "password": "contraseña-1"},
+    )
+
+    response = client.post(
+        "/api/auth/register",
+        json={"email": "CLIENTE-A@example.com", "password": "otra-contraseña"},
+    )
+
+    assert response.status_code == 409
+    assert len(_users(session_factory)) == 1
+
+    original_login = client.post(
+        "/api/auth/login",
+        json={"email": "cliente-a@example.com", "password": "contraseña-1"},
+    )
+    assert original_login.status_code == 200
+
+    new_login = client.post(
+        "/api/auth/login",
+        json={"email": "cliente-a@example.com", "password": "otra-contraseña"},
+    )
+    assert new_login.status_code == 401
+
+
+@pytest.mark.parametrize(
+    "email",
+    [
+        "cliente-a.example.com",  # sin arroba
+        "cliente-a@@example.com",  # dos arrobas
+        "@example.com",  # parte local vacía
+        "cliente-a@example",  # dominio sin punto
+        "cliente a@example.com",  # espacio interior
+    ],
+)
+def test_an_email_without_email_shape_is_rejected(
+    client: TestClient, session_factory: sessionmaker[Session], email: str
+) -> None:
+    response = client.post("/api/auth/register", json={"email": email, "password": "contraseña-1"})
+
+    assert response.status_code == 422
+    assert _users(session_factory) == []
+
+
+@pytest.mark.parametrize(
+    "email",
+    [
+        "cliente-a@.example.com",
+        "cliente-a@example.com.",
+    ],
+)
+def test_a_domain_starting_or_ending_with_a_dot_is_rejected(
+    client: TestClient, session_factory: sessionmaker[Session], email: str
+) -> None:
+    response = client.post("/api/auth/register", json={"email": email, "password": "contraseña-1"})
+
+    assert response.status_code == 422
+    assert _users(session_factory) == []
+
+
+@pytest.mark.parametrize(
+    ("password", "expected_status"),
+    [
+        ("a" * 7, 422),
+        ("a" * 8, 201),
+        ("a" * 72, 201),
+        ("a" * 73, 422),
+        ("€" * 24, 201),  # 24 caracteres, 72 bytes UTF-8
+        ("€" * 25, 422),  # 75 bytes UTF-8
+    ],
+)
+def test_password_limits(
+    client: TestClient,
+    session_factory: sessionmaker[Session],
+    password: str,
+    expected_status: int,
+) -> None:
+    response = client.post(
+        "/api/auth/register", json={"email": "cliente-a@example.com", "password": password}
+    )
+
+    assert response.status_code == expected_status
+    if expected_status == 422:
+        assert _users(session_factory) == []
+        assert password not in response.text
+
+
+def test_a_254_character_well_formed_email_is_accepted(
+    client: TestClient, session_factory: sessionmaker[Session]
+) -> None:
+    email = "a" * 242 + "@example.com"
+    assert len(email) == 254
+
+    response = client.post("/api/auth/register", json={"email": email, "password": "contraseña-1"})
+
+    assert response.status_code == 201
+
+
+def test_a_255_character_well_formed_email_is_rejected(
+    client: TestClient, session_factory: sessionmaker[Session]
+) -> None:
+    email = "a" * 243 + "@example.com"
+    assert len(email) == 255
+
+    response = client.post("/api/auth/register", json={"email": email, "password": "contraseña-1"})
+
+    assert response.status_code == 422
+    assert _users(session_factory) == []
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        {"password": "contraseña-1"},
+        {"email": "cliente-a@example.com"},
+        {"email": 12345678, "password": "contraseña-1"},
+        {"email": "cliente-a@example.com", "password": True},
+    ],
+)
+def test_registration_with_an_incomplete_body_is_rejected(
+    client: TestClient, session_factory: sessionmaker[Session], body: dict[str, object]
+) -> None:
+    response = client.post("/api/auth/register", json=body)
+
+    assert response.status_code == 422
+    assert _users(session_factory) == []
+
+
+def test_valid_login_returns_a_jwt_with_exactly_the_specified_claims(
+    clocked_client: TestClient, clock: FakeClock
+) -> None:
+    register = clocked_client.post(
+        "/api/auth/register",
+        json={"email": "cliente-a@example.com", "password": "contraseña-1"},
+    )
+    user_id = register.json()["id"]
+
+    response = clocked_client.post(
+        "/api/auth/login",
+        json={"email": "cliente-a@example.com", "password": "contraseña-1"},
+    )
+
+    assert response.status_code == 200
+    assert set(response.json()) == {"access_token"}
+    token = response.json()["access_token"]
+
+    payload = jwt.decode(
+        token,
+        JWT_SECRET,
+        algorithms=["HS256"],
+        audience="access_token",
+        issuer="story-maker",
+        options={"verify_exp": False},
+    )
+    t0 = int(clock().timestamp())
+    assert payload == {
+        "sub": str(user_id),
+        "iat": t0,
+        "exp": t0 + 24 * 3600,
+        "aud": "access_token",
+        "iss": "story-maker",
+    }
+
+
+def test_login_email_is_case_insensitive(client: TestClient) -> None:
+    register = client.post(
+        "/api/auth/register",
+        json={"email": "cliente-a@example.com", "password": "contraseña-1"},
+    )
+    user_id = register.json()["id"]
+
+    response = client.post(
+        "/api/auth/login",
+        json={"email": "CLIENTE-A@EXAMPLE.COM ", "password": "contraseña-1"},
+    )
+
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    payload = jwt.decode(
+        token,
+        JWT_SECRET,
+        algorithms=["HS256"],
+        audience="access_token",
+        issuer="story-maker",
+    )
+    assert payload["sub"] == str(user_id)
+
+
+def test_wrong_credentials_all_answer_401_with_the_same_body(client: TestClient) -> None:
+    client.post(
+        "/api/auth/register",
+        json={"email": "cliente-a@example.com", "password": "contraseña-1"},
+    )
+
+    wrong_password = client.post(
+        "/api/auth/login",
+        json={"email": "cliente-a@example.com", "password": "otra-cosa"},
+    )
+    unregistered_email = client.post(
+        "/api/auth/login",
+        json={"email": "no-existe@example.com", "password": "contraseña-1"},
+    )
+    empty_password = client.post(
+        "/api/auth/login", json={"email": "cliente-a@example.com", "password": ""}
+    )
+    long_password = client.post(
+        "/api/auth/login", json={"email": "cliente-a@example.com", "password": "a" * 73}
+    )
+    malformed_email = client.post(
+        "/api/auth/login", json={"email": "cliente-a.example.com", "password": "contraseña-1"}
+    )
+
+    responses = [wrong_password, unregistered_email, empty_password, long_password, malformed_email]
+    for response in responses:
+        assert response.status_code == 401, response.text
+    bodies = {response.text for response in responses}
+    assert len(bodies) == 1
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        {"password": "contraseña-1"},
+        {"email": "cliente-a@example.com"},
+        {"email": 12345678, "password": "contraseña-1"},
+        {"email": "cliente-a@example.com", "password": True},
+    ],
+)
+def test_login_with_an_incomplete_body_is_rejected(
+    client: TestClient, body: dict[str, object]
+) -> None:
+    response = client.post("/api/auth/login", json=body)
+
+    assert response.status_code == 422
+
+
+def test_the_password_never_appears_in_the_database_or_in_any_response(tmp_path: Path) -> None:
+    db_path = tmp_path / "story-maker.db"
+    engine = make_engine(db_path)
+    create_schema(engine)
+    factory = make_session_factory(engine)
+    app = create_app(session_factory=factory, jwt_secret=JWT_SECRET)
+    local_client = TestClient(app)
+    password = "no-debe-verse-nunca"
+
+    register = local_client.post(
+        "/api/auth/register",
+        json={"email": "cliente-a@example.com", "password": password},
+    )
+    login = local_client.post(
+        "/api/auth/login", json={"email": "cliente-a@example.com", "password": password}
+    )
+    wrong_login = local_client.post(
+        "/api/auth/login", json={"email": "cliente-a@example.com", "password": "otra-cosa"}
+    )
+
+    assert register.status_code == 201
+    assert login.status_code == 200
+    for response in (register, login, wrong_login):
+        assert password not in response.text
+
+    with engine.begin() as connection:
+        connection.execute(text("PRAGMA wal_checkpoint(TRUNCATE)"))
+    engine.dispose()
+
+    raw = db_path.read_bytes()
+    assert password.encode("utf-8") not in raw
+
+
+def test_no_422_reproduces_the_sent_password(client: TestClient) -> None:
+    """Hallazgo del integrador: un cuerpo incompleto (sin `email`) hacía que el 422 por defecto
+    de FastAPI reprodujese, en `input`, la contraseña que sí llegó en el cuerpo."""
+    password = "ContraseniaSecreta9"
+
+    register_no_email = client.post("/api/auth/register", json={"password": password})
+    login_no_email = client.post("/api/auth/login", json={"password": password})
+
+    for response in (register_no_email, login_no_email):
+        assert response.status_code == 422, response.text
+        assert password not in response.text
+
+
+@pytest.mark.parametrize(
+    ("path", "body", "expected_loc"),
+    [
+        (
+            "/api/auth/register",
+            {"email": "cliente-a.example.com", "password": "contraseña-1"},
+            ["body", "email"],
+        ),
+        (
+            "/api/auth/register",
+            {"email": "cliente-a@example.com", "password": "corta"},
+            ["body", "password"],
+        ),
+        ("/api/auth/register", {"password": "contraseña-1"}, ["body", "email"]),
+        ("/api/auth/register", {"email": "cliente-a@example.com"}, ["body", "password"]),
+        (
+            "/api/auth/register",
+            {"email": 12345678, "password": "contraseña-1"},
+            ["body", "email"],
+        ),
+        ("/api/auth/login", {"password": "contraseña-1"}, ["body", "email"]),
+        ("/api/auth/login", {"email": "cliente-a@example.com"}, ["body", "password"]),
+    ],
+)
+def test_every_422_has_the_unified_shape(
+    client: TestClient, path: str, body: dict[str, object], expected_loc: list[str]
+) -> None:
+    """`{"detail": [{"loc", "msg", "type"}]}`, nunca `input` ni `ctx` (C04-C06, C10)."""
+    response = client.post(path, json=body)
+
+    assert response.status_code == 422
+    payload = response.json()
+    assert set(payload) == {"detail"}
+    assert isinstance(payload["detail"], list)
+    assert len(payload["detail"]) >= 1
+    matching = [entry for entry in payload["detail"] if entry["loc"] == expected_loc]
+    assert matching, payload["detail"]
+    for entry in payload["detail"]:
+        assert set(entry) == {"loc", "msg", "type"}

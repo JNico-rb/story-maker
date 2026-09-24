@@ -151,36 +151,36 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
-- [ ] 002-C01 · Registro válido
-- [ ] 002-C02 · El email se guarda normalizado
-- [ ] 002-C03 · Un email ya registrado no crea otra cuenta
-- [ ] 002-C04 · Email sin forma de email
-- [ ] 002-C05 · Contraseña en sus límites
-- [ ] 002-C06 · Registro con cuerpo incompleto
-- [ ] 002-C07 · Acceso válido
-- [ ] 002-C08 · Al entrar, el email no distingue mayúsculas
-- [ ] 002-C09 · Credenciales incorrectas
-- [ ] 002-C10 · Acceso con cuerpo incompleto
-- [ ] 002-C11 · Un token válido identifica al cliente
-- [ ] 002-C12 · Sin token, o con el token mal presentado, responde 401
-- [ ] 002-C13 · Un token manipulado o de otro uso responde 401
-- [ ] 002-C14 · La caducidad en su límite
-- [ ] 002-C15 · El token se comprueba antes que la propiedad
-- [ ] 002-C16 · Lo ajeno responde como inexistente
-- [ ] 002-C17 · Un recurso anidado solo existe dentro de su padre
-- [ ] 002-C18 · Una entrada global no es de ningún cliente
-- [ ] 002-C19 · Un listado solo contiene lo del cliente
-- [ ] 002-C20 · Lo ajeno no cambia nada
-- [ ] 002-C21 · El propietario de lo creado es el cliente del token
-- [ ] 002-I1 · La contraseña nunca queda en claro
-- [ ] 002-I2 · Toda ruta de `/api` salvo el registro y el acceso exige un `TokenDeAcceso` válido
-- [ ] 002-I3 · Para B, un recurso de A es indistinguible de uno inexistente y no cambia nada
-- [ ] 002-I4 · El cliente de una petición sale solo del token
+- [x] 002-C01 · Registro válido
+- [x] 002-C02 · El email se guarda normalizado
+- [x] 002-C03 · Un email ya registrado no crea otra cuenta
+- [x] 002-C04 · Email sin forma de email
+- [x] 002-C05 · Contraseña en sus límites
+- [x] 002-C06 · Registro con cuerpo incompleto
+- [x] 002-C07 · Acceso válido
+- [x] 002-C08 · Al entrar, el email no distingue mayúsculas
+- [x] 002-C09 · Credenciales incorrectas
+- [x] 002-C10 · Acceso con cuerpo incompleto
+- [x] 002-C11 · Un token válido identifica al cliente
+- [x] 002-C12 · Sin token, o con el token mal presentado, responde 401
+- [x] 002-C13 · Un token manipulado o de otro uso responde 401
+- [x] 002-C14 · La caducidad en su límite
+- [x] 002-C15 · El token se comprueba antes que la propiedad
+- [x] 002-C16 · Lo ajeno responde como inexistente
+- [x] 002-C17 · Un recurso anidado solo existe dentro de su padre
+- [x] 002-C18 · Una entrada global no es de ningún cliente
+- [x] 002-C19 · Un listado solo contiene lo del cliente
+- [x] 002-C20 · Lo ajeno no cambia nada
+- [x] 002-C21 · El propietario de lo creado es el cliente del token
+- [x] 002-I1 · La contraseña nunca queda en claro
+- [x] 002-I2 · Toda ruta de `/api` salvo el registro y el acceso exige un `TokenDeAcceso` válido
+- [x] 002-I3 · Para B, un recurso de A es indistinguible de uno inexistente y no cambia nada
+- [x] 002-I4 · El cliente de una petición sale solo del token
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-24: `uv run pytest` 338 passed; `uv run ruff check .` all checks passed; `uv run ruff format --check .` 47 files already formatted; `uv run mypy src` no issues in 28 source files
+- [x] Spec updated, or confirmed still true — verificador 2026-09-24: confirmada sin cambios
+- [x] Docs updated, or confirmed still true — verificador 2026-09-24: confirmada sin cambios (la forma única del 422 ya está en `architecture.md` §18, commit 1bbb4a4 en V2)
 
 ## 003 — puerto-de-agente
 
