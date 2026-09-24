@@ -1294,6 +1294,6 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [ ] 031-I1 · El montaje es uno (lo lee el `verificador`)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-25: `uv run pytest` 1536 passed; `uv run ruff check .` OK; `uv run ruff format --check .` OK (356 files); `uv run mypy src` OK (147 files). 031-I1 (recortado): class I, no mapeado a TLA+ ni protege un validador, no bloquea el cierre; `pipeline/planning_seam.py` cubierto por la propiedad ampliada de 031 (`backend/AGENTS.md`, integrador 2026-09-25, a031009).
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
