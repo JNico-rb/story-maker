@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import calendar
+import datetime as dt
 import re
 from dataclasses import dataclass, replace
 
 import pytest
 
-from story_maker.formal.chronology import Chronology
+from story_maker.formal.chronology import Chronology, ChronologyEvent, Presence
 from story_maker.formal.generator import generate_chronology_file
 
 # --- Lectura del fichero generado, solo para las pruebas -------------------------------------
@@ -288,3 +290,61 @@ def test_the_same_chronology_and_k_give_the_same_file_byte_for_byte(
 
     assert first.encode("utf-8") == second.encode("utf-8")
     assert [e.id for e in parse(second).events] == [31, 32, 41, 42]
+
+
+# --- 007-C05 ---------------------------------------------------------------------------------
+
+
+def completed_years(birth: tuple[int, int, int], moment: tuple[int, ...]) -> int:
+    """Edad en años cumplidos (`domain-knowledge.md` §5.2): se nace a las 00:00 y un 29 de
+    febrero cumple el 1 de marzo en los años no bisiestos."""
+    year, month, day = moment[:3]
+    b_year, b_month, b_day = birth
+    birthday = (b_month, b_day)
+    if birthday == (2, 29) and not calendar.isleap(year):
+        birthday = (3, 1)
+    return year - b_year - (1 if (month, day) < birthday else 0)
+
+
+def leap_day_chronology(chronology: Chronology) -> Chronology:
+    def event(id_: int, moment: dt.datetime, age: int) -> ChronologyEvent:
+        return ChronologyEvent(
+            id=id_,
+            moment=moment,
+            place_id=21,
+            presences=(Presence(12, age),),
+            type="ordinary",
+            excluded_character_id=None,
+            analepsis=False,
+            origin="recorded",
+            chapter=id_ - 60,
+            beat=1,
+        )
+
+    return replace(
+        chronology,
+        events=(
+            event(61, dt.datetime(2026, 2, 28, 12, 0), 89),
+            event(62, dt.datetime(2026, 3, 1, 0, 0), 90),
+            event(63, dt.datetime(2028, 2, 29, 0, 0), 92),
+        ),
+    )
+
+
+@pytest.mark.parametrize("k", range(1, 11))
+def test_the_29th_of_february_and_the_ages_survive_the_shift(
+    chronology: Chronology, k: int
+) -> None:
+    parsed = parse(generate_chronology_file(leap_day_chronology(chronology), k=k))
+    birth = parsed.births[12]
+    moments = {e.id: e.moment for e in parsed.events}
+
+    assert birth[1:] == (2, 29)
+    assert calendar.isleap(birth[0])
+    dt.date(*birth)  # la fecha existe
+    assert not calendar.isleap(moments[61][0])
+    assert calendar.isleap(moments[63][0])
+    assert [completed_years(birth, moments[i]) for i in (61, 62, 63)] == [89, 90, 92]
+    assert [
+        completed_years((1936, 2, 29), m) for m in ((2026, 2, 28), (2026, 3, 1), (2028, 2, 29))
+    ] == [89, 90, 92]

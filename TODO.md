@@ -338,7 +338,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 007-C02 · Los ids son los de las filas y las fechas se desplazan 400·k años
 - [x] 007-C03 · k se elige al azar en cada fichero, entre 1 y 10
 - [x] 007-C04 · La misma cronología y el mismo k dan el mismo fichero
-- [ ] 007-C05 · El 29 de febrero y las edades se conservan al desplazar
+- [x] 007-C05 · El 29 de febrero y las edades se conservan al desplazar
 - [ ] 007-C06 · Solo entra la versión que se verifica
 - [ ] 007-C07 · Un testigo con eventos narrados da un defecto por capítulo
 - [ ] 007-C08 · Un testigo solo con eventos del brief da un defecto sin capítulo
