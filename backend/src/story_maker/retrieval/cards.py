@@ -1,106 +1,19 @@
-"""CanonCards: la plantilla de cada entidad, su cadena y la sincronización de una versión con su
-story bible (`architecture.md` §6.3, §6.4)."""
+"""CanonCards: la cadena de cada entidad y la sincronización de una versión con su story bible
+(`architecture.md` §6.3, §6.4)."""
 
 from __future__ import annotations
 
-from collections.abc import Iterator
-from dataclasses import dataclass
-from typing import Any, cast
-
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-
 from story_maker.domain.constants import CHAPTERS_PER_NOVEL
+from story_maker.retrieval.canon import WORLD, Canon, EntityKey, entities, load_canon, participation
 from story_maker.retrieval.embedding import EmbeddingModel
+from story_maker.retrieval.templates import render
 from story_maker.retrieval.vectors import fingerprint, store_vectors
-from story_maker.store.models import CanonCard, Event, EventCharacter, OutlineChapter
+from story_maker.store.models import CanonCard
 from story_maker.store.session import UnitOfWork
-from story_maker.store.story_bible import StoryBible, read_story_bible
 
 CHAPTERS = range(1, CHAPTERS_PER_NOVEL + 1)
-
-# (tipo de entidad, character_id, place_id): la entidad de una tarjeta.
-EntityKey = tuple[str, int | None, int | None]
-WORLD: EntityKey = ("world", None, None)
-
-
-@dataclass(frozen=True)
-class Participation:
-    """Quién participa en un evento: presentes, excluido y lugar."""
-
-    chapter: int | None
-    characters: frozenset[int]
-    place_id: int
-
-    def includes(self, entity: EntityKey) -> bool:
-        kind, character_id, place_id = entity
-        if kind == "character":
-            return character_id in self.characters
-        return kind == "place" and place_id == self.place_id
-
-
-@dataclass(frozen=True)
-class Canon:
-    """Lo que la cadena necesita de una versión: su story bible, sus beats y sus eventos
-    planificados."""
-
-    bible: StoryBible
-    beats: dict[int, list[dict[str, Any]]]
-    planned: tuple[Participation, ...]
-
-
-def load_canon(session: Session, version_id: int) -> Canon:
-    outline = session.scalars(
-        select(OutlineChapter).where(OutlineChapter.version_id == version_id)
-    ).all()
-    planned = session.scalars(
-        select(Event).where(Event.version_id == version_id, Event.origin == "planned")
-    ).all()
-    present = _presences(session, [event.id for event in planned])
-    return Canon(
-        bible=read_story_bible(session, version_id),
-        beats={o.number: cast(list[dict[str, Any]], o.beats) for o in outline},
-        planned=tuple(
-            Participation(
-                chapter=event.chapter,
-                characters=frozenset(present.get(event.id, set()))
-                | _excluded(event.excluded_character_id),
-                place_id=event.place_id,
-            )
-            for event in planned
-        ),
-    )
-
-
-def _presences(session: Session, event_ids: list[int]) -> dict[int, set[int]]:
-    rows = session.scalars(select(EventCharacter).where(EventCharacter.event_id.in_(event_ids)))
-    out: dict[int, set[int]] = {}
-    for row in rows:
-        out.setdefault(row.event_id, set()).add(row.character_id)
-    return out
-
-
-def _excluded(character_id: int | None) -> frozenset[int]:
-    return frozenset() if character_id is None else frozenset({character_id})
-
-
-def entities(canon: Canon) -> Iterator[tuple[EntityKey, str, str]]:
-    """Cada entidad de la story bible: su clave, su origen y su nombre."""
-    if canon.bible.world is not None:
-        yield WORLD, "brief", "mundo"
-    for character in canon.bible.characters:
-        yield ("character", character.id, None), character.origin, character.canonical_name
-    for place in canon.bible.places:
-        yield ("place", None, place.id), place.origin, place.canonical_name
-
-
-def _fact_subject(canon: Canon, fact_id: int) -> EntityKey | None:
-    for fact in canon.bible.facts:
-        if fact.id == fact_id:
-            if fact.subject_type == "world":
-                return WORLD
-            return (fact.subject_type, fact.character_id, fact.place_id)
-    return None
+# Aceptar el último capítulo da sucesoras desde el siguiente, aunque ninguna ventana las use.
+LAST_FROM_CHAPTER = CHAPTERS_PER_NOVEL + 1
 
 
 def appears_in_beats(canon: Canon, entity: EntityKey, chapter: int) -> bool:
@@ -109,26 +22,62 @@ def appears_in_beats(canon: Canon, entity: EntityKey, chapter: int) -> bool:
     for beat in canon.beats.get(chapter, []):
         if entity[0] == "character" and entity[1] in beat.get("characters", []):
             return True
-        if any(_fact_subject(canon, f) == entity for f in beat.get("facts_used", [])):
+        if any(canon.fact_subject_of(f) == entity for f in beat.get("facts_used", [])):
             return True
     return any(e.chapter == chapter and e.includes(entity) for e in canon.planned)
 
 
+def appears_recorded(canon: Canon, entity: EntityKey, chapter: int) -> bool:
+    """La regla de la `FichaDePersonajes`: tiene un `UsoDeHecho` en el capítulo o participa en
+    uno de sus eventos registrados."""
+    if any(chapter in fact.chapters for fact in canon.facts_of(entity)):
+        return True
+    return any(
+        event.origin == "recorded"
+        and event.chapter == chapter
+        and participation(event).includes(entity)
+        for event in canon.bible.chronology.events
+    )
+
+
 def first_chapter(canon: Canon, entity: EntityKey, origin: str) -> int | None:
-    """El `desde_capitulo` de la primera tarjeta; ninguno si la entidad inventada no aparece."""
+    """El `desde_capitulo` de la primera tarjeta: 1 si es del brief o es el mundo; si es
+    inventada, el menor entre el primer capítulo en cuyos beats aparece y el siguiente al primero
+    en que aparece registrada; ninguno si no aparece."""
     if entity == WORLD or origin == "brief":
         return 1
-    return next((c for c in CHAPTERS if appears_in_beats(canon, entity, c)), None)
+    in_beats = (c for c in CHAPTERS if appears_in_beats(canon, entity, c))
+    after_recorded = (c + 1 for c in CHAPTERS if appears_recorded(canon, entity, c))
+    return min((next(in_beats, None), next(after_recorded, None)), key=_none_last)
+
+
+def _none_last(chapter: int | None) -> tuple[bool, int]:
+    return (chapter is None, chapter or 0)
+
+
+def chain(canon: Canon, entity: EntityKey, origin: str) -> dict[int, str]:
+    """`desde_capitulo` → texto: la primera tarjeta y una sucesora en cada *d* cuya plantilla
+    difiere de la de *d* - 1."""
+    first = first_chapter(canon, entity, origin)
+    if first is None:
+        return {}
+    cards = {first: render(canon, entity, first)}
+    previous = cards[first]
+    for chapter in range(first + 1, LAST_FROM_CHAPTER + 1):
+        text = render(canon, entity, chapter)
+        if text != previous:
+            cards[chapter] = text
+        previous = text
+    return cards
 
 
 def expected_cards(canon: Canon) -> dict[tuple[EntityKey, int], str]:
     """(entidad, `desde_capitulo`) → texto, para toda tarjeta de la cadena de cada entidad."""
-    cards: dict[tuple[EntityKey, int], str] = {}
-    for entity, origin, name in entities(canon):
-        first = first_chapter(canon, entity, origin)
-        if first is not None:
-            cards[(entity, first)] = name
-    return cards
+    return {
+        (entity, from_chapter): text
+        for entity, origin in entities(canon)
+        for from_chapter, text in chain(canon, entity, origin).items()
+    }
 
 
 def sync_canon_cards(uow: UnitOfWork, version_id: int, embedder: EmbeddingModel) -> None:

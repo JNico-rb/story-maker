@@ -790,7 +790,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 
 ### Steps
 - [x] 016-C1 · Tarjetas iniciales al aplicar el plan
-- [ ] 016-C2 · Qué dice una tarjeta
+- [x] 016-C2 · Qué dice una tarjeta
 - [ ] 016-C3 · Aceptar un capítulo crea sucesoras solo donde algo cambia
 - [ ] 016-C4 · Una entidad aparece antes de lo planeado
 - [ ] 016-C5 · Volver a aceptar un capítulo
