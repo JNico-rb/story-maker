@@ -410,3 +410,51 @@ Todas dependen de 000. Arranque en paralelo cuando 000 esté cerrada: A (001), C
 - [ ] Full suite green, type checks clean
 - [ ] Spec updated, or confirmed still true
 - [ ] Docs updated, or confirmed still true
+
+## 010 — planificacion
+
+- [x] Spec `specs/backend/010-planificacion.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
+
+### Steps
+- [ ] 010-C01 · La candidata nace con el canon del brief
+- [ ] 010-C02 · Fechas de nacimiento del canon
+- [ ] 010-C03 · Fechado de los recuerdos
+- [ ] 010-C04 · Eventos y lugares de los recuerdos
+- [ ] 010-C05 · Hechos extraídos en el canon
+- [ ] 010-C06 · Ventana del planner
+- [ ] 010-C07 · Catálogo de tropos curado
+- [ ] 010-C08 · Schema de `submit_plan`
+- [ ] 010-C09 · Policy sobre la entrega del plan
+- [ ] 010-C10 · Un plan válido pasa
+- [ ] 010-C11 · Capítulos y beats
+- [ ] 010-C12 · Elementos obligatorios asignados
+- [ ] 010-C13 · Momentos de los eventos y año presente
+- [ ] 010-C14 · Referencias y tipo de evento
+- [ ] 010-C15 · Fecha del novum
+- [ ] 010-C16 · `outline` no juzga la cronología
+- [ ] 010-C17 · Replanificación con los defectos
+- [ ] 010-C18 · Una sesión sin entrega cuenta como intento
+- [ ] 010-C19 · Intentos agotados
+- [ ] 010-C20 · El plan aceptado se aplica en una transacción
+- [ ] 010-C21 · StyleSheet
+- [ ] 010-C22 · CanonCards iniciales
+- [ ] 010-C23 · La transacción de aplicación falla
+- [ ] 010-C24 · Relanzar antes del punto de control 0
+- [ ] 010-C25 · Relanzar tras el punto de control 0
+- [ ] 010-C26 · Fallo del proveedor
+- [ ] 010-C27 · Reserva inviable en el techo
+- [ ] 010-C28 · Una generación nueva tras un fallo tiene su propia candidata
+- [ ] 010-C29 · Resultado y score de `outline`
+- [ ] 010-I1 · Ninguna ventana del planner contiene el contenido de un `TextoLibre` ni la cita de un `HechoExtraido`
+- [ ] 010-I2 · Planificar no modifica ni borra nada de origen brief o free_text
+- [ ] 010-I3 · Una entrega rechazada (schema, policy, `outline` o sin entrega) no deja nada en la candidata
+- [ ] 010-I4 · Los intentos del evaluable `plan` nunca superan 1 + `max_retries.plan`, contando los de antes de una reanudación; el cortado por una caíd…
+- [ ] 010-I5 · El punto de control 0 existe si y solo si el plan está aplicado, se escribe una sola vez, y relanzar con él nunca abre el planner
+- [ ] 010-I6 · `outline` es determinista y exhaustivo
+- [ ] 010-C30 · Planificación con el modelo real (D, al final)
+
+### Closing
+- [ ] Full suite green, type checks clean
+- [ ] Spec updated, or confirmed still true
+- [ ] Docs updated, or confirmed still true
