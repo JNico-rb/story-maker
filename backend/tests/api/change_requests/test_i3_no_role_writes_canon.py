@@ -15,8 +15,11 @@ from story_maker.store import models
 from .conftest import F, fact_selection, headers, propose, rename
 
 REQUEST = "el perro se llama Nala"
-# Filas de otras tablas que cuelgan de un hecho o de un evento de la versión.
-DEPENDENT = (models.FactUsage, models.EventCharacter)
+# Filas de otras tablas que cuelgan de un hecho o de un evento de la versión, con su padre.
+DEPENDENT = (
+    (models.FactUsage, models.Fact, models.FactUsage.fact_id),
+    (models.EventCharacter, models.Event, models.EventCharacter.event_id),
+)
 
 
 def _columns(row: Any) -> tuple[Any, ...]:
@@ -33,9 +36,10 @@ def v1_fingerprint(sf: sessionmaker[Session], version_id: int) -> dict[str, list
             if "version_id" in model.__table__.columns:
                 rows = session.query(model).filter_by(version_id=version_id).all()
                 fingerprint[model.__tablename__] = sorted(_columns(r) for r in rows)
-        for model in DEPENDENT:
+        for model, parent, parent_id in DEPENDENT:
+            rows = session.query(model).join(parent, parent.id == parent_id)
             fingerprint[model.__tablename__] = sorted(
-                _columns(r) for r in session.query(model).all()
+                _columns(r) for r in rows.filter(parent.version_id == version_id)
             )
     return fingerprint
 
