@@ -1489,3 +1489,6 @@ Registro de trade-offs: cada fila da opciones, criterio y elección. Reabrir una
 | Confirmar el brief en la SPA (024) | Pulsar siempre y mostrar el 422 · deshabilitar con faltantes o contradicciones | Lo más fácil; 008 rechaza igual en el servidor | Deshabilitado mientras haya faltantes o contradicciones |
 | Entrevista con el brief ya confirmado (024) | Redirigir · solo lectura | 008 sigue sirviendo el brief tras confirmar | La pantalla se muestra en solo lectura |
 | Chat y texto libre en la SPA (024) | Un campo compartido · dos controles separados | §3.1: el entrevistador nunca recibe un `TextoLibre` | Dos controles y dos rutas separados |
+| Sondeo de la ejecución en la SPA (025) | Intervalo fijo · espera creciente | Lo más fácil | Intervalo fijo mientras la ejecución no es terminal, también en `interrupted` (otra pestaña puede haberla reanudado) |
+| Reanudar rechazada en la SPA (025) | Error genérico · motivo del rechazo | Que la persona sepa qué pasó | Se muestra el motivo y sigue con el último estado sondeado |
+| Informe de una ejecución `failed` en la SPA (025) | Bajo demanda · automático | La persona entró a ver qué pasó | Se pide en cuanto el sondeo ve `failed` |
