@@ -605,7 +605,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 011-I3 · `ReintentosAcotados`
 - [x] 011-I4 · La aceptación es atómica
 - [ ] 011-I5 · Ningún rol escribe canon (recortado)
-- [ ] 011-I6 · Ningún capítulo aceptado tiene un defecto bloqueante
+- [x] 011-I6 · Ningún capítulo aceptado tiene un defecto bloqueante
 - [ ] 011-I7 · El writer nunca recibe prosa recuperada (recortado)
 - [ ] 011-I8 · Writer y editor son sesiones distintas
 - [ ] 011-I9 · Las ventanas solo llevan datos de la candidata de su novela, nunca de otra novela del mismo cliente ni de otro cliente (recortado)
