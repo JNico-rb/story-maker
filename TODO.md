@@ -50,6 +50,19 @@ Tabla de carriles y fila de backend/AGENTS.md: actualizarlas al lanzar I, J, K y
   - El vocabulario de atributos del canon (`NOMINAL_ATTRIBUTES`) está en `store/brief_canon.py`; debe pasar a `domain/` con la 008.
 - **Tareas humanas:** `GITHUB_TOKEN` de grano fino para 007-C25; decidir si V2 pasa a ser la rama por defecto (`workflow_dispatch` de `verificar-cronologia.yml`).
 
+### Alcance (usuario, 2026-09-24)
+
+Prioridad: los validadores y su evidencia; lo demás es secundario. La lectura es PDF + CLI.
+
+- **Dentro, en este orden:** (1) integrar 013; (2) cerrar e integrar 010 (G) y 008 (B); (3) 011 (A) completa en cuanto 010 esté en V2; (4) 012 (A) sin la etapa de revisión visual, «(recortado)»; (5) 020 (D): tabla de evals y `example`; (6) 014 (A); (7) 029-cli, nueva: `interview` sobre 008 y `change` sobre 014, con confirmación.
+- **Diferidas:** 018 C18–C23; después, 017. Solo si sobran tokens tras 029.
+- **Fuera:** 015, 016, 019, 021 y 023–028. No se lanzan sus carriles ni se integra H. Lo que 011 o 012 tomaran de 016 se sustituye por resúmenes por capítulo más todas las CanonCards de la candidata.
+- **Cierre de una spec:** bastan sus casos C y los invariantes I que mapean a TLA+ (ReanudacionSinDuplicarNiPerder, ReintentosAcotados, VersionAnteriorConservada, atomicidad) o que protegen un validador; el resto de invariantes I se marcan «(recortado)» y no bloquean.
+- **Pasos D del lote final, solo:** 020-C10, C11, C12, C13, C14, C16 y 004-C14. El resto de pasos D queda sin marcar.
+- **Modelos:** sonnet por defecto (specs, verificador, arreglos); opus solo con concurrencia, reanudación desde checkpoint o transacciones entre varias tablas, o tras 2 fallos de sonnet en el mismo paso. Cada elección de opus, anotada abajo con su motivo.
+
+**Elecciones de opus:**
+
 ## Carriles
 
 | Carril | Specs en orden | Depende de (fuera del carril) | Worktree | Rama | Estado |
@@ -61,8 +74,8 @@ Tabla de carriles y fila de backend/AGENTS.md: actualizarlas al lanzar I, J, K y
 | D — formal y lectura | 006 → 004 → 013 → 020 | 001 (004) · 009 (013 parcial) · 012 (020) | `../sm-d` | `carril-d` | 006, 004 y 013 integradas; siguiente, 020 parcial |
 | F — linters de prosa | 018 | 011 (018 parcial: C18–C23) | `../sm-f` | `carril-f` | 018: los 19 pasos de linters puros hechos; C18–C23 esperan 011 |
 | G — planificación | 010 | 003, 004 · 009 (010 parcial: aplicar el plan a la story bible) | `../sm-g` | `carril-g` | 010 en curso (lo que no usa la 009) |
-| H — recuperación | 016 | 009 (016 parcial: tarjetas desde la story bible) | `../sm-h` | `carril-h` | 016 en curso (canales, fusión y consultas) |
-| E — frontend | 022 → 023 → 024 → 025 → 026 → 027 → 028 (`specs/frontend/`) | las de backend de la tabla de specs, cerradas en V2 | `../sm-e` | `carril-e` | 022–028 con spec y plan aprobados; implementación cuando se cierren sus dependencias |
+| H — recuperación | 016 | 009 (016 parcial: tarjetas desde la story bible) | `../sm-h` | `carril-h` | congelado |
+| E — frontend | 022 → 023 → 024 → 025 → 026 → 027 → 028 (`specs/frontend/`) | las de backend de la tabla de specs, cerradas en V2 | `../sm-e` | `carril-e` | congelado |
 
 **Frontend (022–028, decisión del usuario 2026-09-24).** Las specs se redactan ya, de dos en dos, mientras los carriles programan el backend: spec → plan en `TODO.md` → casillas marcadas por el integrador, sin revisión. **Revisión solo como excepción:** únicamente ante un error claro que impide que funcione o que deja sin cubrir un requisito de `project-constraints.md`; una sola corrección, sin rondas. El carril E (`../sm-e`) empieza cada spec cuando sus dependencias de backend están cerradas en V2, sin adelantarse. El backend manda: si hay que elegir, primero se integran A, C y D.
 
@@ -725,6 +738,8 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 
 ## 015 — servidor-mcp
 
+**Fuera de alcance** (usuario, 2026-09-24): no se implementa.
+
 - [x] Spec `specs/backend/015-servidor-mcp.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
@@ -764,6 +779,8 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [ ] Docs updated, or confirmed still true
 
 ## 016 — recuperacion-hibrida
+
+**Fuera de alcance** (usuario, 2026-09-24): no se implementa.
 
 - [x] Spec `specs/backend/016-recuperacion-hibrida.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
@@ -806,6 +823,8 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 
 ## 017 — revision-visual
 
+**Diferida** (usuario, 2026-09-24): solo si sobran tokens tras 029.
+
 - [x] Spec `specs/backend/017-revision-visual.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
@@ -847,6 +866,8 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 
 ## 018 — linters-de-prosa
 
+**Diferida** (usuario, 2026-09-24): C18–C23, solo si sobran tokens tras 029.
+
 - [x] Spec `specs/backend/018-linters-de-prosa.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
@@ -883,6 +904,8 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [ ] Docs updated, or confirmed still true
 
 ## 019 — edicion-manual
+
+**Fuera de alcance** (usuario, 2026-09-24): no se implementa.
 
 - [x] Spec `specs/backend/019-edicion-manual.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
@@ -966,6 +989,8 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 
 ## 021 — auditoria-de-seguridad
 
+**Fuera de alcance** (usuario, 2026-09-24): no se implementa.
+
 - [x] Spec `specs/backend/021-auditoria-de-seguridad.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
@@ -1009,6 +1034,8 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 
 ## 023 — mis-novelas
 
+**Fuera de alcance** (usuario, 2026-09-24): no se implementa.
+
 - [x] Spec `specs/frontend/023-mis-novelas.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
@@ -1039,6 +1066,8 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [ ] Docs updated, or confirmed still true
 
 ## 024 — entrevista
+
+**Fuera de alcance** (usuario, 2026-09-24): no se implementa.
 
 - [x] Spec `specs/frontend/024-entrevista.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
@@ -1075,6 +1104,8 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 
 ## 025 — progreso
 
+**Fuera de alcance** (usuario, 2026-09-24): no se implementa.
+
 - [x] Spec `specs/frontend/025-progreso.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
@@ -1101,6 +1132,8 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [ ] Docs updated, or confirmed still true
 
 ## 026 — lectura
+
+**Fuera de alcance** (usuario, 2026-09-24): no se implementa.
 
 - [x] Spec `specs/frontend/026-lectura.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
@@ -1132,6 +1165,8 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 
 ## 027 — cambio-del-lector
 
+**Fuera de alcance** (usuario, 2026-09-24): no se implementa.
+
 - [x] Spec `specs/frontend/027-cambio-del-lector.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
@@ -1162,6 +1197,8 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [ ] Docs updated, or confirmed still true
 
 ## 028 — edicion-manual
+
+**Fuera de alcance** (usuario, 2026-09-24): no se implementa.
 
 - [x] Spec `specs/frontend/028-edicion-manual.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
