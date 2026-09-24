@@ -15,6 +15,7 @@ from story_maker.store.brief_canon import (
     RECOLLECTION,
     RELATIONSHIP,
     TRAIT,
+    BriefRecollection,
     ConfirmedBrief,
 )
 
@@ -223,3 +224,25 @@ def test_an_excluding_recollection_names_its_excluded_one(store: Any, f1: Confir
 
     for statement in ("se perdió en la feria de su pueblo", "su primer baño en el mar"):
         assert (events[statement]["row"].type, events[statement]["excluded"]) == ("ordinary", None)
+
+
+def test_there_is_one_brief_place_per_exact_place_name(store: Any, f1: ConfirmedBrief) -> None:
+    r4 = BriefRecollection(
+        "ganó un concurso de dibujo", "la feria del pueblo", element_id=11, mandatory=False, age=10
+    )
+    r5 = BriefRecollection(
+        "montó en la noria", "La feria del pueblo", element_id=12, mandatory=False, age=9
+    )
+    brief = replace(f1, recollections=(*f1.recollections, r4, r5))
+
+    version_id, _, _ = _canon(store, brief)
+
+    places = _rows(store, models.Place, version_id)
+    assert sorted(p.canonical_name for p in places) == sorted(
+        ["la feria del pueblo", "La feria del pueblo", "la playa del faro", "la estación"]
+    )
+    assert {(p.origin, p.description) for p in places} == {("brief", "")}
+    events = _events(store, version_id)
+    r1_place = events["se perdió en la feria de su pueblo"]["row"].place_id
+    assert events["ganó un concurso de dibujo"]["row"].place_id == r1_place
+    assert events["montó en la noria"]["row"].place_id != r1_place

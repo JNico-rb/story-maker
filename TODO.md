@@ -432,7 +432,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 009-C04 · Los rasgos, las relaciones y los hechos extraídos aceptados pasan a hechos
 - [x] 009-C05 · Cada recuerdo da su hecho, su evento fechado y su lugar
 - [x] 009-C06 · Un recuerdo excluyente nombra a su excluido
-- [ ] 009-C07 · Hay un lugar del brief por cada nombre de lugar exacto
+- [x] 009-C07 · Hay un lugar del brief por cada nombre de lugar exacto
 - [ ] 009-C08 · El fechado respeta los límites del calendario
 - [ ] 009-C09 · Cada elemento personal queda representado y los obligatorios, marcados
 - [ ] 009-I7 · Todo ElementoPersonal del brief tiene al menos un hecho que lo representa, y el de uno obligatorio es obligatorio

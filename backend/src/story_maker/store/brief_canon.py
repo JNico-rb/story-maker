@@ -118,7 +118,10 @@ def create_generation_candidate(
             close_one.name,
             birth_date(present_year, close_one.age, close_one.birth_date),
         )
-    places = [_place(uow, version, recollection.place) for recollection in brief.recollections]
+    places: dict[str, Place] = {}
+    for recollection in brief.recollections:
+        if recollection.place not in places:  # un lugar por nombre exacto (§18, spec 009)
+            places[recollection.place] = _place(uow, version, recollection.place)
     uow.session.flush()
 
     me = characters[recipient.name]
@@ -137,13 +140,13 @@ def create_generation_candidate(
             _fact(uow, version, subject, extracted.attribute, extracted.value, "free_text")
 
     recipient_birth = recipient.birth_date or dt.date(present_year - recipient.age, 1, 1)
-    for recollection, place in zip(brief.recollections, places, strict=True):
+    for recollection in brief.recollections:
         excluded = characters[recollection.excluded] if recollection.excluded else None
         event = Event(
             version_id=version.id,
             statement=recollection.statement,
             moment=recollection_moment(recipient_birth, recollection.age, recollection.year),
-            place_id=place.id,
+            place_id=places[recollection.place].id,
             type="exclusion" if excluded else "ordinary",
             excluded_character_id=excluded.id if excluded else None,
             analepsis=True,
