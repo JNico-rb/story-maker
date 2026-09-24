@@ -111,7 +111,7 @@ Todas dependen de 000. Carril B disuelto y C rehecho (decisión del usuario, 202
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
-- [ ] 001-C03 · Ajustes: valores por defecto, rutas desde la raíz y precedencia del entorno
+- [x] 001-C03 · Ajustes: valores por defecto, rutas desde la raíz y precedencia del entorno
 - [ ] 001-C04 · Ajustes obligatorios y condicionales
 - [ ] 001-C01 · El `config.json` del repositorio es válido y lleva los valores de §15.4
 - [ ] 001-C02 · La config se valida entera y nombra cada clave que falta, sobra o no vale
