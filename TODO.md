@@ -111,7 +111,7 @@ Todas dependen de 000. Arranque en paralelo cuando 000 esté cerrada: A (001), C
 - [ ] 000-C15 · Claude Code conecta los servidores de `.mcp.json` (D, al final)
 - [ ] 000-C16 · Playwright MCP inspecciona la SPA en Edge: marca, mismo origen y proxy de `/api` (D, al final)
 - [ ] 000-C17 · En una sesión real, los hooks y los permisos actúan (D, al final)
-- [ ] 000-C18 · La primera CI de `V2` sale en verde, con Lean y TLC (D, al final)
+- [x] 000-C18 · La primera CI de `V2` sale en verde, con Lean y TLC — CI de 1f4eacd verde: backend, frontend, formal (Lean y TLC), seguridad
 - [ ] 000-C19 · La CI se pone en rojo ante defectos sembrados (D, al final)
 
 ### Closing
