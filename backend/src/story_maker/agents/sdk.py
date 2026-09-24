@@ -38,7 +38,7 @@ from mcp.types import (
 )
 
 from story_maker.agents.port import DriverSession, EndingName, Final, SessionRequest, ToolHooks
-from story_maker.agents.profiles import BROWSER_TOOLS, SKILL, RoleProfile
+from story_maker.agents.profiles import SKILL, RoleProfile
 from story_maker.agents.tools import ToolSpec
 from story_maker.agents.usage import Usage
 from story_maker.settings import Settings
@@ -265,9 +265,9 @@ class SdkAgent:
         builtin = [SKILL] if profile.uses_skill else []
         allowed = [f"mcp__{HARNESS}__{spec.name}" for spec in request.tools] + builtin
         servers: dict[str, McpServerConfig] = {HARNESS: _harness_server(request.tools, hooks)}
-        if profile.role == "visual_reviewer":
+        if profile.browser_tools:
             servers[BROWSER] = self._browser_server()
-            allowed += [f"mcp__{BROWSER}__{tool}" for tool in BROWSER_TOOLS]
+            allowed += [f"mcp__{BROWSER}__{tool}" for tool in profile.browser_tools]
         user_claude_dir = self._user_claude_dir or Path(
             os.environ.get("CLAUDE_CONFIG_DIR") or Path.home() / ".claude"
         )

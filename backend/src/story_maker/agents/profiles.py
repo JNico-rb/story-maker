@@ -1,13 +1,22 @@
-"""Perfil de cada rol: lista blanca por modo, etiqueta y límites (`definitions.md` §12.2)."""
+"""Perfil de cada rol: lista blanca por modo, etiqueta y límites (`definitions.md` §12.2).
+
+La lista blanca es la de `policy/`, la misma que aplica el hook de policy (§12.3)."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 
 from story_maker.config import Config
+from story_maker.policy.whitelist import ROLE_TOOLS
 
 SKILL = "Skill"
-BROWSER_TOOLS = ("browser_navigate", "browser_snapshot", "browser_click")
+MODES: dict[str, tuple[str, ...]] = {
+    "planner": ("plan", "change"),
+    "writer": ("write", "rewrite", "revise"),
+}
+# Las tools de la lista del rol que solo tiene uno de sus modos: el planner en modo `change`
+# solo tiene `propose_change` (definitions.md §12.2).
+_MODE_ONLY = {"submit_plan": "plan", "propose_change": "change"}
 
 LABELS = {
     "interviewer": "entrevistador",
@@ -17,21 +26,6 @@ LABELS = {
     "editor": "editor",
     "judge": "juez",
     "visual_reviewer": "revisor-visual",
-}
-
-_WRITER = ("submit_chapter", SKILL)
-
-WHITELIST: dict[tuple[str, str | None], tuple[str, ...]] = {
-    ("interviewer", None): ("update_brief",),
-    ("extractor", None): ("submit_facts",),
-    ("planner", "plan"): ("submit_plan",),
-    ("planner", "change"): ("propose_change",),
-    ("writer", "write"): _WRITER,
-    ("writer", "rewrite"): _WRITER,
-    ("writer", "revise"): _WRITER,
-    ("editor", None): ("submit_review", SKILL),
-    ("judge", None): ("submit_evaluation",),
-    ("visual_reviewer", None): ("submit_visual_review", *BROWSER_TOOLS),
 }
 
 
@@ -60,7 +54,11 @@ class RoleProfile:
     @property
     def own_tools(self) -> tuple[str, ...]:
         """Las de la lista blanca que no son `Skill` ni del browser MCP."""
-        return tuple(t for t in self.whitelist if t != SKILL and t not in BROWSER_TOOLS)
+        return tuple(t for t in self.whitelist if t != SKILL and not is_browser_tool(t))
+
+    @property
+    def browser_tools(self) -> tuple[str, ...]:
+        return tuple(t for t in self.whitelist if is_browser_tool(t))
 
     @property
     def uses_skill(self) -> bool:
@@ -73,6 +71,16 @@ class RoleProfile:
             raise ToolsMismatch(self.role, self.mode, extra, missing)
 
 
+def is_browser_tool(tool: str) -> bool:
+    return tool.startswith("browser_")
+
+
+def whitelist(role: str, mode: str | None) -> tuple[str, ...]:
+    if mode not in MODES.get(role, (None,)):
+        raise ValueError(f"el rol {role} no tiene el modo {mode}")
+    return tuple(sorted(t for t in ROLE_TOOLS[role] if _MODE_ONLY.get(t, mode) == mode))
+
+
 def role_profile(config: Config, role: str, mode: str | None) -> RoleProfile:
     limits = config.roles[role]
     return RoleProfile(
@@ -82,5 +90,5 @@ def role_profile(config: Config, role: str, mode: str | None) -> RoleProfile:
         model=limits.model,
         max_turns=limits.max_turns,
         max_output_tokens=limits.max_output_tokens,
-        whitelist=WHITELIST[(role, mode)],
+        whitelist=whitelist(role, mode),
     )
