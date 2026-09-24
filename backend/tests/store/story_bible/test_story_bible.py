@@ -9,6 +9,7 @@ from typing import Any
 import pytest
 
 from story_maker.store import models, story_bible
+from story_maker.store.brief_canon import NAME
 
 
 def _fact(store: Any, fact_id: int) -> Any:
@@ -75,3 +76,42 @@ def test_changing_a_name_fact_changes_the_canonical_name_at_the_same_time(
     assert _character(store, v1.characters["Toby"]).canonical_name == "Toby"
     assert store.foreign_references(k_id) == []
     assert store.foreign_references(failing_k) == []
+
+
+def _name_mismatches(store: Any, version_id: int) -> list[tuple[str, list[str]]]:
+    """Personajes cuyo nombre canónico no es el valor de su único hecho de nombre."""
+    with store.session() as session:
+        mismatches = []
+        for character in session.query(models.Character).filter_by(version_id=version_id):
+            names = [
+                f.value
+                for f in session.query(models.Fact).filter_by(
+                    character_id=character.id, attribute=NAME
+                )
+            ]
+            if names != [character.canonical_name]:
+                mismatches.append((character.canonical_name, names))
+        return mismatches
+
+
+def test_the_canonical_name_of_every_character_is_the_value_of_its_name_fact(
+    store: Any, f1: Any, faults: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    generation_id = store.generation(store.new_novel(), f1)
+    assert _name_mismatches(store, generation_id) == []
+
+    v1 = store.build_v1()
+    k_id, ids = store.copy(v1.version_id)
+    assert _name_mismatches(store, k_id) == []
+
+    store.change_fact(ids["facts"][v1.facts["Toby"]], "Nala")
+    assert _name_mismatches(store, k_id) == []
+
+    def fault(*_args: Any) -> None:
+        raise faults.error("fallo entre las dos escrituras")
+
+    monkeypatch.setattr(story_bible, "_rename_character", fault)
+    with pytest.raises(faults.error):
+        store.change_fact(ids["facts"][v1.facts["Luis"]], "Lucho")
+    assert _name_mismatches(store, k_id) == []
+    assert _name_mismatches(store, v1.version_id) == []
