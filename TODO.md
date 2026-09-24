@@ -654,35 +654,33 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
-- [ ] 013-C01 · Portada, índice y ficha de una versión sin capítulos cambiados
-- [ ] 013-C02 · Página de novedades y marca de cambio
-- [ ] 013-C03 · Una entidad sin capítulo aparece en la ficha sin enlaces
-- [ ] 013-C04 · La VistaDeVersion sirve también una candidata
-- [ ] 013-C05 · Dos versiones de la misma novela no se mezclan
-- [ ] 013-I3 · La VistaDeVersion y el detalle de la API de una versión no muestran nada de otra versión ni de otra novela
-- [ ] 013-C06 · El token de vista se emite firmado y con sus reclamaciones
-- [ ] 013-C07 · Un token de vista inválido responde 401
-- [ ] 013-I2 · El token de vista solo vale para la versión a la que se emitió, nunca como TokenDeAcceso, y caduca con operation.session_timeout_seconds
-- [ ] 013-C08 · El PDF se genera desde la VistaDeVersion con sus 10 capítulos
-- [ ] 013-C09 · pdf-enlaces valida los enlaces internos
-- [ ] 013-C10 · pdf-enlaces falla ante un enlace que no resuelve
-- [ ] 013-I1 · Todo enlace interno del PDF y de la VistaDeVersion resuelve a un ancla que existe en el mismo documento
-- [ ] 013-C11 · El PDF se guarda por versión y se sirve tal cual
-- [ ] 013-C12 · Sin PDF guardado, la ruta responde 404
-- [ ] 013-I4 · El backend solo escribe el PDF de una versión en STORY_MAKER_DATA_DIR, salvo example
-- [ ] 013-C13 · Listado de versiones publicadas
-- [ ] 013-C14 · Detalle de una versión publicada
-- [ ] 013-C15 · Lo que no existe, lo ajeno y lo mal formado
-- [ ] 013-C16 · example produce la novela y su PDF
-- [ ] 013-C17 · export-pdf regenera el PDF de una versión publicada
-- [ ] 013-C18 · export-pdf sobre lo que no existe o no está publicado
-- [ ] 013-I5 · Con los mismos datos de versión, la VistaDeVersion y el PDF que produce son iguales
-- [ ] 013-C19 · La novela de ejemplo real (D, al final)
+- [x] 013-C01 · Portada, índice y ficha de una versión sin capítulos cambiados
+- [x] 013-C02 · Página de novedades y marca de cambio
+- [x] 013-C03 · Una entidad sin capítulo aparece en la ficha sin enlaces
+- [x] 013-C04 · La VistaDeVersion sirve también una candidata
+- [x] 013-C05 · Dos versiones de la misma novela no se mezclan
+- [x] 013-I3 · La VistaDeVersion y el detalle de la API de una versión no muestran nada de otra versión ni de otra novela
+- [x] 013-C06 · El token de vista se emite firmado y con sus reclamaciones
+- [x] 013-C07 · Un token de vista inválido responde 401
+- [x] 013-I2 · El token de vista solo vale para la versión a la que se emitió, nunca como TokenDeAcceso, y caduca con operation.session_timeout_seconds
+- [x] 013-C08 · El PDF se genera desde la VistaDeVersion con sus 10 capítulos
+- [x] 013-C09 · pdf-enlaces valida los enlaces internos
+- [x] 013-C10 · pdf-enlaces falla ante un enlace que no resuelve
+- [x] 013-I1 · Todo enlace interno del PDF y de la VistaDeVersion resuelve a un ancla que existe en el mismo documento
+- [x] 013-C11 · El PDF se guarda por versión y se sirve tal cual
+- [x] 013-C12 · Sin PDF guardado, la ruta responde 404
+- [x] 013-I4 · El backend solo escribe el PDF de una versión en STORY_MAKER_DATA_DIR, salvo example
+- [x] 013-C13 · Listado de versiones publicadas
+- [x] 013-C14 · Detalle de una versión publicada
+- [x] 013-C15 · Lo que no existe, lo ajeno y lo mal formado
+- [x] 013-C17 · export-pdf regenera el PDF de una versión publicada
+- [x] 013-C18 · export-pdf sobre lo que no existe o no está publicado
+- [x] 013-I5 · Con los mismos datos de versión, la VistaDeVersion y el PDF que produce son iguales
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-24: `uv run pytest` 815 passed; `uv run ruff check .` all checks passed; `uv run ruff format --check .` 155 files already formatted; `uv run mypy src` no issues in 78 source files
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 014 — cambios-del-lector
 
