@@ -287,9 +287,9 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 005-C12 · Una tool de la lista blanca del rol, sin más causa, permite
 - [x] 005-C13 · Solo personalizacion-natural se admite como skill
 - [x] 005-C14 · El revisor visual solo navega el origen de la vista
-- [ ] 005-C15 · Una frase dirigida al sistema en español se marca, no deniega
-- [ ] 005-C16 · Una frase dirigida al sistema en inglés se marca
-- [ ] 005-C17 · Un texto sin patrón de inyección no se marca
+- [x] 005-C15 · Una frase dirigida al sistema en español se marca, no deniega
+- [x] 005-C16 · Una frase dirigida al sistema en inglés se marca
+- [x] 005-C17 · Un texto sin patrón de inyección no se marca
 - [ ] 005-I1 · policy/ no importa agents/
 - [ ] 005-I5 · El detector de inyección nunca deniega por sí solo
 - [ ] 005-I6 · Cada coincidencia lleva término, nivel y variante en su detalle

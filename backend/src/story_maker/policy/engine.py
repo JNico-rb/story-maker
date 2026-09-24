@@ -1,6 +1,7 @@
 """MotorDePoliticas: función pura que decide allow | deny | flag (architecture.md §12.2)."""
 
 from story_maker.domain.banned_terms import find_term_matches
+from story_maker.policy.injection import find_injection_phrases
 from story_maker.policy.navigation import is_own_origin
 from story_maker.policy.types import DecisionDePolitica, EntradaProhibida, PeticionDePolitica
 from story_maker.policy.whitelist import ALLOWED_SKILL, is_tool_allowed
@@ -66,6 +67,22 @@ def _check_navigation(
     return None
 
 
+def _check_injection(peticion: PeticionDePolitica) -> DecisionDePolitica | None:
+    phrases = [
+        phrase
+        for campo in peticion.campos
+        if campo.narrativo
+        for phrase in find_injection_phrases(campo.texto)
+    ]
+    if not phrases:
+        return None
+    return DecisionDePolitica(
+        decision="flag",
+        rule="deteccion-de-inyeccion",
+        detail=[{"phrase": phrase} for phrase in phrases],
+    )
+
+
 def decide(peticion: PeticionDePolitica, base_url: str | None = None) -> DecisionDePolitica:
     decision = _check_whitelist(peticion)
     if decision is not None:
@@ -74,6 +91,9 @@ def decide(peticion: PeticionDePolitica, base_url: str | None = None) -> Decisio
     if decision is not None:
         return decision
     decision = _check_banned_terms(peticion)
+    if decision is not None:
+        return decision
+    decision = _check_injection(peticion)
     if decision is not None:
         return decision
     return DecisionDePolitica(decision="allow")
