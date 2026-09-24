@@ -616,7 +616,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] 012-C21 · Agotados los ciclos del gate, la ejecución falla
 - [x] 012-C22 · Reanudar en `gate` o en `rewriting` repasa el gate sobre la candidata tal como quedó
 - [x] 012-C23 · La publicación es una transacción
-- [ ] 012-C24 · Cada validador del gate deja su resultado y su score
+- [x] 012-C24 · Cada validador del gate deja su resultado y su score
 - [x] 012-C25 · La rúbrica de novela es una constante del dominio
 - [x] 012-C26 · El `CatalogoDeTropos` trae los tropos curados del género
 - [ ] 012-I1 · Ninguna versión se publica sin que la última pasada sobre esa candidata haya superado las cuatro etapas, y la candidata no cambia entre e…
