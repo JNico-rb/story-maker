@@ -221,9 +221,13 @@ async def test_every_tool_call_goes_through_the_policy_first_and_its_decision_ap
         make_request("writer", "write", run_id=run_id, tools=(logged_chapter_tool(events),))
     )
 
-    assert [(r.origen, r.cliente, r.novela, r.ejecucion, r.rol) for r in policy.requests] == [
-        ("policy_hook", str(user_id), str(novel_id), str(run_id), "writer")
-    ] * 5
+    identity = [
+        (r.origen, r.cliente, r.novela, r.ejecucion, r.rol, r.modo) for r in policy.requests
+    ]
+    assert (
+        identity
+        == [("policy_hook", str(user_id), str(novel_id), str(run_id), "writer", "write")] * 5
+    )
     assert [r.tool for r in policy.requests] == [c.tool for c in calls]
     assert [{c.path: c.texto for c in r.campos} for r in policy.requests] == [
         c.input for c in calls

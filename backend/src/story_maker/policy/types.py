@@ -33,6 +33,7 @@ class PeticionDePolitica(BaseModel):
     novela: str | None = None
     ejecucion: str | None = None
     rol: str | None = None
+    modo: str | None = None
     tool: str | None = None
     skill: str | None = None
     url: str | None = None

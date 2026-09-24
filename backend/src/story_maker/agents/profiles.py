@@ -7,16 +7,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from story_maker.config import Config
-from story_maker.policy.whitelist import ROLE_TOOLS
+from story_maker.policy.whitelist import role_tools
 
 SKILL = "Skill"
 MODES: dict[str, tuple[str, ...]] = {
     "planner": ("plan", "change"),
     "writer": ("write", "rewrite", "revise"),
 }
-# Las tools de la lista del rol que solo tiene uno de sus modos: el planner en modo `change`
-# solo tiene `propose_change` (definitions.md §12.2).
-_MODE_ONLY = {"submit_plan": "plan", "propose_change": "change"}
 
 LABELS = {
     "interviewer": "entrevistador",
@@ -78,7 +75,7 @@ def is_browser_tool(tool: str) -> bool:
 def whitelist(role: str, mode: str | None) -> tuple[str, ...]:
     if mode not in MODES.get(role, (None,)):
         raise ValueError(f"el rol {role} no tiene el modo {mode}")
-    return tuple(sorted(t for t in ROLE_TOOLS[role] if _MODE_ONLY.get(t, mode) == mode))
+    return tuple(sorted(role_tools(role, mode)))
 
 
 def role_profile(config: Config, role: str, mode: str | None) -> RoleProfile:

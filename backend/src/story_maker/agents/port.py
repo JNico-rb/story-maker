@@ -206,6 +206,7 @@ class LiveSession:
             novela=str(self.request.novel_id),
             ejecucion=str(run_id) if run_id is not None else None,
             rol=self.request.role,
+            modo=self.request.mode,
             tool=tool,
             skill=tool_input.get("skill") if tool == SKILL else None,
             url=tool_input.get("url") if tool == "browser_navigate" else None,

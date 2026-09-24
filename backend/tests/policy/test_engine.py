@@ -154,6 +154,33 @@ def test_una_tool_fuera_de_la_lista_blanca_del_rol_deniega() -> None:
     assert d2.rule == "lista-blanca"
 
 
+def _planner(modo: str | None, tool: str) -> PeticionDePolitica:
+    return PeticionDePolitica(
+        origen="policy_hook", cliente="c1", rol="planner", modo=modo, tool=tool
+    )
+
+
+def test_el_planner_en_modo_cambio_solo_tiene_propose_change() -> None:
+    otra = decide(_planner("change", "submit_plan"))
+
+    assert otra.decision == "deny"
+    assert otra.rule == "lista-blanca"
+    assert decide(_planner("change", "propose_change")).decision == "allow"
+
+
+def test_el_planner_en_modo_plan_no_tiene_propose_change() -> None:
+    otra = decide(_planner("plan", "propose_change"))
+
+    assert otra.decision == "deny"
+    assert otra.rule == "lista-blanca"
+    assert decide(_planner("plan", "submit_plan")).decision == "allow"
+
+
+def test_el_planner_sin_modo_no_tiene_ninguna_tool() -> None:
+    for tool in ("submit_plan", "propose_change"):
+        assert decide(_planner(None, tool)).decision == "deny"
+
+
 def test_una_tool_de_la_lista_blanca_del_rol_sin_mas_causa_permite() -> None:
     peticion = PeticionDePolitica(
         origen="policy_hook", cliente="c1", rol="writer", tool="submit_chapter"
