@@ -97,9 +97,22 @@ def count_syllables(word: str) -> int:
     return nuclei
 
 
+def _cuts_here(rest: str) -> bool:
+    """Si tras un signo final (o su serie) `rest` cierra la frase: fin de párrafo, o un
+    espacio y un texto que no empieza por minúscula (se salta una raya de inciso)."""
+    if rest.strip() == "":
+        return True
+    if not rest.startswith(" "):
+        return False
+    remainder = rest.lstrip(" ")
+    if remainder.startswith("—"):
+        remainder = remainder[1:]
+    return not (remainder and remainder[0].islower())
+
+
 def count_sentences(paragraph: str) -> int:
     """Frases de un párrafo (`Reglas comunes`, «Frase»): un párrafo sin signo final cierra
-    su última frase."""
+    su última frase; ¡ y ¿ no son signos finales."""
     count = 0
     length = len(paragraph)
     index = 0
@@ -109,8 +122,9 @@ def count_sentences(paragraph: str) -> int:
             end = index
             while end < length and paragraph[end] in _FINAL_CHARS:
                 end += 1
-            count += 1
-            last_cut = end
+            if _cuts_here(paragraph[end:]):
+                count += 1
+                last_cut = end
             index = end
         else:
             index += 1

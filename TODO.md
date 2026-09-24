@@ -827,7 +827,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 018-C5 · `linter-legibilidad`: el índice en su límite
 - [x] 018-C6 · `linter-legibilidad`: la franja del destinatario elige el objetivo
 - [x] 018-C7 · Recuento de sílabas
-- [ ] 018-C8 · Recuento de frases
+- [x] 018-C8 · Recuento de frases
 - [ ] 018-C9 · `linter-estilo-ia`: la densidad de adverbios en -mente en su límite
 - [ ] 018-C10 · `linter-estilo-ia`: palabras en -mente que no son adverbios
 - [ ] 018-C11 · `linter-estilo-ia`: clichés y giros de texto generado

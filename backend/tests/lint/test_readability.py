@@ -48,7 +48,8 @@ def test_la_longitud_media_de_frase_por_encima_del_maximo_dispara() -> None:
 
 
 def _sentence(words: list[str]) -> str:
-    return " ".join(words) + "."
+    capitalized = [words[0].capitalize(), *words[1:]]
+    return " ".join(capitalized) + "."
 
 
 def test_el_indice_en_su_minimo_no_dispara() -> None:

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from story_maker.lint.text import count_syllables
+from story_maker.lint.text import count_sentences, count_syllables
 
 
 @pytest.mark.parametrize(
@@ -25,3 +25,22 @@ from story_maker.lint.text import count_syllables
 )
 def test_recuento_de_silabas(word: str, syllables: int) -> None:
     assert count_syllables(word) == syllables
+
+
+@pytest.mark.parametrize(
+    ("paragraph", "sentences"),
+    [
+        ("Hola. Adiós.", 2),  # punto, espacio y mayúscula
+        ("—¿Vienes? —preguntó Marta.", 1),  # se salta la raya de inciso y sigue minúscula
+        ("¡Ya! ¿Qué?", 2),  # tras el signo final viene «¿», que no es minúscula
+        ("Esperó… y siguió.", 1),  # sigue una minúscula
+        ("Llegó a las 8 p. m. y se fue.", 1),  # la abreviatura va seguida de minúscula
+        ("Nadie vino", 1),  # el párrafo sin signo final cierra su frase
+    ],
+)
+def test_recuento_de_frases(paragraph: str, sentences: int) -> None:
+    assert count_sentences(paragraph) == sentences
+
+
+def test_una_serie_de_signos_corta_una_vez_y_cada_parrafo_cierra_su_frase() -> None:
+    assert count_sentences("Esperó...") + count_sentences("Nadie vino") == 2
