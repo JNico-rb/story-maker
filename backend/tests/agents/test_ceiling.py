@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import dataclasses
 from collections.abc import Callable
 from pathlib import Path
@@ -9,7 +10,7 @@ from typing import Any
 
 from sqlalchemy.orm import Session, sessionmaker
 
-from story_maker.agents.ceiling import TokenCeiling
+from story_maker.agents.ceiling import Ticket, TokenCeiling
 from story_maker.agents.fake import FakeAgent, Say, Script
 from story_maker.agents.port import AgentPort, SessionRequest
 from story_maker.agents.tools import ToolSpec
@@ -101,3 +102,34 @@ def test_in_the_writer_the_skill_characters_count_in_the_input(
     port = build_port(writer, fake, policy, session_factory, workspace)
 
     assert port.reservation(request) == -(-(sent_chars(request, workspace) + 4_000) // 4)
+
+
+async def test_sessions_open_up_to_the_exact_ceiling_and_otherwise_wait_in_arrival_order() -> None:
+    ceiling = TokenCeiling(10_000)
+    opened: list[str] = []
+
+    async def open_session(name: str, amount: int, timeout: float | None) -> Ticket:
+        ticket = await ceiling.acquire(amount, timeout)
+        opened.append(name)
+        return ticket
+
+    a = await open_session("A", 6_000, None)
+    b = asyncio.create_task(open_session("B", 5_000, None))
+    await asyncio.sleep(0)
+    c = asyncio.create_task(open_session("C", 1_000, 30))
+    await asyncio.sleep(0.05)
+
+    # C cabría (6.000 + 1.000), pero llegó detrás de B
+    assert opened == ["A"]
+    assert not b.done()
+    assert not c.done()
+
+    ceiling.release(a)
+    await asyncio.gather(b, c)
+
+    assert opened == ["A", "B", "C"]
+    assert ceiling.in_use == 6_000
+
+    full = TokenCeiling(10_000)
+    await full.acquire(10_000, None)
+    assert full.in_use == 10_000

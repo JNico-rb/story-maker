@@ -211,7 +211,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 003-C14 · Con defectos bloqueantes, el modelo lee los defectos en lugar del acuse
 - [x] 003-C15 · Las comprobaciones corren solo sobre entregas permitidas y válidas, y lo no bloqueante no bloquea
 - [x] 003-C16 · La reserva es la entrada estimada más el crecimiento de los turnos
-- [ ] 003-C17 · Se abre hasta llenar el techo exacto; si no cabe, se espera en orden de llegada
+- [x] 003-C17 · Se abre hasta llenar el techo exacto; si no cabe, se espera en orden de llegada
 - [ ] 003-C18 · La API espera como mucho `api_wait_seconds`; la ejecución, sin límite propio
 - [ ] 003-C19 · Una reserva mayor que el techo no espera
 - [ ] 003-C20 · La reserva se libera siempre al cerrar
