@@ -15,6 +15,8 @@ Sin autorrevisión, sin `auditor`, sin rondas y sin revisión del usuario (decis
 4. Marca tú la casilla: `- [x] Spec … approved — integrador YYYY-MM-DD: sin revisión, decisión del usuario`.
 5. Commit por cada spec aprobada: `NNN: spec aprobada` (o uno solo con spec y plan: `NNN: spec y plan aprobados`).
 
+**Frontend (022–028, decisión del usuario 2026-09-24).** Las specs se redactan ya, de dos en dos, mientras los carriles programan el backend: spec → plan en `TODO.md` → casillas marcadas por el integrador, sin revisión. **Revisión solo como excepción:** únicamente ante un error claro que impide que funcione o que deja sin cubrir un requisito de `project-constraints.md`; una sola corrección, sin rondas. El carril E (`../sm-e`) empieza cada spec cuando sus dependencias de backend están cerradas en V2, sin adelantarse. El backend manda: si hay que elegir, primero se integran A, C y D.
+
 Hecho cuando la casilla de spec de cada bloque está `[x]` con su acta del integrador.
 
 Informe (≤5 líneas): rutas, casos e invariantes, decisiones añadidas a §18.

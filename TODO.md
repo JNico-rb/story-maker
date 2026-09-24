@@ -28,7 +28,9 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 | A — ruta crítica | 001 → 002 → 009 → 010 → 011 → 012 → 014 → 015 → 021 | 003, 004 (010) · 005, 006 (011) · 007 (012) · 008, 013 (015) | `../sm-a` | `carril-a` | en curso (terminal del usuario) |
 | C — entrada y prosa | 005 → 008 → 018 → 019 | 001 (005 parcial) · 002 (008) · 003, 004 (008) · 011 (018) · 012 (019) | `../sm-c` | `carril-c` | 005 en curso (subagente del integrador) |
 | D — resto del backend | 006 → 003 → 004 → 007 → 013 → 016 → 017 → 020 | 001 (003, 004) · 009 (007 parcial, 013, 016) · 012 (017, 020) | `../sm-d` | `carril-d` | en curso (terminal del usuario) |
-| E — frontend | 022 → … → 028 (`specs/frontend/`) | backend completo | `../sm-e` | `carril-e` | después del backend |
+| E — frontend | 022 → 023 → 024 → 025 → 026 → 027 → 028 (`specs/frontend/`) | las de backend de la tabla de specs, cerradas en V2 | `../sm-e` | `carril-e` | specs en redacción, de dos en dos; implementación cuando se cierren sus dependencias |
+
+**Frontend (022–028, decisión del usuario 2026-09-24).** Las specs se redactan ya, de dos en dos, mientras los carriles programan el backend: spec → plan en `TODO.md` → casillas marcadas por el integrador, sin revisión. **Revisión solo como excepción:** únicamente ante un error claro que impide que funcione o que deja sin cubrir un requisito de `project-constraints.md`; una sola corrección, sin rondas. El carril E (`../sm-e`) empieza cada spec cuando sus dependencias de backend están cerradas en V2, sin adelantarse. El backend manda: si hay que elegir, primero se integran A, C y D.
 
 ## Specs
 

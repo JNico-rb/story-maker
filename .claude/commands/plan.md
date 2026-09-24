@@ -13,6 +13,8 @@ Solo lo ejecuta el integrador, en el checkout principal (V2). Sin autorrevisión
 4. Marca tú la casilla: `- [x] Plan below approved — integrador YYYY-MM-DD: sin revisión, decisión del usuario`.
 5. Commit: `$ARGUMENTS: plan aprobado`.
 
+Frontend (022–028): mismo plan rápido, un paso por caso; el carril E no empieza un paso hasta que las specs de backend de las que depende estén cerradas en V2. Revisión solo como excepción (error claro que impide que funcione o requisito de `project-constraints.md` sin cubrir), una sola corrección.
+
 Hecho cuando la casilla de plan está `[x]` con su acta del integrador.
 
 Informe (≤3 líneas): pasos y orden.
