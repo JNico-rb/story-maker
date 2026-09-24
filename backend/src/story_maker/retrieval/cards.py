@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+from sqlalchemy import select
+
 from story_maker.domain.constants import CHAPTERS_PER_NOVEL
 from story_maker.retrieval.canon import WORLD, Canon, EntityKey, entities, load_canon, participation
 from story_maker.retrieval.embedding import EmbeddingModel
@@ -82,8 +84,19 @@ def expected_cards(canon: Canon) -> dict[tuple[EntityKey, int], str]:
 
 def sync_canon_cards(uow: UnitOfWork, version_id: int, embedder: EmbeddingModel) -> None:
     """Deja las CanonCards de la versión iguales a la cadena de cada entidad, en la transacción
-    del llamante; nunca confirma."""
+    del llamante: crea las que faltan, retira las que sobran y no toca las iguales; si no hay
+    nada que cambiar, no escribe nada. Nunca confirma."""
     expected = expected_cards(load_canon(uow.session, version_id))
+    current = {
+        ((card.entity_type, card.character_id, card.place_id), card.from_chapter): card
+        for card in uow.session.scalars(select(CanonCard).where(CanonCard.version_id == version_id))
+    }
+    stale = [card for key, card in current.items() if expected.get(key) != card.text]
+    for card in stale:
+        uow.delete(card)
+    if stale:
+        # Una sustituta ocupa la clave de la retirada: la retirada sale antes de que entre.
+        uow.session.flush()
     fresh = [
         CanonCard(
             version_id=version_id,
@@ -95,6 +108,7 @@ def sync_canon_cards(uow: UnitOfWork, version_id: int, embedder: EmbeddingModel)
             content_hash=fingerprint(text),
         )
         for (entity, from_chapter), text in expected.items()
+        if (entity, from_chapter) not in current or current[(entity, from_chapter)] in stale
     ]
     for card in fresh:
         uow.add(card)

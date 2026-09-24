@@ -17,7 +17,7 @@ from story_maker.store.brief_canon import (
     BriefTrait,
     ConfirmedBrief,
 )
-from story_maker.store.models import CanonCard, Character, Embedding, Place
+from story_maker.store.models import CanonCard, Character, Embedding, Fact, Place
 
 BRIEF = ConfirmedBrief(
     recipient=BriefRecipient(
@@ -192,3 +192,41 @@ def test_a_card_says_what_the_story_bible_knows_before_its_chapter(
     for card in canon.cards(version):
         for forbidden in (PLANNED, CHAPTER_TEXT, CHAPTER_SUMMARY):
             assert forbidden not in card.text
+
+
+def snapshot(canon: Any, version: int) -> dict[int, tuple[int, str, str]]:
+    """Tarjeta → (`desde_capitulo`, texto, huella)."""
+    return {c.id: (c.from_chapter, c.text, c.content_hash) for c in canon.cards(version)}
+
+
+def test_accepting_a_chapter_adds_successors_only_where_something_changes(
+    canon: Any, session_factory: sessionmaker[Session], planned: dict[str, Any]
+) -> None:
+    version = planned["version"]
+    canon.sync(version)
+    before = snapshot(canon, version)
+    toby, _ = canon.named(version, "Toby")
+    _, fair = canon.named(version, "la feria del pueblo")
+    with session_factory() as session:
+        trait = session.scalars(
+            select(Fact).where(Fact.character_id == planned["marta"], Fact.attribute == "trait")
+        ).one()
+    canon.chapter(version, 3, "Toby corre por la feria.")
+    canon.event(
+        version, "Toby vuelve a la feria.", fair, origin="recorded", chapter=3, present=[toby]
+    )
+    canon.usage(trait.id, 3)
+
+    canon.sync(version)
+
+    after = snapshot(canon, version)
+    assert {card: after[card] for card in before} == before
+    new = {card: after[card] for card in set(after) - set(before)}
+    with session_factory() as session:
+        born = {
+            entity_name(session, card): card.from_chapter
+            for card in canon.cards(version)
+            if card.id in new
+        }
+    assert born == {"Toby": 4, "la feria del pueblo": 4}
+    assert all("Toby vuelve a la feria." in text for _, text, _ in new.values())
