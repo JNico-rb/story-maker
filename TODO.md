@@ -452,7 +452,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 009-C20 · Las transiciones que no salen de una candidata válida se rechazan
 - [x] 009-C21 · Solo una candidata admite escrituras
 - [x] 009-I1 · Solo una candidata admite escrituras; una publicada o descartada no cambia nunca
-- [ ] 009-C22 · La versión vigente es la publicada de número más alto
+- [x] 009-C22 · La versión vigente es la publicada de número más alto
 - [ ] 009-I5 · La historia de versiones es lineal
 - [ ] 009-C23 · La cronología registrada de una versión
 - [ ] 009-C24 · La story bible de una versión, por su identificador

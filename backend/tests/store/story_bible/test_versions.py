@@ -95,3 +95,29 @@ def test_transitions_that_do_not_start_from_a_valid_candidate_are_rejected(
     assert store.version(k2_id).status == "candidate"
     assert store.version(generation_id).status == "candidate"
     assert store.current(novel_id) == v2_id
+
+
+def test_the_current_version_is_the_published_one_with_the_highest_number(
+    store: Any, f1: Any
+) -> None:
+    n2 = store.new_novel()
+    store.generation(n2, f1)
+
+    v2 = store.build_v2()
+    n1 = v2.v1.novel_id
+    store.copy(v2.version_id)  # una candidata abierta
+    k3_id, _ = store.copy(v2.version_id)
+    store.discard(k3_id)
+
+    n3 = store.new_novel()
+    latest = store.generation(n3, f1)
+    store.publish(latest)
+    for _ in range(3):
+        latest, _ = store.copy(latest)
+        store.publish(latest)
+
+    assert store.current(n2) is None
+    assert store.current(n1) == v2.version_id
+    assert store.current(n3) == latest
+    assert store.version(latest).number == 4
+    assert store.version(v2.version_id).number == 2
