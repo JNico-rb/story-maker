@@ -128,37 +128,37 @@ Novelas personalizadas, listas en horas, editables, en web y PDF, con validació
 <!-- Slide 7: Presupuesto y Coste -->
 ## Presupuesto y Coste
 
-**Coste unitario por novela:**
+**Coste unitario por novela** (200/mes; `presentacion/costes.py`, tokens ⚠ estimados hasta medir en Langfuse):
 
 | Partida | €/novela |
 |---|---|
-| Tokens (generación + 3 revisiones incluidas) | [PENDIENTE: €/novela] |
+| Tokens (generación + 3 revisiones incluidas) | 4,02 |
 | Infraestructura (amortizado) | 0,46 |
-| Margen operativo y soporte | 2,94 |
-| **Coste total** | **[PENDIENTE: €/novela]** |
+| Margen operativo y soporte | 3,54 |
+| **Coste total** | **8,02** |
 
-**Precio de venta:** 29 € IVA incluido (3 revisiones)
+**Precio de venta:** 29 € IVA incluido (3 revisiones) → 23,97 € netos
 
-**Margen:** [PENDIENTE: margen €/novela y %]
+**Margen:** 15,95 € por novela (**67 %**)
 
 ---
 
 <!-- Slide 7 (cont): Escenarios de volumen -->
 ## Presupuesto: Escenarios de Volumen
 
-Margen mensual neto por volumen de novelas:
+Margen mensual neto por volumen de novelas (3 revisiones incluidas):
 
 | Vol./mes | Ingresos | Coste variable | Coste fijo | Margen | % |
 |---|---|---|---|---|---|
-| 50 | [PENDIENTE] | [PENDIENTE] | [PENDIENTE] | [PENDIENTE] | [PENDIENTE] |
-| 200 | [PENDIENTE] | [PENDIENTE] | [PENDIENTE] | [PENDIENTE] | [PENDIENTE] |
-| 500 | [PENDIENTE] | [PENDIENTE] | [PENDIENTE] | [PENDIENTE] | [PENDIENTE] |
+| 50 | 1.198 € | 265 € | 262 € | 671 € | 56 % |
+| 200 | 4.793 € | 1.061 € | 542 € | 3.190 € | 67 % |
+| 500 | 11.983 € | 2.653 € | 1.041 € | 8.289 € | 69 % |
 
 **Cuello de botella:** Capacidad de ejecución (1 instancia = ~500 h/mes)
 
-**Análisis de sensibilidad:**
-- Tokens +50%: margen baja a [PENDIENTE] %
-- 6 revisiones por novela: coste +[PENDIENTE] €/novela
+**Análisis de sensibilidad** (detalle completo en el Anexo E):
+- Tokens +50 %: margen baja a 57 % (tokens −20 %: sube a 70 %)
+- 6 revisiones por novela: coste +1,77 €/novela
 
 ---
 
@@ -212,7 +212,7 @@ Soluciones de storytelling personalizadas con IA
 
 **Gestión de contexto:**
 - Claude API prompt caching: reutilización de system prompt + story bible
-- Token budget por novela: [PENDIENTE: N tokens entrada + M tokens salida]
+- Token budget por novela: [PENDIENTE: tokens medidos → script] (estimado hoy en `presentacion/costes.py`)
 - Reintentos: si un gate falla, replanificar sin duplicar capítulos anteriores (TLA+)
 
 ---
@@ -316,17 +316,17 @@ CREATE TABLE audit_log (
 
 # Anexo E: Análisis de Sensibilidad Extendido
 
-**Coste variable según escenarios:**
+**Coste variable según escenarios** (200 novelas/mes; generado por `uv run presentacion/costes.py`, tokens ⚠ estimados hasta medir en Langfuse):
 
 | Caso | €/novela | Δ respecto a base | Margen/mes (200/mes) | % |
 |---|---|---|---|---|
-| Base (Sonnet, tokens reales) | [PENDIENTE] | — | [PENDIENTE] | [PENDIENTE] |
-| Tokens +50 % | [PENDIENTE] | +[PENDIENTE] | [PENDIENTE] | [PENDIENTE] |
-| Tokens −20 % | [PENDIENTE] | −[PENDIENTE] | [PENDIENTE] | [PENDIENTE] |
-| 6 revisiones (3 extra gratis) | [PENDIENTE] | +[PENDIENTE] | [PENDIENTE] | [PENDIENTE] |
-| 6 revisiones (3 extra a 2,99 €) | [PENDIENTE] | +[PENDIENTE] | [PENDIENTE] | [PENDIENTE] |
-| Todos los roles pasan a Opus 5.5 | [PENDIENTE] | +[PENDIENTE] | [PENDIENTE] | [PENDIENTE] |
-| Peor caso (Opus + tokens +50 % + 6 rev gratis) | [PENDIENTE] | +[PENDIENTE] | [PENDIENTE] | [PENDIENTE] |
+| Base (Sonnet, tokens estimados) | 5,31 € | — | 3.190 € | 67 % |
+| Tokens +50 % | 7,62 € | +2,31 € | 2.728 € | 57 % |
+| Tokens −20 % | 4,38 € | −0,92 € | 3.375 € | 70 % |
+| 6 revisiones (3 extra gratis) | 7,08 € | +1,77 € | 2.836 € | 59 % |
+| 6 revisiones (3 extra a 2,99 €) | 7,08 € | +1,77 € | 4.318 € | 69 % |
+| Todos los roles de Sonnet pasan a Opus 5.5 | 8,26 € | +2,96 € | 2.599 € | 54 % |
+| Peor caso (Opus + tokens +50 % + 6 rev gratis) | 15,77 € | +10,46 € | 1.098 € | 23 % |
 
 **Conclusiones:**
 - El cuello de botella es **capacidad, no coste**
@@ -422,7 +422,7 @@ Ejemplo de observaciones capturadas:
 }
 ```
 
-**Coste medido:** [PENDIENTE: actualizar con datos reales de Langfuse]
+**Coste medido:** [PENDIENTE: tokens medidos → script] (hoy, estimado: 8,02 €/novela — ver slide de presupuesto)
 **Latencia:** [PENDIENTE: actualizar con datos reales]
 **% de cache reuse:** [PENDIENTE: tasa de hits de Claude API caché]
 
