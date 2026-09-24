@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { requestChange, type ChangeRequestCreated, type Proposal, type Selection } from "../../shared/api";
+import { errorMessage, requestChange, type ChangeRequestCreated, type Proposal, type Selection } from "../../shared/api";
 
 type FormState = { step: "form"; text: string; submitting: boolean; error?: string };
 type ProposalState = {
@@ -54,8 +54,13 @@ export function ChangeRequestPanel({
     if (state.step !== "form" || state.text.trim() === "") return;
     setState({ ...state, submitting: true, error: undefined });
     const response = await requestChange(novelId, selection, state.text);
-    const created = (await response.json()) as ChangeRequestCreated;
-    setState({ step: "proposal", text: state.text, created });
+    if (response.status === 201) {
+      const created = (await response.json()) as ChangeRequestCreated;
+      setState({ step: "proposal", text: state.text, created });
+      return;
+    }
+    const message = await errorMessage(response);
+    setState({ step: "form", text: state.text, submitting: false, error: message });
   }
 
   return (
@@ -67,6 +72,7 @@ export function ChangeRequestPanel({
         value={state.text}
         onChange={(event) => setState({ ...state, text: event.target.value })}
       />
+      {state.error && <p role="alert">{state.error}</p>}
       <button type="submit" disabled={state.text.trim() === "" || state.submitting}>
         Pedir el cambio
       </button>

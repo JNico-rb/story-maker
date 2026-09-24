@@ -120,4 +120,16 @@ describe("027 cambio del lector", () => {
     expect(screen.getByRole("button", { name: "Confirmar" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Descartar" })).toBeInTheDocument();
   });
+
+  it("027-C05: a request rejected by the policy or the proposal keeps the form with the reason", async () => {
+    const user = userEvent.setup();
+    fakeApi(() => json(422, { detail: "la petición está prohibida" }));
+    renderPanel();
+
+    await sendRequest(user);
+
+    expect(await screen.findByText("la petición está prohibida")).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Petición" })).toHaveValue("el perro se llama Nala");
+    expect(screen.queryByRole("section", { name: "Propuesta de cambio" })).not.toBeInTheDocument();
+  });
 });
