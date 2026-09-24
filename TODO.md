@@ -353,11 +353,11 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 007-C17 · Un GitHub inalcanzable o lento interrumpe sin reintentar
 - [x] 007-C18 · El modo github sin sus ajustes no se construye
 - [x] 007-C19 · El doble del `VerificadorFormal` devuelve lo programado sin red ni Lean
-- [ ] 007-C20 · El fichero dorado compila y cumple T1–T5 (necesita CI)
-- [ ] 007-C21 · Un fichero negativo por invariante falla con ese invariante y su primer testigo (necesita CI)
-- [ ] 007-C22 · Los límites de cada invariante (necesita CI)
-- [ ] 007-C23 · Cada comprobador decide su invariante para cualquier cronología (necesita CI)
-- [ ] 007-C24 · La auditoría de axiomas no pasa en vacío (necesita CI)
+- [x] 007-C20 · El fichero dorado compila y cumple T1–T5
+- [x] 007-C21 · Un fichero negativo por invariante falla con ese invariante y su primer testigo
+- [x] 007-C22 · Los límites de cada invariante
+- [x] 007-C23 · Cada comprobador decide su invariante para cualquier cronología
+- [x] 007-C24 · La auditoría de axiomas no pasa en vacío
 - [x] 007-I2 · Solo es `passed` lo que compila, pasa la auditoría y cumple los cinco invariantes
 - [x] 007-I3 · El `FicheroDeCronologia` no lleva datos personales
 - [x] 007-I4 · La seudonimización no cambia el resultado de ningún comprobador
