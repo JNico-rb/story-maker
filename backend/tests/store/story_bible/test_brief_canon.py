@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+import datetime as dt
 from dataclasses import replace
 from typing import Any
 
@@ -101,3 +102,22 @@ def test_the_recipient_and_close_ones_become_characters_with_their_name_fact(
 
 def is_nominal(fact: Any) -> bool:
     return fact.attribute in NOMINAL_ATTRIBUTES
+
+
+def test_the_birth_date_is_the_declared_one_the_one_derived_from_the_age_or_none(
+    store: Any, f1: ConfirmedBrief, f2: ConfirmedBrief
+) -> None:
+    _, characters, _ = _canon(store, f1)
+    births = {name: c.birth_date for name, c in characters.items()}
+    assert births == {
+        "Marta": dt.date(1986, 1, 1),
+        "Luis": dt.date(1989, 1, 1),
+        "Toby": None,
+        "Rosa": None,
+    }
+
+    _, leo, _ = _canon(store, f2)
+    assert leo["Leo"].birth_date == dt.date(2000, 2, 29)
+
+    _, later, _ = _canon(store, f1, created_at=dt.datetime(2027, 3, 1, 9, 0))
+    assert later["Marta"].birth_date == dt.date(1987, 1, 1)

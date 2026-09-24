@@ -95,11 +95,26 @@ def create_generation_candidate(
     uow.add(version)
     uow.session.flush()
 
+    present_year = novel.created_at.year
     recipient = brief.recipient
-    characters = {recipient.name: _character(uow, version, "recipient", "person", recipient.name)}
+    characters = {
+        recipient.name: _character(
+            uow,
+            version,
+            "recipient",
+            "person",
+            recipient.name,
+            birth_date(present_year, recipient.age, recipient.birth_date),
+        )
+    }
     for close_one in brief.close_ones:
         characters[close_one.name] = _character(
-            uow, version, "close_one", close_one.species, close_one.name
+            uow,
+            version,
+            "close_one",
+            close_one.species,
+            close_one.name,
+            birth_date(present_year, close_one.age, close_one.birth_date),
         )
     places = [_place(uow, version, recollection.place) for recollection in brief.recollections]
     uow.session.flush()
@@ -138,9 +153,31 @@ def create_generation_candidate(
     return version
 
 
-def _character(uow: UnitOfWork, version: Version, type_: str, species: str, name: str) -> Character:
+def birth_date(present_year: int, age: int | None, declared: dt.date | None) -> dt.date | None:
+    """La declarada; si no, el 1 de enero de (año presente - edad); sin las dos, ninguna
+    (`domain-knowledge.md` §5.2)."""
+    if declared is not None:
+        return declared
+    if age is None:
+        return None
+    return dt.date(present_year - age, 1, 1)
+
+
+def _character(
+    uow: UnitOfWork,
+    version: Version,
+    type_: str,
+    species: str,
+    name: str,
+    born: dt.date | None,
+) -> Character:
     character = Character(
-        version_id=version.id, type=type_, species=species, canonical_name=name, origin="brief"
+        version_id=version.id,
+        type=type_,
+        species=species,
+        canonical_name=name,
+        birth_date=born,
+        origin="brief",
     )
     uow.add(character)
     return character
