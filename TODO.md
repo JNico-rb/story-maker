@@ -446,7 +446,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 008-C27 · Audit log de la novela
 - [x] 008-C28 · Importar un brief válido
 - [x] 008-C29 · Importación rechazada antes de extraer
-- [ ] 008-C30 · Importación con una extracción fallida
+- [x] 008-C30 · Importación con una extracción fallida
 - [ ] 008-C31 · Trazas y scores de la entrevista y de la importación
 - [ ] 008-I1 · Importar y confirmar deciden igual
 - [ ] 008-I2 · Las comprobaciones son deterministas y solo dependen del brief, de las tres listas, de la fecha de creación de la novela y de `max_mandat…
