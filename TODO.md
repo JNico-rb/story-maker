@@ -20,7 +20,7 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 - Parada: una spec que falla 2 veces con opus para su carril y se avisa al usuario.
 - Lean no corre en el portátil. La CI corre también en `carril-*`: `git push --force-with-lease origin carril-<x>` (nunca en V2) y leer la CI con la API pública de GitHub. `gh` no está instalado.
 
-**Integradas en V2:** 000 (D al final), 001, 002, 003, 004, 005, 006, 007, 009, 010, 013, 016 (cerrada recortada) y 022 (frontend).
+**Integradas en V2:** 000 (D al final), 001, 002, 003, 004, 005, 006, 007, 008, 009, 010, 013, 020 parcial (C06–C09, I2), 016 (cerrada recortada) y 022 (frontend).
 
 ### Alcance (usuario, 2026-09-24)
 
@@ -30,6 +30,8 @@ MVP = lo estrictamente obligatorio del enunciado + la primera novela real. Prior
 - **N2 (tras el MVP):** 018 C18–C23, después 017.
 - **N3 (tras el MVP):** 019, 015, 021, el resto de 016 y 023–028.
 - **Cierre de una spec:** bastan sus casos C y los invariantes I que mapean a TLA+ (ReanudacionSinDuplicarNiPerder, ReintentosAcotados, VersionAnteriorConservada, atomicidad) o que protegen un validador; el resto se marca «(recortado)» y no bloquea.
+- **Recorte máximo (usuario vía story-maker-45, 2026-09-24):** lectura por PDF y cambio por CLI (el encargo acepta «web o PDF»). **Congelados:** 026 frontend (E, 8/18 en `carril-e`, un paso a medias sin commitear) y 030 `report metrics` (J, sin pasos hechos; código a medias sin commitear en `../sm-j`). D queda congelado salvo 020-C15. Como mucho 2 implementadores y 1 verificador a la vez.
+- **Recorte de casos C (usuario vía story-maker-45, 2026-09-24):** se recorta todo C que no exija `project-constraints.md` ni necesite la primera novela. Se quedan los que mapean a TLA+, los que protegen un validador obligatorio, la reescritura dirigida y la publicación. Recortados: **011** ningún C (todos hechos); I1, I9, I11 (además de I5, I7, I10). **012** C6, C8, C12. **029** C02, C03, C04, C10, C12, C13, C14, I1, I2, I3.
 - **Pasos D del lote final:** 020-C16 y 004-C14 (hito primera novela); después 000-C15, 000-C16 (Playwright MCP en Edge sobre `/view/versions/{id}?token=…`, registrado en `docs/verification.md` §9.3), 020-C10, C11, C12, C13 y C14. El resto de pasos D queda sin marcar.
 
 **Relevo (2026-09-24 ~18:15, orquestador story-maker-e3; paró por orden del usuario):**
@@ -64,15 +66,15 @@ MVP = lo estrictamente obligatorio del enunciado + la primera novela real. Prior
 |---|---|---|---|---|---|
 | 0 — scaffolding (integrador) | 000 | — | checkout principal | `V2` | cerrada (D al final) |
 | A — ruta crítica | 001 → 002 → 009 → 011 → 012 → 014 → 029 (015 y 021 fuera) | 003, 004 (010) · 010 (011) · 005, 006 (011) · 007 (012) · 008, 013 (015) | `../sm-a` | `carril-a` | 001, 002 y 009 integradas; 011 en curso, 17/43 (desbloqueada: 010 y 016 en V2) |
-| B — agentes y entrada | 003 → 008 → 017 | 001 (003) · 002, 004, 005 (008) · 012, 013 (017) | `../sm-b` | `carril-b` | 003 integrada; 008 en curso, 27/38 |
+| B — agentes y entrada | 003 → 008 → 017 | 001 (003) · 002, 004, 005 (008) · 012, 013 (017) | `../sm-b` | `carril-b` | 003 y 008 integradas |
 | C — formal y edición | 005 → 007 → 019 | 001 (005 parcial) · 009 (007 parcial) · 012, 018 (019) | `../sm-c` | `carril-c` | 005 y 007 integradas; 019 espera 012 y 018 |
-| D — formal y lectura | 006 → 004 → 013 → 020 | 001 (004) · 009 (013 parcial) · 012 (020) | `../sm-d` | `carril-d` | 006, 004 y 013 integradas; 020 parcial (C06–C09, I2) en curso, la lleva la sesión story-maker-ae; integra el orquestador |
+| D — formal y lectura | 006 → 004 → 013 → 020 | 001 (004) · 009 (013 parcial) · 012 (020) | `../sm-d` | `carril-d` | 006, 004 y 013 integradas; 020 parcial (C06–C09, I2) integrada; congelado salvo 020-C15 |
 | F — linters de prosa | 018 | 011 (018 parcial: C18–C23) | `../sm-f` | `carril-f` | congelado (recorte): 19 pasos de linters puros hechos; C18–C23 en N2 |
 | G — planificación | 010 | 003, 004 · 009 (010 parcial: aplicar el plan a la story bible) | `../sm-g` | `carril-g` | cerrado (010 integrada; I1 e I2 recortados) |
 | H — recuperación | 016 | 009 (016 parcial: tarjetas desde la story bible) | `../sm-h` | `carril-h` | cerrado recortado (016 integrada; I3–I5, I7, I8 recortados) |
 | I — gate (012 parcial) | 012 | 007 · 011 (012 parcial: validadores de novela, juez, rúbrica y catálogo empiezan antes; el bucle del gate, la reescritura y la publicación esperan a 011) | `../sm-i` | `carril-i` | 012 parcial en curso |
-| J — métricas | 030 | 001, 004 | `../sm-j` | `carril-j` | 030 en curso |
-| E — frontend | 022 → 023 → 024 → 025 → 026 → 027 → 028 (`specs/frontend/`) | las de backend de la tabla de specs, cerradas en V2 | `../sm-e` | `carril-e` | 026 en curso (usuario, 2026-09-24: adelantar 026 mientras avanza 011); 023–025 y 027–028 congelados |
+| J — métricas | 030 | 001, 004 | `../sm-j` | `carril-j` | congelado (recorte máximo): 030 sin pasos hechos |
+| E — frontend | 022 → 023 → 024 → 025 → 026 → 027 → 028 (`specs/frontend/`) | las de backend de la tabla de specs, cerradas en V2 | `../sm-e` | `carril-e` | congelado (recorte máximo): 026 8/18 |
 
 **Congelado (recorte).** **Frontend (022–028, decisión del usuario 2026-09-24).** Las specs se redactan ya, de dos en dos, mientras los carriles programan el backend: spec → plan en `TODO.md` → casillas marcadas por el integrador, sin revisión. **Revisión solo como excepción:** únicamente ante un error claro que impide que funcione o que deja sin cubrir un requisito de `project-constraints.md`; una sola corrección, sin rondas. El carril E (`../sm-e`) empieza cada spec cuando sus dependencias de backend están cerradas en V2, sin adelantarse. El backend manda: si hay que elegir, primero se integran A, C y D.
 
