@@ -1,4 +1,4 @@
-"""`linter-repeticion`: una palabra repetida en un mismo párrafo (018-C1)."""
+"""`linter-repeticion`: una palabra o una muletilla repetida en un párrafo (018-C1, 018-C2)."""
 
 from __future__ import annotations
 
@@ -54,3 +54,37 @@ def test_un_nombre_canonico_repetido_tres_veces_dispara() -> None:
 
     assert result.passed is False
     assert result.defects[0].message == '"marta" 3 veces en el párrafo 1'
+
+
+def test_una_muletilla_repetida_dos_veces_en_un_parrafo_da_un_aviso() -> None:
+    text = "De repente sonó el teléfono. Marta se sobresaltó, y de repente colgaron."
+    result = lint_repetition(text)
+
+    assert result.passed is False
+    assert len(result.defects) == 1
+    assert result.defects[0].message == 'muletilla "de repente" 2 veces en el párrafo 1'
+
+
+def test_una_sola_palabra_dispara_con_dos_apariciones() -> None:
+    text = "Entonces llegó Marta. Entonces se sentó a esperar."
+    result = lint_repetition(text)
+
+    assert len(result.defects) == 1
+    assert result.defects[0].message == 'muletilla "entonces" 2 veces en el párrafo 1'
+
+
+def test_una_aparicion_en_cada_parrafo_no_dispara() -> None:
+    text = "De repente llovió.\n\nY de repente paró."
+    result = lint_repetition(text)
+
+    assert result.passed is True
+
+
+def test_tres_apariciones_dan_un_solo_aviso_de_muletilla_sin_aviso_aparte_de_palabra_suelta() -> (
+    None
+):
+    text = "De repente, de repente y de repente otra vez pasó algo extraño en la sala."
+    result = lint_repetition(text)
+
+    assert len(result.defects) == 1
+    assert result.defects[0].message == 'muletilla "de repente" 3 veces en el párrafo 1'

@@ -25,3 +25,18 @@ def comparison_form(word: str) -> str:
     """Forma de comparación de `word`: minúsculas, tildes intactas (`Reglas comunes`,
     «Comparación»: no distingue mayúsculas, pero sí tildes)."""
     return word.lower()
+
+
+def find_sequences(words: list[str], phrase: str) -> list[int]:
+    """Índices de inicio donde `phrase` (una o varias palabras) aparece en `words` como
+    palabras completas y consecutivas (`Reglas comunes`, «Comparación»)."""
+    phrase_words = [comparison_form(word) for word in extract_words(phrase)]
+    if not phrase_words:
+        return []
+    normalized = [comparison_form(word) for word in words]
+    width = len(phrase_words)
+    return [
+        start
+        for start in range(len(words) - width + 1)
+        if normalized[start : start + width] == phrase_words
+    ]

@@ -248,3 +248,14 @@ GRAMMATICAL_WORDS: frozenset[str] = frozenset(
 
 #: Una palabra repetida dispara `linter-repeticion` a partir de esta cuenta en un párrafo.
 WORD_REPETITION_THRESHOLD = 3
+
+#: Muletillas: frases hechas que empobrecen la prosa si se repiten (018-C2).
+FILLER_PHRASES: tuple[str, ...] = (
+    "de repente",
+    "entonces",
+    "en ese momento",
+    "de alguna manera",
+)
+
+#: Una muletilla repetida dispara `linter-repeticion` a partir de esta cuenta en un párrafo.
+FILLER_REPETITION_THRESHOLD = 2
