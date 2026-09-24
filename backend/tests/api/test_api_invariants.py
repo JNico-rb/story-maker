@@ -3,17 +3,8 @@ token (002-I2, 002-I4)."""
 
 from __future__ import annotations
 
-from collections.abc import Iterator
-from pathlib import Path
-
-import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session, sessionmaker
 
-from story_maker.api.app import create_app
-from story_maker.store.session import create_schema, make_engine, make_session_factory
-
-JWT_SECRET = "x" * 32
 PUBLIC_ROUTES = {("/api/auth/register", "POST"), ("/api/auth/login", "POST")}
 # Crece con cada spec de rutas: una ruta nueva sin su fila aquí hace fallar la prueba.
 PROTECTED_ROUTES = {
@@ -23,18 +14,30 @@ PROTECTED_ROUTES = {
     ("/api/novels/{novel_id}/versions/{number}/pdf", "GET"),  # 013
 }
 
+# Toda ruta nueva de /api entra aquí (002-I2, 002-I3): así la ruta de una spec nueva, si no
+# exige token, falla esta prueba hasta que se sume a `PUBLIC_ROUTES` a propósito.
+NOVEL_ROUTES = {
+    ("/api/novels", "POST"),
+    ("/api/novels", "GET"),
+    ("/api/novels/{novel_id}", "GET"),
+    ("/api/novels/{novel_id}/interview/messages", "GET"),
+    ("/api/novels/{novel_id}/interview/messages", "POST"),
+    ("/api/novels/{novel_id}/brief", "GET"),
+    ("/api/novels/{novel_id}/brief/confirm", "POST"),
+    ("/api/novels/{novel_id}/brief/extracted-facts/{fact_id}", "PATCH"),
+    ("/api/banned-terms", "GET"),
+    ("/api/banned-terms", "POST"),
+    ("/api/banned-terms/{term_id}", "DELETE"),
+    ("/api/novels/{novel_id}/free-texts", "POST"),
+    ("/api/novels/{novel_id}/banned-terms", "GET"),
+    ("/api/novels/{novel_id}/banned-terms", "POST"),
+    ("/api/novels/{novel_id}/banned-terms/{term_id}", "DELETE"),
+    ("/api/novels/{novel_id}/audit-log", "GET"),
+}
+ALL_ROUTES = PUBLIC_ROUTES | PROTECTED_ROUTES | NOVEL_ROUTES
 
-@pytest.fixture
-def session_factory(tmp_path: Path) -> Iterator[sessionmaker[Session]]:
-    engine = make_engine(tmp_path / "story-maker.db")
-    create_schema(engine)
-    yield make_session_factory(engine)
-    engine.dispose()
-
-
-@pytest.fixture
-def client(session_factory: sessionmaker[Session]) -> TestClient:
-    return TestClient(create_app(session_factory=session_factory, jwt_secret=JWT_SECRET))
+# `client` (con `agent_port`, `telemetry`, `config` y `workspace` ya montados) sale de
+# `tests/api/conftest.py`, compartido con el resto de las pruebas de la API de 008.
 
 
 def _api_routes(client: TestClient) -> set[tuple[str, str]]:
@@ -56,7 +59,7 @@ def test_every_api_route_requires_a_token_except_register_and_login(client: Test
     públicas tiene exactamente esas dos (002-I2)."""
     routes = _api_routes(client)
 
-    assert routes == PUBLIC_ROUTES | PROTECTED_ROUTES
+    assert routes == ALL_ROUTES  # crece con cada spec de rutas (008-C01 en adelante)
 
     for path, method in routes - PUBLIC_ROUTES:
         response = client.request(method, path)

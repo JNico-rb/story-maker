@@ -420,49 +420,51 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
-- [ ] 008-C01 · Crear una novela para entrevistarla
-- [ ] 008-C02 · Lista y detalle de las novelas con su estado derivado
-- [ ] 008-C03 · Un turno aplica lo que entrega el entrevistador
-- [ ] 008-C04 · `update_brief` actúa como parche del borrador
-- [ ] 008-C05 · `update_brief` no alcanza lo que decide el cliente
-- [ ] 008-C06 · Una dedicatoria con una prohibida no entra por `update_brief`
-- [ ] 008-C07 · Un turno fallido no se guarda
-- [ ] 008-C08 · Mensaje rechazado antes de abrir la sesión
-- [ ] 008-C09 · Datos faltantes, uno por campo
-- [ ] 008-C10 · Contradicciones C1–C5, por tabla
-- [ ] 008-C11 · Contradicción C6, por nivel, lugar y variante
-- [ ] 008-C12 · Cota de elementos obligatorios
-- [ ] 008-C13 · Comprobación de schema: forma y referencias internas
-- [ ] 008-C14 · Las comprobaciones se recalculan en cada lectura
-- [ ] 008-C15 · Confirmar un brief válido
-- [ ] 008-C16 · Confirmación rechazada
-- [ ] 008-C17 · Un brief confirmado es inmutable
-- [ ] 008-C18 · Extraer hechos de un texto libre
-- [ ] 008-C19 · `citas-verificadas`, regla por regla
-- [ ] 008-C20 · Inyección en el texto libre (RT1)
-- [ ] 008-C21 · Hecho inventado o exfiltrado por el extractor (RT2)
-- [ ] 008-C22 · El texto libre solo llega al extractor
-- [ ] 008-C23 · Texto libre rechazado o con la sesión fallida
-- [ ] 008-C24 · Aceptar, rechazar y marcar obligatorio un hecho extraído
-- [ ] 008-C25 · Lista prohibida de nivel `novel`
-- [ ] 008-C26 · Lista prohibida de nivel `user`
-- [ ] 008-C27 · Audit log de la novela
-- [ ] 008-C28 · Importar un brief válido
-- [ ] 008-C29 · Importación rechazada antes de extraer
-- [ ] 008-C30 · Importación con una extracción fallida
-- [ ] 008-C31 · Trazas y scores de la entrevista y de la importación
-- [ ] 008-I1 · Importar y confirmar deciden igual
-- [ ] 008-I2 · Las comprobaciones son deterministas y solo dependen del brief, de las tres listas, de la fecha de creación de la novela y de `max_mandat…
-- [ ] 008-I3 · Un hecho sin verificar no sale nunca
-- [ ] 008-I4 · Toda ruta de esta spec exige `TokenDeAcceso` (401) y trata como inexistente (404) la novela, el hecho o la entrada prohibida de otro cliente
-- [ ] 008-I5 · Un turno, una extracción, una confirmación y una importación se guardan enteros o no se guardan
+- [x] 008-C01 · Crear una novela para entrevistarla
+- [x] 008-C02 · Lista y detalle de las novelas con su estado derivado
+- [x] 008-C03 · Un turno aplica lo que entrega el entrevistador
+- [x] 008-C04 · `update_brief` actúa como parche del borrador
+- [x] 008-C05 · `update_brief` no alcanza lo que decide el cliente
+- [x] 008-C06 · Una dedicatoria con una prohibida no entra por `update_brief`
+- [x] 008-C07 · Un turno fallido no se guarda
+- [x] 008-C08 · Mensaje rechazado antes de abrir la sesión
+- [x] 008-C09 · Datos faltantes, uno por campo
+- [x] 008-C10 · Contradicciones C1–C5, por tabla
+- [x] 008-C11 · Contradicción C6, por nivel, lugar y variante
+- [x] 008-C12 · Cota de elementos obligatorios
+- [x] 008-C13 · Comprobación de schema: forma y referencias internas
+- [x] 008-C14 · Las comprobaciones se recalculan en cada lectura
+- [x] 008-C15 · Confirmar un brief válido
+- [x] 008-C16 · Confirmación rechazada
+- [x] 008-C17 · Un brief confirmado es inmutable
+- [x] 008-C18 · Extraer hechos de un texto libre
+- [x] 008-C19 · `citas-verificadas`, regla por regla
+- [x] 008-C20 · Inyección en el texto libre (RT1)
+- [x] 008-C21 · Hecho inventado o exfiltrado por el extractor (RT2)
+- [x] 008-C22 · El texto libre solo llega al extractor
+- [x] 008-C23 · Texto libre rechazado o con la sesión fallida
+- [x] 008-C24 · Aceptar, rechazar y marcar obligatorio un hecho extraído
+- [x] 008-C25 · Lista prohibida de nivel `novel`
+- [x] 008-C26 · Lista prohibida de nivel `user`
+- [x] 008-C27 · Audit log de la novela
+- [x] 008-C28 · Importar un brief válido
+- [x] 008-C29 · Importación rechazada antes de extraer
+- [x] 008-C30 · Importación con una extracción fallida
+- [x] 008-C31 · Trazas y scores de la entrevista y de la importación
+- [x] 008-I1 · Importar y confirmar deciden igual
+- [x] 008-I2 · Las comprobaciones son deterministas y solo dependen del brief, de las tres listas, de la fecha de creación de la novela y de `max_mandat…
+- [x] 008-I3 · Un hecho sin verificar no sale nunca
+- [ ] 008-I4 · Toda ruta de esta spec exige `TokenDeAcceso` (401) y trata como inexistente (404) la novela, el hecho o la entrada prohibida de otro cliente (recortado)
+- [x] 008-I5 · Un turno, una extracción, una confirmación y una importación se guardan enteros o no se guardan
 - [ ] 008-C32 · Entrevista real con el login de Claude Code (D, al final)
 - [ ] 008-C33 · Extracción real de una carta con inyección (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
+
+— verificador 2026-09-24: backend (uv run pytest 1190 passed, ruff check clean, ruff format --check clean, mypy src clean) verdes.
 
 ## 009 — story-bible-y-versiones
 

@@ -12,15 +12,32 @@ import datetime as dt
 from dataclasses import dataclass
 from typing import Literal
 
+from story_maker.domain.constants import (
+    NAME,
+    NOMINAL_ATTRIBUTES,
+    RECOLLECTION,
+    RELATIONSHIP,
+    TRAIT,
+)
 from story_maker.store.models import Character, Event, EventCharacter, Fact, Novel, Place, Version
 from story_maker.store.session import UnitOfWork
 
-# Vocabulario de atributos de los hechos del brief (`definitions.md` §2 Hecho, §11.2).
-NAME = "name"
-TRAIT = "trait"
-RECOLLECTION = "recollection"
-RELATIONSHIP = "relationship"
-NOMINAL_ATTRIBUTES = frozenset({NAME})
+__all__ = [
+    "NAME",
+    "NOMINAL_ATTRIBUTES",
+    "RECOLLECTION",
+    "RELATIONSHIP",
+    "TRAIT",
+    "BriefCloseOne",
+    "BriefExtractedFact",
+    "BriefRecipient",
+    "BriefRecollection",
+    "BriefTrait",
+    "ConfirmedBrief",
+    "birth_date",
+    "create_generation_candidate",
+    "recollection_moment",
+]
 
 NOON = dt.time(12, 0)
 
