@@ -527,7 +527,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [ ] 010-C03 · Fechado de los recuerdos
 - [ ] 010-C04 · Eventos y lugares de los recuerdos
 - [ ] 010-C05 · Hechos extraídos en el canon
-- [ ] 010-C06 · Ventana del planner
+- [x] 010-C06 · Ventana del planner
 - [x] 010-C07 · Catálogo de tropos curado
 - [x] 010-C08 · Schema de `submit_plan`
 - [x] 010-C09 · Policy sobre la entrega del plan

@@ -10,6 +10,7 @@ copia ni importa código de la 009 (instrucción del carril, 2026-09-24)."""
 
 from __future__ import annotations
 
+import datetime as dt
 from dataclasses import dataclass
 
 WORLD_NAME = "world"
@@ -26,7 +27,23 @@ class PersonalElement:
 
 @dataclass(frozen=True)
 class FactRef:
+    """Un `Hecho` de la story bible inicial. `outline` (010-C10..C16) solo mira `id`; la
+    ventana del planner (010-C06) también lleva `mandatory` y `personal_element_id`."""
+
     id: str
+    mandatory: bool = False
+    personal_element_id: str | None = None
+
+
+@dataclass(frozen=True)
+class EventRef:
+    """Un `Evento` de origen brief, para la ventana del planner (010-C06)."""
+
+    statement: str
+    moment: dt.datetime
+    place: str
+    present: tuple[str, ...] = ()
+    excluded: str | None = None
 
 
 @dataclass(frozen=True)
@@ -36,6 +53,8 @@ class StoryBibleView:
     place_names: tuple[str, ...] = ()
     fact_ids: tuple[str, ...] = ()
     personal_elements: tuple[PersonalElement, ...] = ()
+    facts: tuple[FactRef, ...] = ()
+    events: tuple[EventRef, ...] = ()
 
     @property
     def mandatory_elements(self) -> tuple[PersonalElement, ...]:
