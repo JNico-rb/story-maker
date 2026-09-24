@@ -36,7 +36,7 @@ def _check_banned_terms(peticion: PeticionDePolitica) -> DecisionDePolitica | No
 def _check_whitelist(peticion: PeticionDePolitica) -> DecisionDePolitica | None:
     if peticion.rol is None or peticion.tool is None:
         return None
-    if not is_tool_allowed(peticion.rol, peticion.tool):
+    if not is_tool_allowed(peticion.rol, peticion.tool, peticion.modo):
         return DecisionDePolitica(
             decision="deny",
             rule="lista-blanca",

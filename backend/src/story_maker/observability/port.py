@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from contextlib import AbstractContextManager
 from dataclasses import dataclass, field
 from typing import Any, Protocol
 
@@ -16,6 +17,8 @@ class ModelCall:
     cache_write_tokens: int
     cost_usd: float
     latency_ms: int
+    # `total_cost_usd` del SDK: solo contraste, nunca el coste (architecture.md §13.2, §18).
+    sdk_cost_usd: float | None = None
 
 
 @dataclass
@@ -48,6 +51,44 @@ class Trace:
 
 class ObservabilityPort(Protocol):
     """Lo que emite cualquier pieza del harness; `null.NullObservability` es el doble sin red."""
+
+    def trace(
+        self, key: str, name: str | None = None, session: str | None = None
+    ) -> AbstractContextManager[Trace]: ...
+
+    def span(
+        self,
+        trace: Trace,
+        name: str,
+        parent: Span | None = None,
+        metadata: dict[str, Any] | None = None,
+        level: str = "DEFAULT",
+        reason: str | None = None,
+    ) -> AbstractContextManager[Span]: ...
+
+    def model_call(
+        self,
+        span: Span,
+        *,
+        model: str,
+        prompt_version: str | None = None,
+        input_tokens: int = 0,
+        output_tokens: int = 0,
+        cache_read_tokens: int = 0,
+        cache_write_tokens: int = 0,
+        cost_usd: float = 0.0,
+        latency_ms: int = 0,
+        sdk_cost_usd: float | None = None,
+    ) -> ModelCall: ...
+
+    def score(
+        self,
+        trace: Trace,
+        name: str,
+        value: float,
+        comment: str | None = None,
+        span: Span | None = None,
+    ) -> Score: ...
 
     def check(self) -> bool: ...
 
