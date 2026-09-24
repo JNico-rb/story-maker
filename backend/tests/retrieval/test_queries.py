@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import dataclasses
 from typing import Any
 
 import pytest
 from sqlalchemy.orm import Session, sessionmaker
 
+from story_maker.config import load_config
 from story_maker.retrieval.fake import FixedVectors
 from story_maker.retrieval.queries import (
     prospective_query,
@@ -14,6 +16,8 @@ from story_maker.retrieval.queries import (
     retrieve_for_writer,
     retrospective_query,
 )
+from story_maker.retrieval.retriever import rank_cards
+from story_maker.settings import ROOT
 
 TOP_K = {"writer": 1, "editor": 1}
 
@@ -84,3 +88,35 @@ def test_the_editor_gets_the_card_its_text_names_and_the_writer_another_one(
     assert [card.id for card in editor] == [cards["market"]]
     assert [card.id for card in writer] == [cards["lighthouse"]]
     assert [card.id for card in about_lighthouse] == [cards["lighthouse"]]
+
+
+def test_each_role_gets_its_own_top_k_and_scarcity_never_fails(
+    canon: Any, session_factory: sessionmaker[Session], embedder: FixedVectors
+) -> None:
+    config = dataclasses.replace(
+        load_config(ROOT / "config.json"), top_k={"writer": 2, "editor": 3}
+    )
+    six = canon.version()
+    for index in range(6):
+        name = f"Vecina {index}"
+        canon.card(six, f"{name} del barrio.", character=canon.character(six, name))
+    canon.outline_chapter(six, 1, ["Las vecinas del barrio.", "Una vecina llama."])
+    one = canon.version()
+    only = canon.card(one, "El mundo.")
+    canon.outline_chapter(one, 1, ["Empieza la historia."])
+    text = "Las vecinas del barrio.\n\nUna vecina llama."
+
+    with session_factory() as session:
+        writer_query = prospective_query(session, six, 1)
+        writer_fused = [e.card.id for e in rank_cards(session, six, 1, writer_query, embedder)]
+        editor_query = retrospective_query(text)
+        editor_fused = [e.card.id for e in rank_cards(session, six, 1, editor_query, embedder)]
+        writer_six = retrieve_for_writer(session, six, 1, config.top_k, embedder)
+        editor_six = retrieve_for_editor(session, six, 1, text, config.top_k, embedder)
+        writer_one = retrieve_for_writer(session, one, 1, config.top_k, embedder)
+        editor_one = retrieve_for_editor(session, one, 1, text, config.top_k, embedder)
+
+    assert [card.id for card in writer_six] == writer_fused[:2]
+    assert [card.id for card in editor_six] == editor_fused[:3]
+    assert [card.id for card in writer_one] == [only]
+    assert [card.id for card in editor_one] == [only]
