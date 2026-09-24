@@ -8,45 +8,26 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 4. Cada carril edita solo los bloques de sus specs; esta cabecera y sus tablas son del integrador (checkout principal, V2).
 5. Una spec empieza cuando sus dependencias están cerradas en V2, o en la rama de su propio carril.
 
-## Estado (2026-09-24, etapa 2 en curso)
+## Estado (2026-09-24)
 
-- **000:** spec y plan aprobados; implementación en V2 (integrador), pasos C01–C05 en verde.
-- **001:** spec redactada entera; auditor en curso (spec y plan).
-- **006:** auditor ronda 1 con 4 contradicciones en docs; el integrador los corrige y va a ronda 2.
-- **Borradores** (sin aprobar, pueden estar incompletos): 002, 003, 007, 008, 009, 010, 011, 012, 014, 015, 016, 017, 018, 019. **Sin redactar:** 004, 005, 013, 020, 021.
-- **Borradores de plan:** `specs/.drafts/plan-NNN.md`. **Bloques** en este fichero: 000, 001, 002, 006.
+- **Decisión del usuario (2026-09-24):** backend completo primero; sin revisiones (el integrador escribe y marca spec y plan); casos D y ejecuciones con modelo real al final, en un lote; como mucho 3 sesiones activas (integrador + 2 carriles); frontend después.
+- **000:** cerrada en V2. Pendientes D para el lote final: C15, C16, C17, C19.
+- **Aprobadas (spec y plan):** 001, 002, 003, 006, 007, 008, 009, 010, 011, 012, 014, 015, 016, 017, 018, 019. **En redacción:** 004, 005. **Sin redactar:** 013, 020, 021.
+- **Ruta crítica:** 000 → 001 → 002 → 009 → 010 → 011 → 012 → 014 → 015 → 021 (carril A). El carril D lleva el resto en orden de dependencias.
 - **Avisos abiertos:**
-  - README: la tabla TLA+ contradice §9.1; la corrige 006-C9.
-  - `ci.yml` descarga `tla2tools` «latest», contra 000-I1; lo corrige el plan de 000.
-  - `.github/workflows/` para 007 en la tabla de propiedad del carril D.
   - 009 ofrece la lectura de la `Cronologia` y la escritura de `chronology_files` (lo pide 007).
   - 012 decide qué hace el gate con el `error` de 007; la propuesta es `failed` con `internal_error`.
   - 014: la propuesta pedida por MCP cuelga de `mcp:request_change` (lo pide 015).
-  - Fila U «modelo pequeño» para 006-I11, si 006 no la añadió.
-- **Tareas humanas:**
-  - `GITHUB_TOKEN` de grano fino para 007-C25.
-  - Decidir si V2 pasa a ser la rama por defecto: `workflow_dispatch` necesita el workflow en la rama por defecto.
-- **Reglas del usuario (2026-09-24):**
-  - Como mucho 2 subagentes a la vez.
-  - `auditor` siempre en opus. `redactor-specs`, `verificador` e `implementador` en sonnet, salvo el implementador de 006, 007, 012 y 014 y un fallo que se repite tras 2 intentos, que van en opus.
-  - El redactor deja el borrador del plan en `specs/.drafts/plan-NNN.md` y añade sus filas de §18. El auditor hace la spec y, si queda a gap cero, el plan en la misma llamada. Informes de 5 líneas como mucho.
-  - Nunca se recorta alcance: si falta cuota, se para.
-  - Un solo carril al principio; el segundo, cuando el primero cierre una spec en verde.
-- **Siguiente:**
-  1. Cerrar 000 (TDD en V2 + `verificador`) y aprobar el plan de 001 → arrancar el carril A.
-  2. De dos en dos, por la ruta crítica: terminar y auditar 002, 009, 010, 011…; redactar 004, 005, 013, 020 y 021.
-  3. Frontend 022–028 cuando estén aprobadas 002, 008, 011, 013, 014, 018 y 019.
+- **Tareas humanas:** `GITHUB_TOKEN` de grano fino para 007-C25; decidir si V2 pasa a ser la rama por defecto (`workflow_dispatch`).
 
 ## Carriles
 
 | Carril | Specs en orden | Depende de (fuera del carril) | Worktree | Rama | Estado |
 |---|---|---|---|---|---|
-| 0 — scaffolding (integrador) | 000 | — | checkout principal | `V2` | spec y plan aprobados; implementación en curso |
-| A — núcleo de generación | 001 → 003 → 010 → 011 → 012 → 014 | 004, 009 (B) · 002, 005 (C) · 006, 007 (D) | `../sm-a` | `carril-a` | espera 000 |
-| B — plataforma y observabilidad | 009 → 004 → 013 → 015 → 017 | 001, 012, 014 (A) · 002, 008 (C) | `../sm-b` | `carril-b` | espera 000 y 001 |
-| C — entrada y política | 005 → 002 → 008 → 018 → 019 | 001, 003, 011, 012 (A) · 004 (B) | `../sm-c` | `carril-c` | espera 000 (luego 005 arranca con lo puro) |
-| D — formal y calidad | 006 → 007 → 016 → 020 → 021 | 009, 015 (B) · 012 (A) · 002 (C) | `../sm-d` | `carril-d` | espera 000 (luego 006 y 007 arrancan ya) |
-| E — frontend | 022 → 023 → 024 → 025 → 026 → 027 → 028 (`specs/frontend/`) | 002, 008 (C) · 011, 014 (A) · 013 (B) · 018, 019 (C) | `../sm-e` | `carril-e` | specs sin redactar; esperan a las specs de backend de las que dependen |
+| 0 — scaffolding (integrador) | 000 | — | checkout principal | `V2` | cerrada (D al final) |
+| A — ruta crítica | 001 → 002 → 009 → 010 → 011 → 012 → 014 → 015 → 021 | 003, 004 (010) · 005, 006 (011) · 007 (012) · 008, 013 (015) | `../sm-a` | `carril-a` | 001 desbloqueada |
+| D — resto del backend | 006 → 003 → 005 → 004 → 007 → 008 → 013 → 016 → 018 → 019 → 017 → 020 | 001 (003, 004, 005) · 009 (007 parcial, 013, 016) · 002 (008) · 011 (018) · 012 (019, 017, 020) | `../sm-d` | `carril-d` | 006 desbloqueada |
+| E — frontend | 022 → … → 028 (`specs/frontend/`) | backend completo | `../sm-e` | `carril-e` | después del backend |
 
 ## Specs
 
@@ -54,26 +35,26 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 |---|---|---|---|---|
 | 000 | scaffolding (herramientas, estructura, CI, marca del frontend, hooks de desarrollo) | transversal | 0 | — |
 | 001 | base | backend | A | 000 |
-| 002 | autenticacion | backend | C | 001 |
-| 003 | puerto-de-agente | backend | A | 001 |
-| 004 | observabilidad | backend | B | 001 |
-| 005 | guardarrailes | backend | C | 001 *parcial*: lo puro no la necesita; el audit log sí |
+| 002 | autenticacion | backend | A | 001 |
+| 003 | puerto-de-agente | backend | D | 001 |
+| 004 | observabilidad | backend | D | 001 |
+| 005 | guardarrailes | backend | D | 001 *parcial*: lo puro no la necesita; el audit log sí |
 | 006 | especificacion-tla | backend | D | 000 |
 | 007 | validador-lean | backend | D | 009 *parcial*: solo el adaptador a SQLite |
-| 008 | brief-y-entrevista | backend | C | 002, 003, 004, 005 |
-| 009 | story-bible-y-versiones | backend | B | 001, 002 |
+| 008 | brief-y-entrevista | backend | D | 002, 003, 004, 005 |
+| 009 | story-bible-y-versiones | backend | A | 001, 002 |
 | 010 | planificacion | backend | A | 003, 004, 009 |
 | 011 | produccion-de-capitulos | backend | A | 002, 005, 006, 010 |
 | 012 | gate-de-publicacion | backend | A | 007, 011 |
-| 013 | lectura-y-pdf | backend | B | 009 |
+| 013 | lectura-y-pdf | backend | D | 009 |
 | 014 | cambios-del-lector | backend | A | 012 |
-| 015 | servidor-mcp | backend | B | 002, 008, 013, 014 |
+| 015 | servidor-mcp | backend | A | 002, 008, 013, 014 |
 | 016 | recuperacion-hibrida | backend | D | 009 |
-| 017 | revision-visual | backend | B | 012, 013 |
-| 018 | linters-de-prosa | backend | C | 011 |
-| 019 | edicion-manual | backend | C | 012, 018 |
+| 017 | revision-visual | backend | D | 012, 013 |
+| 018 | linters-de-prosa | backend | D | 011 |
+| 019 | edicion-manual | backend | D | 012, 018 |
 | 020 | evals | backend | D | 012 |
-| 021 | auditoria-de-seguridad | backend | D | 002, 015 |
+| 021 | auditoria-de-seguridad | backend | A | 002, 015 |
 | 022 | acceso (registro, inicio de sesión, rutas protegidas, marca común) | frontend | E | 000, 002 |
 | 023 | mis-novelas (lista con estado y versión vigente, crear novela, prohibidas de nivel usuario) | frontend | E | 022, 005, 008 |
 | 024 | entrevista (chat, panel del brief, textos libres, hechos por aceptar, prohibidas de novela, confirmación) | frontend | E | 023, 008 |
@@ -82,7 +63,7 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 | 027 | cambio-del-lector (seleccionar, pedir, propuesta y afectados, confirmar, ver la versión nueva) | frontend | E | 026, 025, 014 |
 | 028 | edicion-manual (editor con lint en vivo, guardar, versión nueva) | frontend | E | 026, 025, 018, 019 |
 
-Todas dependen de 000. Arranque en paralelo cuando 000 esté cerrada: A (001), C (005, lo puro) y D (006, 007); B cuando 001 esté integrada.
+Todas dependen de 000. Carriles B y C disueltos (decisión del usuario, 2026-09-24: como mucho 2 carriles a la vez); sus specs pasan a A y D sin cambiar su propiedad de módulos.
 
 ## 000 — scaffolding
 
