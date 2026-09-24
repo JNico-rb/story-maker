@@ -255,7 +255,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 004-C10 · La máscara sustituye nombres y fechas sin tocar tokens, coste, latencia ni scores
 - [x] 004-I1 · Todo texto exportado pasa antes por la máscara
 - [x] 004-C11 · La máscara de una llamada MCP con varias novelas es la unión de sus máscaras
-- [ ] 004-C12 · Cada resultado de validador se exporta como Score con su nombre canónico
+- [x] 004-C12 · Cada resultado de validador se exporta como Score con su nombre canónico
 - [ ] 004-C13 · TLC no envía score
 - [ ] 004-I7 · Ninguna llamada real a modelo o Langfuse en una prueba T
 - [ ] 004-C14 · Una ejecución real vista en Langfuse (D, al final)
