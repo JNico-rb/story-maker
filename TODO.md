@@ -585,8 +585,8 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 011-C14 · Una sesión del writer que termina sin entrega válida es un intento fallido
 - [x] 011-C15 · La revisión del editor tiene schema y solo cita lo que existe
 - [x] 011-C16 · El veredicto lo decide el código
-- [ ] 011-C17 · Reescribir es una sesión nueva con los defectos
-- [ ] 011-C18 · Los intentos de un capítulo se agotan con motivo
+- [x] 011-C17 · Reescribir es una sesión nueva con los defectos
+- [x] 011-C18 · Los intentos de un capítulo se agotan con motivo
 - [ ] 011-C19 · Aceptar un capítulo es una transacción
 - [ ] 011-C20 · Los usos son los declarados más la coincidencia literal de los hechos nominales
 - [ ] 011-C21 · Si la transacción de aceptación falla, no queda nada del capítulo
