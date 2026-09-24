@@ -74,3 +74,39 @@ def test_mask_replaces_the_recipient_name_and_the_date_before_exporting(
     (score,) = fake_langfuse_client.scores
     assert score["value"] == 4
     assert score["comment"] == "A [NOMBRE_1] le encantará leerlo el [FECHA]."
+
+
+# --- I1: todo texto exportado pasa antes por la máscara, en cualquier campo -------------------
+
+
+def test_no_raw_occurrence_of_the_recipient_name_or_the_date_reaches_the_client(
+    fake_langfuse_client: FakeLangfuseClient,
+) -> None:
+    observability = LangfuseObservability(fake_langfuse_client)
+    observability.add_mask("run:1", Mask(names=(RECIPIENT,), dates=(DATE,)))
+
+    _emit_a_role_session_naming_the_recipient_and_the_date(observability, "run:1")
+    observability.flush()
+
+    exported_span = fake_langfuse_client.roots["trace-run:1"].children[0]
+    (score,) = fake_langfuse_client.scores
+    haystack = [
+        str(exported_span.metadata),
+        str(score["comment"]),
+    ]
+    for text in haystack:
+        assert RECIPIENT not in text
+        assert DATE not in text
+
+
+def test_a_trace_with_no_registered_mask_exports_its_text_unchanged(
+    fake_langfuse_client: FakeLangfuseClient,
+) -> None:
+    observability = LangfuseObservability(fake_langfuse_client)
+
+    _emit_a_role_session_naming_the_recipient_and_the_date(observability, "run:2")
+    observability.flush()
+
+    exported_span = fake_langfuse_client.roots["trace-run:2"].children[0]
+    assert exported_span.metadata is not None
+    assert RECIPIENT in exported_span.metadata["input"]
