@@ -3,7 +3,7 @@
 Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 
 1. Un bloque por spec, en orden numérico, con el formato de `AGENTS.md` proceso 3. Ningún código, tampoco el scaffolding, antes de que su spec y su plan estén aprobados.
-2. Las casillas de aprobación las marca `auditor` (gap cero, con acta en la misma línea); las de cierre, `verificador`.
+2. Las casillas de aprobación las marca el integrador, sin revisión (decisión del usuario, 2026-09-24); las de cierre, `verificador`. Los pasos D quedan `[ ]` con `(D, al final)` y no impiden cerrar.
 3. Un paso se marca `[x]` solo cuando su caso pasa a verde.
 4. Cada carril edita solo los bloques de sus specs; esta cabecera y sus tablas son del integrador (checkout principal, V2).
 5. Una spec empieza cuando sus dependencias están cerradas en V2, o en la rama de su propio carril.

@@ -8,7 +8,7 @@ Este fichero instruye a Claude Code **en el desarrollo**. El `CLAUDE.md` **de pr
 
 @AGENTS.md
 
-Resumen: cinco capas en orden, sin auditorías (el integrador escribe y marca spec y plan; `verificador` cierra tras TDD) y carriles en paralelo. Arranque: `/orquestar` en el checkout principal (V2); `/carril <X>` en cada worktree.
+Resumen: cinco capas en orden, sin revisiones (ni autorrevisión ni auditor: el integrador escribe y marca spec y plan; `verificador` cierra tras TDD), casos D al final y carriles en paralelo. Arranque: `/orquestar` en el checkout principal (V2); `/carril <X>` en cada worktree.
 
 ## Mapa del repo
 

@@ -21,7 +21,7 @@ NNN; ruta absoluta del worktree (p. ej. `C:/…/sm-a`); rama (`carril-<x>`).
    4. Suite completa del lado (comandos de `CLAUDE.md`), verde.
    5. Refactoriza en verde sin tocar las pruebas.
    6. Marca el paso `[x]` y haz commit en la rama: `NNN paso <k>: <nombre del caso>`.
-4. Las pruebas T usan siempre los dobles: el falso del puerto de agente y el nulo de observabilidad. Si el plan pide una demostración D con modelo real, déjala para el final, agrupada, una sola vez: gasta cuota de la suscripción.
+4. Las pruebas T usan siempre los dobles: el falso del puerto de agente y el nulo de observabilidad. **Los pasos D no se ejecutan**: se dejan `[ ]` con `(D, al final)` para el lote final, cuando el backend esté completo (decisión del usuario, 2026-09-24). Nada de modelo real antes.
 5. Si un paso resulta imposible o el plan está mal, para: no improvises un paso. Informa del paso y del motivo; el plan se corrige y se vuelve a auditar.
 6. Un rechazo de `guard-plan` o `guard-secretos` es la puerta funcionando: informa y sigue con lo que la puerta permita.
 

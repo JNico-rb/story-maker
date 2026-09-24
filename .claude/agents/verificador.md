@@ -13,7 +13,7 @@ NNN; ruta absoluta del worktree. Cada orden de Bash empieza con `cd <worktree>/<
 ## Pasos
 
 1. Lee `AGENTS.md` (proceso 4 y cierre), la tabla de propiedad de `backend/AGENTS.md` o `frontend/AGENTS.md`, la spec, el bloque `## NNN` de `TODO.md` y `git diff V2...HEAD` en el worktree.
-2. Casos: cada paso `[x]` tiene al menos una prueba cuyo nombre dice su comportamiento, y esa prueba afirma la salida del caso y, si la spec los fija, su rechazo y su límite. Cada caso e invariante de clase T tiene paso y prueba.
+2. Casos: cada paso `[x]` tiene al menos una prueba cuyo nombre dice su comportamiento, y esa prueba afirma la salida del caso y, si la spec los fija, su rechazo y su límite. Cada caso e invariante de clase T tiene paso y prueba. Los pasos D quedan `[ ]` con `(D, al final)` y no impiden el PASS (decisión del usuario, 2026-09-24); cualquier otro paso sin `[x]` es FAIL.
 3. Código: cada fichero de `src/` del diff sirve a un paso del plan y está en los módulos que la tabla de propiedad da a la spec.
 4. Pruebas: ninguna saltada, marcada como fallo esperado, aislada ni debilitada; ninguna borrada salvo que su caso se retirara de la spec. Ninguna prueba T llama a un modelo real ni a Langfuse real.
 5. Suites: en el worktree, los comandos de verificación de `CLAUDE.md` de cada lado que toque el diff. Todas verdes.

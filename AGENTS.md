@@ -27,25 +27,23 @@ When touching `backend/` or `frontend/`, read `backend/AGENTS.md` and `frontend/
 
 `docs/*.md` → `specs/` → `TODO.md` (plan) → tests → code. Never skip upward: code no plan asks for, a plan no approved spec asks for, or a spec no doc supports, is drift.
 
-**No code is written before its spec and its plan are approved — scaffolding, tooling, CI and dev hooks included** (they belong to `specs/000-scaffolding.md`). If code slips through, it is not deleted: its spec is written after the fact, audited and approved, and the existing code is verified against it like any other step. That spec is written from the docs, never from the code: the code is fixed to match the spec, never the spec bent to fit the code.
+**No code is written before its spec and its plan are approved — scaffolding, tooling, CI and dev hooks included** (they belong to `specs/000-scaffolding.md`). If code slips through, it is not deleted: its spec is written after the fact and approved, and the existing code is verified against it like any other step. That spec is written from the docs, never from the code: the code is fixed to match the spec, never the spec bent to fit the code.
 
 ### Gates
 
 | To do | Required first | Box marked by |
 |---|---|---|
-| Change `docs/*.md` | Self-review round on the task (process 0) | — |
-| Write or change a spec | Supporting docs + a self-review round **on that spec** | — |
-| Write the plan | That spec's approval box `[x]` | integrator, no audit |
-| Write tests or code | That plan's approval box `[x]` + a failing test | integrator, no audit |
-| Close a feature | Full suite green, types clean | `verificador` |
+| Change `docs/*.md` | — | — |
+| Write or change a spec | Supporting docs | — |
+| Write the plan | That spec's approval box `[x]` | integrator, no review |
+| Write tests or code | That plan's approval box `[x]` + a failing test | integrator, no review |
+| Close a feature | Every non-D step green, full suite green, types clean | `verificador` |
 
-**No audits (user's decision, 2026-09-24).** The integrator writes the spec and the plan and marks both approval boxes itself, ending the line with `— integrador YYYY-MM-DD: sin auditoría, decisión del usuario`. The `auditor` is no longer run. `verificador` marks the three closing boxes after TDD with the full suite green. No other agent or session marks a box. Plan box unmarked → **stop**: no tests or code (`guard-plan` looks only at that box).
+**No reviews (user's decision, 2026-09-24; it overrides any older rule here).** No self-review, no `auditor`, no review rounds, no reviews by the user. The integrator writes the spec and the plan straight from `docs/*.md` as they stand and marks both approval boxes itself, ending the line with `— integrador YYYY-MM-DD: sin revisión, decisión del usuario`. What stays: TDD (failing test → code) and `verificador` at the close, with the full suite green; it marks the three closing boxes. No other agent or session marks a box. Plan box unmarked → **stop**: no tests or code (`guard-plan` looks only at that box).
+
+**Class D waits until the end (user's decision, 2026-09-24).** No demonstration and no run with a real model until the backend is complete. A spec closes, and unblocks its dependants, when every step that is not class D is `[x]` and the full suite is green; its D steps stay `[ ]` with `(D, al final)` appended, and run in one batch at the end. Backend first; frontend after.
 
 The user steps in only on escalations (a `verificador` FAIL that persists) and on human-only tasks: the human review of a novel, the demo video, accounts and tokens, the final check.
-
-### 0. Self-review
-
-Run before the first edit to `docs/*.md`, `specs/`, `TODO.md`, `backend/` or `frontend/`. Once per task, not per file — but **every spec gets its own round**, even mid-task. The writer lists its open questions about the task, not the diff: what is asked, which layer owns it, which `definitions.md` terms it uses, which acceptance cases it implies, what is out of scope. It answers each from the docs and the simplicity maxim — *as easy as possible, as hard as necessary* — and records every design decision it closes in `architecture.md` §18. Only questions that truly belong to the user (money, external accounts, scope of the assignment) go to the user, in one batch. Do not edit while questions are open. Trivial non-semantic edits (typos, formatting, links) are exempt.
 
 ### 1. Changing the reference docs (`docs/*.md`)
 
@@ -68,13 +66,14 @@ Required contents: **objective**; **scope** / **out of scope**; **observable beh
 - Behaviour only: no file names, signatures or libraries. The one exception is `specs/000-scaffolding.md`: its observable behaviour is the commands a developer runs and what they produce, so it names commands, paths and tools.
 - Never contradicts `docs/*.md` — change the doc first (process 1).
 - Dependent specs reference each other by name; they never duplicate cases.
-- Specs are drafted in parallel, one `redactor-specs` per spec. Writers never edit `TODO.md`: the integrator (main checkout, V2) adds each block, one at a time, with every box unmarked, and and marks its boxes itself (no audit).
+- Specs are drafted in parallel, one `redactor-specs` per spec. Writers never edit `TODO.md`: the integrator (main checkout, V2) adds each block, one at a time, with every box unmarked, and marks its boxes itself (no review).
+- A missing or incomplete spec is completed only as far as its plan needs, from `docs/*.md` as they stand. A design decision the writer closes goes to `architecture.md` §18.
 - One commit per approved spec (`NNN: spec aprobada`) and one per approved plan (`NNN: plan aprobado`), both by the integrator.
-- Changing one: self-review again, edit the cases, unmark **both** boxes, re-mark them (integrator), re-run processes 3 and 4 for what changed. A deleted case means a deleted test.
+- Changing one: edit the cases, unmark **both** boxes, re-mark them (integrator), re-run processes 3 and 4 for what changed. A deleted case means a deleted test.
 
 ### 3. The plan — `TODO.md`
 
-Single file at the repo root: a header with the lane table (owned by the integrator), then one block per spec in numeric order. One step per acceptance case and one per class-T invariant, in implementation order. A step names the behaviour it delivers, not the files it touches — if it can't be phrased as a case of the spec, it belongs in the spec first. The writer may draft the plan outside `TODO.md`; the integrator pastes it into the block. Written → the integrator marks its box (no audit). Mark a step `[x]` only when its case goes green, never ahead. If implementation proves the plan wrong, stop, change the plan and get it re-audited; never improvise a step.
+Single file at the repo root: a header with the lane table (owned by the integrator), then one block per spec in numeric order. One step per acceptance case and one per class-T invariant, in implementation order. A step names the behaviour it delivers, not the files it touches — if it can't be phrased as a case of the spec, it belongs in the spec first. The writer may draft the plan outside `TODO.md`; the integrator pastes it into the block. Written → the integrator marks its box (no review). Mark a step `[x]` only when its case goes green, never ahead. If implementation proves the plan wrong, stop, change the plan and have the integrator re-mark it; never improvise a step.
 
     ## NNN — <feature name>
 
@@ -90,7 +89,7 @@ Single file at the repo root: a header with the lane table (owned by the integra
     - [ ] Spec updated, or confirmed still true
     - [ ] Docs updated, or confirmed still true
 
-A marked box reads, for example: `- [x] Plan below approved — integrador 2026-09-24: sin auditoría, decisión del usuario`.
+A marked box reads, for example: `- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario`.
 
 ### 4. Changing code — TDD
 
@@ -101,7 +100,7 @@ Per step of the approved plan: write the test → run it and watch it fail **for
 - Test names state the behaviour, not the function.
 - Backend via `uv`, frontend via `pnpm` (`pnpm.cmd` on this machine). Never disable, skip or weaken a test for a green run.
 
-**Closing a feature** (all four, in order): full suite green and types clean → fix the spec if the code proved it wrong (the integrator re-marks its boxes) → fix the owning doc if the work contradicted `docs/*.md`, or state nothing changed → `verificador` marks the three closing boxes.
+**Closing a feature** (all four, in order): every non-D step `[x]`, full suite green and types clean → fix the spec if the code proved it wrong (the integrator re-marks its boxes) → fix the owning doc if the work contradicted `docs/*.md`, or state nothing changed → `verificador` marks the three closing boxes.
 
 ## Parallel lanes
 
