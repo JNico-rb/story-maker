@@ -147,12 +147,18 @@ def _remove_previous_acceptance(uow: UnitOfWork, version_id: int, chapter: int) 
     )
     for usage in usages:
         uow.delete(usage)
-    events = session.query(Event).filter(
-        Event.version_id == version_id, Event.origin == "recorded", Event.chapter == chapter
+    events = (
+        session.query(Event)
+        .filter(
+            Event.version_id == version_id, Event.origin == "recorded", Event.chapter == chapter
+        )
+        .all()
     )
     for event in events:
         for presence in session.query(EventCharacter).filter(EventCharacter.event_id == event.id):
             uow.delete(presence)
+    session.flush()  # sin relaciones mapeadas, las presencias se borran antes que su evento
+    for event in events:
         uow.delete(event)
     session.flush()
 

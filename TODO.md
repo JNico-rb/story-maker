@@ -587,11 +587,11 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 011-C16 · El veredicto lo decide el código
 - [x] 011-C17 · Reescribir es una sesión nueva con los defectos
 - [x] 011-C18 · Los intentos de un capítulo se agotan con motivo
-- [ ] 011-C19 · Aceptar un capítulo es una transacción
-- [ ] 011-C20 · Los usos son los declarados más la coincidencia literal de los hechos nominales
-- [ ] 011-C21 · Si la transacción de aceptación falla, no queda nada del capítulo
-- [ ] 011-C22 · Volver a aceptar un capítulo reemplaza lo que dejó su aceptación anterior
-- [ ] 011-C23 · Tras el décimo capítulo, el gate
+- [x] 011-C19 · Aceptar un capítulo es una transacción
+- [x] 011-C20 · Los usos son los declarados más la coincidencia literal de los hechos nominales
+- [x] 011-C21 · Si la transacción de aceptación falla, no queda nada del capítulo
+- [x] 011-C22 · Volver a aceptar un capítulo reemplaza lo que dejó su aceptación anterior
+- [x] 011-C23 · Tras el décimo capítulo, el gate
 - [ ] 011-C24 · Un error del proveedor interrumpe y no cuenta como intento
 - [ ] 011-C25 · Al arrancar el servidor, lo que estaba en curso se interrumpe
 - [ ] 011-C26 · Reanudar vuelve a encolar la ejecución en su puesto
@@ -600,17 +600,17 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [ ] 011-C29 · Un error imprevisto del worker falla con `internal_error`
 - [ ] 011-C30 · El informe de la ejecución se calcula al pedirlo
 - [ ] 011-C31 · Trazas, spans y scores de la producción
-- [ ] 011-I1 · Hay como mucho una ejecución `running` en el servidor, y las `queued` salen en orden de fecha de creación
+- [ ] 011-I1 · Hay como mucho una ejecución `running` en el servidor, y las `queued` salen en orden de fecha de creación (recortado)
 - [ ] 011-I2 · `ReanudacionSinDuplicarNiPerder`
 - [ ] 011-I3 · `ReintentosAcotados`
-- [ ] 011-I4 · La aceptación es atómica
-- [ ] 011-I5 · Ningún rol escribe canon
+- [x] 011-I4 · La aceptación es atómica
+- [ ] 011-I5 · Ningún rol escribe canon (recortado)
 - [ ] 011-I6 · Ningún capítulo aceptado tiene un defecto bloqueante
-- [ ] 011-I7 · El writer nunca recibe prosa recuperada
+- [ ] 011-I7 · El writer nunca recibe prosa recuperada (recortado)
 - [ ] 011-I8 · Writer y editor son sesiones distintas
-- [ ] 011-I9 · Las ventanas solo llevan datos de la candidata de su novela, nunca de otra novela del mismo cliente ni de otro cliente
-- [ ] 011-I10 · El tamaño estimado de la ventana entra en la reserva de su sesión
-- [ ] 011-I11 · Los usos y los eventos registrados solo citan hechos y entidades de la candidata
+- [ ] 011-I9 · Las ventanas solo llevan datos de la candidata de su novela, nunca de otra novela del mismo cliente ni de otro cliente (recortado)
+- [ ] 011-I10 · El tamaño estimado de la ventana entra en la reserva de su sesión (recortado)
+- [ ] 011-I11 · Los usos y los eventos registrados solo citan hechos y entidades de la candidata (recortado)
 - [ ] 011-C32 · Una producción real con el login de Claude Code llega al gate y se reanuda (D, al final)
 
 ### Closing
