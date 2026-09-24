@@ -9,6 +9,7 @@ from pydantic import BaseModel
 
 from story_maker.api.brief import BriefOut, build_brief_out
 from story_maker.api.dependencies import get_current_user_id
+from story_maker.api.errors import field_error
 from story_maker.api.ownership import owned_or_404
 from story_maker.interview.brief import TurnFailure, run_turn
 from story_maker.interview.novels import brief_of
@@ -17,6 +18,7 @@ from story_maker.store.models import Interview, InterviewMessage, Novel
 router = APIRouter()
 
 INTERVIEWER_PROMPT_FILE = "prompts/interviewer.md"
+MAX_MESSAGE_CHARS = 4000
 
 
 class InterviewMessageOut(BaseModel):
@@ -59,10 +61,23 @@ async def post_interview_message(
     request: Request,
     user_id: int = Depends(get_current_user_id),
 ) -> TurnOut:
+    if not body.text.strip():
+        raise HTTPException(
+            status_code=422, detail=field_error("text", "el mensaje no puede estar vacío")
+        )
+    if len(body.text) > MAX_MESSAGE_CHARS:
+        raise HTTPException(
+            status_code=422,
+            detail=field_error("text", f"el mensaje supera los {MAX_MESSAGE_CHARS} caracteres"),
+        )
+
     state = request.app.state
     session = state.session_factory()
     try:
         owned_or_404(session, Novel, novel_id, lambda n: n.user_id == user_id)
+        brief = brief_of(session, novel_id)
+        if brief.status == "confirmed":
+            raise HTTPException(status_code=409, detail="el brief ya está confirmado")
     finally:
         session.close()
 
