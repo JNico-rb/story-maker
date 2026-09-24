@@ -217,3 +217,83 @@ def test_free_text_rejected_by_the_extractor_session_prints_the_reason_and_saves
     finally:
         session.close()
         engine.dispose()
+
+
+# --- 029-C06: aceptar, rechazar y marcar obligatorio un hecho ---------------------------------
+
+
+def _script_a_turn_and_one_verified_fact(fake_agent: FakeAgent) -> None:
+    fake_agent.script(
+        "interviewer", None, Script(steps=(Call("update_brief", {"name": "Marta"}), Say("ok")))
+    )
+    fake_agent.script(
+        "extractor",
+        None,
+        Script(
+            steps=(
+                Call(
+                    "submit_facts",
+                    {
+                        "facts": [
+                            {
+                                "subject": "Marta",
+                                "attribute": "lugar de nacimiento",
+                                "value": "Bilbao",
+                                "quote": "Marta nació en Bilbao.",
+                            }
+                        ],
+                        "discarded_instructions": [],
+                    },
+                ),
+            )
+        ),
+    )
+
+
+def test_accept_reject_and_mark_a_fact_mandatory(
+    registered_client: Path, fake_agent: FakeAgent, tmp_path: Path
+) -> None:
+    letter = tmp_path / "carta.txt"
+    letter.write_text("Marta nació en Bilbao.", encoding="utf-8")
+    _script_a_turn_and_one_verified_fact(fake_agent)
+
+    result = runner.invoke(
+        app,
+        ["interview", "--email", EMAIL],
+        input=(
+            f"Hola\n/texto {letter}\n"
+            "/obligatorio 1\n"
+            "/aceptar 1\n/hechos\n"
+            "/obligatorio 1\n/hechos\n"
+            "/rechazar 1\n/hechos\n"
+            "/obligatorio 999\n"
+            "/rechazar abc\n"
+            "/salir\n"
+        ),
+    )
+
+    assert result.exit_code == 0, result.stdout
+    output = result.stdout
+    assert "un hecho sin aceptar no puede ser obligatorio" in output
+    assert "1: aceptado · Marta lugar de nacimiento=Bilbao" in output
+    assert "1: aceptado obligatorio · Marta lugar de nacimiento=Bilbao" in output
+    assert "1: rechazado · Marta lugar de nacimiento=Bilbao" in output
+    assert output.count("hecho no encontrado") == 2
+
+    session, engine = _session(registered_client)
+    try:
+        fact = session.query(ExtractedFact).one()
+        assert fact.accepted is False
+        assert fact.mandatory is False
+    finally:
+        session.close()
+        engine.dispose()
+
+
+def test_an_unrelated_or_unknown_fact_id_is_not_found(
+    registered_client: Path, fake_agent: FakeAgent
+) -> None:
+    result = runner.invoke(app, ["interview", "--email", EMAIL], input="/aceptar 1\n/salir\n")
+
+    assert result.exit_code == 0, result.stdout
+    assert "hecho no encontrado" in result.stdout

@@ -25,7 +25,7 @@ from story_maker.api.auth import normalize_email, utc_now
 from story_maker.config import Config, ConfigError, load_config
 from story_maker.interview.brief import TurnFailure, run_turn
 from story_maker.interview.free_text import FreeTextFailure, run_free_text
-from story_maker.interview.novels import create_interview_novel
+from story_maker.interview.novels import create_interview_novel, load_verified_facts
 from story_maker.observability.factory import build_langfuse_client, has_langfuse_vars
 from story_maker.observability.langfuse_adapter import LangfuseObservability
 from story_maker.observability.langfuse_adapter import auth_check as langfuse_auth_check
@@ -314,12 +314,12 @@ def export_pdf_command(
         engine.dispose()
 
 
-# --- `interview` (029-C01, C05) --------------------------------------------------------------
+# --- `interview` (029-C01, C05, C06) -----------------------------------------------------------
 #
 # La orden usa los servicios de la 008 en el mismo proceso: sin servidor, sin rutas HTTP. No
 # tiene reglas propias; cada rama del bucle llama directamente a `interview/` (`run_turn`,
-# `run_free_text`) y, en pasos posteriores, a `brief_of` y `api/brief.py` (`build_brief_out`,
-# `brief_problems`, ya puras, sin `Request`).
+# `run_free_text`, `load_verified_facts`) y, en un paso posterior, a `brief_of` y `api/brief.py`
+# (`build_brief_out`, `brief_problems`, ya puras, sin `Request`).
 
 
 @dataclass
@@ -420,6 +420,77 @@ async def _handle_free_text(
         typer.echo(f"{fact.id}: {fact.quote}")
 
 
+def _fact_status(fact: ExtractedFact) -> str:
+    if fact.accepted is None:
+        return "pendiente"
+    return "aceptado" if fact.accepted else "rechazado"
+
+
+def _handle_list_facts(services: _InterviewServices, novel_id: int) -> None:
+    """`/hechos` (029-C06): cada hecho extraído verificado, con su estado."""
+    with services.session_factory() as session:
+        facts = load_verified_facts(session, novel_id)
+    for fact in facts:
+        mark = " obligatorio" if fact.mandatory else ""
+        typer.echo(
+            f"{fact.id}: {_fact_status(fact)}{mark} · {fact.subject} {fact.attribute}={fact.value}"
+        )
+
+
+def _handle_fact_decision(
+    services: _InterviewServices,
+    novel_id: int,
+    fact_id_text: str,
+    *,
+    accepted: bool | None = None,
+    mandatory: bool | None = None,
+) -> None:
+    """`/aceptar`, `/rechazar` y `/obligatorio` (029-C06), como decide `patch_extracted_fact` de
+    la 008 (008-C24): un hecho ajeno o inexistente, o un id que no es un número, no se encuentra;
+    marcar obligatorio uno sin aceptar no se aplica."""
+    try:
+        fact_id = int(fact_id_text)
+    except ValueError:
+        typer.echo("hecho no encontrado")
+        return
+
+    with services.session_factory() as session:
+        fact = (
+            session.query(ExtractedFact)
+            .join(FreeText, ExtractedFact.free_text_id == FreeText.id)
+            .filter(
+                FreeText.novel_id == novel_id,
+                ExtractedFact.id == fact_id,
+                ExtractedFact.verified.is_(True),
+            )
+            .one_or_none()
+        )
+        if fact is None:
+            typer.echo("hecho no encontrado")
+            return
+        new_accepted = accepted if accepted is not None else bool(fact.accepted)
+        if mandatory is not None:
+            new_mandatory = mandatory
+        elif accepted is False:
+            new_mandatory = False
+        else:
+            new_mandatory = fact.mandatory
+
+    if new_mandatory and not new_accepted:
+        typer.echo("un hecho sin aceptar no puede ser obligatorio")
+        return
+
+    with unit_of_work(services.session_factory) as uow:
+        fresh = uow.session.get(ExtractedFact, fact_id)
+        if fresh is not None:
+            if accepted is not None:
+                fresh.accepted = accepted
+                if accepted is False:
+                    fresh.mandatory = False
+            if mandatory is not None:
+                fresh.mandatory = mandatory
+
+
 async def _interview_loop(services: _InterviewServices, novel_id: int, user_id: int) -> None:
     while True:
         line = _read_line()
@@ -432,6 +503,20 @@ async def _interview_loop(services: _InterviewServices, novel_id: int, user_id: 
             continue
         if line.startswith("/texto "):
             await _handle_free_text(services, novel_id, user_id, line[len("/texto ") :].strip())
+        elif line == "/hechos":
+            _handle_list_facts(services, novel_id)
+        elif line.startswith("/aceptar "):
+            _handle_fact_decision(
+                services, novel_id, line[len("/aceptar ") :].strip(), accepted=True
+            )
+        elif line.startswith("/rechazar "):
+            _handle_fact_decision(
+                services, novel_id, line[len("/rechazar ") :].strip(), accepted=False
+            )
+        elif line.startswith("/obligatorio "):
+            _handle_fact_decision(
+                services, novel_id, line[len("/obligatorio ") :].strip(), mandatory=True
+            )
         else:
             await _handle_turn(services, novel_id, user_id, line)
 
@@ -441,8 +526,9 @@ def interview_command(
     email: Annotated[str, typer.Option("--email", help="Email del cliente registrado.")],
 ) -> None:
     """Entrevista por terminal sobre los servicios de la 008: cada línea es un turno; `/texto
-    <fichero>` manda una carta al extractor; `/salir` o el fin de la entrada terminan con 0
-    (029-C01, C05)."""
+    <fichero>` manda una carta al extractor; `/hechos`, `/aceptar`, `/rechazar` y `/obligatorio`
+    gobiernan los hechos extraídos; `/salir` o el fin de la entrada terminan con 0 (029-C01, C05,
+    C06)."""
     try:
         settings = load_settings()
     except SettingsError as exc:
