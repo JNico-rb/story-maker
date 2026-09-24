@@ -3,7 +3,8 @@ name: ci
 
 on:
   push:
-    branches: [V2]
+    # The lane branches too: Lean only compiles here, so a lane sees its Lean before integration.
+    branches: [V2, "carril-*"]
   pull_request:
     branches: [V2]
 
@@ -68,6 +69,11 @@ jobs:
           auto-config: false
           build: true
           build-args: "--wfail"
+      - name: Pruebas de la biblioteca Lean (spec 007)
+        if: hashFiles('backend/src/story_maker/formal/lean_ci.py') != ''
+        env:
+          PYTHONPATH: backend/src
+        run: python3 -m story_maker.formal.lean_ci pruebas lean
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
