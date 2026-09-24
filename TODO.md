@@ -95,10 +95,10 @@ Todas dependen de 000. Arranque en paralelo cuando 000 esté cerrada: A (001), C
 - [x] 000-C03 · El backend se instala desde su lock y su verificación pasa sin credenciales
 - [ ] 000-C04 · Cada dependencia del stack del backend se importa en el entorno instalado
 - [x] 000-C05 · El paquete tiene un subpaquete por módulo y `domain` no importa el resto
-- [ ] 000-C06 · El frontend se instala desde su lock y su verificación pasa
-- [ ] 000-C07 · La SPA muestra la cabecera de marca en la ruta raíz
-- [ ] 000-C08 · El tema define la marca y el logotipo es el de `images/`
-- [ ] 000-I3 · Fuera de la definición de tokens, ningún fichero de `frontend/src/` contiene un color hexadecimal ni declara una familia tipográfica
+- [x] 000-C06 · El frontend se instala desde su lock y su verificación pasa
+- [x] 000-C07 · La SPA muestra la cabecera de marca en la ruta raíz
+- [x] 000-C08 · El tema define la marca y el logotipo es el de `images/`
+- [x] 000-I3 · Fuera de la definición de tokens, ningún fichero de `frontend/src/` contiene un color hexadecimal ni declara una familia tipográfica
 - [ ] 000-C09 · `guard-secretos` decide por la forma del texto nuevo
 - [ ] 000-C10 · `guard-plan` bloquea pruebas y código sin plan aprobado con pasos pendientes
 - [ ] 000-I5 · Los hooks deciden igual con el directorio actual en un subdirectorio

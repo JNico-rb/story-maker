@@ -1,29 +1,21 @@
 @import "tailwindcss";
 
-/* Tokens de marca Qaracter. Primario y secundario están muestreados del PNG de
-   images/qaracter-logo.png; el resto se deriva de ellos. Cada token es a la vez variable CSS
-   (var(--color-primary)) y utilidad de Tailwind (bg-primary, text-ink, font-serif...). */
+/* Tokens de marca Qaracter (architecture.md §18, «Valores de la marca»): la única definición de
+   colores y tipografías. Primario y secundario salen del logotipo; el resto, de ellos. Cada token
+   es variable CSS y utilidad de Tailwind (bg-primary, text-text, font-reading...). */
 @theme {
-  --color-primary: #ff7932; /* naranja del símbolo */
-  --color-primary-strong: #b84a12; /* naranja oscurecido: texto naranja sobre fondo claro (AA) */
-  --color-secondary: #233441; /* azul pizarra del logotipo */
-  --color-background: #faf8f5; /* papel cálido de la lectura */
-  --color-surface: #ffffff;
-  --color-ink: #233441; /* texto: el mismo pizarra */
-  --color-muted: #5e6b76;
-  --color-accent: #ffe8da; /* tinte del naranja: resaltados, «cambiado en vN» */
-  --color-line: #e3ded7;
+  --color-primary: #ff7932;
+  --color-secondary: #233441;
+  --color-background: #faf8f5;
+  --color-text: #233441;
+  --color-accent: #ffe8da;
 
-  --font-sans: "Inter Tight", ui-sans-serif, system-ui, sans-serif; /* interfaz, cercana al logotipo */
-  --font-serif: "Literata", ui-serif, Georgia, serif; /* lectura de la novela */
+  --font-ui: "Inter Tight", ui-sans-serif, system-ui, sans-serif;
+  --font-reading: "Literata", ui-serif, Georgia, serif;
 }
 
 @layer base {
   body {
-    @apply bg-background font-sans text-ink antialiased;
-  }
-
-  a {
-    @apply text-primary-strong;
+    @apply bg-background font-ui text-text antialiased;
   }
 }

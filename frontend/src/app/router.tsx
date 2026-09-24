@@ -1,5 +1,8 @@
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter, type RouteObject } from "react-router";
 
-import { HomePage } from "../pages/home";
+import { AppHeader } from "../shared/ui";
 
-export const router = createBrowserRouter([{ path: "/", element: <HomePage /> }]);
+// Mientras no haya pantallas, la ruta raíz muestra la cabecera de marca (spec 000).
+export const routes: RouteObject[] = [{ path: "/", element: <AppHeader /> }];
+
+export const router = createBrowserRouter(routes);
