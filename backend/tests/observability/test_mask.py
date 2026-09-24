@@ -110,3 +110,43 @@ def test_a_trace_with_no_registered_mask_exports_its_text_unchanged(
     exported_span = fake_langfuse_client.roots["trace-run:2"].children[0]
     assert exported_span.metadata is not None
     assert RECIPIENT in exported_span.metadata["input"]
+
+
+# --- C11: la máscara de una llamada MCP con varias novelas es la unión de sus máscaras --------
+
+
+def test_a_trace_touching_two_novels_masks_both_recipients_and_both_dates(
+    fake_langfuse_client: FakeLangfuseClient,
+) -> None:
+    observability = LangfuseObservability(fake_langfuse_client)
+    observability.add_mask("mcp:list_novels", Mask(names=("Toby",), dates=("3 de enero de 2027",)))
+    observability.add_mask(
+        "mcp:list_novels", Mask(names=("Marina",), dates=("9 de julio de 2027",))
+    )
+
+    with (
+        observability.trace("mcp:list_novels") as trace,
+        observability.span(
+            trace,
+            "tool:list_novels",
+            metadata={
+                "output": (
+                    "Toby, cumpleaños el 3 de enero de 2027; "
+                    "Marina, aniversario el 9 de julio de 2027."
+                )
+            },
+        ),
+    ):
+        pass
+    observability.flush()
+
+    exported = fake_langfuse_client.roots["trace-mcp:list_novels"].children[0]
+    assert exported.metadata is not None
+    output = exported.metadata["output"]
+    assert "Toby" not in output
+    assert "Marina" not in output
+    assert "3 de enero de 2027" not in output
+    assert "9 de julio de 2027" not in output
+    assert "[NOMBRE_1]" in output
+    assert "[NOMBRE_2]" in output
+    assert output.count("[FECHA]") == 2
