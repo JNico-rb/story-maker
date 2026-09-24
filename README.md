@@ -44,22 +44,22 @@ Novela de ejemplo de principio a fin: `uv run story-maker example ../ejemplos/br
 
 ## Correspondencia TLA+ ↔ código
 
-Cada acción de `tla/Harness.tla` corresponde a una transición del orquestador (`docs/architecture.md` §9.1). `tla/Regenerations.tla` modela dos cambios simultáneos sobre la misma novela (invariante `VersionesLineales`).
+Cada acción de `tla/Harness.tla` corresponde a una transición del orquestador o de la API (`docs/architecture.md` §9.1). `tla/Regenerations.tla` usa las mismas acciones —`PedirCambio`, `Regenerar` (con la revalidación de la base de §10.2), `Fallar` (también `stale_base`), `Publicar`, `Caer` y `Reanudar`— y remite a sus filas; su invariante es `VersionesLineales`. La columna Código se rellena al cerrar cada spec implementadora y la revisa el `verificador` (`docs/verification.md` §4.10).
 
-| Acción TLA+ | Transición del harness | Código |
-|---|---|---|
-| `Configurar` | brief confirmado → ejecución `queued` | pendiente (spec 011) |
-| `Planificar` | `queued` → `running` (`planning`); plan aceptado = punto de control del capítulo 0 | pendiente (spec 011) |
-| `EscribirCapitulo` | `writing(n)`: el writer entrega el capítulo n | pendiente (spec 011) |
-| `Validar` (pasa / falla) | hook de validación + editor + veredicto por código | pendiente (spec 011) |
-| `Reintentar` | defectos bloqueantes con intentos restantes → `rewriting` | pendiente (spec 011) |
-| `Caer` | `running` → `interrupted` | pendiente (spec 011) |
-| `Reanudar` | `interrupted` → `running` desde el último punto de control | pendiente (spec 011) |
-| `Gate` | capítulo 10 aceptado → `gate` | pendiente (spec 011) |
-| `Publicar` | gate superado → `published` | pendiente (spec 011) |
-| `Fallar` | intentos o ciclos agotados → `failed` | pendiente (spec 011) |
-| `PedirCambio` | solicitud de cambio confirmada → ejecución `change_request` en cola | pendiente (spec 011) |
-| `Regenerar` | reescritura de los capítulos afectados → gate → nueva versión | pendiente (spec 011) |
+| Acción TLA+ | Transición (§9.1, como la modela la 006) | Quién la dispara | Spec del código | Código |
+|---|---|---|---|---|
+| `Configurar` | → `queued` (generation, candidata vacía) | API: `POST /api/novels/{id}/runs` con el brief confirmado | 011 (API de ejecuciones) | pendiente |
+| `Planificar` | `queued` → `running`, `planning`; relanzada: → `writing` (capítulo k+1) o `gate` | Worker: toma la primera de la cola y abre el planner o sigue desde el punto de control | 011 (worker), 010 (planner) | pendiente |
+| `Regenerar` | `queued` → `running`, `writing` del primer afectado, con la candidata copiada de la base revalidada; relanzada: como `Planificar`, revalidando la base | Worker | 014 (cambio), 019 (edición) | pendiente |
+| `EscribirCapitulo` | `writing` o `rewriting`: entrega del capítulo en curso | Orquestador, sesión del writer (en un fallo de datos del gate, el editor vuelve a registrar sin writer) | 011; en `rewriting`, 012 | pendiente |
+| `Validar` | pasa: plan aplicado (punto de control 0), capítulo aceptado (con punto de control en `writing`) o gate superado; falla: defectos, o `gate` → `rewriting` con los capítulos atribuidos | Validador `outline`; hooks, editor y veredicto; validadores del gate | 010 (`outline`), 011, 012 (gate) | pendiente |
+| `Reintentar` | defectos → nuevo intento del mismo evaluable; `rewriting` → `gate` con los atribuidos aceptados | Orquestador, con la guarda de `max_retries.*` | 010, 011, 012 | pendiente |
+| `Gate` | `writing` → `gate`, sin capítulos por escribir | Orquestador | 012 | pendiente |
+| `Publicar` | `gate` superado → `published`; versión siguiente; solicitud o edición `applied` | Transacción de publicación (§9.3) | 012 | pendiente |
+| `Fallar` | `running` (o `queued` con base obsoleta, en `Regenerations.tla`) → `failed`; candidata `discarded`; solicitud o edición `rejected` | Límite agotado, fallo no atribuible, `edit_rejected`, `stale_base`, caída con `max_resumes` agotado | 010, 011, 012, 014, 019, según el motivo | pendiente |
+| `Caer` | `running` → `interrupted` | Error del proveedor, verificador inalcanzable o agotado, arranque con la ejecución en `running` | 011 (caída y arranque), 012 (verificador) | pendiente |
+| `Reanudar` | `interrupted` → `queued`, en su puesto original | `POST /api/runs/{id}/resume` o `story-maker resume` | 011 (API y CLI) | pendiente |
+| `PedirCambio` | → `queued` (change_request o manual_edit, con la vigente como base) | API o MCP: confirmar un cambio con su código; guardar una edición manual | 014 (confirmar; por MCP, 015), 019 (guardar) | pendiente |
 
 ## Conectar el servidor MCP
 

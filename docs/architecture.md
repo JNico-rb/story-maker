@@ -532,7 +532,7 @@ En TLA+, una edición manual es un `PedirCambio` cuyo primer capítulo afectado 
 ### 9.2 Punto de control y reanudación
 
 - `checkpoints` guarda una fila por capítulo aceptado en fase `writing` (0 = plan aplicado); volver a aceptarlo en `gate` o `rewriting` no escribe una fila nueva. Solo inserción.
-- **Reanudar** vuelve a encolar la ejecución **en su puesto original** (conserva `created_at`), así que se lanza antes que las posteriores. Al lanzarse, sigue en la fase y el capítulo siguientes al último punto de control. En `gate` o `rewriting`, vuelve a pasar el gate sobre la candidata tal como quedó: lo aceptado se conserva y el ciclo ya contado no se devuelve.
+- **Reanudar** vuelve a encolar la ejecución **en su puesto original** (conserva `created_at`), así que se lanza antes que las posteriores. Al lanzarse, sigue en la fase y el capítulo siguientes al último punto de control. En `gate` o `rewriting`, vuelve a pasar el gate sobre la candidata tal como quedó: lo aceptado se conserva y el ciclo ya contado no se devuelve. Volver a pasar el gate no consume un ciclo de `max_retries.gate_cycles` si lo supera: solo cuenta un ciclo fallido (§9.4). Si cayó en `gate` con un fallo ya decidido, al relanzarse termina `failed` con ese motivo, sin volver a pasarlo.
 - **Solo desde `interrupted`**, como mucho `max_resumes` veces. Una ejecución de cambio o edición revalida su versión base otra vez al relanzarse (§10.2).
 - La ejecución reanudada conserva su traza de Langfuse.
 
@@ -1502,3 +1502,6 @@ Registro de trade-offs: cada fila da opciones, criterio y elección. Reabrir una
 | Dónde viven las constantes del encargo y los identificadores de la config (001) | Repetidos en config y esquema · una sola vez en `domain` | 001-I5 | Una sola vez en `domain`; config y esquema los importan |
 | Red saliente en las pruebas (001) | Bloquearla solo en las de 001 · en toda la suite de backend | 001-I3 y la regla de ninguna prueba T contra un servicio real | Bloqueada en toda la suite, salvo `127.0.0.1`, `::1` y `localhost` |
 | Camino de escritura en SQLite (001) | Sesión directa · siempre la unidad de trabajo | Solo inserción, sincronía del FTS5 y todo o nada los decide el código (001-C11–C13) | Toda escritura pasa por la unidad de trabajo; las specs siguientes no escriben con la sesión directa |
+| Intento del ciclo del gate (006) | Cada pasada · solo la fallida · conservar el gate superado tras una caída | `ReintentosAcotados` con la reanudación de §9.2 (contraejemplo de TLC, `verification.md` §8 fila 3) | Solo la fallida (§9.2, §9.4, spec 006) |
+| Caída en `gate` con el fallo ya decidido (006) | Volver a pasar el gate · terminar `failed` con ese motivo | No gastar un ciclo en una decisión tomada | Al relanzarse va a `Fallar` sin volver a pasarlo |
+| Estados de TLC en `Harness.tla` (006) | Conservar los contadores de una ejecución terminada · olvidarlos | Reducir estados sin perder las propiedades | Una ejecución terminada olvida sus contadores; la vivacidad se comprueba una vez, al final (`-lncheck final`) |

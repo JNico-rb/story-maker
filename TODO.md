@@ -305,8 +305,8 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 
 ## 006 — especificacion-tla
 
-- [x] Spec `specs/backend/006-especificacion-tla.md` approved — auditor 2026-09-24: ronda 2; 10 casos (4 A, 4 I, 2 D) e 11 invariantes (6 A, 4 I, 1 U) trazados contra arq §7.6, §8.3–§8.4, §9.1–§9.4, §10.1–§10.3, §11.1–§11.2, §11.5, §16.18, §18, definitions §5, §6, §9, §12.3, verif §2, §3.6, §4.6, §4.10, §5, §6 U30, §8, constraints §5d y 000; las 4 contradicciones de la ronda 1 cerradas en los docs; sin bloqueantes; menores: I9 e I11 citan 011, 012 y 014 donde verif §4.10 y U30 dicen 010, 011, 012, 014 y 019; C10 omite la columna Efecto de verif §8; C7 dice que el push a V2 lo decide el integrador y 000-C18 que el usuario; «Excepción de la 006» debería decir que son términos de definitions §9; la tabla de C9 junta `Gate` y `Publicar` en una fila
-- [x] Plan below approved — auditor 2026-09-24: ronda 1; 10 pasos, uno por caso (C1–C10), sin invariantes T, con los nombres de la spec; el orden construye antes de usar (modelo → pasada → cobertura → controles → README → registro → portátil → CI); cierre con el formato de AGENTS.md; sin bloqueantes; menores: ninguno
+- [x] Spec `specs/backend/006-especificacion-tla.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; C4 (fila `Validar`) corregido tras el contraejemplo de TLC de C10
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcado con el cambio de C4
 
 ### Steps
 - [ ] C4 — Las transiciones de `Harness.tla` son las de §9.1
