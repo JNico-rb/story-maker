@@ -49,6 +49,14 @@ def _session(request: Request) -> Iterator[Session]:
 
 
 def _mount_novel_route(app: FastAPI) -> FastAPI:
+    @app.get("/api/_test/novels")
+    def list_novels(
+        request: Request, user_id: int = Depends(get_current_user_id)
+    ) -> list[dict[str, int]]:
+        with _session(request) as session:
+            novels = session.query(Novel).filter(Novel.user_id == user_id).order_by(Novel.id).all()
+            return [{"id": n.id} for n in novels]
+
     @app.get("/api/_test/novels/{novel_id}")
     def get_novel(
         novel_id: int, request: Request, user_id: int = Depends(get_current_user_id)
@@ -97,6 +105,19 @@ def _mount_change_request_route(app: FastAPI) -> FastAPI:
 
 
 def _mount_banned_term_route(app: FastAPI) -> FastAPI:
+    @app.get("/api/_test/banned-terms")
+    def list_banned_terms(
+        request: Request, user_id: int = Depends(get_current_user_id)
+    ) -> list[dict[str, int]]:
+        with _session(request) as session:
+            terms = (
+                session.query(BannedTerm)
+                .filter(BannedTerm.level == "user", BannedTerm.user_id == user_id)
+                .order_by(BannedTerm.id)
+                .all()
+            )
+            return [{"id": t.id} for t in terms]
+
     @app.get("/api/_test/banned-terms/{term_id}")
     def get_banned_term(
         term_id: int, request: Request, user_id: int = Depends(get_current_user_id)
@@ -495,3 +516,36 @@ def test_a_global_entry_belongs_to_no_client(
         assert session.get(BannedTerm, global_id) is not None
     finally:
         session.close()
+
+
+def test_a_listing_only_contains_the_clients_own(
+    client: TestClient, session_factory: sessionmaker[Session]
+) -> None:
+    a_id, a_token = _register_and_login(client, "cliente-a@example.com")
+    b_id, b_token = _register_and_login(client, "cliente-b@example.com")
+    world_a = _seed_world(session_factory, a_id)
+    world_b = _seed_world(session_factory, b_id)
+    _seed_global_banned_term(session_factory)
+    headers_a = {"Authorization": f"Bearer {a_token}"}
+    headers_b = {"Authorization": f"Bearer {b_token}"}
+
+    novels_b_before = client.get("/api/_test/novels", headers=headers_b)
+    terms_b_before = client.get("/api/_test/banned-terms", headers=headers_b)
+
+    assert novels_b_before.status_code == 200
+    assert [n["id"] for n in novels_b_before.json()] == [world_b["novel_id"]]
+    assert terms_b_before.status_code == 200
+    assert [t["id"] for t in terms_b_before.json()] == [world_b["user_term_id"]]
+
+    _seed_world(session_factory, a_id)
+    _seed_world(session_factory, a_id)
+
+    novels_b_after = client.get("/api/_test/novels", headers=headers_b)
+    terms_b_after = client.get("/api/_test/banned-terms", headers=headers_b)
+
+    assert novels_b_after.json() == novels_b_before.json()
+    assert terms_b_after.json() == terms_b_before.json()
+
+    novels_a = client.get("/api/_test/novels", headers=headers_a)
+    assert world_b["novel_id"] not in [n["id"] for n in novels_a.json()]
+    assert world_a["novel_id"] in [n["id"] for n in novels_a.json()]
