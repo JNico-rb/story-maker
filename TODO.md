@@ -1242,9 +1242,9 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [ ] 029-I3 · El código de confirmación del cambio no aparece nunca en la salida (recortado)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-24: uv run pytest (1475 passed), ruff check ., ruff format --check . (324 files), mypy src (0 issues)
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 030 — report-metrics
 
