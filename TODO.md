@@ -97,7 +97,7 @@ Todas dependen de 000. Arranque en paralelo cuando 000 esté cerrada: A (001), C
 
 ## 000 — scaffolding
 
-- [ ] Spec `specs/000-scaffolding.md` approved
+- [x] Spec `specs/000-scaffolding.md` approved — auditor 2026-09-24: ronda 2; 20 casos (12 T, 8 D) y 11 invariantes trazados contra arch §14.8, §15.1–§15.9, §18, verif §2–§4.10, §5, §6, §9 y backend/frontend AGENTS; los 2 huecos de la ronda 1 (1 contradicción, 1 deriva) cerrados; gap cero
 - [ ] Plan below approved
 
 ### Steps
