@@ -15,6 +15,7 @@ from urllib.parse import urlparse
 
 import typer
 import uvicorn
+from pydantic import ValidationError
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -848,8 +849,11 @@ async def _launch_eval_brief(
         content, banned_entries, free_texts = eval_brief_content(
             json.loads(path.read_text(encoding="utf-8"))
         )
+    except ValidationError as exc:
+        problems = [{"loc": error["loc"], "msg": error["msg"]} for error in exc.errors()]
+        return f"no pasa schema-brief: {_problems_text(problems)}"
     except (ValueError, KeyError, TypeError) as exc:
-        return f"no pasa schema-brief: {exc}"
+        return f"no pasa schema-brief: {exc!r}"
     _add_user_banned_terms(mount.session_factory, user_id, banned_entries)
     now = utc_now()
     outcome = await import_brief(

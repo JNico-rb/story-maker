@@ -956,7 +956,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] 020-C01 · Los cinco briefs del repositorio son válidos
 - [x] 020-C02 · Sin un cliente registrado no se crea nada
 - [x] 020-C03 · Una novela y una ejecución por brief, del cliente dado
-- [ ] 020-C04 · Un brief que no pasa no para a los demás — mismo bloqueo que C03
+- [x] 020-C04 · Un brief que no pasa no para a los demás
 - [x] 020-C05 · `evals run` no corre en la CI
 - [x] 020-C06 · Celdas de la tabla brief × validador
 - [x] 020-C07 · Resumen por brief

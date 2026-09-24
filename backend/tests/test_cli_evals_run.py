@@ -358,3 +358,43 @@ def test_evals_run_publishes_one_novel_and_one_run_per_brief_of_the_given_client
 
     assert table.exit_code == 0, table.stdout
     assert _row(table.stdout, "Estado final (`published`/`failed` + motivo)") == ["published"] * 5
+
+
+# --- 020-C04: un brief que no pasa no para a los demás ---------------------------------------
+
+
+def test_an_invalid_brief_creates_no_novel_and_the_other_four_still_publish(
+    eval_env: Path,
+    eval_agent: tuple[EvalAgent, ProgrammedFormalVerifier],
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    briefs_dir = tmp_path / "briefs"
+    briefs_dir.mkdir()
+    for path in _brief_files():
+        shutil.copy(path, briefs_dir / path.name)
+    broken = briefs_dir / "02-infantil.json"
+    data = json.loads(broken.read_text(encoding="utf-8"))
+    data["brief"]["genre"] = "saga-espacial"
+    broken.write_text(json.dumps(data), encoding="utf-8")
+    monkeypatch.setattr(cli_module, "EVAL_BRIEFS_DIR", briefs_dir)
+    db_path = _db_path(eval_env)
+    _register(db_path, "cliente@example.com")
+
+    result = runner.invoke(app, ["evals", "run", "--email", "cliente@example.com"])
+
+    assert result.exit_code != 0
+    defect = [line for line in result.stdout.splitlines() if line.startswith("infantil:")]
+    assert len(defect) == 1
+    assert "schema-brief" in defect[0]
+    assert "genre" in defect[0]
+    engine = make_engine(db_path)
+    try:
+        with make_session_factory(engine)() as session:
+            novels = session.query(models.Novel).order_by(models.Novel.id).all()
+            assert [n.eval_brief for n in novels] == ["ejemplo", "boda", "adversarial", "temporal"]
+            assert session.query(models.Brief).count() == 4
+            runs = session.query(models.Run).order_by(models.Run.id).all()
+            assert [r.status for r in runs] == ["published"] * 4
+    finally:
+        engine.dispose()
