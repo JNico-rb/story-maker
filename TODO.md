@@ -368,9 +368,9 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [ ] 007-C25 · Una verificación real por GitHub Actions responde a tiempo (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-24: `uv run pytest` 793 passed; `uv run ruff check .` sin avisos; `uv run ruff format --check .` 140 ficheros formateados; `uv run mypy src` sin problemas en 71 ficheros; C20–C24 (Lean) verdes en la CI (ejecución 36003381493)
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 008 — brief-y-entrevista
 
