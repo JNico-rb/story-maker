@@ -1,0 +1,163 @@
+import { useEffect, useState } from "react";
+import { useParams } from "react-router";
+
+import { apiFetch } from "../../shared/api";
+import type { components } from "../../shared/api/schema";
+
+type VersionsList = components["schemas"]["VersionsListResponse"];
+type VersionDetail = components["schemas"]["VersionDetailResponse"];
+type Load<T> = { status: "loading" } | { status: "ready"; data: T };
+
+// Cada carga vive en un componente con `key`: cambiar de versión lo desmonta y la respuesta
+// tardía de la anterior se descarta, así nunca se mezclan dos versiones (026-I1).
+function useJson<T>(path: string): Load<T> {
+  const [load, setLoad] = useState<Load<T>>({ status: "loading" });
+  useEffect(() => {
+    let current = true;
+    void apiFetch(path)
+      .then((response) => response.json() as Promise<T>)
+      .then((data) => {
+        if (current) setLoad({ status: "ready", data });
+      });
+    return () => {
+      current = false;
+    };
+  }, [path]);
+  return load;
+}
+
+function Cover({ view }: { view: VersionDetail["view"] }) {
+  return (
+    <section aria-label="Portada" className="mb-10 text-center">
+      <h2 className="font-reading text-3xl font-semibold text-secondary">{view.title}</h2>
+      <p className="mt-2">Para {view.recipient}</p>
+      <p className="mt-6 font-reading italic">{view.dedication}</p>
+    </section>
+  );
+}
+
+function Index({
+  chapters,
+  changedChapters,
+  version,
+}: {
+  chapters: VersionDetail["view"]["chapters"];
+  changedChapters: number[];
+  version: number;
+}) {
+  return (
+    <nav aria-label="Índice" className="mb-10">
+      <ol className="space-y-1">
+        {chapters.map((chapter) => (
+          <li key={chapter.number}>
+            <a href={`#capitulo-${chapter.number}`}>
+              Capítulo {chapter.number}: {chapter.title}
+              {changedChapters.includes(chapter.number) && ` — cambiado en v${version}`}
+            </a>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  );
+}
+
+function News({ changedChapters }: { changedChapters: number[] }) {
+  if (changedChapters.length === 0) return null;
+  return (
+    <section aria-label="Novedades" className="mb-10">
+      <h3 className="font-reading text-xl font-semibold text-secondary">Novedades</h3>
+      <ul className="space-y-1">
+        {changedChapters.map((number) => (
+          <li key={number}>
+            <a href={`#capitulo-${number}`}>Capítulo {number}</a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function Chapter({ chapter }: { chapter: VersionDetail["view"]["chapters"][number] }) {
+  return (
+    <section id={`capitulo-${chapter.number}`} aria-label={`Capítulo ${chapter.number}`} className="mb-10">
+      <h3 className="font-reading text-xl font-semibold text-secondary">{chapter.title}</h3>
+      <p className="mt-2">{chapter.text}</p>
+    </section>
+  );
+}
+
+function Ficha({ entities }: { entities: VersionDetail["view"]["ficha"] }) {
+  return (
+    <section aria-label="Ficha" className="mb-10">
+      <h3 className="font-reading text-xl font-semibold text-secondary">Ficha</h3>
+      <ul className="space-y-1">
+        {entities.map((entity) => (
+          <li key={entity.name}>
+            {entity.name}
+            {entity.chapters.map((number) => (
+              <a key={number} href={`#capitulo-${number}`} className="ml-2">
+                capítulo {number}
+              </a>
+            ))}
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function VersionContent({ novelId, version }: { novelId: string; version: number }) {
+  const load = useJson<VersionDetail>(`/api/novels/${novelId}/versions/${version}`);
+  if (load.status === "loading") return <p>Cargando la versión…</p>;
+  const { view } = load.data;
+  return (
+    <>
+      <Cover view={view} />
+      <News changedChapters={view.changed_chapters} />
+      <Index chapters={view.chapters} changedChapters={view.changed_chapters} version={version} />
+      {view.chapters.map((chapter) => (
+        <Chapter key={chapter.number} chapter={chapter} />
+      ))}
+      <Ficha entities={view.ficha} />
+    </>
+  );
+}
+
+function Versions({ novelId }: { novelId: string }) {
+  const load = useJson<VersionsList>(`/api/novels/${novelId}/versions`);
+  const [chosen, setChosen] = useState<number | null>(null);
+  if (load.status === "loading") return <p>Cargando las versiones…</p>;
+  const versions = load.data.versions;
+  // La vigente es la publicada de número más alto (definitions.md §3); la API las da en orden.
+  const shown = chosen ?? versions.at(-1)?.number;
+  if (shown === undefined) return <p>Esta novela aún no tiene versiones publicadas.</p>;
+  return (
+    <>
+      <div className="mb-6 flex items-center gap-2">
+        <label htmlFor="reading-version">Versión</label>
+        <select
+          id="reading-version"
+          value={shown}
+          onChange={(event) => setChosen(Number(event.target.value))}
+          className="rounded border border-secondary/30 px-2 py-1"
+        >
+          {versions.map((v) => (
+            <option key={v.number} value={v.number}>
+              v{v.number}
+            </option>
+          ))}
+        </select>
+      </div>
+      <VersionContent key={shown} novelId={novelId} version={shown} />
+    </>
+  );
+}
+
+export function ReadingPage() {
+  const { novelId = "" } = useParams();
+  return (
+    <main className="mx-auto max-w-3xl px-6 py-10">
+      <Versions novelId={novelId} />
+    </main>
+  );
+}
