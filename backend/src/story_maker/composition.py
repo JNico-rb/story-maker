@@ -43,7 +43,7 @@ from story_maker.render.version_view import render_version_view
 from story_maker.render.view_data import load_version_view_data
 from story_maker.retrieval.cards import sync_canon_cards
 from story_maker.retrieval.embedding import EmbeddingModel
-from story_maker.retrieval.fake import FixedVectors
+from story_maker.retrieval.fastembed_model import FastEmbedModel
 from story_maker.retrieval.retriever import retrieve
 from story_maker.settings import Settings
 from story_maker.store.models import Version
@@ -67,13 +67,13 @@ def workspace() -> Path:
 
 
 def real_adapters(settings: Settings, config: Config) -> Adapters:
-    """El agente de `LLM_PROVIDER` (§15.2) y el verificador de `FORMAL_VERIFIER`."""
+    """El agente de `LLM_PROVIDER` (§15.2), el verificador de `FORMAL_VERIFIER` y el modelo de
+    incrustación local (§6.3)."""
     return Adapters(
         agent=SdkAgent(settings, workspace=workspace()),
         formal_verifier=make_formal_verifier(settings, config.verifier_timeout_seconds),
         render_pdf=render_pdf,
-        # El doble de vectores fijos hasta el adaptador de `fastembed` (031-C04, C05).
-        embedder=FixedVectors(),
+        embedder=FastEmbedModel(),
     )
 
 
