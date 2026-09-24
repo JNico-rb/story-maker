@@ -5,6 +5,8 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
+import pytest
+
 from story_maker.formal.chronology import Chronology
 from story_maker.formal.generator import generate_chronology_file
 
@@ -192,3 +194,51 @@ def test_the_planned_event_is_left_out(chronology: Chronology) -> None:
 
     assert "id := 51" not in source
     assert "id := 31" in source
+
+
+# --- 007-C02 ---------------------------------------------------------------------------------
+
+REAL_YEARS = {1936, 1990, 1998, 2005, 2010, 2024, 2026}
+
+
+def numbers(source: str) -> set[int]:
+    return {int(n) for n in re.findall(r"\d+", source)}
+
+
+def mask_years(source: str, years: set[int]) -> str:
+    return re.sub(r"\d+", lambda m: "AÑO" if int(m[0]) in years else m[0], source)
+
+
+@pytest.mark.parametrize("k", [1, 3, 10])
+def test_ids_are_the_row_ids_and_dates_shift_by_400_k_years(chronology: Chronology, k: int) -> None:
+    parsed = parse(generate_chronology_file(chronology, k=k))
+    recorded = [e for e in chronology.events if e.origin != "planned"]
+
+    assert [e.id for e in parsed.events] == [e.id for e in recorded]
+    for real, written in zip(recorded, parsed.events, strict=True):
+        m = real.moment
+        assert written.moment == (m.year + 400 * k, m.month, m.day, m.hour, m.minute)
+        assert written.place == real.place_id
+        assert [p for p, _ in written.presences] == [p.character_id for p in real.presences]
+        assert written.excluded == real.excluded_character_id
+    assert parsed.births == {
+        c.id: (c.birth_date.year + 400 * k, c.birth_date.month, c.birth_date.day)
+        for c in chronology.characters
+        if c.birth_date is not None
+    }
+    n = chronology.novum_date
+    assert parsed.novum == (n.year + 400 * k, n.month, n.day)
+
+
+@pytest.mark.parametrize("k", range(1, 11))
+def test_the_file_contains_none_of_the_real_years(chronology: Chronology, k: int) -> None:
+    assert numbers(generate_chronology_file(chronology, k=k)).isdisjoint(REAL_YEARS)
+
+
+def test_the_file_does_not_record_k(chronology: Chronology) -> None:
+    """Con k distinto, los ficheros solo difieren en los años: k no queda escrito en él."""
+    shifted = {year + 400 * k for year in REAL_YEARS for k in (2, 7)}
+
+    assert mask_years(generate_chronology_file(chronology, k=2), shifted) == mask_years(
+        generate_chronology_file(chronology, k=7), shifted
+    )
