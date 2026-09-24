@@ -188,7 +188,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
-- [ ] 003-C28 · El doble recorre el camino del SDK y es determinista
+- [x] 003-C28 · El doble recorre el camino del SDK y es determinista
 - [ ] 003-I9 · El doble falso es determinista
 - [ ] 003-C29 · Una sesión sin guion hace fallar la prueba
 - [ ] 003-I6 · Ninguna prueba T llega a un modelo
