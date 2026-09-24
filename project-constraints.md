@@ -16,6 +16,7 @@ El sistema no puede optimizar solo para que los datos aparezcan: debe también p
 ## Entregables
 
 - **Repositorio storyMaker** — el proyecto de novelas personalizadas: código, README, brief de ejemplo reproducible, `.env.example` y carpeta `/docs` con toda la documentación de proceso.
+- **Repositorio MyFactory** — herramientas y utilidades del curso, ya iniciado durante las prácticas.
 - La presentación formal y sus anexos en la carpeta `/presentacion/`, commiteados antes del plazo de entrega del repo storyMaker.
 
 Formato de los archivos en `/presentacion/`:
@@ -23,6 +24,22 @@ Formato de los archivos en `/presentacion/`:
 - el deck principal en PDF y en el formato original editable (PowerPoint, Keynote o similar);
 - los anexos como ficheros individuales nombrados de forma descriptiva (por ejemplo, `anexo-tla-spec.pdf`, `anexo-evals-tabla.pdf`);
 - un `README.md` en la misma carpeta que liste el contenido y el idioma elegido.
+
+## Entrega final
+
+La entrega se hace enviando un email a xesca.alabart@easyspecs.ai con el asunto:
+
+```text
+[Harness Engineering] Entrega final — <nombre del estudiante>
+```
+
+El email debe incluir:
+
+- el link al commit final del repositorio storyMaker;
+- el link al commit final del repositorio MyFactory;
+- una frase de no más de tres líneas resumiendo la decisión de diseño más importante que tomaste.
+
+No se aceptan entregas fuera de plazo. El commit final es el que cuenta, no la hora del email.
 
 ## Alcance del proyecto
 
@@ -199,13 +216,29 @@ Pagos, cuentas de usuario, impresión física, ilustraciones, audio y despliegue
 
 **Un proyecto sin evals con resultados medibles, o sin documentación de proceso en `/docs`, no aprueba.**
 
-## Presentación
+## Presentación (10 minutos)
 
-El frontend debe tener imagen corporativa (images/qaracter-logo.png) propia: nombre de empresa, logotipo, paleta de colores y tipografía aplicados de forma consistente.
+La presentación es una propuesta formal a cliente. Debe tener imagen corporativa propia: nombre de empresa, logotipo, paleta de colores y tipografía aplicados de forma consistente en todas las slides. No se acepta una plantilla genérica de PowerPoint ni un deck sin identidad visual.
 
 **Idioma.** La presentación puede estar en inglés o en castellano. Se recomienda usar los términos técnicos en inglés independientemente del idioma elegido para el resto del contenido.
 
 **Anexos.** La presentación puede incluir todos los anexos que se consideren necesarios, al final del deck. Los anexos se revisan y se valoran dentro de la nota final. Ejemplos de material que encaja bien como anexo: diagramas de arquitectura detallados, especificación TLA+ comentada, tabla completa de resultados de evals, esquema de la base de datos SQLite, análisis de sensibilidad extendido, red-team log, comparación de modelos de LLM considerados, capturas de Langfuse.
+
+**Slide obligatoria de portada:** nombre de la empresa presentadora, nombre del cliente ficticio al que se presenta, fecha y nombre del estudiante.
+
+| Bloque | Tiempo | Contenido mínimo |
+|---|---|---|
+| Portada y contexto | 0,5 min | Empresa presentadora, cliente, ocasión |
+| Problema y cliente | 1 min | Quién compra, para qué ocasiones y por qué las alternativas actuales no funcionan |
+| Configuración y lectura | 1 min | Cómo se configura una novela y cómo se lee y se corrige (web o PDF) |
+| Arquitectura del harness | 2 min | Diagrama de roles y bucle, gestión del contexto, story bible, tools, hooks y justificación del diseño |
+| Validación, evaluación y observabilidad | 2 min | Los cuatro tipos de validadores y dónde actúan; tabla de resultados por brief; un fallo detectado por Lean; las propiedades verificadas con TLC; la mejora tras el tuning; una traza real en Langfuse |
+| Guardrails | 0,5 min | Palabras prohibidas (con un ejemplo de detección y reescritura), tratamiento de datos personales, injection y audit log |
+| Presupuesto y coste | 1 min | Ver detalle abajo |
+| Demo y cierre | 1 min | Un cambio del lector que se propaga a los capítulos afectados, visto en la web o en el PDF regenerado; riesgos y siguientes pasos |
+| Contraportada | — | Datos de contacto de la empresa presentadora |
+
+Después de la presentación, 5 minutos de preguntas técnicas.
 
 ### Slide de presupuesto y coste (obligatoria)
 
