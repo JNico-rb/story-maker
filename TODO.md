@@ -545,11 +545,11 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 010-C21 · StyleSheet
 - [x] 010-C22 · CanonCards iniciales
 - [x] 010-C23 · La transacción de aplicación falla
-- [ ] 010-C24 · Relanzar antes del punto de control 0
-- [ ] 010-C25 · Relanzar tras el punto de control 0
+- [x] 010-C24 · Relanzar antes del punto de control 0
+- [x] 010-C25 · Relanzar tras el punto de control 0
 - [x] 010-C26 · Fallo del proveedor
-- [ ] 010-C27 · Reserva inviable en el techo
-- [ ] 010-C28 · Una generación nueva tras un fallo tiene su propia candidata
+- [x] 010-C27 · Reserva inviable en el techo
+- [x] 010-C28 · Una generación nueva tras un fallo tiene su propia candidata
 - [x] 010-C29 · Resultado y score de `outline`
 - [ ] 010-I1 · Ninguna ventana del planner contiene el contenido de un `TextoLibre` ni la cita de un `HechoExtraido`
 - [ ] 010-I2 · Planificar no modifica ni borra nada de origen brief o free_text

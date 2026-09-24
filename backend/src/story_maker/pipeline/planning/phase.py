@@ -13,6 +13,7 @@ from collections.abc import Callable
 
 from sqlalchemy.orm import Session, sessionmaker
 
+from story_maker.agents.ceiling import NeverFits
 from story_maker.agents.port import AgentPort, SessionRequest
 from story_maker.domain.trope_catalog import Trope
 from story_maker.observability.port import ObservabilityPort, Trace
@@ -38,6 +39,12 @@ class ProviderFailure(Exception):
     pasó a `interrupted`, el intento abierto no se registró y no se abre otra sesión."""
 
 
+class InfeasibleConfig(Exception):
+    """La reserva de la sesión del planner supera el `token_ceiling` (010-C27): no se abre
+    ninguna sesión, no se cuenta ningún intento, y la ejecución ya terminó `failed` con
+    `infeasible_config` con la candidata descartada."""
+
+
 async def run_plan_phase(
     port: AgentPort,
     session_factory: sessionmaker[Session],
@@ -53,14 +60,27 @@ async def run_plan_phase(
     present_year: int,
     max_retries: int,
     now: dt.datetime,
+    start_attempt_number: int = 1,
+    initial_defects: tuple[OutlineDefect, ...] = (),
 ) -> PlanAttemptOutcome:
     """Una sesión del planner por intento, con la ventana de 010-C06 más los defectos del
-    intento anterior, nunca el plan que rechazó (010-C17)."""
-    defects: tuple[OutlineDefect, ...] = ()
-    attempt_number = 1
+    intento anterior, nunca el plan que rechazó (010-C17). Al relanzar (010-C24),
+    `start_attempt_number` y `initial_defects` retoman donde cortó la caída, con
+    `resume.resume_state`."""
+    defects = initial_defects
+    attempt_number = start_attempt_number
     while True:
         window = build_planner_window(brief, story_bible, catalog, defects=defects)
-        result = await port.run(build_request(window, attempt_number))
+        try:
+            result = await port.run(build_request(window, attempt_number))
+        except NeverFits as exc:
+            with unit_of_work(session_factory) as uow:
+                run = _run(uow.session, run_id)
+                run.status = "failed"
+                run.reason = "infeasible_config"
+                run.finished_at = now
+                discard(uow, version_id)
+            raise InfeasibleConfig(str(exc)) from exc
         if result.outcome == "infrastructure_failure":
             with unit_of_work(session_factory) as uow:
                 record_provider_failure(_run(uow.session, run_id))
