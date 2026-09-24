@@ -230,3 +230,26 @@ def test_accepting_a_chapter_adds_successors_only_where_something_changes(
         }
     assert born == {"Toby": 4, "la feria del pueblo": 4}
     assert all("Toby vuelve a la feria." in text for _, text, _ in new.values())
+
+
+def test_an_entity_recorded_before_its_planned_chapter_starts_after_that_chapter(
+    canon: Any, session_factory: sessionmaker[Session], planned: dict[str, Any]
+) -> None:
+    version, nia = planned["version"], planned["nia"]
+    canon.sync(version)
+    early = "Nia saluda a Marta en el puerto nuevo."
+    canon.chapter(version, 2, "Una voz nueva en el puerto.")
+    canon.event(version, early, planned["port"], origin="recorded", chapter=2, present=[nia])
+
+    canon.sync(version)
+
+    nia_cards = [card for card in canon.cards(version) if card.character_id == nia]
+    assert min(card.from_chapter for card in nia_cards) == 3
+    with session_factory() as session:
+        for chapter in range(3, 12):
+            current = [
+                c for c in eligible_cards(session, version, chapter) if c.character_id == nia
+            ]
+            assert len(current) == 1
+            assert early in current[0].text
+        assert not [c for c in eligible_cards(session, version, 2) if c.character_id == nia]
