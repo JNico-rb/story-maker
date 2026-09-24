@@ -641,11 +641,9 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 013-C13 · Listado de versiones publicadas
 - [x] 013-C14 · Detalle de una versión publicada
 - [x] 013-C15 · Lo que no existe, lo ajeno y lo mal formado
-- [ ] 013-C16 · example produce la novela y su PDF
 - [x] 013-C17 · export-pdf regenera el PDF de una versión publicada
 - [x] 013-C18 · export-pdf sobre lo que no existe o no está publicado
 - [x] 013-I5 · Con los mismos datos de versión, la VistaDeVersion y el PDF que produce son iguales
-- [ ] 013-C19 · La novela de ejemplo real (D, al final)
 
 ### Closing
 - [ ] Full suite green, type checks clean
