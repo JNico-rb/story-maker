@@ -680,7 +680,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] 014-C02 · Los afectados son los usos, más el valor antiguo literal, más el capítulo del fragmento
 - [x] 014-C03 · Lo que no admite una petición se rechaza antes de la policy
 - [x] 014-C04 · Una prohibida en la petición la deniega sin abrir el planner
-- [ ] 014-C05 · Una inyección en la petición se marca y no deniega (RT3)
+- [x] 014-C05 · Una inyección en la petición se marca y no deniega (RT3)
 - [ ] 014-C06 · El código valida la propuesta y una inválida vuelve al planner con sus defectos (RT4)
 - [ ] 014-C07 · Agotados los intentos, la solicitud queda `rejected`
 - [ ] 014-C08 · El planner en modo cambio solo tiene `propose_change` (RT4)

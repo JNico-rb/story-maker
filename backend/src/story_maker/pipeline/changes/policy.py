@@ -45,6 +45,11 @@ def judge_text(
     with telemetry.span(trace, f"validador:{BANNED_TERMS}") as span:
         comment = match_text(decision) if denied else None
         telemetry.score(trace, BANNED_TERMS, 0 if denied else 1, comment=comment, span=span)
+    if decision.decision == "flag":
+        # La inyección se marca y no deniega (014-C05, `architecture.md` §12.4).
+        phrases = "; ".join(item.get("phrase", "") for item in decision.detail or [])
+        with telemetry.span(trace, f"politica:{decision.rule}", level="WARNING", reason=phrases):
+            pass
     return decision
 
 
