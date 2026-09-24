@@ -4,12 +4,14 @@ del puerto de agente (003) y de observabilidad (001). Ninguna prueba llama a un 
 from __future__ import annotations
 
 import os
+import socket
 from collections.abc import Callable
 from pathlib import Path
 
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from tests.conftest import BlockedOutboundConnection
 
 import story_maker.settings as settings_module
 from story_maker.agents.fake import FakeAgent
@@ -137,3 +139,14 @@ def test_serve_starts_without_the_spa_when_the_frontend_is_not_built(
 
     assert client.get("/").status_code == 404
     assert client.post("/api/auth/register", json={}).status_code == 422
+
+
+# Una dirección de documentación (RFC 5737): fuera de la máquina, nunca de un servicio real.
+OUTSIDE = ("192.0.2.1", 443)
+
+
+def test_no_test_of_the_mount_reaches_the_network() -> None:
+    """Las pruebas de 031 corren bajo la guarda de red de la suite: ni el modelo, ni Langfuse,
+    ni GitHub son alcanzables; los dobles de 003, 001 y del verificador formal hacen su papel."""
+    with pytest.raises(BlockedOutboundConnection):
+        socket.create_connection(OUTSIDE, timeout=1)
