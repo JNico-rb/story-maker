@@ -17,6 +17,10 @@ def reservation(input_chars: int, max_turns: int, max_output_tokens: int) -> int
     return estimate_tokens(input_chars) + (max_turns - 1) * max_output_tokens
 
 
+class NoRoomInTime(Exception):
+    """Sin sitio a tiempo: una sesión de la API no cupo en `api_wait_seconds`."""
+
+
 @dataclass(eq=False)
 class Ticket:
     amount: int
@@ -34,11 +38,24 @@ class TokenCeiling:
         self._queue: deque[Ticket] = deque()
 
     async def acquire(self, amount: int, timeout: float | None) -> Ticket:
+        """Reserva `amount`; `timeout` None espera sin límite (una ejecución)."""
         ticket = Ticket(amount)
         self._queue.append(ticket)
         self._grant()
-        await ticket._granted_event.wait()
+        try:
+            async with asyncio.timeout(timeout):
+                await ticket._granted_event.wait()
+        except TimeoutError:
+            if ticket.granted:
+                return ticket
+            self._withdraw(ticket)
+            raise NoRoomInTime(f"no hubo sitio para {amount} tokens en {timeout} s") from None
         return ticket
+
+    def _withdraw(self, ticket: Ticket) -> None:
+        """Sale de la cola y deja de bloquear a las que esperaban detrás."""
+        self._queue.remove(ticket)
+        self._grant()
 
     def release(self, ticket: Ticket) -> None:
         ticket.released = True

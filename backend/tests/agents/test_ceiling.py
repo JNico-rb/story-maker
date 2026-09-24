@@ -8,9 +8,11 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+import pytest
+from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
 
-from story_maker.agents.ceiling import Ticket, TokenCeiling
+from story_maker.agents.ceiling import NoRoomInTime, Ticket, TokenCeiling
 from story_maker.agents.fake import FakeAgent, Say, Script
 from story_maker.agents.port import AgentPort, SessionRequest
 from story_maker.agents.tools import ToolSpec
@@ -133,3 +135,85 @@ async def test_sessions_open_up_to_the_exact_ceiling_and_otherwise_wait_in_arriv
     full = TokenCeiling(10_000)
     await full.acquire(10_000, None)
     assert full.in_use == 10_000
+
+
+async def test_the_api_waits_at_most_api_wait_seconds_and_the_run_without_its_own_limit(
+    config: Config,
+    fake: FakeAgent,
+    policy: Any,
+    ceiling: TokenCeiling,
+    session_factory: sessionmaker[Session],
+    workspace: Path,
+    run_id: int,
+    make_request: Callable[..., SessionRequest],
+) -> None:
+    port = build_port(
+        dataclasses.replace(config, api_wait_seconds=1),
+        fake,
+        policy,
+        session_factory,
+        workspace,
+        ceiling,
+    )
+    fake.script("interviewer", None, Script(steps=(Say("hola"),), usage=USAGE))
+    fake.script("judge", None, Script(steps=(Say("nota"),), usage=USAGE))
+    never_closes = await ceiling.acquire(ceiling.limit, None)
+    api = asyncio.create_task(port.run(make_request("interviewer")))
+    await asyncio.sleep(0)
+    run = asyncio.create_task(port.run(make_request("judge", run_id=run_id)))
+
+    await asyncio.sleep(0.6)
+    assert not api.done()
+
+    await asyncio.sleep(0.8)
+    assert api.done()
+    with pytest.raises(NoRoomInTime):
+        api.result()
+    assert not run.done()
+    assert ceiling.in_use == ceiling.limit
+    assert [s.request.role for s in fake.sessions] == []
+
+    ceiling.release(never_closes)
+    result = await run
+
+    assert result.outcome == "completed"
+    with session_factory() as session:
+        assert [r.role for r in session.scalars(select(RoleSession))] == ["judge"]
+
+
+async def test_an_api_session_that_gives_up_stops_blocking_the_one_behind(
+    config: Config,
+    fake: FakeAgent,
+    policy: Any,
+    ceiling: TokenCeiling,
+    session_factory: sessionmaker[Session],
+    workspace: Path,
+    run_id: int,
+    make_request: Callable[..., SessionRequest],
+) -> None:
+    port = build_port(
+        dataclasses.replace(config, api_wait_seconds=1),
+        fake,
+        policy,
+        session_factory,
+        workspace,
+        ceiling,
+    )
+    fake.script("interviewer", None, Script(steps=(Say("hola"),), usage=USAGE))
+    fake.script("judge", None, Script(steps=(Say("nota"),), usage=USAGE))
+    big_api = make_request("interviewer", message="m" * 40_000)
+    small_run = make_request("judge", run_id=run_id)
+    assert port.reservation(big_api) > port.reservation(small_run)
+    await ceiling.acquire(ceiling.limit - port.reservation(small_run), None)
+    api = asyncio.create_task(port.run(big_api))
+    await asyncio.sleep(0)
+    run = asyncio.create_task(port.run(small_run))
+
+    await asyncio.sleep(0.5)
+    assert not run.done()
+
+    result = await asyncio.wait_for(run, timeout=2)
+
+    assert result.outcome == "completed"
+    with pytest.raises(NoRoomInTime):
+        await api

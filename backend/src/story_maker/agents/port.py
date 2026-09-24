@@ -394,7 +394,9 @@ class AgentPort:
         profile.check_tools([spec.name for spec in request.tools])
         self._agent.prepare(request)
         reserved = self.reservation(request)
-        ticket = await self._ceiling.acquire(reserved, timeout=None)
+        # En la API se espera como mucho `api_wait_seconds`; en una ejecución, sin límite propio.
+        wait = self._config.api_wait_seconds if request.run_id is None else None
+        ticket = await self._ceiling.acquire(reserved, timeout=wait)
         try:
             with self._telemetry.span(
                 request.trace,
