@@ -12,6 +12,7 @@ from tests.pipeline.conftest import (
     NOW,
     PhaseDouble,
     Seed,
+    chapter_call,
     seed_candidate,
     seed_novel,
     seed_run,
@@ -19,13 +20,13 @@ from tests.pipeline.conftest import (
     writer_script,
 )
 
-from story_maker.agents.fake import FakeAgent
+from story_maker.agents.fake import Fail, FakeAgent, Script
 from story_maker.observability.port import Trace
 from story_maker.pipeline.orchestrator import Orchestrator
 from story_maker.pipeline.production import Production
 from story_maker.pipeline.runs import ResumeRejected, RunStop, resume_run
 from story_maker.pipeline.worker import Worker
-from story_maker.store.models import Checkpoint, Run, Version
+from story_maker.store.models import Attempt, Chapter, Checkpoint, Run, Version
 from story_maker.store.session import unit_of_work
 
 FINISHED = dt.datetime(2026, 9, 24, 13, 0)
@@ -167,3 +168,65 @@ async def test_a_chapter_that_exhausts_its_attempts_fails_and_the_worker_takes_t
     script_chapter_failure(fake)
     assert await worker.run_next() == following
     assert get(session_factory, following).status == "failed"
+
+
+def set_checkpoints(session_factory: sessionmaker[Session], run_id: int, last: int) -> None:
+    """Puntos de control 0…`last`: la ejecución sigue en el capítulo `last` + 1."""
+    with session_factory() as session:
+        run = session.get_one(Run, run_id)
+        run.chapter = last + 1
+        session.add_all(
+            Checkpoint(run_id=run_id, chapter=k, created_at=NOW) for k in range(1, last + 1)
+        )
+        session.commit()
+
+
+def chapter_rows(session_factory: sessionmaker[Session], version_id: int, number: int) -> int:
+    with session_factory() as session:
+        return session.query(Chapter).filter_by(version_id=version_id, number=number).count()
+
+
+def counted_attempts(session_factory: sessionmaker[Session], run_id: int, chapter: int) -> int:
+    with session_factory() as session:
+        rows = session.query(Attempt).filter(
+            Attempt.run_id == run_id, Attempt.chapter == chapter, Attempt.outcome.is_not(None)
+        )
+        return rows.count()
+
+
+@pytest.mark.parametrize(
+    ("role", "failure"),
+    [
+        ("writer", Fail(result=True)),  # también el límite de uso de la suscripción
+        ("writer", Fail()),
+        ("editor", Fail(result=True)),
+    ],
+)
+async def test_a_provider_error_interrupts_and_does_not_count_as_an_attempt(
+    role: str,
+    failure: Fail,
+    production: Production,
+    orchestrator: Orchestrator,
+    fake: FakeAgent,
+    seed: Seed,
+    session_factory: sessionmaker[Session],
+) -> None:
+    set_run(session_factory, seed.run_id, status="queued", phase=None, chapter=None)
+    set_checkpoints(session_factory, seed.run_id, 5)
+    (following,) = queue_others(session_factory, 5)
+    if role == "writer":
+        fake.script("writer", "write", Script(steps=(failure,)))
+    else:
+        fake.script("writer", "write", writer_script(chapter_call()))
+        fake.script("editor", None, Script(steps=(failure,)))
+    worker = make_worker(production, orchestrator)
+
+    assert await worker.run_next() == seed.run_id
+
+    run = get(session_factory, seed.run_id)
+    assert (run.status, run.reason) == ("interrupted", "provider_error")
+    assert counted_attempts(session_factory, seed.run_id, 6) == 0
+    assert chapter_rows(session_factory, seed.version_id, 6) == 0
+    assert version_status(session_factory, seed.version_id) == "candidate"
+    script_chapter_failure(fake)
+    assert await worker.run_next() == following

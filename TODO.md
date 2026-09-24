@@ -592,7 +592,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 011-C21 · Si la transacción de aceptación falla, no queda nada del capítulo
 - [x] 011-C22 · Volver a aceptar un capítulo reemplaza lo que dejó su aceptación anterior
 - [x] 011-C23 · Tras el décimo capítulo, el gate
-- [ ] 011-C24 · Un error del proveedor interrumpe y no cuenta como intento
+- [x] 011-C24 · Un error del proveedor interrumpe y no cuenta como intento
 - [ ] 011-C25 · Al arrancar el servidor, lo que estaba en curso se interrumpe
 - [ ] 011-C26 · Reanudar vuelve a encolar la ejecución en su puesto
 - [ ] 011-C27 · Reanudar sigue tras el último punto de control
