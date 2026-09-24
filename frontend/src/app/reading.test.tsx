@@ -228,4 +228,30 @@ describe("026 lectura", () => {
     expect(screen.queryByRole("region", { name: "Novedades" })).not.toBeInTheDocument();
     expect(screen.queryByText(/cambiado en v/i)).not.toBeInTheDocument();
   });
+
+  it("026-C10: downloads the PDF of the version being viewed", async () => {
+    class FakeUrl extends URL {
+      static createObjectURL = vi.fn<(blob: Blob) => string>(() => "blob:mock-url");
+      static revokeObjectURL = vi.fn();
+    }
+    vi.stubGlobal("URL", FakeUrl);
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
+    const user = userEvent.setup();
+    const pdfBytes = new Blob(["%PDF-1.4 contenido de prueba"], { type: "application/pdf" });
+    apiAtV1({
+      [`GET ${BASE}/1/pdf`]: () => new Response(pdfBytes, { status: 200, headers: { "Content-Type": "application/pdf" } }),
+    });
+    renderReading();
+
+    await screen.findByRole("region", { name: "Portada" });
+    await user.click(screen.getByRole("button", { name: "Descargar PDF" }));
+
+    await vi.waitFor(() => expect(FakeUrl.createObjectURL).toHaveBeenCalledTimes(1));
+    const [blobArg] = FakeUrl.createObjectURL.mock.calls[0] ?? [];
+    expect(blobArg?.type).toBe("application/pdf");
+    expect(clickSpy).toHaveBeenCalledTimes(1);
+    expect(FakeUrl.revokeObjectURL).toHaveBeenCalledTimes(1);
+
+    clickSpy.mockRestore();
+  });
 });

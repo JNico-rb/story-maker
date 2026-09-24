@@ -1133,7 +1133,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] 026-C07 · Una entidad sin capítulos aparece en la ficha sin enlaces
 - [x] 026-C08 · El selector lista las versiones publicadas, en el orden que entrega la API
 - [x] 026-C09 · Cambiar de versión recarga todo el contenido con el de la versión elegida
-- [ ] 026-C10 · Descargar el PDF de la versión que se está viendo
+- [x] 026-C10 · Descargar el PDF de la versión que se está viendo
 - [ ] 026-C11 · El PDF aún no está disponible
 - [ ] 026-C12 · Fallo al cargar la lista de versiones
 - [ ] 026-C13 · Fallo al cargar el detalle de una versión

@@ -106,6 +106,35 @@ function Ficha({ entities }: { entities: VersionDetail["view"]["ficha"] }) {
   );
 }
 
+function DownloadPdf({ novelId, version }: { novelId: string; version: number }) {
+  const [unavailable, setUnavailable] = useState(false);
+
+  async function handleClick() {
+    const response = await apiFetch(`/api/novels/${novelId}/versions/${version}/pdf`);
+    if (response.status === 404) {
+      setUnavailable(true);
+      return;
+    }
+    setUnavailable(false);
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `version-${version}.pdf`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  return (
+    <div className="mb-6">
+      <button type="button" onClick={() => void handleClick()} className="underline">
+        Descargar PDF
+      </button>
+      {unavailable && <p role="alert">El PDF de esta versión aún no está disponible.</p>}
+    </div>
+  );
+}
+
 function VersionContent({ novelId, version }: { novelId: string; version: number }) {
   const load = useJson<VersionDetail>(`/api/novels/${novelId}/versions/${version}`);
   if (load.status === "loading") return <p>Cargando la versión…</p>;
@@ -113,6 +142,7 @@ function VersionContent({ novelId, version }: { novelId: string; version: number
   return (
     <>
       <Cover view={view} />
+      <DownloadPdf novelId={novelId} version={version} />
       <News changedChapters={view.changed_chapters} />
       <Index chapters={view.chapters} changedChapters={view.changed_chapters} version={version} />
       {view.chapters.map((chapter) => (
