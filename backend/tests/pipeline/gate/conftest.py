@@ -41,7 +41,16 @@ from story_maker.observability.port import Trace
 from story_maker.pipeline.acceptance import chapter_hash
 from story_maker.pipeline.gate.phase import Gate, PdfOutcome, VisualReviewOutcome
 from story_maker.pipeline.production import Production
-from story_maker.store.models import Attempt, Chapter, Checkpoint, Run, ValidatorResult, World
+from story_maker.store.models import (
+    Attempt,
+    Chapter,
+    Checkpoint,
+    Fact,
+    OutlineChapter,
+    Run,
+    ValidatorResult,
+    World,
+)
 
 RUBRIC = (
     "continuidad",
@@ -299,3 +308,33 @@ def chapter_hashes(session_factory: sessionmaker[Session], version_id: int) -> d
     with session_factory() as session:
         rows = session.query(Chapter).filter(Chapter.version_id == version_id)
         return {c.number: c.content_hash for c in rows}
+
+
+FAIR = "se perdió en la feria"
+FAIR_ELEMENT = 77
+
+
+def seed_unused_element(
+    session_factory: sessionmaker[Session], seed: Seed, chapters: Sequence[int]
+) -> int:
+    """El recuerdo obligatorio «se perdió en la feria», asignado por el outline a `chapters`, sin
+    ningún `UsoDeHecho`; devuelve el id de su hecho."""
+    with session_factory() as session:
+        fact = Fact(
+            version_id=seed.version_id,
+            subject_type="character",
+            character_id=seed.characters["Marta"],
+            attribute="memory",
+            value=FAIR,
+            origin="brief",
+            mandatory=True,
+            personal_element_id=FAIR_ELEMENT,
+        )
+        session.add(fact)
+        outline = session.query(OutlineChapter).filter(
+            OutlineChapter.version_id == seed.version_id, OutlineChapter.number.in_(chapters)
+        )
+        for chapter in outline:
+            chapter.assigned_elements = [str(FAIR_ELEMENT)]
+        session.commit()
+        return fact.id
