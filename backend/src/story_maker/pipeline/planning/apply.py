@@ -119,6 +119,8 @@ def apply_accepted_plan(
             )
         )
 
+    fact_subjects = {fact.id: fact.subject for fact in plan.facts}
+
     for chapter in plan.chapters:
         uow.add(
             OutlineChapter(
@@ -126,7 +128,7 @@ def apply_accepted_plan(
                 number=chapter.number,
                 title=chapter.title,
                 arc_function=chapter.arc_function,
-                beats=[_beat_json(beat) for beat in chapter.beats],
+                beats=[_beat_json(beat, fact_subjects) for beat in chapter.beats],
                 assigned_elements=list(chapter.assigned_elements),
             )
         )
@@ -200,14 +202,23 @@ def _subject(
     return "world", None, None
 
 
-def _beat_json(beat: PlanBeat) -> dict[str, object]:
+def _beat_json(beat: PlanBeat, fact_subjects: dict[str, str]) -> dict[str, object]:
     """El JSON de `outline_chapters.beats` se copia tal cual entre versiones (009): sin ids de
-    fila, solo lo que el plan entregó."""
+    fila, solo lo que el plan entregó. `facts_used` referencia hechos por su id del plan
+    (`Beat.facts_used`); aquí se traduce al nombre canónico del sujeto, que es lo que
+    `retrieval/cards.py` (016, «es sujeto de un hecho que el beat usa») necesita para decidir si
+    una entidad aparece en el capítulo. Solo se resuelven los hechos inventados en esta misma
+    transacción (`fact_subjects`): los del brief siempre nacen en el capítulo 1 sin mirar los
+    beats (`cards.first_chapter`), así que no hace falta resolver su sujeto aquí."""
     return {
         "number": beat.number,
         "description": beat.description,
         "characters": list(beat.characters),
-        "facts_used": list(beat.facts_used),
+        "facts_used": [
+            {"subject": fact_subjects[fact_id]}
+            for fact_id in beat.facts_used
+            if fact_id in fact_subjects
+        ],
         "revelation": (
             {"theme": beat.revelation.theme, "content": beat.revelation.content}
             if beat.revelation
