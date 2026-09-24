@@ -160,7 +160,8 @@ def _check_observability(settings: Settings | None) -> tuple[ObservabilityAdapte
 
     client = build_langfuse_client(settings)
     label = cast(str, settings.langfuse_prompt_label)
-    problem = langfuse_auth_check(client, label)
+    prompts_dir = settings_module.ROOT / "backend" / "harness_workspace" / "prompts"
+    problem = langfuse_auth_check(client, label, prompts_dir)
     if problem is not None:
         return None, f"observabilidad: fallo: {problem}"
     return LangfuseObservability(client), "observabilidad: ok (Langfuse)"
