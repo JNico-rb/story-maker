@@ -304,3 +304,35 @@ describe("022 cierre de sesión", () => {
     expect(sent).toEqual([]);
   });
 });
+
+describe("022 invariantes", () => {
+  async function logIn(user: ReturnType<typeof userEvent.setup>) {
+    await user.type(screen.getByLabelText("Email"), EMAIL);
+    await user.type(screen.getByLabelText("Contraseña"), PASSWORD);
+    await user.click(screen.getByRole("button", { name: "Entrar" }));
+    await screen.findByRole("button", { name: "Cerrar sesión" });
+  }
+
+  it("022-I1: after logging in, the token travels only in the authorization header: never in an address or a cookie", async () => {
+    const sent = fakeApi({
+      "POST /api/auth/login": () => ({ status: 200, body: { access_token: TOKEN } }),
+      "GET /api/novels": () => ({ status: 200, body: [] }),
+      "GET /api/banned-terms": () => ({ status: 200, body: [] }),
+    });
+    const user = userEvent.setup();
+    const router = renderAt("/acceso");
+
+    await logIn(user);
+    await router.navigate("/sonda");
+    expect(await screen.findByText("datos cargados")).toBeInTheDocument();
+
+    const protectedRequests = sent.filter((request) => !request.url.startsWith("/api/auth/"));
+    expect(protectedRequests).toHaveLength(2);
+    for (const request of protectedRequests) {
+      expect(request.headers.get("Authorization")).toBe(`Bearer ${TOKEN}`);
+    }
+    expect(sent.filter((request) => request.url.includes(TOKEN))).toEqual([]);
+    expect(router.state.location.pathname + router.state.location.search).not.toContain(TOKEN);
+    expect(document.cookie).not.toContain(TOKEN);
+  });
+});
