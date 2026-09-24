@@ -306,3 +306,43 @@ async def test_the_policy_receives_as_narrative_only_the_fields_the_tool_marks(
     ]
     assert fields_of(skill_request) == [("skill", "personalizacion-natural", False)]
     assert fields_of(navigate_request) == [("url", "http://127.0.0.1:8000/view/1", False)]
+
+
+async def test_if_the_policy_fails_the_tool_does_not_run_and_the_error_reaches_the_opener(
+    port: AgentPort,
+    fake: FakeAgent,
+    policy: Any,
+    ceiling: TokenCeiling,
+    session_factory: sessionmaker[Session],
+    make_request: Callable[..., SessionRequest],
+) -> None:
+    events: list[str] = []
+    failure = RuntimeError("motor de políticas caído")
+
+    def broken(request: PolicyRequest) -> PolicyDecision:
+        raise failure
+
+    policy.rule = broken
+    chapter = {"title": "Uno", "text": "limpio"}
+    fake.script(
+        "writer",
+        "write",
+        Script(
+            steps=(Call("submit_chapter", chapter), Call("submit_chapter", chapter), Say("Fin.")),
+            usage=USAGE,
+        ),
+    )
+
+    # §18 (fallo del motor de políticas): desenlace infrastructure_failure
+    result = await port.run(make_request("writer", "write", tools=(logged_chapter_tool(events),)))
+
+    assert events == []
+    assert len(policy.requests) == 1
+    assert result.outcome == "infrastructure_failure"
+    assert result.error is failure
+    assert fake.sessions[0].interrupted
+    assert fake.sessions[0].disconnected
+    assert ceiling.in_use == 0
+    with session_factory() as session:
+        (row,) = session.scalars(select(RoleSession)).all()
+    assert row.outcome == "infrastructure_failure"

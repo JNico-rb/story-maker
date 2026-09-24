@@ -205,7 +205,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 003-C10 · Una sesión que termina sin entregar no es un error del puerto
 - [x] 003-C11 · Toda llamada a tool pasa antes por la política, y su decisión se aplica
 - [x] 003-C12 · La política recibe como narrativos solo los campos que la tool marca
-- [ ] 003-C13 · Si la política falla, la tool no corre
+- [x] 003-C13 · Si la política falla, la tool no corre
 - [ ] 003-I3 · Ninguna tool corre sin una decisión `allow` o `flag` de la política
 - [ ] 003-I4 · Las tools entregan, no persisten
 - [ ] 003-C14 · Con defectos bloqueantes, el modelo lee los defectos en lugar del acuse

@@ -7,6 +7,7 @@ adaptador solo conduce la sesión y llama a los hooks de `LiveSession` como lo h
 
 from __future__ import annotations
 
+import asyncio
 import re
 import time
 from collections.abc import Callable, Sequence
@@ -32,6 +33,7 @@ Outcome = Literal["completed", "turns_exhausted", "time_exhausted", "cut", "infr
 CallStatus = Literal["accepted", "schema_rejected", "denied", "blocked"]
 
 ACK = "Entrega recibida."
+STOPPED = "La sesión se ha cortado."
 
 
 @dataclass(frozen=True)
@@ -87,6 +89,7 @@ class SessionResult:
     latency_ms: int
     reserved_tokens: int
     role_session_id: int
+    error: BaseException | None = None
 
     @property
     def deliveries(self) -> list[ToolCall]:
@@ -98,7 +101,7 @@ class SessionResult:
 class Final:
     """El resultado final de la sesión (el `ResultMessage` del SDK)."""
 
-    ending: Literal["completed", "turns_exhausted", "provider_error"]
+    ending: Literal["completed", "turns_exhausted", "provider_error", "interrupted"]
     text: str | None
     usage: Usage | None
     sdk_cost_usd: float | None
@@ -113,11 +116,16 @@ class ToolHooks(Protocol):
 
     def after_tool(self, call_id: str, tool: str) -> str | None: ...
 
+    @property
+    def stopping(self) -> bool: ...
+
 
 class DriverSession(Protocol):
     final: Final | None
 
     async def run(self) -> None: ...
+
+    async def interrupt(self) -> None: ...
 
     async def disconnect(self) -> None: ...
 
@@ -190,7 +198,20 @@ class LiveSession:
     telemetry: Telemetry
     role_span: Span
     calls: list[ToolCall] = field(default_factory=list)
+    stop_outcome: Outcome | None = None
+    error: BaseException | None = None
+    stopped: asyncio.Event = field(default_factory=asyncio.Event)
     _pending: dict[str, _Pending] = field(default_factory=dict)
+
+    @property
+    def stopping(self) -> bool:
+        return self.stop_outcome is not None
+
+    def stop(self, outcome: Outcome, error: BaseException | None = None) -> None:
+        """Pide al puerto que corte la sesión; desde aquí no corre ninguna tool más."""
+        if self.stop_outcome is None:
+            self.stop_outcome, self.error = outcome, error
+            self.stopped.set()
 
     @property
     def _specs(self) -> dict[str, ToolSpec]:
@@ -198,18 +219,25 @@ class LiveSession:
 
     def before_tool(self, call_id: str, tool: str, tool_input: dict[str, Any]) -> str | None:
         """Hook de policy (`PreToolUse`): None deja correr la tool; un texto la deniega."""
+        if self.stopping:
+            return STOPPED
         spec = self._specs.get(tool)
-        decision = self.policy.decide(
-            PolicyRequest(
-                origin="policy_hook",
-                user_id=self.request.user_id,
-                novel_id=self.request.novel_id,
-                run_id=self.request.run_id,
-                role=self.request.role,
-                tool=tool,
-                fields=_fields(tool_input, spec.narrative if spec else ()),
+        try:
+            decision = self.policy.decide(
+                PolicyRequest(
+                    origin="policy_hook",
+                    user_id=self.request.user_id,
+                    novel_id=self.request.novel_id,
+                    run_id=self.request.run_id,
+                    role=self.request.role,
+                    tool=tool,
+                    fields=_fields(tool_input, spec.narrative if spec else ()),
+                )
             )
-        )
+        except Exception as exc:
+            # Sin decisión no corre ninguna tool; no es un intento del rol (§18, spec 003).
+            self.stop("infrastructure_failure", exc)
+            return STOPPED
         if decision.decision == "deny":
             reason = decision.reason or "denegada por la política"
             with self._tool_span(tool, "WARNING", reason):
@@ -354,8 +382,7 @@ class AgentPort:
                 live = LiveSession(request, profile, self._policy, self._telemetry, role_span)
                 driver = self._agent.open(request, profile, live)
                 started = time.monotonic()
-                await driver.run()
-                await driver.disconnect()
+                outcome = await self._drive(driver, live)
                 latency_ms = int((time.monotonic() - started) * 1000)
                 live.close()
                 final = driver.final
@@ -378,7 +405,6 @@ class AgentPort:
                         cost_usd=cost,
                         latency_ms=latency_ms,
                     )
-            outcome: Outcome = "completed"
             row_id = self._record(
                 request, profile, outcome, usage, cost, sdk_cost, latency_ms, reserved
             )
@@ -395,7 +421,24 @@ class AgentPort:
             latency_ms=latency_ms,
             reserved_tokens=reserved,
             role_session_id=row_id,
+            error=live.error,
         )
+
+    async def _drive(self, driver: DriverSession, live: LiveSession) -> Outcome:
+        """Conduce la sesión hasta que termina o un hook pide cortarla; siempre desconecta."""
+        running = asyncio.create_task(driver.run())
+        stop_requested = asyncio.create_task(live.stopped.wait())
+        await asyncio.wait({running, stop_requested}, return_when=asyncio.FIRST_COMPLETED)
+        stop_requested.cancel()
+        if live.stop_outcome is not None:
+            running.cancel()
+            await asyncio.gather(running, return_exceptions=True)
+            await driver.interrupt()
+            await driver.disconnect()
+            return live.stop_outcome
+        await driver.disconnect()
+        running.result()
+        return "completed"
 
     def _record(
         self,

@@ -55,12 +55,15 @@ class FakeSession:
     script: Script
     final: Final | None = None
     reads: list[str] = field(default_factory=list)
+    interrupted: bool = False
     disconnected: bool = False
 
     async def run(self) -> None:
         text: str | None = None
         for number, step in enumerate(self.script.steps, start=1):
             await asyncio.sleep(0)
+            if self.hooks.stopping:
+                return
             if isinstance(step, Say):
                 text = step.text
                 break
@@ -78,6 +81,12 @@ class FakeSession:
             return replacement if replacement is not None else output
         self.hooks.after_tool(call_id, step.tool)
         return "Hecho."
+
+    async def interrupt(self) -> None:
+        """Como el SDK tras `interrupt()`, el resultado final llega con el uso del guion."""
+        self.interrupted = True
+        if self.final is None:
+            self.final = Final("interrupted", None, self.script.usage, self.script.sdk_cost_usd)
 
     async def disconnect(self) -> None:
         self.disconnected = True
