@@ -321,9 +321,9 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [ ] C7 — La CI decide con las configs de la 006 (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-24: `bash tla/verificar.sh` (Temurin portable, tla2tools 1.7.4): 8/8 configs OK — Harness.cfg (862.143 estados, 285s) y sus 5 controles, cada uno con el contraejemplo nombrado; Regenerations.cfg (155 estados) y su control 6; `uv run pytest` backend: 278 passed
+- [x] Spec updated, or confirmed still true — verificador 2026-09-24: sin cambios; C4/C5 contra `tla/Harness.tla` y `tla/Regenerations.tla` coinciden
+- [x] Docs updated, or confirmed still true — verificador 2026-09-24: `architecture.md` §9.2/§9.4/§18 y `verification.md` §8 fila 3 ya reflejan el cambio de C10; README raíz con las 12 filas de C9
 
 ## 007 — validador-lean
 
