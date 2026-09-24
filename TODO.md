@@ -336,7 +336,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 ### Steps
 - [x] 007-C01 · El fichero lleva la cronología registrada de la versión y nada más
 - [x] 007-C02 · Los ids son los de las filas y las fechas se desplazan 400·k años
-- [ ] 007-C03 · k se elige al azar en cada fichero, entre 1 y 10
+- [x] 007-C03 · k se elige al azar en cada fichero, entre 1 y 10
 - [ ] 007-C04 · La misma cronología y el mismo k dan el mismo fichero
 - [ ] 007-C05 · El 29 de febrero y las edades se conservan al desplazar
 - [ ] 007-C06 · Solo entra la versión que se verifica

@@ -242,3 +242,25 @@ def test_the_file_does_not_record_k(chronology: Chronology) -> None:
     assert mask_years(generate_chronology_file(chronology, k=2), shifted) == mask_years(
         generate_chronology_file(chronology, k=7), shifted
     )
+
+
+# --- 007-C03 ---------------------------------------------------------------------------------
+
+
+def inferred_k(source: str, chronology: Chronology) -> int:
+    parsed = parse(source)
+    assert parsed.novum is not None
+    shift = parsed.novum[0] - chronology.novum_date.year
+    assert shift % 400 == 0
+    return shift // 400
+
+
+def test_k_is_drawn_at_random_for_each_file_between_1_and_10(chronology: Chronology) -> None:
+    sources = [generate_chronology_file(chronology) for _ in range(300)]
+    ks = [inferred_k(source, chronology) for source in sources]
+
+    assert set(ks) == set(range(1, 11))
+    by_k = dict(zip(ks, sources, strict=True))
+    shifted = {year + 400 * k for year in REAL_YEARS for k in by_k}
+    masked = {mask_years(source, shifted) for source in by_k.values()}
+    assert len(masked) == 1

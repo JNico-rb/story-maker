@@ -8,10 +8,16 @@ de fila y años desplazados 400·k.
 from __future__ import annotations
 
 import datetime as dt
+import secrets
 
 from story_maker.formal.chronology import Chronology, ChronologyEvent, Presence
 
 INVARIANTS = ("T1", "T2", "T3", "T4", "T5")
+
+# Un ciclo gregoriano dura 400 años: desplazar 400·k conserva los bisiestos, y con ellos las
+# edades y los cumpleaños. k > 0 para que el año nunca sea el real; k ≤ 10 para no salir del
+# rango de fechas de Python (año 9999).
+K_MIN, K_MAX = 1, 10
 
 
 def _optional(value: int | None) -> str:
@@ -46,7 +52,10 @@ def _block(lines: list[str]) -> str:
     return "[\n" + ",\n".join(f"    {line}" for line in lines) + "\n  ]"
 
 
-def generate_chronology_file(chronology: Chronology, k: int) -> str:
+def generate_chronology_file(chronology: Chronology, k: int | None = None) -> str:
+    """Fichero Lean de la cronología registrada; sin `k`, se elige al azar y no queda escrito."""
+    if k is None:
+        k = K_MIN + secrets.randbelow(K_MAX - K_MIN + 1)
     years = 400 * k
     events = [e for e in chronology.events if e.origin != "planned"]
     births = [
