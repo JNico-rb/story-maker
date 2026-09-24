@@ -429,7 +429,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 009-C01 · La candidata de generación nace con el canon del brief
 - [x] 009-C02 · El destinatario y los allegados pasan a personajes con su hecho de nombre
 - [x] 009-C03 · La fecha de nacimiento es la declarada, la derivada de la edad o ninguna
-- [ ] 009-C04 · Los rasgos, las relaciones y los hechos extraídos aceptados pasan a hechos
+- [x] 009-C04 · Los rasgos, las relaciones y los hechos extraídos aceptados pasan a hechos
 - [ ] 009-C05 · Cada recuerdo da su hecho, su evento fechado y su lugar
 - [ ] 009-C06 · Un recuerdo excluyente nombra a su excluido
 - [ ] 009-C07 · Hay un lugar del brief por cada nombre de lugar exacto

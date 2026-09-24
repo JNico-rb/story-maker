@@ -9,7 +9,13 @@ from dataclasses import replace
 from typing import Any
 
 from story_maker.store import models
-from story_maker.store.brief_canon import NAME, NOMINAL_ATTRIBUTES, ConfirmedBrief
+from story_maker.store.brief_canon import (
+    NAME,
+    NOMINAL_ATTRIBUTES,
+    RELATIONSHIP,
+    TRAIT,
+    ConfirmedBrief,
+)
 
 from_brief = "brief"
 
@@ -121,3 +127,34 @@ def test_the_birth_date_is_the_declared_one_the_one_derived_from_the_age_or_none
 
     _, later, _ = _canon(store, f1, created_at=dt.datetime(2027, 3, 1, 9, 0))
     assert later["Marta"].birth_date == dt.date(1987, 1, 1)
+
+
+def _triples(facts: list[Any], characters: dict[str, Any]) -> set[tuple[str, str, str, str]]:
+    names = {c.id: name for name, c in characters.items()}
+    return {(names[f.character_id], f.attribute, f.value, f.origin) for f in facts}
+
+
+def test_traits_relationships_and_accepted_extracted_facts_become_facts(
+    store: Any, f1: ConfirmedBrief
+) -> None:
+    _, characters, facts = _canon(store, f1)
+    triples = _triples(facts, characters)
+
+    assert {
+        ("Marta", TRAIT, "curiosa", "brief"),
+        ("Marta", TRAIT, "le encanta el mar", "brief"),
+        ("Toby", RELATIONSHIP, "perro", "brief"),
+        ("Luis", RELATIONSHIP, "hermano", "brief"),
+        ("Rosa", RELATIONSHIP, "abuela", "brief"),
+        ("Marta", "comida favorita", "la paella", "free_text"),
+    } <= triples
+    assert not [t for t in triples if t[2] == "negro"]  # X2, sin aceptar
+
+    imported_x1 = replace(f1.extracted_facts[0], mandatory=False)
+    imported = replace(f1, extracted_facts=(imported_x1,))
+    _, characters, facts = _canon(store, imported)
+    x1 = [f for f in facts if f.value == "la paella"]
+    assert [(f.origin, f.mandatory, f.attribute) for f in x1] == [
+        ("free_text", False, "comida favorita")
+    ]
+    assert characters["Marta"].id == x1[0].character_id
