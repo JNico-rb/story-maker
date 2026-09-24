@@ -513,3 +513,47 @@ Todas dependen de 000. Arranque en paralelo cuando 000 esté cerrada: A (001), C
 - [ ] Full suite green, type checks clean
 - [ ] Spec updated, or confirmed still true
 - [ ] Docs updated, or confirmed still true
+
+## 012 — gate-de-publicacion
+
+- [x] Spec `specs/backend/012-gate-de-publicacion.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
+
+### Steps
+- [ ] 012-C1 · La candidata entra al gate con sus 10 capítulos aceptados
+- [ ] 012-C2 · Una pasada limpia recorre las cuatro etapas en orden y publica
+- [ ] 012-C3 · Un elemento obligatorio sin uso se atribuye a los capítulos que el outline le asignó
+- [ ] 012-C4 · Un nombre no canónico en un capítulo se atribuye a ese capítulo
+- [ ] 012-C5 · Una prohibida en un capítulo se atribuye a ese capítulo
+- [ ] 012-C6 · Una prohibida en la portada o en la ficha hace fallar la ejecución
+- [ ] 012-C7 · Una etapa que falla corta la pasada
+- [ ] 012-C8 · Lean y el juez corren a la vez
+- [ ] 012-C9 · Un invariante Lean violado se atribuye a los capítulos de los eventos del testigo
+- [ ] 012-C10 · Un testigo Lean sin capítulo hace fallar la ejecución
+- [ ] 012-C11 · Un `FicheroDeCronologia` que no compila hace fallar la ejecución
+- [ ] 012-C12 · Una interrupción en la etapa 2 no gasta la pasada
+- [ ] 012-C13 · Un criterio bloqueante del juez bajo su umbral se atribuye a los capítulos que cita
+- [ ] 012-C14 · Ningún criterio compensa a otro
+- [ ] 012-C15 · Una entrega inválida del juez se corrige en su sesión, y sin entrega válida la pasada falla
+- [ ] 012-C16 · El juez recibe la novela entera y solo lo que necesita
+- [ ] 012-C17 · Dentro de una pasada, lo no atribuible manda sobre la interrupción, y esta sobre lo atribuible
+- [ ] 012-C18 · El PDF de la candidata es la última etapa
+- [ ] 012-C19 · La reescritura dirigida rehace solo los capítulos atribuidos y repite el gate
+- [ ] 012-C20 · Cada capítulo reescrito tiene sus intentos en cada ciclo
+- [ ] 012-C21 · Agotados los ciclos del gate, la ejecución falla
+- [ ] 012-C22 · Reanudar en `gate` o en `rewriting` repasa el gate sobre la candidata tal como quedó
+- [ ] 012-C23 · La publicación es una transacción
+- [ ] 012-C24 · Cada validador del gate deja su resultado y su score
+- [ ] 012-C25 · La rúbrica de novela es una constante del dominio
+- [ ] 012-C26 · El `CatalogoDeTropos` trae los tropos curados del género
+- [ ] 012-I1 · Ninguna versión se publica sin que la última pasada sobre esa candidata haya superado las cuatro etapas, y la candidata no cambia entre e…
+- [ ] 012-I2 · Las pasadas contadas de una ejecución nunca superan 1 + `max_retries.gate_cycles`, ni los intentos de un capítulo en un ciclo, 1 + `max_r…
+- [ ] 012-I3 · La publicación es atómica
+- [ ] 012-I4 · Publicar no modifica ninguna otra versión (`VersionAnteriorConservada`)
+- [ ] 012-I5 · El veredicto y la atribución los calcula el código solo con campos estructurados
+- [ ] 012-C27 · Una sesión real del juez entrega una evaluación válida (D, al final)
+
+### Closing
+- [ ] Full suite green, type checks clean
+- [ ] Spec updated, or confirmed still true
+- [ ] Docs updated, or confirmed still true
