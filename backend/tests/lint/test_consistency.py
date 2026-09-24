@@ -1,4 +1,4 @@
-"""`linter-consistencia`: narrador en tercera persona (018-C12)."""
+"""`linter-consistencia`: narrador en tercera y en primera persona (018-C12, 018-C13)."""
 
 from __future__ import annotations
 
@@ -9,6 +9,10 @@ _VALIDATOR = "linter-consistencia"
 
 def _third_person() -> StyleSheetInput:
     return StyleSheetInput(narrator="third_person", default_treatment="tu")
+
+
+def _first_person() -> StyleSheetInput:
+    return StyleSheetInput(narrator="first_person", default_treatment="tu")
 
 
 def test_una_marca_de_primera_persona_en_la_narracion_dispara() -> None:
@@ -55,3 +59,23 @@ def test_dos_marcas_en_la_narracion_del_mismo_parrafo_dan_un_solo_aviso() -> Non
         'párrafo 1: primera persona en la narración ("yo", "me"); '
         "la StyleSheet pide tercera persona"
     )
+
+
+def test_al_menos_una_marca_de_primera_persona_en_la_narracion_no_dispara() -> None:
+    text = "Yo caminaba despacio.\n\nMarta me esperaba en la esquina."
+    result = lint_consistency(text, _first_person())
+
+    assert result.passed is True
+
+
+def test_marcas_solo_en_el_dialogo_disparan_para_primera_persona() -> None:
+    text = "—Me voy a casa —dijo Marta.\n\nEl día estaba tranquilo."
+    result = lint_consistency(text, _first_person())
+
+    assert result.passed is False
+    assert len(result.defects) == 1
+    assert result.defects[0].message == (
+        "el capítulo no tiene marcas de primera persona en la narración; "
+        "la StyleSheet pide primera persona"
+    )
+    assert result.defects[0].paragraph is None

@@ -49,10 +49,29 @@ def _narrator_defects(paragraphs: list[str], style_sheet: StyleSheetInput) -> li
     return defects
 
 
+def _missing_first_person_defect(
+    paragraphs: list[str], style_sheet: StyleSheetInput
+) -> Defect | None:
+    if style_sheet.narrator != "first_person":
+        return None
+    for paragraph in paragraphs:
+        if _first_person_marks(narration_text(paragraph)):
+            return None
+    return Defect(
+        message=(
+            "el capítulo no tiene marcas de primera persona en la narración; "
+            "la StyleSheet pide primera persona"
+        )
+    )
+
+
 def lint_consistency(text: str, style_sheet: StyleSheetInput) -> LinterResult:
-    """Avisa si la narración usa primera persona con una StyleSheet en tercera (018-C12)."""
+    """Avisa si la narración no respeta el narrador de la StyleSheet (018-C12, 018-C13)."""
     paragraphs = split_paragraphs(text)
     defects = _narrator_defects(paragraphs, style_sheet)
+    missing = _missing_first_person_defect(paragraphs, style_sheet)
+    if missing is not None:
+        defects.append(missing)
     return LinterResult(
         validator=_VALIDATOR, passed=not defects, metric=len(defects), defects=tuple(defects)
     )
