@@ -24,7 +24,7 @@ from story_maker.agents.profiles import SKILL, RoleProfile, role_profile
 from story_maker.agents.tools import ToolSpec
 from story_maker.agents.usage import Usage, cost_usd
 from story_maker.config import Config
-from story_maker.observability.port import ModelCall, Score, Span, Trace
+from story_maker.observability.port import ObservabilityPort, Span, Trace
 from story_maker.policy.types import CampoNarrativo, DecisionDePolitica, PeticionDePolitica
 from story_maker.store.models import RoleSession
 from story_maker.store.session import unit_of_work
@@ -157,43 +157,6 @@ class PolicyEngine(Protocol):
     def decide(self, peticion: PeticionDePolitica) -> DecisionDePolitica: ...
 
 
-class Telemetry(Protocol):
-    """Lo que el puerto emite por el puerto de observabilidad (doble nulo en las pruebas)."""
-
-    def span(
-        self,
-        trace: Trace,
-        name: str,
-        parent: Span | None = None,
-        metadata: dict[str, Any] | None = None,
-        level: str = "DEFAULT",
-        reason: str | None = None,
-    ) -> AbstractContextManager[Span]: ...
-
-    def model_call(
-        self,
-        span: Span,
-        *,
-        model: str,
-        prompt_version: str | None = None,
-        input_tokens: int = 0,
-        output_tokens: int = 0,
-        cache_read_tokens: int = 0,
-        cache_write_tokens: int = 0,
-        cost_usd: float = 0.0,
-        latency_ms: int = 0,
-    ) -> ModelCall: ...
-
-    def score(
-        self,
-        trace: Trace,
-        name: str,
-        value: float,
-        comment: str | None = None,
-        span: Span | None = None,
-    ) -> Score: ...
-
-
 @dataclass
 class _Pending:
     """Una llamada que la política dejó pasar y aún no se ha resuelto."""
@@ -212,7 +175,7 @@ class LiveSession:
     request: SessionRequest
     profile: RoleProfile
     policy: PolicyEngine
-    telemetry: Telemetry
+    telemetry: ObservabilityPort
     role_span: Span
     calls: list[ToolCall] = field(default_factory=list)
     stop_outcome: Outcome | None = None
@@ -394,7 +357,7 @@ class AgentPort:
         config: Config,
         ceiling: TokenCeiling,
         policy: PolicyEngine,
-        telemetry: Telemetry,
+        telemetry: ObservabilityPort,
         session_factory: sessionmaker[Session],
         workspace: Path,
     ) -> None:
