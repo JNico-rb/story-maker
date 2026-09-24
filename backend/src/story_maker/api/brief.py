@@ -26,7 +26,7 @@ from story_maker.domain.brief import (
     schema_error_problems,
     schema_errors,
 )
-from story_maker.interview.brief import interview_trace_key
+from story_maker.interview.brief import confirm_brief_status, interview_trace_key
 from story_maker.interview.novels import (
     brief_of,
     load_accepted_facts,
@@ -148,9 +148,7 @@ def confirm_brief(
     finally:
         session.close()
 
-    with unit_of_work(state.session_factory) as uow:
-        fresh = uow.session.query(Brief).filter(Brief.novel_id == novel_id).one()
-        fresh.status = "confirmed"
+    confirm_brief_status(state.session_factory, novel_id)
 
     session = state.session_factory()
     try:

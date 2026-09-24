@@ -83,6 +83,13 @@ def interview_trace_key(novel_id: int) -> str:
     return f"interview:{novel_id}"
 
 
+def confirm_brief_status(session_factory: sessionmaker[Session], novel_id: int) -> None:
+    """El único escrito de confirmar: entero o nada (008-I5)."""
+    with unit_of_work(session_factory) as uow:
+        fresh = uow.session.query(Brief).filter(Brief.novel_id == novel_id).one()
+        fresh.status = "confirmed"
+
+
 @dataclass(frozen=True)
 class TurnResult:
     reply: str

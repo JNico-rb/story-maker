@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from story_maker.agents.port import AgentPort, PolicyEngine
 from story_maker.domain.brief import BannedEntry, BriefContent, brief_problems
 from story_maker.interview.banned_terms import add_banned_term
-from story_maker.interview.brief import BannedEntryPatch
+from story_maker.interview.brief import BannedEntryPatch, confirm_brief_status
 from story_maker.interview.free_text import (
     MAX_FREE_TEXT_CHARS,
     FreeTextFailure,
@@ -152,9 +152,7 @@ async def import_brief(
             return ImportFailure(novel_id=novel_id, reason=outcome.reason)
         _auto_accept(session_factory, [fact.id for fact in outcome.verified_facts])
 
-    with unit_of_work(session_factory) as uow:
-        fresh = uow.session.query(Brief).filter(Brief.novel_id == novel_id).one()
-        fresh.status = "confirmed"
+    confirm_brief_status(session_factory, novel_id)
 
     with telemetry.trace(
         import_trace_key(novel_id), name=TRACE_NAME, session=str(novel_id)
