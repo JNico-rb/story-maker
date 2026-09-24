@@ -8,6 +8,7 @@ import json
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
+from tests.pipeline.planning.conftest import assert_only_brief_canon
 from tests.validators.test_outline import STORY_BIBLE, reference_plan
 
 from story_maker.agents.fake import Call, FakeAgent, Say, Script
@@ -89,3 +90,5 @@ async def test_three_rejected_plans_exhaust_the_retries_and_discard_the_candidat
         version = session.get(Version, candidate_version_id)
         assert version is not None
         assert version.status == "discarded"
+
+    assert_only_brief_canon(session_factory, candidate_version_id, run_id)  # 010-I3

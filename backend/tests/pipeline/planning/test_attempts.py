@@ -7,6 +7,7 @@ from __future__ import annotations
 import pytest
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
+from tests.pipeline.planning.conftest import assert_only_brief_canon
 
 from story_maker.agents.fake import Fail, FakeAgent, Say, Script
 from story_maker.agents.port import AgentPort, SessionRequest, SessionResult
@@ -74,6 +75,7 @@ async def test_a_session_without_delivery_is_recorded_as_a_failed_attempt(
     session_factory: sessionmaker,  # type: ignore[type-arg]
     run_id: int,
     plan_request: SessionRequest,
+    candidate_version_id: int,
 ) -> None:
     fake.script("planner", "plan", Script(steps=(Say("No sé qué proponer."),)))
 
@@ -90,6 +92,7 @@ async def test_a_session_without_delivery_is_recorded_as_a_failed_attempt(
         (attempt,) = session.scalars(select(Attempt)).all()
     fields = (attempt.evaluable, attempt.chapter, attempt.number, attempt.outcome, attempt.run_id)
     assert fields == ("plan", None, 1, "rewrite", run_id)
+    assert_only_brief_canon(session_factory, candidate_version_id, run_id)  # 010-I3
 
 
 async def test_a_provider_failure_interrupts_the_run_without_counting_an_attempt(

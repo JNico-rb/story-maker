@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from sqlalchemy import select
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -21,7 +22,18 @@ from story_maker.observability.null import NullObservability
 from story_maker.observability.port import Trace
 from story_maker.pipeline.planning.session import BannedTermsPolicy, submit_plan_tool
 from story_maker.settings import ROOT
-from story_maker.store.models import BannedTerm, Novel, Run, User, Version
+from story_maker.store.models import (
+    BannedTerm,
+    CanonCard,
+    Checkpoint,
+    Novel,
+    OutlineChapter,
+    Run,
+    StyleSheet,
+    User,
+    Version,
+    World,
+)
 from story_maker.store.session import create_schema, make_engine, make_session_factory
 
 
@@ -184,9 +196,21 @@ def plan_request(user_id: int, novel_id: int, run_id: int) -> SessionRequest:
     )
 
 
-def audit_rows(session_factory: sessionmaker[Session]) -> list[dict[str, Any]]:
-    from sqlalchemy import select
+def assert_only_brief_canon(
+    session_factory: sessionmaker[Session], version_id: int, run_id: int
+) -> None:
+    """010-I3: hasta que se aplica un plan aceptado, la candidata no tiene nada que solo nazca
+    con la aplicación (`apply_accepted_plan`): ni mundo, ni outline, ni StyleSheet, ni
+    CanonCards, ni el punto de control 0."""
+    with session_factory() as session:
+        assert session.scalars(select(World).filter_by(version_id=version_id)).all() == []
+        assert session.scalars(select(OutlineChapter).filter_by(version_id=version_id)).all() == []
+        assert session.scalars(select(StyleSheet).filter_by(version_id=version_id)).all() == []
+        assert session.scalars(select(CanonCard).filter_by(version_id=version_id)).all() == []
+        assert session.scalars(select(Checkpoint).filter_by(run_id=run_id)).all() == []
 
+
+def audit_rows(session_factory: sessionmaker[Session]) -> list[dict[str, Any]]:
     from story_maker.store.models import AuditLog
 
     with session_factory() as session:

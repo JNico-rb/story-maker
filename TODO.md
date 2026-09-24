@@ -551,11 +551,11 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 010-C27 · Reserva inviable en el techo
 - [x] 010-C28 · Una generación nueva tras un fallo tiene su propia candidata
 - [x] 010-C29 · Resultado y score de `outline`
-- [ ] 010-I1 · Ninguna ventana del planner contiene el contenido de un `TextoLibre` ni la cita de un `HechoExtraido`
-- [ ] 010-I2 · Planificar no modifica ni borra nada de origen brief o free_text
-- [ ] 010-I3 · Una entrega rechazada (schema, policy, `outline` o sin entrega) no deja nada en la candidata
-- [ ] 010-I4 · Los intentos del evaluable `plan` nunca superan 1 + `max_retries.plan`, contando los de antes de una reanudación; el cortado por una caíd…
-- [ ] 010-I5 · El punto de control 0 existe si y solo si el plan está aplicado, se escribe una sola vez, y relanzar con él nunca abre el planner
+- [ ] 010-I1 · Ninguna ventana del planner contiene el contenido de un `TextoLibre` ni la cita de un `HechoExtraido` (recortado)
+- [ ] 010-I2 · Planificar no modifica ni borra nada de origen brief o free_text (recortado)
+- [x] 010-I3 · Una entrega rechazada (schema, policy, `outline` o sin entrega) no deja nada en la candidata
+- [x] 010-I4 · Los intentos del evaluable `plan` nunca superan 1 + `max_retries.plan`, contando los de antes de una reanudación; el cortado por una caíd…
+- [x] 010-I5 · El punto de control 0 existe si y solo si el plan está aplicado, se escribe una sola vez, y relanzar con él nunca abre el planner
 - [x] 010-I6 · `outline` es determinista y exhaustivo
 - [ ] 010-C30 · Planificación con el modelo real (D, al final)
 
