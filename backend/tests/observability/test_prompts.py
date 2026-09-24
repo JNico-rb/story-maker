@@ -59,3 +59,26 @@ def test_push_uploads_nothing_when_the_fingerprint_is_unchanged(
 
     assert pushed_again == []
     assert fake_langfuse_client.get_prompt("editor", label=LABEL).version == 1
+
+
+# --- I4: sube si y solo si cambia la huella ------------------------------------------------
+
+
+def test_push_uploads_exactly_on_the_pushes_where_the_fingerprint_actually_changed(
+    tmp_path: Path, fake_langfuse_client: FakeLangfuseClient
+) -> None:
+    _write_prompt(tmp_path, "planner", "v1 del prompt del planner.")
+
+    first = push_prompts(tmp_path, fake_langfuse_client, LABEL)
+    second_unchanged = push_prompts(tmp_path, fake_langfuse_client, LABEL)
+    _write_prompt(tmp_path, "planner", "v2 del prompt del planner.")
+    third_changed = push_prompts(tmp_path, fake_langfuse_client, LABEL)
+    fourth_unchanged = push_prompts(tmp_path, fake_langfuse_client, LABEL)
+
+    assert (first, second_unchanged, third_changed, fourth_unchanged) == (
+        ["planner"],
+        [],
+        ["planner"],
+        [],
+    )
+    assert fake_langfuse_client.get_prompt("planner", label=LABEL).version == 2
