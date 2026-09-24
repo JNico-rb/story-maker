@@ -11,15 +11,17 @@ from typing import Any
 
 import pytest
 from claude_agent_sdk import ResultMessage
+from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
 
 from story_maker.agents.ceiling import TokenCeiling
-from story_maker.agents.fake import Call, FakeAgent, Hang, Say, Script
+from story_maker.agents.fake import Call, Fail, FakeAgent, Hang, Say, Script
 from story_maker.agents.port import AgentPort, SessionRequest
 from story_maker.agents.sdk import final_from_result
 from story_maker.agents.usage import Usage
 from story_maker.config import Config
 from story_maker.observability.null import NullObservability
+from story_maker.store.models import RoleSession
 
 FINAL_USAGE = Usage(
     input_tokens=1_200, output_tokens=800, cache_read_tokens=300, cache_write_tokens=100
@@ -160,3 +162,32 @@ async def test_waiting_in_the_ceiling_counts_neither_in_the_session_time_nor_in_
 
     assert result.outcome == "completed"
     assert result.latency_ms < 1_000
+
+
+async def test_a_provider_error_result_is_infrastructure_failure_with_its_usage_and_no_retry(
+    port: AgentPort,
+    fake: FakeAgent,
+    session_factory: sessionmaker[Session],
+    make_request: Callable[..., SessionRequest],
+) -> None:
+    # como el corte por límite de uso de la suscripción: el proveedor cierra con un error
+    fake.script("writer", "write", Script(steps=(Fail(result=True),), usage=FINAL_USAGE))
+
+    result = await port.run(make_request("writer", "write"))
+
+    assert result.outcome == "infrastructure_failure"
+    assert result.usage == FINAL_USAGE
+    assert len(fake.sessions) == 1
+    with session_factory() as session:
+        (row,) = session.scalars(select(RoleSession)).all()
+    assert row.outcome == "infrastructure_failure"
+    assert row.input_tokens == FINAL_USAGE.input_tokens
+
+
+def test_an_sdk_error_result_from_the_provider_is_a_provider_error_with_its_usage() -> None:
+    final = final_from_result(
+        result_message(is_error=True, api_error_status=429, result="API Error: usage limit")
+    )
+
+    assert final.ending == "provider_error"
+    assert final.usage == FINAL_USAGE
