@@ -44,6 +44,10 @@ Medir el sistema sobre cinco briefs fijos y dejar la evidencia en el repo: `stor
 - **Entrada:** `evals run` con un directorio de fixture donde uno de los cinco briefs no pasa `schema-brief`.
 - **Salida:** ese brief no crea novela y la salida lo nombra con su defecto; los otros cuatro se lanzan como en 020-C03; el código de salida es distinto de 0.
 
+#### 020-C17 — Un brief que ya tiene novela del cliente no se repite (T)
+- **Entrada:** `evals run --email <A>` cuando A ya tiene la novela de un brief de eval (creada por `example` sobre ese fichero o por un `evals run` anterior), con su ejecución publicada, o en cola o interrumpida.
+- **Salida:** ese brief no crea novela ni ejecución; la salida lo nombra con su novela y su ejecución; si estaba en cola, la procesa el mismo worker hasta `published`, sin relanzarla; los demás, como en 020-C03. `evals table` cuenta esa novela como la del brief.
+
 #### 020-C05 — `evals run` no corre en la CI (T)
 - **Entrada:** `evals run --email <A>` con la variable de entorno `CI` definida.
 - **Salida:** código distinto de 0 y ninguna novela: las evals solo corren en la máquina con sesión de Claude Code (`verification.md` §4.2 método 2).

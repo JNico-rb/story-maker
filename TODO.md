@@ -947,8 +947,8 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 
 ## 020 — evals
 
-- [x] Spec `specs/backend/020-evals.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; recibe `example` desde 013 (C15, C16)
-- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; pasos C15 y C16 añadidos
+- [x] Spec `specs/backend/020-evals.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; recibe `example` desde 013 (C15, C16); re-marcada 2026-09-25 (integrador: sin revisión, decisión del usuario) con C17 y la identidad del brief de eval
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; pasos C15 y C16 añadidos; re-marcado 2026-09-25 (integrador: sin revisión, decisión del usuario) con C17
 
 **Cierre parcial** (C06–C09, I2: `evals table`) — verificador 2026-09-24: PASS; `uv run pytest` 959 passed, ruff y mypy limpios. El resto de la 020 sigue abierto.
 
@@ -965,6 +965,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] 020-I1 · Ninguna prueba de esta spec llama a un modelo ni a Langfuse
 - [x] 020-I2 · `evals table` es determinista
 - [ ] 020-C15 · `example` produce la novela y su PDF (movido desde 013)
+- [ ] 020-C17 · Un brief que ya tiene novela del cliente no se repite (añadido 2026-09-25; también identifica la novela de `example` como la de su brief)
 - [ ] 020-C10 · Cinco briefs reales llenan (a) y (b) (D, al final)
 - [ ] 020-C11 · Una iteración de tuning con antes y después (D, al final)
 - [ ] 020-C12 · Juez frente a revisión humana (D, al final)

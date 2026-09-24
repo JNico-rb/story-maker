@@ -201,7 +201,7 @@ classDiagram
 Jerarquía: `Novela → Version → Capitulo`. El `Outline` de cada versión planifica los capítulos y sus `Beat`; el `Capitulo` guarda lo producido.
 
 ### Novela
-- **Atributos:** título, cliente propietario, fecha de creación, modelo de incrustación (el de `retrieval.embedding_model` al crearla, fijo desde entonces), versiones.
+- **Atributos:** título, cliente propietario, fecha de creación, modelo de incrustación (el de `retrieval.embedding_model` al crearla, fijo desde entonces), brief de eval (el slug `ejemplo`, `infantil`, `boda`, `adversarial` o `temporal` si la novela sale de un brief de `ejemplos/briefs/` por `evals run` o `example`; vacío en las demás), versiones.
 - La **fecha de creación** fija el año presente, y es la fecha en la que se comprueba C4. La **versión vigente** es la publicada de número más alto.
 - **Estado**, que se deriva y no se guarda: `interview` si el brief sigue en borrador; `ready` si está confirmado y no hay versión publicada ni ejecución sin terminar; `in_progress` si hay una ejecución sin terminar (en cola, en curso o interrumpida) y ninguna versión publicada; `published` si hay al menos una versión publicada. Arq. §9.
 
