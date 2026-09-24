@@ -208,3 +208,18 @@ def test_each_recollection_gives_its_fact_its_dated_event_and_its_place(
     assert r2["row"].moment == dt.datetime(1990, 1, 1, 12, 0)
     assert r2["place"] == "la playa del faro"
     assert r2["present"] == {"Marta": None}
+
+
+def test_an_excluding_recollection_names_its_excluded_one(store: Any, f1: ConfirmedBrief) -> None:
+    version_id, _, _ = _canon(store, f1)
+    events = _events(store, version_id)
+
+    r3 = events["la abuela Rosa se marchó para siempre"]
+    assert r3["row"].type == "exclusion"
+    assert r3["excluded"] == "Rosa"
+    assert r3["row"].moment == dt.datetime(1998, 1, 1, 12, 0)
+    assert r3["place"] == "la estación"
+    assert r3["present"] == {"Marta": 12, "Rosa": None}
+
+    for statement in ("se perdió en la feria de su pueblo", "su primer baño en el mar"):
+        assert (events[statement]["row"].type, events[statement]["excluded"]) == ("ordinary", None)

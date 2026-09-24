@@ -138,12 +138,14 @@ def create_generation_candidate(
 
     recipient_birth = recipient.birth_date or dt.date(present_year - recipient.age, 1, 1)
     for recollection, place in zip(brief.recollections, places, strict=True):
+        excluded = characters[recollection.excluded] if recollection.excluded else None
         event = Event(
             version_id=version.id,
             statement=recollection.statement,
             moment=recollection_moment(recipient_birth, recollection.age, recollection.year),
             place_id=place.id,
-            type="ordinary",
+            type="exclusion" if excluded else "ordinary",
+            excluded_character_id=excluded.id if excluded else None,
             analepsis=True,
             origin="brief",
         )
