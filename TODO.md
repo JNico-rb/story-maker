@@ -299,9 +299,9 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 005-I2 · Toda petición decidida deja exactamente una fila en audit_log
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-24: uv run pytest 310 passed · ruff check All checks passed · ruff format --check 54 files already formatted · mypy src Success, no issues in 33 files
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 006 — especificacion-tla
 
