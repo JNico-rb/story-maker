@@ -105,9 +105,9 @@ Todas dependen de 000. Arranque en paralelo cuando 000 esté cerrada: A (001), C
 - [x] 000-C11 · Los ajustes del proyecto registran los hooks y las denegaciones
 - [x] 000-C12 · El espejo de memoria está completo y saneado
 - [x] 000-I4 · Ningún fichero versionado contiene una cadena con forma de clave
-- [ ] 000-C13 · Cada herramienta falla ante su defecto sembrado
-- [ ] 000-C14 · Un clon limpio funciona en el portátil
-- [ ] 000-C20 · TLC arranca en el portátil sobre Temurin portable
+- [x] 000-C13 · Cada herramienta falla ante su defecto sembrado
+- [x] 000-C14 · Un clon limpio funciona en el portátil
+- [x] 000-C20 · TLC arranca en el portátil sobre Temurin portable
 - [ ] 000-C15 · Claude Code conecta los servidores de `.mcp.json`
 - [ ] 000-C16 · Playwright MCP inspecciona la SPA en Edge: marca, mismo origen y proxy de `/api`
 - [ ] 000-C17 · En una sesión real, los hooks y los permisos actúan
