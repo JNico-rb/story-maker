@@ -276,3 +276,10 @@ MENTE_EXCEPTIONS: frozenset[str] = frozenset(
         "lamente",
     }
 )
+
+#: Clichés y giros típicos de texto generado (018-C11). Lista cerrada del dominio.
+CLICHES: tuple[str, ...] = (
+    "un escalofrío le recorrió la espalda",
+    "el tiempo pareció detenerse",
+    "sin lugar a dudas",
+)

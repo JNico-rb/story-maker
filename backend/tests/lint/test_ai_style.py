@@ -1,5 +1,5 @@
-"""`linter-estilo-ia`: adverbios en -mente y palabras en -mente que no lo son
-(018-C9, 018-C10)."""
+"""`linter-estilo-ia`: adverbios en -mente, palabras en -mente que no lo son y clichés
+(018-C9 a 018-C11)."""
 
 from __future__ import annotations
 
@@ -41,3 +41,37 @@ def test_las_palabras_en_mente_fuera_de_la_lista_si_son_adverbios() -> None:
     result = lint_ai_style(text)
 
     assert result.metric == 1000.0
+
+
+def test_dos_cliches_distintos_dan_un_aviso_cada_uno_con_sus_parrafos() -> None:
+    text = (
+        "Marta cruzó la plaza desierta.\n\n"
+        "Un escalofrío le recorrió la espalda al ver la puerta abierta.\n\n"
+        "Se acercó despacio, sin hacer ruido.\n\n"
+        "El tiempo pareció detenerse mientras escuchaba.\n\n"
+        "Entonces oyó un ruido: un escalofrío le recorrió la espalda otra vez."
+    )
+    result = lint_ai_style(text)
+
+    assert len(result.defects) == 2
+    assert result.defects[0].message == (
+        'cliché "un escalofrío le recorrió la espalda" 2 veces (párrafos 2 y 5)'
+    )
+    assert result.defects[1].message == ('cliché "el tiempo pareció detenerse" 1 vez (párrafo 4)')
+
+
+def test_un_cliche_con_una_palabra_intercalada_no_dispara() -> None:
+    text = "Un escalofrío frío le recorrió la espalda al entrar."
+    result = lint_ai_style(text)
+
+    assert result.defects == ()
+
+
+def test_un_cliche_en_mayusculas_dispara() -> None:
+    text = "UN ESCALOFRÍO LE RECORRIÓ LA ESPALDA al fin."
+    result = lint_ai_style(text)
+
+    assert len(result.defects) == 1
+    assert result.defects[0].message == (
+        'cliché "un escalofrío le recorrió la espalda" 1 vez (párrafo 1)'
+    )

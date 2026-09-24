@@ -830,7 +830,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 018-C8 · Recuento de frases
 - [x] 018-C9 · `linter-estilo-ia`: la densidad de adverbios en -mente en su límite
 - [x] 018-C10 · `linter-estilo-ia`: palabras en -mente que no son adverbios
-- [ ] 018-C11 · `linter-estilo-ia`: clichés y giros de texto generado
+- [x] 018-C11 · `linter-estilo-ia`: clichés y giros de texto generado
 - [ ] 018-C12 · `linter-consistencia`: narrador en tercera persona
 - [ ] 018-C13 · `linter-consistencia`: narrador en primera persona
 - [ ] 018-C14 · `linter-consistencia`: tratamiento sin excepciones
