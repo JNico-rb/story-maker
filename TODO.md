@@ -610,7 +610,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] 012-C15 · Una entrega inválida del juez se corrige en su sesión, y sin entrega válida la pasada falla
 - [x] 012-C16 · El juez recibe la novela entera y solo lo que necesita
 - [x] 012-C17 · Dentro de una pasada, lo no atribuible manda sobre la interrupción, y esta sobre lo atribuible
-- [ ] 012-C18 · El PDF de la candidata es la última etapa
+- [x] 012-C18 · El PDF de la candidata es la última etapa
 - [ ] 012-C19 · La reescritura dirigida rehace solo los capítulos atribuidos y repite el gate
 - [ ] 012-C20 · Cada capítulo reescrito tiene sus intentos en cada ciclo
 - [ ] 012-C21 · Agotados los ciclos del gate, la ejecución falla
