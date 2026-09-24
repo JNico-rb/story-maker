@@ -112,37 +112,37 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
-- [ ] 001-C03 · Ajustes: valores por defecto, rutas desde la raíz y precedencia del entorno
-- [ ] 001-C04 · Ajustes obligatorios y condicionales
-- [ ] 001-C01 · El `config.json` del repositorio es válido y lleva los valores de §15.4
-- [ ] 001-C02 · La config se valida entera y nombra cada clave que falta, sobra o no vale
-- [ ] 001-C05 · `.env.example` lista los ajustes sin valores
-- [ ] 001-C06 · `init-db` crea la base con el esquema completo
-- [ ] 001-C07 · `init-db` no pisa una base existente sin `--reset`
-- [ ] 001-C08 · Toda conexión abre la base igual
-- [ ] 001-C09 · Ámbito y referencias obligatorias
-- [ ] 001-C10 · Enumerados, rangos, unicidades y coherencia
-- [ ] 001-C11 · Solo inserción y CanonCards inmutables
-- [ ] 001-C12 · El índice FTS5 sigue a las CanonCards, sin acentos
-- [ ] 001-C13 · Una unidad de trabajo es todo o nada
-- [ ] 001-C14 · `check-env` informa de cada comprobación
-- [ ] 001-I1 · Ninguna salida reproduce el valor de un ajuste secreto
-- [ ] 001-C15 · `serve` no arranca con config, ajustes o base inválidos
-- [ ] 001-C16 · `serve` escucha en `STORY_MAKER_BASE_URL`, en un solo proceso
-- [ ] 001-I2 · `init-db`, `check-env` y `serve` solo crean o cambian ficheros dentro del directorio de datos
-- [ ] 001-C17 · Salud, esquema OpenAPI y errores de la API
-- [ ] 001-C18 · La SPA compilada se sirve en el mismo origen sin tapar la API
-- [ ] 001-C19 · El doble nulo captura lo emitido, sin red
-- [ ] 001-C20 · Niveles y excepciones de los spans
-- [ ] 001-C21 · Prompts, comprobación y vaciado con el doble nulo
-- [ ] 001-I3 · Ni el doble nulo ni las órdenes de esta spec abren una conexión fuera de la máquina
+- [x] 001-C03 · Ajustes: valores por defecto, rutas desde la raíz y precedencia del entorno
+- [x] 001-C04 · Ajustes obligatorios y condicionales
+- [x] 001-C01 · El `config.json` del repositorio es válido y lleva los valores de §15.4
+- [x] 001-C02 · La config se valida entera y nombra cada clave que falta, sobra o no vale
+- [x] 001-C05 · `.env.example` lista los ajustes sin valores
+- [x] 001-C06 · `init-db` crea la base con el esquema completo
+- [x] 001-C07 · `init-db` no pisa una base existente sin `--reset`
+- [x] 001-C08 · Toda conexión abre la base igual
+- [x] 001-C09 · Ámbito y referencias obligatorias
+- [x] 001-C10 · Enumerados, rangos, unicidades y coherencia
+- [x] 001-C11 · Solo inserción y CanonCards inmutables
+- [x] 001-C12 · El índice FTS5 sigue a las CanonCards, sin acentos
+- [x] 001-C13 · Una unidad de trabajo es todo o nada
+- [x] 001-C14 · `check-env` informa de cada comprobación
+- [x] 001-I1 · Ninguna salida reproduce el valor de un ajuste secreto
+- [x] 001-C15 · `serve` no arranca con config, ajustes o base inválidos
+- [x] 001-C16 · `serve` escucha en `STORY_MAKER_BASE_URL`, en un solo proceso
+- [x] 001-I2 · `init-db`, `check-env` y `serve` solo crean o cambian ficheros dentro del directorio de datos
+- [x] 001-C17 · Salud, esquema OpenAPI y errores de la API
+- [x] 001-C18 · La SPA compilada se sirve en el mismo origen sin tapar la API
+- [x] 001-C19 · El doble nulo captura lo emitido, sin red
+- [x] 001-C20 · Niveles y excepciones de los spans
+- [x] 001-C21 · Prompts, comprobación y vaciado con el doble nulo
+- [x] 001-I3 · Ni el doble nulo ni las órdenes de esta spec abren una conexión fuera de la máquina
 - [ ] 001-C22 · Primera generación de los tipos del frontend (D, al final)
 - [ ] 001-C23 · Un clon limpio arranca siguiendo el README (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-24: `uv run pytest` 278 passed; `uv run ruff check .` All checks passed; `uv run ruff format --check .` 38 files already formatted; `uv run mypy src` Success, no issues found in 23 source files
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 002 — autenticacion
 
