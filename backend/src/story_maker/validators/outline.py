@@ -9,7 +9,7 @@ from __future__ import annotations
 import datetime as dt
 from dataclasses import dataclass
 
-from story_maker.domain.constants import CHAPTERS_PER_NOVEL
+from story_maker.domain.constants import CHAPTERS_PER_NOVEL, MAX_BEATS, MIN_BEATS
 from story_maker.pipeline.planning.plan import (
     WORLD_SUBJECT,
     Beat,
@@ -18,11 +18,6 @@ from story_maker.pipeline.planning.plan import (
     PlanSubmission,
 )
 from story_maker.pipeline.planning.story_bible_view import StoryBibleView
-
-# `definitions.md` §11.2 (mismo hueco de ownership que en `pipeline/planning/plan.py`: la fila
-# 010 de `backend/AGENTS.md` no da acceso a `domain/`).
-MIN_BEATS = 3
-MAX_BEATS = 6
 
 
 @dataclass(frozen=True)

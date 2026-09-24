@@ -1,12 +1,6 @@
 """Entrega `submit_plan`: su schema y sus campos narrativos (010-C08, 010-C09).
 
-`definitions.md` §2 (Mundo, Personaje, Lugar, Hecho), §3 (Outline, Beat, StyleSheet), §11.2.
-
-Las dos constantes de rango (`MIN_CONSEQUENCES`/`MAX_CONSEQUENCES` aquí, `MIN_BEATS`/
-`MAX_BEATS` en `validators/outline.py`) son "constantes del dominio" según `definitions.md`
-§11.2 y deberían vivir en `domain/constants.py` junto a `CHAPTERS_PER_NOVEL`. La fila 010 de
-`backend/AGENTS.md` no da acceso a `domain/` (solo a `pipeline/`, `validators/` y el prompt del
-planner), así que quedan aquí hasta que el integrador las mueva."""
+`definitions.md` §2 (Mundo, Personaje, Lugar, Hecho), §3 (Outline, Beat, StyleSheet), §11.2."""
 
 from __future__ import annotations
 
@@ -15,15 +9,14 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from story_maker.domain.constants import MAX_CONSEQUENCES, MIN_CONSEQUENCES
+
 NovumScope = Literal["technological", "social", "cognitive"]
 Species = Literal["person", "animal", "artificial"]
 EventType = Literal["ordinary", "exclusion"]
 Narrator = Literal["first", "third"]
 Tense = Literal["past", "present"]
 Treatment = Literal["tu", "usted"]
-
-MIN_CONSEQUENCES = 2
-MAX_CONSEQUENCES = 4
 
 # La palabra clave con la que un hecho inventado declara al mundo como sujeto (`Hecho.subject_type
 # == "world"` en `store/models.py`; aquí no hay tabla, solo esta referencia por nombre).

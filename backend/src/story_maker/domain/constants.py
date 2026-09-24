@@ -23,3 +23,9 @@ CRITERIA = (
 )
 
 AGE_BANDS = ("children", "teen", "adult")
+
+# Del plan y del outline (010; `definitions.md` §11.2).
+MIN_CONSEQUENCES = 2
+MAX_CONSEQUENCES = 4
+MIN_BEATS = 3
+MAX_BEATS = 6
