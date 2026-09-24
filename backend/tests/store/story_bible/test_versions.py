@@ -43,3 +43,19 @@ def test_publishing_a_copy_gives_the_next_number_and_the_chapters_changed_by_has
     assert store.version(v1.version_id).status == "published"
     assert store.fingerprint(v1.version_id) == v1_before
     assert store.current(v1.novel_id) == k_id
+
+
+def test_discarding_a_candidate(store: Any) -> None:
+    v2 = store.build_v2()
+    novel_id = v2.v1.novel_id
+    k3_id, _ = store.copy(v2.version_id)
+
+    store.discard(k3_id)
+
+    k3 = store.version(k3_id)
+    assert (k3.status, k3.number) == ("discarded", None)
+    assert store.current(novel_id) == v2.version_id
+
+    next_id, _ = store.copy(v2.version_id)
+    store.publish(next_id)
+    assert store.version(next_id).number == 3

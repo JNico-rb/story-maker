@@ -28,7 +28,7 @@ from story_maker.store.models import Novel, User
 from story_maker.store.session import UnitOfWork, unit_of_work
 from story_maker.store.story_bible import change_fact_value
 from story_maker.store.version_copy import copy_version
-from story_maker.store.versions import current_version, publish
+from story_maker.store.versions import current_version, discard, publish
 
 CREATED_2026 = dt.datetime(2026, 9, 24, 10, 0)
 NOW = dt.datetime(2026, 9, 24, 11, 0)
@@ -389,6 +389,23 @@ class Store:
         with unit_of_work(self.session_factory) as uow:
             change_fact_value(uow, fact_id, value)
 
+    def build_v2(self) -> V2:
+        """V2: la copia de v1 con el hecho de nombre de Toby cambiado a «Nala» y los capítulos 3
+        y 7 reescritos; publicada."""
+        v1 = self.build_v1()
+        v2_id, ids = self.copy(v1.version_id)
+        self.change_fact(ids["facts"][v1.facts["Toby"]], "Nala")
+        self.rewrite_chapter(v2_id, 3, "Capítulo 3", "Texto nuevo del capítulo 3, con Nala.")
+        self.rewrite_chapter(v2_id, 7, "Capítulo 7", "Texto nuevo del capítulo 7, con Nala.")
+        self.publish(v2_id, pdf_path="n1-v2.pdf")
+        return V2(v1=v1, version_id=v2_id, ids=ids)
+
+    def discard(self, version_id: int) -> None:
+        with unit_of_work(self.session_factory) as uow:
+            version = uow.session.get(models.Version, version_id)
+            assert version is not None
+            discard(uow, version)
+
     def dump(self, version_id: int) -> dict[str, list[dict[str, Any]]]:
         """La fila de la versión y todas sus filas de ámbito versión, tabla a tabla."""
         with self.session() as session:
@@ -490,6 +507,13 @@ class V1:
     characters: dict[str, int]
     places: dict[str, int]
     facts: dict[str, int]  # por valor: en V1 no se repite ninguno
+
+
+@dataclass(frozen=True)
+class V2:
+    v1: V1
+    version_id: int
+    ids: dict[str, dict[int, int]]  # traducción de ids de v1 a v2
 
 
 @pytest.fixture

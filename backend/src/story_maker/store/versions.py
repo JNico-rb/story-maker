@@ -36,6 +36,13 @@ def publish(uow: UnitOfWork, version: Version, *, pdf_path: str, now: dt.datetim
     return version
 
 
+def discard(uow: UnitOfWork, version: Version) -> Version:
+    """Descarta la candidata: queda sin número y no admite más escrituras."""
+    version.status = "discarded"
+    uow.session.flush()
+    return version
+
+
 def changed_chapters(session: Session, version: Version) -> list[int]:
     """Los capítulos cuya huella difiere de la de su versión base; vacía sin base
     (`definitions.md` §3 Version, capítulo cambiado)."""
