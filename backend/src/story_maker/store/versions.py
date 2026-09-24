@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 
 from story_maker.store.models import Chapter, Version
 from story_maker.store.session import UnitOfWork
+from story_maker.store.version_guard import STATE_NAMES, version_label
 
 
 class VersionTransitionRejected(ValueError):
@@ -29,15 +30,6 @@ def current_version(session: Session, novel_id: int) -> Version | None:
     )
 
 
-STATE_NAMES = {"candidate": "candidata", "published": "publicada", "discarded": "descartada"}
-
-
-def version_label(version: Version) -> str:
-    """«versión 12 (v2)»: su id y, si lo tiene, su número."""
-    number = f" (v{version.number})" if version.number is not None else ""
-    return f"versión {version.id}{number}"
-
-
 def publish(uow: UnitOfWork, version: Version, *, pdf_path: str, now: dt.datetime) -> Version:
     """Publica la candidata con el número siguiente al de la vigente. Exige que su base sea la
     vigente; la de generación, que no haya ninguna publicada (historia lineal, 009-I5)."""
@@ -52,11 +44,14 @@ def publish(uow: UnitOfWork, version: Version, *, pdf_path: str, now: dt.datetim
         current is None or current.id != version.base_version_id
     ):
         _reject(version, "su versión base no es la vigente")
+    # Todo se lee antes de escribir: tras el primer vaciado la versión ya está publicada y la
+    # guarda rechazaría el resto (009-I1).
+    changed = changed_chapters(uow.session, version)
     version.status = "published"
     version.number = current.number + 1 if current and current.number else 1
     version.published_at = now
     version.pdf_path = pdf_path
-    version.changed_chapters = changed_chapters(uow.session, version)
+    version.changed_chapters = changed
     uow.session.flush()
     return version
 
