@@ -11,11 +11,14 @@ from typing import Any
 import pytest
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
+from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
 
-from story_maker.agents.ceiling import TokenCeiling
-from story_maker.agents.fake import FakeAgent, Say, Script
+from story_maker.agents.ceiling import NeverFits, NoRoomInTime, TokenCeiling
+from story_maker.agents.fake import Call, Fail, FakeAgent, Hang, Say, Script
 from story_maker.agents.port import AgentPort, SessionRequest
+from story_maker.agents.profiles import ToolsMismatch
+from story_maker.agents.tools import ToolSpec
 from story_maker.agents.usage import Usage, cost_usd
 from story_maker.config import Config, PriceConfig
 from story_maker.observability.null import NullObservability
@@ -119,3 +122,84 @@ def test_the_role_session_cost_is_usage_times_pricing_never_the_sdk_one(
         assert row is not None
         assert row.cost_usd == pytest.approx(cost_usd(usage, price))
         assert row.sdk_cost_usd == sdk_cost
+
+
+CHAPTER = {"title": "Uno", "text": "limpio"}
+USAGE = Usage(input_tokens=120, output_tokens=80, cache_read_tokens=30, cache_write_tokens=10)
+BY_OUTCOME = {
+    "completed": Script(steps=(Say("fin"),), usage=USAGE),
+    "turns_exhausted": Script(steps=(Call("submit_chapter", CHAPTER),) * 9, usage=USAGE),
+    "time_exhausted": Script(steps=(Hang(),), usage=USAGE),
+    "cut": Script(steps=(Call("submit_chapter", CHAPTER), Say("fin")), usage=USAGE),
+    "infrastructure_failure": Script(steps=(Fail(result=True),), usage=USAGE),
+}
+
+
+async def test_every_opened_session_leaves_its_role_session_and_only_they_do(
+    config: Config,
+    fake: FakeAgent,
+    policy: Any,
+    telemetry: NullObservability,
+    session_factory: sessionmaker[Session],
+    workspace: Path,
+    novel_id: int,
+    run_id: int,
+    make_request: Callable[..., SessionRequest],
+    tool_named: Callable[..., ToolSpec],
+) -> None:
+    tuned = dataclasses.replace(config, session_timeout_seconds=1, api_wait_seconds=1)
+    ceiling = TokenCeiling(tuned.token_ceiling)
+    port = AgentPort(
+        agent=fake,
+        config=tuned,
+        ceiling=ceiling,
+        policy=policy,
+        telemetry=telemetry,
+        session_factory=session_factory,
+        workspace=workspace,
+    )
+    for outcome, script in BY_OUTCOME.items():
+        fake.script("writer", "write", script)
+        cut_when = (lambda call: True) if outcome == "cut" else None
+        result = await port.run(
+            make_request("writer", "write", run_id=run_id, chapter=4, cut_when=cut_when)
+        )
+        assert result.outcome == outcome
+    fake.script(
+        "interviewer",
+        None,
+        Script(steps=(Call("update_brief", {"field": "tone", "value": "funny"}),), usage=USAGE),
+    )
+    await port.run(make_request("interviewer"))  # quien la abrió descarta la entrega
+
+    with pytest.raises(ToolsMismatch):
+        await port.run(make_request("editor", tools=(tool_named("submit_chapter"),)))
+    fake.script("judge", None, Script(steps=(Say("nota"),), usage=USAGE))
+    blocker = await ceiling.acquire(ceiling.limit, None)
+    with pytest.raises(NoRoomInTime):
+        await port.run(make_request("judge"))
+    ceiling.release(blocker)
+    with pytest.raises(NeverFits):
+        await port.run(make_request("judge", message="m" * 4 * (ceiling.limit + 1)))
+
+    with session_factory() as session:
+        rows = session.scalars(select(RoleSession).order_by(RoleSession.id)).all()
+    assert [(r.role, r.outcome) for r in rows] == [
+        *(("writer", outcome) for outcome in BY_OUTCOME),
+        ("interviewer", "completed"),
+    ]
+    writer, interviewer = rows[0], rows[-1]
+    assert (writer.novel_id, writer.run_id, writer.chapter) == (novel_id, run_id, 4)
+    assert writer.model == tuned.roles["writer"].model
+    assert writer.prompt_version == "v1"
+    assert (
+        writer.input_tokens,
+        writer.output_tokens,
+        writer.cache_read_tokens,
+        writer.cache_write_tokens,
+    ) == (120, 80, 30, 10)
+    assert writer.cost_usd > 0
+    assert writer.latency_ms >= 0
+    assert writer.reserved_tokens > 0
+    assert writer.trace_id == "run:1"
+    assert (interviewer.run_id, interviewer.chapter) == (None, None)
