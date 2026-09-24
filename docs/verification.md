@@ -586,14 +586,13 @@ Regla del encargo: **toda skill usada en el desarrollo vive en `.claude/skills/`
 
 | Skill | Origen | Uso en el proyecto |
 |---|---|---|
-| `fastapi` | `fastapi/fastapi` (MIT, `50113da`) | Escribir la API y el montaje de FastMCP |
+| `fastapi` | `fastapi/fastapi` (MIT, `50113da`) | Escribir la API |
 | `sqlalchemy-code-review` | `existential-birds/beagle` (Apache-2.0, `d1a7489`) | Revisar el store: sesiones, N+1, `select()` 2.0 |
 | `review-verification-protocol` | `existential-birds/beagle` (Apache-2.0, `d1a7489`) | Puertas anti-falso-positivo al revisar; la carga la anterior |
 | `react-expert` | `reactjs/react.dev` (MIT, `b011783`) | Investigar APIs de React contra su fuente |
 | `feature-sliced-design` | `feature-sliced/skills` (MIT, `fd71da4`) | Estructura FSD pages-first del frontend |
-| `grill-me` | Propia del proyecto | Autorevisión del redactor antes de cada spec (§9.7) |
+| `grill-me` | Propia del proyecto | Autorrevisión del redactor antes de cada spec, hasta el 2026-09-24 (§9.7); después, sin uso |
 | `verification` | Propia del proyecto | Escribir y mantener este documento (marco T/A/I/D/U) |
-| `sqlalchemy-sqlite` | Propia, decidida y no escrita | Se escribe cuando la spec 001 fije el esquema |
 
 Descartadas con motivo en el README: `SecureSkills-io/sqlite-skill` (inyección SQL y autoauditoría falsa) y `sqlite-vec` de `beagle`.
 
@@ -624,8 +623,8 @@ Log de cada inspección: qué inspeccionó el agente, qué detectó y qué cambi
 | SPA: índice y capítulos | Los 10 enlazan; marca «cambiado en vN» tras un cambio; selector de versión | pendiente |
 | SPA: ficha de personajes y lugares | Cada entidad enlaza a los capítulos donde aparece | pendiente |
 | SPA: pedir un cambio | Seleccionar fragmento → propuesta + afectados → confirmar | pendiente |
-| SPA: editor manual | Diagnósticos del lint en vivo mientras se escribe | pendiente |
-| `VistaDeVersion` de una candidata | Lo mismo que ve el revisor visual del gate | pendiente |
+
+Fuera de alcance y sin inspección: el editor manual (019, 028) y la `VistaDeVersion` del revisor visual (017).
 
 ### 9.4 Subagentes y comandos
 
@@ -638,14 +637,14 @@ Definidos en `.claude/agents/` y `.claude/commands/` (orquestación en `AGENTS.m
 | `implementador` | subagente | Implementa el plan aprobado de una spec con TDD en su worktree | Lectura, escritura, `uv`, `pnpm.cmd` | Uno por carril en paralelo (A–D, F); 001, 005 y 006 cerradas; un implementador que delegó en otro no avanzó → se lanza con «no delegues» |
 | `verificador` | subagente | Al cerrar: suite completa y tipos, cada caso T con prueba nombrada, ningún código sin paso del plan; marca el cierre | Solo lectura + Bash | PASS en 000, 001 y 006; FAIL en 005 (plural en -es sin cubrir) → corregido con su prueba y PASS |
 | `seguridad` | subagente | Auditoría de §4.11 → `docs/security-report.md` | Solo lectura + Bash | pendiente |
-| `/orquestar` | comando | Sesión integradora en `V2`: estado, siguiente trabajo desbloqueado, integración de carriles | — | pendiente |
-| `/carril <X>` | comando | Sesión de un carril en su worktree: por spec, espera dependencias, `git rebase V2`, implementa, verifica, commit | — | pendiente |
-| `/spec <NNN>` | comando | Lanza `redactor-specs` y `auditor` sobre una spec | — | pendiente |
-| `/plan <NNN>` | comando | Escribe el plan de una spec aprobada y lo pasa al `auditor` | — | pendiente |
-| `/implementar <NNN>` | comando | Lanza `implementador` y después `verificador` | — | pendiente |
-| `/integrar` | comando | `git merge --no-ff carril-<x>` en `V2` + suite completa + regenerar tipos del frontend | — | pendiente |
-| `/estado` | comando | Resumen de specs, planes, carriles y casillas | — | pendiente |
-| `/log-decision` | comando | Añade una fila al registro de iteraciones (§8) con disparador, cambio, efecto y dónde quedó | Edit sobre `docs/verification.md` | pendiente |
+| `/orquestar` | comando | Sesión integradora en `V2`: estado, siguiente trabajo desbloqueado, integración de carriles | — | Llevó los carriles A–K y P, con terminales y sin ellos (implementador y verificador como subagentes en segundo plano); 23 integraciones en V2 |
+| `/carril <X>` | comando | Sesión de un carril en su worktree: por spec, espera dependencias, `git rebase V2`, implementa, verifica, commit | — | Un terminal por carril en la primera oleada (001–011); cada uno terminó con `LISTO` o `BLOQUEADO` |
+| `/spec <NNN>` | comando | Escribe o completa una spec desde los docs; el integrador marca la aprobación, sin revisión (desde el 2026-09-24; antes lanzaba al `auditor`) | — | 30 specs (000–030) aprobadas |
+| `/plan <NNN>` | comando | Escribe el plan de una spec aprobada, un paso por caso, y lo marca el integrador, sin revisión | — | 31 bloques de plan en `TODO.md` |
+| `/implementar <NNN>` | comando | Lanza `implementador` y después `verificador` | — | Usado dentro de `/carril` y de `/orquestar` sin terminales |
+| `/integrar` | comando | `git merge --no-ff carril-<x>` en `V2` + suite completa + regenerar tipos del frontend | — | 23 merges en V2, todos con la suite verde tras el merge (el registro de usos cita los hashes) |
+| `/estado` | comando | Resumen de specs, planes, carriles y casillas | — | Tabla derivada de git y de `.claude/scripts/resumen-todo.awk` |
+| `/log-decision` | comando | Añade una fila al registro de iteraciones (§8) con disparador, cambio, efecto y dónde quedó | Edit sobre `docs/verification.md` | Filas de §8 desde su alta (2026-09-24) |
 
 **Registro de usos** (una fila por uso con resultado):
 
@@ -659,6 +658,10 @@ Definidos en `.claude/agents/` y `.claude/commands/` (orquestación en `AGENTS.m
 | 2026-09-24 | `implementador` 001 (sonnet) + `verificador` | Base | 24/24 pasos no D, 278 pruebas; PASS; integrada (601dfcf) |
 | 2026-09-24 | `implementador` 005 (sonnet) + `verificador` | Guardarraíles | FAIL: el plural en -es de una prohibida pasaba sin marcar (vía de evasión, afín a RT8); prueba que falla → corrección → PASS; integrada (078e9e5) |
 | 2026-09-24 | `implementador` 006 (opus) + `verificador` | TLA+ | 8/8 configs; contraejemplo real de `ReintentosAcotados` (§8 fila 3); PASS; integrada (ab60f80) |
+| 2026-09-24 | `implementador` + `verificador` por carril (A–H), en paralelo | 002, 003, 004, 007, 008, 009, 010, 011, 013, 016 y 022 | PASS e integradas: 8eb97f8, ca1515a, f77cb77, a979f83, 9cc189d, 25ee5a2, bc30f38, d606af4, afb5764, 21c3695, ad27b18 |
+| 2026-09-24 | `implementador` (carril E, frontend) + `verificador` | 026, lectura web | PASS; integrada (438450d) |
+| 2026-09-24 | `implementador` (carril K) + `verificador` | 029, CLI | 5/5 casos no recortados; 1475 pruebas; PASS; integrada (ccf0fc8) |
+| 2026-09-24 | Subagente general de auditoría, solo lectura | Cotejar `project-constraints.md` con el repo | Detectó que faltaban el `CLAUDE.md` de producto, la skill y los prompts de planner, writer y editor (010-I8, 011-I12–I14, de clase I, sin paso en el plan) → carril W; y deriva en el README y en §9 → corregida |
 
 ### 9.5 Memoria
 
