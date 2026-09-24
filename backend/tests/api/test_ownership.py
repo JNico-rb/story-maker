@@ -65,6 +65,29 @@ def _mount_novel_route(app: FastAPI) -> FastAPI:
             novel = owned_or_404(session, Novel, novel_id, lambda n: n.user_id == user_id)
             return {"id": novel.id}
 
+    @app.post("/api/_test/novels", status_code=201)
+    def create_novel(
+        request: Request, body: dict[str, object], user_id: int = Depends(get_current_user_id)
+    ) -> dict[str, int]:
+        del body  # cualquier `user_id` del cuerpo se ignora (002-C21): el dueño sale del token
+        with unit_of_work(request.app.state.session_factory) as uow:
+            novel = Novel(user_id=user_id, title=None, embedding_model="m", created_at=NOW)
+            uow.add(novel)
+        return {"id": novel.id}
+
+    @app.patch("/api/_test/novels/{novel_id}", status_code=200)
+    def confirm_novel_brief(
+        novel_id: int,
+        request: Request,
+        body: dict[str, object],
+        user_id: int = Depends(get_current_user_id),
+    ) -> dict[str, int]:
+        """Representa una escritura sobre la novela (p. ej. confirmar el brief) para 002-C20."""
+        with unit_of_work(request.app.state.session_factory) as uow:
+            novel = owned_or_404(uow.session, Novel, novel_id, lambda n: n.user_id == user_id)
+            novel.title = str(body.get("title", novel.title))
+        return {"id": novel.id}
+
     return app
 
 
@@ -84,6 +107,17 @@ def _mount_run_route(app: FastAPI) -> FastAPI:
             )
             return {"id": run.id}
 
+    @app.post("/api/_test/runs/{run_id}/resume", status_code=200)
+    def resume_run(
+        run_id: int, request: Request, user_id: int = Depends(get_current_user_id)
+    ) -> dict[str, int]:
+        with unit_of_work(request.app.state.session_factory) as uow:
+            run = owned_or_404(
+                uow.session, Run, run_id, lambda r: _novel_owner(uow.session, r.novel_id) == user_id
+            )
+            run.status = "running"
+        return {"id": run.id}
+
     return app
 
 
@@ -100,6 +134,22 @@ def _mount_change_request_route(app: FastAPI) -> FastAPI:
                 lambda c: _novel_owner(session, c.novel_id) == user_id,
             )
             return {"id": change_request.id}
+
+    @app.post("/api/_test/change-requests/{change_request_id}/confirm", status_code=200)
+    def confirm_change_request(
+        change_request_id: int, request: Request, user_id: int = Depends(get_current_user_id)
+    ) -> dict[str, int]:
+        with unit_of_work(request.app.state.session_factory) as uow:
+            change_request = owned_or_404(
+                uow.session,
+                ChangeRequest,
+                change_request_id,
+                lambda c: _novel_owner(uow.session, c.novel_id) == user_id,
+            )
+            if change_request.status != "proposed":
+                raise HTTPException(status_code=409, detail="estado inválido")
+            change_request.status = "confirmed"
+        return {"id": change_request.id}
 
     return app
 
@@ -549,3 +599,91 @@ def test_a_listing_only_contains_the_clients_own(
     novels_a = client.get("/api/_test/novels", headers=headers_a)
     assert world_b["novel_id"] not in [n["id"] for n in novels_a.json()]
     assert world_a["novel_id"] in [n["id"] for n in novels_a.json()]
+
+
+def _novel_title(session_factory: sessionmaker[Session], novel_id: int) -> str | None:
+    session = session_factory()
+    try:
+        novel = session.get(Novel, novel_id)
+        assert novel is not None
+        return novel.title
+    finally:
+        session.close()
+
+
+def _run_status(session_factory: sessionmaker[Session], run_id: int) -> str:
+    session = session_factory()
+    try:
+        run = session.get(Run, run_id)
+        assert run is not None
+        return run.status
+    finally:
+        session.close()
+
+
+def _change_request_status(session_factory: sessionmaker[Session], change_request_id: int) -> str:
+    session = session_factory()
+    try:
+        change_request = session.get(ChangeRequest, change_request_id)
+        assert change_request is not None
+        return change_request.status
+    finally:
+        session.close()
+
+
+def test_someone_elses_write_changes_nothing(
+    client: TestClient, session_factory: sessionmaker[Session]
+) -> None:
+    a_id, _a_token = _register_and_login(client, "cliente-a@example.com")
+    _b_id, b_token = _register_and_login(client, "cliente-b@example.com")
+    world_a = _seed_world(session_factory, a_id)
+    headers_b = {"Authorization": f"Bearer {b_token}"}
+
+    title_before = _novel_title(session_factory, world_a["novel_id"])
+    status_before = _run_status(session_factory, world_a["run_id"])
+    cr_status_before = _change_request_status(session_factory, world_a["change_request_id"])
+
+    delete_term = client.delete(
+        f"/api/_test/banned-terms/{world_a['user_term_id']}", headers=headers_b
+    )
+    confirm_brief = client.patch(
+        f"/api/_test/novels/{world_a['novel_id']}", json={"title": "hackeado"}, headers=headers_b
+    )
+    resume = client.post(f"/api/_test/runs/{world_a['run_id']}/resume", headers=headers_b)
+    confirm_change = client.post(
+        f"/api/_test/change-requests/{world_a['change_request_id']}/confirm", headers=headers_b
+    )
+
+    for response in [delete_term, confirm_brief, resume, confirm_change]:
+        assert response.status_code == 404, response.text
+
+    assert _novel_title(session_factory, world_a["novel_id"]) == title_before
+    assert _run_status(session_factory, world_a["run_id"]) == status_before
+    assert _change_request_status(session_factory, world_a["change_request_id"]) == cr_status_before
+    session = session_factory()
+    try:
+        assert session.get(BannedTerm, world_a["user_term_id"]) is not None
+    finally:
+        session.close()
+
+
+def test_someone_elses_resource_in_a_state_that_would_409_still_answers_404(
+    client: TestClient, session_factory: sessionmaker[Session]
+) -> None:
+    a_id, a_token = _register_and_login(client, "cliente-a@example.com")
+    _b_id, b_token = _register_and_login(client, "cliente-b@example.com")
+    world_a = _seed_world(session_factory, a_id)
+    headers_a = {"Authorization": f"Bearer {a_token}"}
+    headers_b = {"Authorization": f"Bearer {b_token}"}
+
+    already_confirmed = client.post(
+        f"/api/_test/change-requests/{world_a['change_request_id']}/confirm", headers=headers_a
+    )
+    assert already_confirmed.status_code == 200
+
+    b_confirms = client.post(
+        f"/api/_test/change-requests/{world_a['change_request_id']}/confirm", headers=headers_b
+    )
+
+    assert b_confirms.status_code == 404
+    assert b_confirms.status_code != 409
