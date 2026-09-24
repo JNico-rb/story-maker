@@ -431,3 +431,23 @@ def test_check_env_reports_ok_for_langfuse_with_valid_credentials_and_prompts(
     assert result.exit_code == 0
     lines = result.stdout.strip().splitlines()
     assert lines[3] == "observabilidad: ok (Langfuse)"
+
+
+# --- C04: check-env falla si las credenciales de Langfuse no son válidas -----------------------
+
+
+def test_check_env_fails_naming_langfuse_when_credentials_are_invalid(
+    monkeypatch: pytest.MonkeyPatch, base_env: Path, fake_langfuse_client: FakeLangfuseClient
+) -> None:
+    runner.invoke(app, ["init-db"])
+    _set_langfuse_env(monkeypatch)
+    fake_langfuse_client.auth_ok = False
+    _use_fake_langfuse_client(monkeypatch, fake_langfuse_client)
+
+    result = runner.invoke(app, ["check-env"])
+
+    assert result.exit_code == 1
+    assert "Langfuse" in result.stdout
+    assert "credenciales" in result.stdout
+    assert LANGFUSE_ENV["LANGFUSE_SECRET_KEY"] not in result.stdout
+    assert LANGFUSE_ENV["LANGFUSE_PUBLIC_KEY"] not in result.stdout
