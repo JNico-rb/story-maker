@@ -310,7 +310,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 
 ### Steps
 - [x] C4 — Las transiciones de `Harness.tla` son las de §9.1 — modelo con el cambio de C10 (en `gate`, solo el ciclo fallido cuenta un intento); fila `Validar` de C4 y §9.2/§9.4 por actualizar (integrador)
-- [ ] C1 — `Harness.tla` pasa en el modelo pequeño
+- [x] C1 — `Harness.tla` pasa en el modelo pequeño — TLC: sin error, 862.143 estados distintos, 193 s en el portátil (12 núcleos)
 - [ ] C5 — Las transiciones de `Regenerations.tla` son las de §10.2
 - [ ] C2 — `Regenerations.tla` pasa con dos cambios
 - [ ] C3 — Ninguna acción queda sin disparar
