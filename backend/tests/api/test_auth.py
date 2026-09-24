@@ -319,3 +319,20 @@ def test_wrong_credentials_all_answer_401_with_the_same_body(client: TestClient)
         assert response.status_code == 401, response.text
     bodies = {response.text for response in responses}
     assert len(bodies) == 1
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        {"password": "contraseña-1"},
+        {"email": "cliente-a@example.com"},
+        {"email": 12345678, "password": "contraseña-1"},
+        {"email": "cliente-a@example.com", "password": True},
+    ],
+)
+def test_login_with_an_incomplete_body_is_rejected(
+    client: TestClient, body: dict[str, object]
+) -> None:
+    response = client.post("/api/auth/login", json=body)
+
+    assert response.status_code == 422
