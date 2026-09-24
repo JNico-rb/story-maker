@@ -63,6 +63,8 @@ Prioridad: los validadores y su evidencia; lo demás es secundario. La lectura e
 
 **Elecciones de opus:**
 
+- 011 (A): cola FIFO con una sola ejecución activa, reanudación desde punto de control y aceptación atómica entre varias tablas.
+
 ## Carriles
 
 | Carril | Specs en orden | Depende de (fuera del carril) | Worktree | Rama | Estado |
