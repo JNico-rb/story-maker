@@ -12,13 +12,20 @@ export function ChangeRequestPanel({
   selection: Selection;
   onDiscard: () => void;
 }) {
-  const [state] = useState<State>({ step: "form", text: "", submitting: false });
+  const [state, setState] = useState<State>({ step: "form", text: "", submitting: false });
 
   return (
     <form aria-label="Petición de cambio">
       <p>«{selection.quote}»</p>
       <label htmlFor="change-request-text">Petición</label>
-      <textarea id="change-request-text" value={state.text} onChange={() => undefined} />
+      <textarea
+        id="change-request-text"
+        value={state.text}
+        onChange={(event) => setState({ ...state, text: event.target.value })}
+      />
+      <button type="submit" disabled={state.text.trim() === ""}>
+        Pedir el cambio
+      </button>
     </form>
   );
 }
