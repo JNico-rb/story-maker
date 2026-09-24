@@ -112,7 +112,7 @@ Todas dependen de 000. Carril B disuelto y C rehecho (decisión del usuario, 202
 
 ### Steps
 - [x] 001-C03 · Ajustes: valores por defecto, rutas desde la raíz y precedencia del entorno
-- [ ] 001-C04 · Ajustes obligatorios y condicionales
+- [x] 001-C04 · Ajustes obligatorios y condicionales
 - [ ] 001-C01 · El `config.json` del repositorio es válido y lleva los valores de §15.4
 - [ ] 001-C02 · La config se valida entera y nombra cada clave que falta, sobra o no vale
 - [ ] 001-C05 · `.env.example` lista los ajustes sin valores

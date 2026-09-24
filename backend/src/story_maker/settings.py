@@ -1,4 +1,4 @@
-"""Ajustes del servidor: entorno y `.env` de la raíz (`definitions.md` §11.3, `architecture.md` §15.5)."""
+"""Ajustes del servidor: entorno y `.env` de la raíz (`definitions.md` §11.3, `arch.md` §15.5)."""
 
 from __future__ import annotations
 
@@ -6,9 +6,10 @@ import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
+from typing import cast
 
 # settings.py está en backend/src/story_maker/; la raíz del repo es cuatro niveles arriba.
-# Basarse en la ruta del fichero, no en el directorio actual, es lo que hace C3 independiente del cwd.
+# Basarse en la ruta del fichero, no en el directorio actual: eso hace C3 independiente del cwd.
 ROOT = Path(__file__).resolve().parents[3]
 
 _BASE_URL_RE = re.compile(r"^http://[^/\s]+:\d+$")
@@ -64,10 +65,8 @@ def _resolve_path(value: str | None, default: Path) -> Path:
     return path if path.is_absolute() else ROOT / path
 
 
-def load_settings(
-    env: dict[str, str] | None = None, env_file: Path | None = None
-) -> Settings:
-    """Lee ajustes de `env` (por defecto `os.environ`) y del `.env` de la raíz; el entorno prevalece."""
+def load_settings(env: dict[str, str] | None = None, env_file: Path | None = None) -> Settings:
+    """Lee ajustes de `env` (por defecto `os.environ`) y del `.env` raíz; el entorno prevalece."""
     source_env = dict(os.environ if env is None else env)
     dotenv = _read_dotenv(env_file if env_file is not None else ROOT / ".env")
 
@@ -115,16 +114,14 @@ def load_settings(
     if errors:
         raise SettingsError(errors)
 
-    assert jwt_secret is not None
-    assert formal_verifier is not None
     return Settings(
         data_dir=data_dir,
         config_path=config_path,
         base_url=base_url,
         frontend_dist=frontend_dist,
-        jwt_secret=jwt_secret,
+        jwt_secret=cast(str, jwt_secret),
         llm_provider=llm_provider,
-        formal_verifier=formal_verifier,
+        formal_verifier=cast(str, formal_verifier),
         github_repository=get("GITHUB_REPOSITORY"),
         lean_workflow=get("LEAN_WORKFLOW"),
         github_token=get("GITHUB_TOKEN"),
