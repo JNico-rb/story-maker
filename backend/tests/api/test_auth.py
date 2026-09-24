@@ -288,3 +288,34 @@ def test_login_email_is_case_insensitive(client: TestClient) -> None:
         issuer="story-maker",
     )
     assert payload["sub"] == str(user_id)
+
+
+def test_wrong_credentials_all_answer_401_with_the_same_body(client: TestClient) -> None:
+    client.post(
+        "/api/auth/register",
+        json={"email": "cliente-a@example.com", "password": "contraseña-1"},
+    )
+
+    wrong_password = client.post(
+        "/api/auth/login",
+        json={"email": "cliente-a@example.com", "password": "otra-cosa"},
+    )
+    unregistered_email = client.post(
+        "/api/auth/login",
+        json={"email": "no-existe@example.com", "password": "contraseña-1"},
+    )
+    empty_password = client.post(
+        "/api/auth/login", json={"email": "cliente-a@example.com", "password": ""}
+    )
+    long_password = client.post(
+        "/api/auth/login", json={"email": "cliente-a@example.com", "password": "a" * 73}
+    )
+    malformed_email = client.post(
+        "/api/auth/login", json={"email": "cliente-a.example.com", "password": "contraseña-1"}
+    )
+
+    responses = [wrong_password, unregistered_email, empty_password, long_password, malformed_email]
+    for response in responses:
+        assert response.status_code == 401, response.text
+    bodies = {response.text for response in responses}
+    assert len(bodies) == 1
