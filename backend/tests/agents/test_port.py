@@ -242,3 +242,67 @@ async def test_every_tool_call_goes_through_the_policy_first_and_its_decision_ap
     assert reads[1] == "skill no admitida"
     assert reads[3] == "término prohibido"
     assert reads[4] == "tool fuera de la lista blanca del rol"
+
+
+class ChapterPlan(BaseModel):
+    title: str
+    beats: list[str]
+
+
+class OutlineInput(BaseModel):
+    dedication: str
+    chapters: list[ChapterPlan]
+    banned: list[str]
+
+
+def fields_of(request: PolicyRequest) -> list[tuple[str, str, bool]]:
+    return [(f.path, f.value, f.narrative) for f in request.fields]
+
+
+async def test_the_policy_receives_as_narrative_only_the_fields_the_tool_marks(
+    port: AgentPort,
+    fake: FakeAgent,
+    policy: Any,
+    make_request: Callable[..., SessionRequest],
+) -> None:
+    outline = ToolSpec(
+        name="submit_plan", model=OutlineInput, narrative=("dedication", "chapters[].beats[]")
+    )
+    plan = {
+        "dedication": "Para Ana",
+        "chapters": [
+            {"title": "Uno", "beats": ["llega", "duda"]},
+            {"title": "Dos", "beats": ["vuelve"]},
+        ],
+        "banned": ["marta"],
+    }
+    fake.script("planner", "plan", Script(steps=(Call("submit_plan", plan),), usage=USAGE))
+    fake.script(
+        "writer",
+        "write",
+        Script(steps=(Call("Skill", {"skill": "personalizacion-natural"}),), usage=USAGE),
+    )
+    fake.script(
+        "visual_reviewer",
+        None,
+        Script(
+            steps=(Call("browser_navigate", {"url": "http://127.0.0.1:8000/view/1"}),), usage=USAGE
+        ),
+    )
+
+    await port.run(make_request("planner", "plan", tools=(outline,)))
+    await port.run(make_request("writer", "write"))
+    await port.run(make_request("visual_reviewer"))
+
+    plan_request, skill_request, navigate_request = policy.requests
+    assert fields_of(plan_request) == [
+        ("dedication", "Para Ana", True),
+        ("chapters[0].title", "Uno", False),
+        ("chapters[0].beats[0]", "llega", True),
+        ("chapters[0].beats[1]", "duda", True),
+        ("chapters[1].title", "Dos", False),
+        ("chapters[1].beats[0]", "vuelve", True),
+        ("banned[0]", "marta", False),
+    ]
+    assert fields_of(skill_request) == [("skill", "personalizacion-natural", False)]
+    assert fields_of(navigate_request) == [("url", "http://127.0.0.1:8000/view/1", False)]

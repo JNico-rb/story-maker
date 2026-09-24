@@ -7,6 +7,7 @@ adaptador solo conduce la sesión y llama a los hooks de `LiveSession` como lo h
 
 from __future__ import annotations
 
+import re
 import time
 from collections.abc import Callable, Sequence
 from contextlib import AbstractContextManager, ExitStack
@@ -197,6 +198,7 @@ class LiveSession:
 
     def before_tool(self, call_id: str, tool: str, tool_input: dict[str, Any]) -> str | None:
         """Hook de policy (`PreToolUse`): None deja correr la tool; un texto la deniega."""
+        spec = self._specs.get(tool)
         decision = self.policy.decide(
             PolicyRequest(
                 origin="policy_hook",
@@ -205,7 +207,7 @@ class LiveSession:
                 run_id=self.request.run_id,
                 role=self.request.role,
                 tool=tool,
-                fields=_fields(tool_input),
+                fields=_fields(tool_input, spec.narrative if spec else ()),
             )
         )
         if decision.decision == "deny":
@@ -281,12 +283,28 @@ class LiveSession:
         self.calls.append(call)
 
 
-def _fields(tool_input: dict[str, Any]) -> tuple[PolicyField, ...]:
+def _fields(tool_input: dict[str, Any], narrative: tuple[str, ...]) -> tuple[PolicyField, ...]:
+    """Cada texto de la entrada con su ruta; narrativo si su ruta, sin índices, está marcada.
+
+    La política nunca debe escanear lo no marcado, como una lista de prohibidas (§7.5)."""
     return tuple(
-        PolicyField(path=key, value=value, narrative=False)
-        for key, value in tool_input.items()
-        if isinstance(value, str)
+        PolicyField(path=path, value=value, narrative=re.sub(r"\[\d+\]", "[]", path) in narrative)
+        for path, value in _texts(tool_input, "")
     )
+
+
+def _texts(value: Any, path: str) -> list[tuple[str, str]]:
+    if isinstance(value, str):
+        return [(path, value)]
+    if isinstance(value, dict):
+        return [
+            text
+            for key, item in value.items()
+            for text in _texts(item, f"{path}.{key}" if path else str(key))
+        ]
+    if isinstance(value, list):
+        return [text for i, item in enumerate(value) for text in _texts(item, f"{path}[{i}]")]
+    return []
 
 
 class AgentPort:
