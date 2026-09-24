@@ -99,12 +99,12 @@ Todas dependen de 000. Arranque en paralelo cuando 000 esté cerrada: A (001), C
 - [x] 000-C07 · La SPA muestra la cabecera de marca en la ruta raíz
 - [x] 000-C08 · El tema define la marca y el logotipo es el de `images/`
 - [x] 000-I3 · Fuera de la definición de tokens, ningún fichero de `frontend/src/` contiene un color hexadecimal ni declara una familia tipográfica
-- [ ] 000-C09 · `guard-secretos` decide por la forma del texto nuevo
-- [ ] 000-C10 · `guard-plan` bloquea pruebas y código sin plan aprobado con pasos pendientes
-- [ ] 000-I5 · Los hooks deciden igual con el directorio actual en un subdirectorio
-- [ ] 000-C11 · Los ajustes del proyecto registran los hooks y las denegaciones
-- [ ] 000-C12 · El espejo de memoria está completo y saneado
-- [ ] 000-I4 · Ningún fichero versionado contiene una cadena con forma de clave
+- [x] 000-C09 · `guard-secretos` decide por la forma del texto nuevo
+- [x] 000-C10 · `guard-plan` bloquea pruebas y código sin plan aprobado con pasos pendientes
+- [x] 000-I5 · Los hooks deciden igual con el directorio actual en un subdirectorio
+- [x] 000-C11 · Los ajustes del proyecto registran los hooks y las denegaciones
+- [x] 000-C12 · El espejo de memoria está completo y saneado
+- [x] 000-I4 · Ningún fichero versionado contiene una cadena con forma de clave
 - [ ] 000-C13 · Cada herramienta falla ante su defecto sembrado
 - [ ] 000-C14 · Un clon limpio funciona en el portátil
 - [ ] 000-C20 · TLC arranca en el portátil sobre Temurin portable
@@ -171,8 +171,8 @@ Todas dependen de 000. Arranque en paralelo cuando 000 esté cerrada: A (001), C
 
 ## 006 — especificacion-tla
 
-- [ ] Spec `specs/backend/006-especificacion-tla.md` approved
-- [ ] Plan below approved
+- [x] Spec `specs/backend/006-especificacion-tla.md` approved — auditor 2026-09-24: ronda 2; 10 casos (4 A, 4 I, 2 D) e 11 invariantes (6 A, 4 I, 1 U) trazados contra arq §7.6, §8.3–§8.4, §9.1–§9.4, §10.1–§10.3, §11.1–§11.2, §11.5, §16.18, §18, definitions §5, §6, §9, §12.3, verif §2, §3.6, §4.6, §4.10, §5, §6 U30, §8, constraints §5d y 000; las 4 contradicciones de la ronda 1 cerradas en los docs; sin bloqueantes; menores: I9 e I11 citan 011, 012 y 014 donde verif §4.10 y U30 dicen 010, 011, 012, 014 y 019; C10 omite la columna Efecto de verif §8; C7 dice que el push a V2 lo decide el integrador y 000-C18 que el usuario; «Excepción de la 006» debería decir que son términos de definitions §9; la tabla de C9 junta `Gate` y `Publicar` en una fila
+- [x] Plan below approved — auditor 2026-09-24: ronda 1; 10 pasos, uno por caso (C1–C10), sin invariantes T, con los nombres de la spec; el orden construye antes de usar (modelo → pasada → cobertura → controles → README → registro → portátil → CI); cierre con el formato de AGENTS.md; sin bloqueantes; menores: ninguno
 
 ### Steps
 - [ ] C4 — Las transiciones de `Harness.tla` son las de §9.1

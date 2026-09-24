@@ -1,5 +1,7 @@
 """Lo que git versiona e ignora en el repositorio (spec 000)."""
 
+import json
+import re
 import subprocess
 from pathlib import Path
 
@@ -99,3 +101,98 @@ def test_a_crlf_file_enters_the_index_with_lf_and_without_warnings(tmp_path: Pat
     assert added.returncode == 0
     assert "LF will be replaced by CRLF" not in added.stderr
     assert [line.split()[0] for line in eols] == ["i/lf", "i/lf"]
+
+
+def test_project_settings_register_the_hooks_and_the_permissions() -> None:
+    settings = json.loads((ROOT / ".claude" / "settings.json").read_text(encoding="utf-8"))
+
+    (entry,) = settings["hooks"]["PreToolUse"]
+    assert entry["matcher"] == "Edit|Write|MultiEdit"
+    assert [hook["command"] for hook in entry["hooks"]] == [
+        'node "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-secretos.mjs"',
+        'node "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-plan.mjs"',
+    ]
+    permissions = settings["permissions"]
+    assert sorted(permissions["deny"]) == sorted(
+        [
+            "Read(.env)",
+            "Read(**/.env)",
+            "Read(.claude/settings.local.json)",
+            "Bash(git push --force*)",
+            "Bash(git push -f*)",
+        ]
+    )
+    assert sorted(permissions["allow"]) == sorted(
+        [
+            "Bash(uv *)",
+            "Bash(pnpm.cmd *)",
+            "Bash(node *)",
+            "Bash(java *)",
+            "Bash(git status*)",
+            "Bash(git diff*)",
+            "Bash(git log*)",
+            "Bash(git show*)",
+            "Bash(git add*)",
+            "Bash(git commit*)",
+            "Bash(git branch*)",
+            "Bash(git worktree*)",
+            "Bash(git merge*)",
+            "Bash(git rebase*)",
+        ]
+    )
+    assert not [rule for rule in permissions["allow"] if rule.startswith("Bash(git push")]
+    assert permissions["additionalDirectories"] == [f"../sm-{x}" for x in "abcde"]
+
+
+MEMORY = ROOT / ".claude" / "memory"
+LEAKS = {
+    "email": re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)*\.[A-Za-z]{2,}\b"),
+    "user profile path": re.compile(r"[A-Za-z]:[\\/]Users[\\/]|/home/|/Users/"),
+    "uuid": re.compile(r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b", re.I),
+    "company name": re.compile(r"qaracter", re.I),
+}
+
+
+def test_the_memory_mirror_has_one_file_per_index_entry_and_nothing_else() -> None:
+    index = (MEMORY / "MEMORY.md").read_text(encoding="utf-8")
+    linked = set(re.findall(r"\]\(([^)]+\.md)\)", index))
+    files = {p.name for p in MEMORY.glob("*.md")} - {"MEMORY.md", "README.md"}
+
+    assert (MEMORY / "README.md").is_file()
+    assert linked
+    assert linked == files
+
+
+@pytest.mark.parametrize("leak", LEAKS)
+def test_the_memory_mirror_is_sanitised(leak: str) -> None:
+    offenders = [
+        p.name for p in MEMORY.glob("*.md") if LEAKS[leak].search(p.read_text(encoding="utf-8"))
+    ]
+
+    assert offenders == []
+
+
+def test_no_versioned_file_holds_a_key_shaped_string() -> None:
+    # Same scan as the CI job: every finding must be an audited false positive in the baseline.
+    from detect_secrets import SecretsCollection
+    from detect_secrets.settings import default_settings
+
+    baseline = json.loads((ROOT / ".secrets.baseline").read_text(encoding="utf-8"))
+    audited = {
+        (name, item["hashed_secret"])
+        for name, items in baseline["results"].items()
+        for item in items
+        if item.get("is_secret") is False
+    }
+    skipped = re.compile(baseline["filters_used"][-1]["pattern"][0])
+    files = [
+        f
+        for f in git("ls-files").stdout.splitlines()
+        if f != ".secrets.baseline" and not skipped.search(f)
+    ]
+    secrets = SecretsCollection(root=str(ROOT))
+    with default_settings():
+        secrets.scan_files(*files)
+
+    found = {(name.replace("\\", "/"), secret.secret_hash) for name, secret in secrets} - audited
+    assert found == set()

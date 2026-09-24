@@ -1,0 +1,38 @@
+---
+name: entorno-windows-sin-admin
+description: La máquina es un portátil corporativo Windows sin admin, sin Visual C++ Redistributable y con Smart App Control en Enforce; obliga a pnpm 10.x, a shims .cmd y a ejecutar Lean fuera del portátil
+metadata: 
+  node_type: memory
+  type: project
+  modified: 2026-09-23T13:14:02.953Z
+---
+
+El equipo de trabajo es un portátil corporativo (Windows 11) **sin privilegios de administrador**. Node vive en el perfil de usuario, extraído de un zip portable en `%LOCALAPPDATA%\Programs\node\node-v24.21.0-win-x64`, añadido al PATH de usuario. Mismo patrón que VS Code y Git, que IT ya mandó instalar así.
+
+Dos restricciones del entorno condicionan el tooling y no se ven en el código:
+
+**1. No está el Visual C++ Redistributable 2015-2022.** En `System32` solo están las variantes `_clr0400` (las de .NET Framework); faltan `vcruntime140.dll`, `vcruntime140_1.dll` y `msvcp140.dll`. Instalarlo requiere admin. Consecuencia: **pnpm 11+ no arranca** — su binario nativo muere con `0xC0000135` (STATUS_DLL_NOT_FOUND) sin imprimir nada. Hay que quedarse en **pnpm 10.x**, que es JavaScript puro y corre sobre `node.exe`. Encaja además con el `lockfileVersion: 9.0` de `frontend/pnpm-lock.yaml`. Si Corepack ofrece actualizar a 12.x, ignorar el aviso.
+
+**1-bis. El runtime de VC++ sí se puede tener en espacio de usuario, vía el paquete PyPI `msvc-runtime`** (probado 2026-09-22 con `fastembed`, que arrastra `onnxruntime`): instala `msvcp140.dll` y `vcruntime140.dll` dentro del venv, y basta copiarlas junto al `.pyd` que las reclama —`site-packages/onnxruntime/capi/`— para que el `import` deje de fallar con `DLL load failed`. Además, la caché de HuggingFace no puede crear enlaces simbólicos (`WinError 1314`): reintenta y termina bien, pero conviene desactivarlos por variable de entorno. Con ambas cosas, `fastembed` produce embeddings reales. Esto no arregla pnpm 11+, que muere antes de que nada pueda copiar DLLs.
+
+**2. La ExecutionPolicy de PowerShell está en `Restricted`.** Es el valor de fábrica, no una GPO — `MachinePolicy` y `UserPolicy` están en `Undefined`. Se decidió **no cambiarla**: en su lugar los shims `npm.ps1`, `npx.ps1`, `pnpm.ps1`, `pnpx.ps1`, `yarn.ps1` y `yarnpkg.ps1` están renombrados a `.ps1.disabled`, de modo que PowerShell cae en los `.cmd`, que no están sujetos a la política. Si una actualización de Node o un `corepack enable` los regenera, hay que volver a desactivarlos.
+
+**3. No hay CLI de GitHub (`gh`) y la API de GitHub está sin autenticar.** El límite anónimo son 60 peticiones/hora por IP corporativa, que se agota rápido al explorar repos. Para traer ficheros concretos de un repo público, usar clon parcial en vez de la API: `git clone --depth 1 --filter=blob:none --sparse <url>` seguido de `git sparse-checkout set <ruta>`. Funciona sin credenciales y sin consumir cuota.
+
+**4. Smart App Control (SAC) está en modo Enforce** (`HKLM\SYSTEM\CurrentControlSet\Control\CI\Policy\VerifiedAndReputablePolicyState = 1`, verificado 2026-09-23). Bloquea binarios y DLL **sin firma y sin reputación en la nube**. Síntoma: el proceso muere con `0xC0E90002` (`STATUS_SYSTEM_INTEGRITY_POLICY_VIOLATION`), que **Git Bash muestra como rc=127 sin mensaje**, igual que una DLL ausente. Diagnóstico sin admin: `certutil -error <código>` y el log `Microsoft-Windows-CodeIntegrity/Operational` (evento 3077 = qué fichero bloqueó). SAC no admite excepciones por fichero. Pasan: lo firmado (JDK Temurin) y lo no firmado con reputación (elan). Caen: **las DLL de Lean 4 (`libleanshared*.dll`, probado con v4.34.0 y v4.12.0), así que Lean/`lake build` no corre en este portátil** y sus puertas tienen que ir a CI Linux. **spaCy 3.8.16: SAC bloquea el wheel de Python 3.14** (`spacy\parts_of_speech.cp314-win_amd64.pyd`, evento 3077), pero **con Python 3.12 carga y analiza** si las DLL de `msvc-runtime` están en el camino de búsqueda (reprobado 2026-09-23; sin ellas el error es `DLL load failed ... No se puede encontrar el módulo especificado`, que no es SAC). La reputación de SAC va por hash de fichero: cada versión nueva de un paquete compilado hay que reprobarla. Pasan también bcrypt, fastmcp, fastapi, claude-agent-sdk (su `claude.exe` va firmado por Anthropic), sqlite-vec, onnxruntime/fastembed, greenlet y Playwright. Para `DLL load failed` por falta de `msvcp140.dll` hay un arreglo más general que copiar DLL: `msvc-runtime` en el venv más un `.pth` con `import os, sys; os.add_dll_directory(sys.prefix)`. El log ya registraba bloqueos anteriores de `python.exe`/`python3.14.exe` y `find.exe` (origen no investigado).
+
+**5. Hallazgos del toolchain check 2026-09-23** (detalle en `%USERPROFILE%\toolchain-check\REPORT.md`):
+- El JDK portable (zip Temurin 21) funciona sin Redist porque trae sus `vcruntime140*.dll` en `bin/`. TLA+ (tla2tools.jar + TLC por CLI) va bien en local; TLC sale con rc=12 si se viola un invariante.
+- Playwright (librería y MCP) usa el Edge/Chrome instalados con `--browser msedge|chrome` / `channel: "msedge"`, sin descargar navegadores. Un `--browser` inválido cae en silencio a Chrome. El MCP vuelca snapshots en `<cwd>/.playwright-mcp/` (ya en `.gitignore`). Forma en `.mcp.json`: `cmd /c npx -y @playwright/mcp@<ver>`. **La 0.0.82 bloquea `file://` por defecto** (probado 2026-09-23): un HTML local se inspecciona sirviéndolo en `http://127.0.0.1`, sin `--allow-unrestricted-file-access`.
+- La extensión de VS Code de Claude Code (camino Agent SDK) **rechaza `${VAR}` en el campo `url`** de un servidor MCP (`'url' is not a valid URL`), mientras que la CLI sí lo expande y conecta. La expansión en cabeceras funciona en ambos. Por eso el MCP de Langfuse debe usar la URL literal y el secreto solo en la cabecera.
+- La organización Langfuse es posterior al 16-sep-2026: la API legacy (`/api/public/traces`) responde 410. Hay que leer por `/api/public/v2/observations` y scores v3. Con claves inválidas el SDK v4 exporta en silencio (solo un log 401, rc=0); detectar el fallo exige `auth_check()` o leer la traza de vuelta.
+
+**6. Hallazgos de la comprobación de §15.3 (2026-09-23):**
+- **`LongPathsEnabled = 0`**: Python no abre rutas de más de 260 caracteres (`WinError 206`, o un módulo que "no existe"), aunque el CLI de Claude sí las escribe. La carpeta scratchpad de la sesión es demasiado profunda para venvs y cachés de HuggingFace: usar una carpeta temporal corta (`%TEMP%\smchk`).
+- `uv` elige el Python más nuevo instalado (3.14.7) si `requires-python = ">=3.12"` y no hay `.python-version`.
+- **uvicorn con `--reload` rompe el Agent SDK en Windows**: usa un bucle selector sin subprocesos y el SDK falla con `CLIConnectionError('Failed to start Claude Code: ')`. Sin `--reload` funciona.
+- Comportamientos del Agent SDK sobre OpenRouter medidos ese día: [[project-agent-sdk-openrouter-hechos]].
+
+**Why:** El usuario prefirió no relajar ningún control de seguridad en una máquina de empresa pudiendo evitarlo. Node se instaló solo porque queda al mismo nivel que VS Code y Git, que IT ya había mandado instalar con el mismo método.
+
+**How to apply:** Antes de proponer instalar cualquier herramienta, asumir que no hay admin y que nada puede escribir en `Program Files` ni en `HKLM`. Al depurar un ejecutable que falla sin mensaje, sospechar de la DLL que falta o de un bloqueo de SAC antes que del código: sacar el exit code real desde PowerShell (`Start-Process -PassThru`); `0xC0000135` = DLL ausente, `0xC0E90002` = SAC. Nunca proponer desactivar SAC como workaround: es cosa de IT. Nunca sugerir subir pnpm a 12.x ni tocar la ExecutionPolicy sin plantearlo antes. En Git Bash los shims bash de Corepack fallan: invocar `pnpm.cmd` explícitamente.

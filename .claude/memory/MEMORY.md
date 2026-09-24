@@ -1,0 +1,11 @@
+- [Entorno Windows sin admin](entorno-windows-sin-admin.md) — portátil corporativo sin admin ni VC++ Redist y con Smart App Control en Enforce: pnpm 10.x, shims .cmd, Lean solo en CI; ExecutionPolicy intacta a propósito.
+- [Máxima de simplicidad](feedback-maxima-simplicidad.md) — lo más fácil posible, tan difícil como haga falta; dificultad deliberada solo en RAG, Langfuse, MCP, Agent SDK, Lean, TLA+.
+- [Examen de Harness Engineering](project-examen-harness.md) — project-constraints.md es el encargo; lo opcional se hace entero; se mantiene el tema post-IA.
+- [Respuestas cortas](feedback-respuestas-cortas.md) — ≤10 líneas, al grano, también en estrategia; ampliar solo si lo pide.
+- [docs/ limpio](feedback-docs-limpio.md) — solo los cuatro de referencia + adr/ + relational-matrix.md; ficheros nuevos solo si son imprescindibles o temporales.
+- [Aprobaciones delegadas](project-aprobaciones-delegadas.md) — desde 2026-09-24 auditor (sin bloqueantes, ≤2 rondas; menores anotados) y verificador marcan las casillas; al usuario solo escalados y tareas humanas.
+- [Specs antes que código](feedback-specs-antes-que-codigo.md) — nada de código, ni scaffolding, antes de su spec aprobada; si se escapa, no borrar: spec a posteriori y verificar.
+- [Reinicio lean de V2](project-v2-reinicio-lean.md) — 2026-09-24: solo rama V2; docs lean (ADR 0006), scaffolding y 21 specs backend aquí; implementación por carriles A–D en otro chat.
+- [Paralelismo inteligente](feedback-paralelismo-inteligente.md) — paralelizar en anchura dentro de una capa, nunca saltar capas; un solo escritor en V2.
+- [Agent SDK sobre OpenRouter](project-agent-sdk-openrouter-hechos.md) — medido 2026-09-23: tools=[] quita Skill, CLAUDE.md de los padres y .mcp.json raíz se cuelan, usage por turno a cero; ya en los docs (§8 filas 11–14), queda el detalle para el design de 001.
+- [Subagentes y cuota](feedback-subagentes-cuota.md) — ≤2 subagentes a la vez; auditor opus, redactor/verificador/implementador sonnet (salvo 006, 007, 012, 014); sin cuota se para, nunca se recorta alcance.

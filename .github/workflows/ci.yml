@@ -1,13 +1,19 @@
-# CI: backend, frontend, Lean y TLC en cada push y pull request.
+# CI of V2 (verification.md §4.6): no job calls a model or Langfuse, and none uses repository secrets.
 name: ci
 
 on:
   push:
+    branches: [V2]
   pull_request:
-  workflow_dispatch:
+    branches: [V2]
 
 permissions:
   contents: read
+
+env:
+  # Pinned tools (spec 000-I1); the laptop uses the same versions (tla/README.md).
+  TEMURIN_VERSION: "21.0.12+8"
+  TLA2TOOLS_VERSION: "v1.7.4"
 
 jobs:
   backend:
@@ -34,7 +40,7 @@ jobs:
         working-directory: frontend
     steps:
       - uses: actions/checkout@v5
-      # La versión exacta de pnpm sale de packageManager en frontend/package.json.
+      # The exact pnpm version comes from packageManager in frontend/package.json.
       - uses: pnpm/action-setup@v4
         with:
           package_json_file: frontend/package.json
@@ -44,46 +50,63 @@ jobs:
           cache: pnpm
           cache-dependency-path: frontend/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
-      - run: pnpm lint
       - run: pnpm typecheck
-      - run: pnpm build
+      - run: pnpm lint
       - run: pnpm test
+      - run: pnpm build
+      # Development hooks: Node standard library only, nothing to install (spec 000-I11).
+      - run: node --test "../.claude/hooks/*.test.mjs"
 
-  lean:
-    # Lean no corre en el portátil de desarrollo (Smart App Control): solo aquí.
+  formal:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      # Lean does not run on the development laptop (Smart App Control, ADR 0004): only here.
       - uses: leanprover/lean-action@v1
         with:
           lake-package-directory: lean
           auto-config: false
           build: true
-
-  tla:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
+          build-args: "--wfail"
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "21"
-      - name: TLC sobre cada tla/*.tla con su .cfg
+          java-version: ${{ env.TEMURIN_VERSION }}
+      - name: TLC
         run: |
+          curl -fsSL -o tla/tla2tools.jar \
+            "https://github.com/tlaplus/tlaplus/releases/download/${TLA2TOOLS_VERSION}/tla2tools.jar"
+          java -cp tla/tla2tools.jar tlc2.TLC -h | head -n 3
           shopt -s nullglob
-          specs=()
-          for spec in tla/*.tla; do
-            if [ -f "${spec%.tla}.cfg" ]; then specs+=("$(basename "$spec" .tla)"); fi
-          done
-          if [ ${#specs[@]} -eq 0 ]; then
-            echo "Ninguna especificación con .cfg todavía."
+          cfgs=(tla/*.cfg)
+          if [ ${#cfgs[@]} -eq 0 ]; then
+            echo "tla/ no tiene especificaciones todavía (llegan con la spec 006)."
             exit 0
           fi
-          curl -fsSL -o tla2tools.jar \
-            https://github.com/tlaplus/tlaplus/releases/latest/download/tla2tools.jar
           cd tla
-          for name in "${specs[@]}"; do
-            echo "::group::TLC $name"
-            java -XX:+UseParallelGC -jar ../tla2tools.jar -config "$name.cfg" -workers auto "$name.tla"
+          for cfg in *.cfg; do
+            echo "::group::TLC $cfg"
+            java -XX:+UseParallelGC -jar tla2tools.jar -config "$cfg" -workers auto "${cfg%%.*}.tla"
             echo "::endgroup::"
           done
+
+  seguridad:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          python-version: "3.12"
+      - run: uv sync --frozen --project backend
+      # Blocking: only audited false positives of .secrets.baseline may appear.
+      - run: git ls-files -z | xargs -0 uv run --project backend detect-secrets-hook --baseline .secrets.baseline
+      # Informative: triaged in the security audit (verification.md §4.11).
+      - run: uv run --project backend pip-audit
+        continue-on-error: true
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: frontend/package.json
+      - run: pnpm audit
+        working-directory: frontend
+        continue-on-error: true
