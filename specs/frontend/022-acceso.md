@@ -1,6 +1,6 @@
 # 022 — Acceso
 
-> Carril: E · Depende de: 000-scaffolding, 002-autenticacion · Estado: borrador
+> Carril: E · Depende de: 000-scaffolding, 002-autenticacion · Estado: aprobada sin revisión (decisión del usuario, 2026-09-24)
 
 ## Objetivo
 

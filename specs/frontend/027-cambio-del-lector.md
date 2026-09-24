@@ -1,6 +1,6 @@
 # 027 — Cambio del lector
 
-> Carril: E · Depende de: 026-lectura, 025-progreso, 014-cambios-del-lector · Estado: borrador
+> Carril: E · Depende de: 026-lectura, 025-progreso, 014-cambios-del-lector · Estado: aprobada sin revisión (decisión del usuario, 2026-09-24)
 
 ## Objetivo
 

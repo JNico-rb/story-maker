@@ -1,6 +1,6 @@
 # 002 — Autenticación
 
-> Carril: C · Depende de: 001-base · Estado: borrador
+> Carril: C · Depende de: 001-base · Estado: aprobada sin revisión (decisión del usuario, 2026-09-24)
 
 ## Objetivo
 

@@ -1,6 +1,6 @@
 # 001 — Base
 
-> Carril: A · Depende de: 000 · Estado: borrador
+> Carril: A · Depende de: 000 · Estado: aprobada sin revisión (decisión del usuario, 2026-09-24)
 
 ## Objetivo
 

@@ -1,6 +1,6 @@
 # 015 — Servidor MCP
 
-> Carril: B · Depende de: 002-autenticacion, 013-lectura-y-pdf, 014-cambios-del-lector · Estado: borrador
+> Carril: B · Depende de: 002-autenticacion, 013-lectura-y-pdf, 014-cambios-del-lector · Estado: aprobada sin revisión (decisión del usuario, 2026-09-24)
 
 ## Objetivo
 

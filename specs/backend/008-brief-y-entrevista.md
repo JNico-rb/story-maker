@@ -1,6 +1,6 @@
 # 008 — Brief y entrevista
 
-> Carril: C · Depende de: 002, 003, 004, 005 (y 001, base de todas) · Estado: borrador
+> Carril: C · Depende de: 002, 003, 004, 005 (y 001, base de todas) · Estado: aprobada sin revisión (decisión del usuario, 2026-09-24)
 
 ## Objetivo
 

@@ -1,6 +1,6 @@
 # 010 — Planificación
 
-> Carril: A · Depende de: 003-puerto-de-agente, 004-observabilidad, 009-story-bible-y-versiones · Estado: borrador
+> Carril: A · Depende de: 003-puerto-de-agente, 004-observabilidad, 009-story-bible-y-versiones · Estado: aprobada sin revisión (decisión del usuario, 2026-09-24)
 
 ## Objetivo
 

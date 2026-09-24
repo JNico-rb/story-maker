@@ -1,6 +1,6 @@
 # 026 — Lectura
 
-> Carril: E · Depende de: 022-acceso, 013-lectura-y-pdf · Estado: borrador
+> Carril: E · Depende de: 022-acceso, 013-lectura-y-pdf · Estado: aprobada sin revisión (decisión del usuario, 2026-09-24)
 
 ## Objetivo
 

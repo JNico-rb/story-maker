@@ -1,6 +1,6 @@
 # 012 — Gate de publicación
 
-> Carril: A · Depende de: 007-validador-lean, 011-produccion-de-capitulos · Estado: borrador
+> Carril: A · Depende de: 007-validador-lean, 011-produccion-de-capitulos · Estado: aprobada sin revisión (decisión del usuario, 2026-09-24)
 
 ## Objetivo
 

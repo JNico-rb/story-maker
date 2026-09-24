@@ -1,6 +1,6 @@
 # 019 — Edición manual
 
-> Carril: C · Depende de: 012-gate-de-publicacion, 018-linters-de-prosa; usa además la maquinaria de 014-cambios-del-lector (ver Autorrevisión) · Estado: borrador
+> Carril: C · Depende de: 012-gate-de-publicacion, 018-linters-de-prosa; usa además la maquinaria de 014-cambios-del-lector (ver Autorrevisión) · Estado: aprobada sin revisión (decisión del usuario, 2026-09-24)
 
 ## Objetivo
 

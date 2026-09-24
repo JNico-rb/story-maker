@@ -1,6 +1,6 @@
 # 017 — Revisión visual
 
-> Carril: B · Depende de: 012-gate-de-publicacion, 013-lectura-y-pdf (y, a través de ellas, 003, 005, 009 y 011) · Estado: borrador
+> Carril: B · Depende de: 012-gate-de-publicacion, 013-lectura-y-pdf (y, a través de ellas, 003, 005, 009 y 011) · Estado: aprobada sin revisión (decisión del usuario, 2026-09-24)
 
 ## Objetivo
 

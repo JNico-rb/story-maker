@@ -1,6 +1,6 @@
 # 009 — Story bible y versiones
 
-> Carril: B · Depende de: 001-base · Estado: borrador. Usa además dos contratos que la tabla de `TODO.md` no lista: el modelo del brief confirmado de 008-brief-y-entrevista (009-C01 a 009-C10) y la identidad y la propiedad de 002-autenticacion (009-C25 a 009-C27).
+> Carril: B · Depende de: 001-base · Estado: aprobada sin revisión (decisión del usuario, 2026-09-24). Usa además dos contratos que la tabla de `TODO.md` no lista: el modelo del brief confirmado de 008-brief-y-entrevista (009-C01 a 009-C10) y la identidad y la propiedad de 002-autenticacion (009-C25 a 009-C27).
 
 ## Objetivo
 

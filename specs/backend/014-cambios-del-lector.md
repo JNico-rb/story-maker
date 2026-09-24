@@ -1,6 +1,6 @@
 # 014 — Cambios del lector
 
-> Carril: A · Depende de: 012-gate-de-publicacion (y, a través de ella, 003, 005, 009, 010 y 011); usa además 002-autenticacion (propiedad) y la cota de longitud de 008-brief-y-entrevista · Estado: borrador
+> Carril: A · Depende de: 012-gate-de-publicacion (y, a través de ella, 003, 005, 009, 010 y 011); usa además 002-autenticacion (propiedad) y la cota de longitud de 008-brief-y-entrevista · Estado: aprobada sin revisión (decisión del usuario, 2026-09-24)
 
 ## Objetivo
 

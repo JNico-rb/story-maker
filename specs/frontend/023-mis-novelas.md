@@ -1,6 +1,6 @@
 # 023 — Mis novelas
 
-> Carril: E · Depende de: 022-acceso, 005-guardarrailes, 008-brief-y-entrevista · Estado: borrador
+> Carril: E · Depende de: 022-acceso, 005-guardarrailes, 008-brief-y-entrevista · Estado: aprobada sin revisión (decisión del usuario, 2026-09-24)
 
 ## Objetivo
 

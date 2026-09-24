@@ -1,6 +1,6 @@
 # 025 — Progreso
 
-> Carril: E · Depende de: 024-entrevista, 011-produccion-de-capitulos · Estado: borrador
+> Carril: E · Depende de: 024-entrevista, 011-produccion-de-capitulos · Estado: aprobada sin revisión (decisión del usuario, 2026-09-24)
 
 ## Objetivo
 

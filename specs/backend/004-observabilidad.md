@@ -1,6 +1,6 @@
 # 004 — Observabilidad
 
-> Carril: B · Depende de: 001-base · Estado: borrador
+> Carril: B · Depende de: 001-base · Estado: aprobada sin revisión (decisión del usuario, 2026-09-24)
 
 ## Objetivo
 

@@ -1,6 +1,6 @@
 # 000 — Scaffolding
 
-> Carril: 0 (integrador, `V2`) · Depende de: — · Estado: borrador
+> Carril: 0 (integrador, `V2`) · Depende de: — · Estado: aprobada sin revisión (decisión del usuario, 2026-09-24)
 
 ## Objetivo
 

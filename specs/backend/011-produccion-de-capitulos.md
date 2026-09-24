@@ -1,6 +1,6 @@
 # 011 — Producción de capítulos
 
-> Carril: A · Depende de: 005-guardarrailes, 010-planificacion · Estado: borrador
+> Carril: A · Depende de: 005-guardarrailes, 010-planificacion · Estado: aprobada sin revisión (decisión del usuario, 2026-09-24)
 
 ## Objetivo
 

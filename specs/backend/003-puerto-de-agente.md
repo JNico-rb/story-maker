@@ -1,6 +1,6 @@
 # 003 — Puerto de agente
 
-> Carril: A · Depende de: 001-base · Estado: borrador
+> Carril: A · Depende de: 001-base · Estado: aprobada sin revisión (decisión del usuario, 2026-09-24)
 
 ## Objetivo
 

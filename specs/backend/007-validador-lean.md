@@ -1,6 +1,6 @@
 # 007 — Validador Lean
 
-> Carril: D · Depende de: 000; 009 *parcial*, solo para leer la `Cronologia` y la story bible de una versión desde SQLite (casos 007-C06 y 007-C07 a 007-C12) · Estado: borrador
+> Carril: D · Depende de: 000; 009 *parcial*, solo para leer la `Cronologia` y la story bible de una versión desde SQLite (casos 007-C06 y 007-C07 a 007-C12) · Estado: aprobada sin revisión (decisión del usuario, 2026-09-24)
 
 ## Objetivo
 

@@ -1,6 +1,6 @@
 # 028 — Edición manual
 
-> Carril: E · Depende de: 026-lectura, 025-progreso, 018-linters-de-prosa (backend), 019-edicion-manual (backend) · Estado: borrador
+> Carril: E · Depende de: 026-lectura, 025-progreso, 018-linters-de-prosa (backend), 019-edicion-manual (backend) · Estado: aprobada sin revisión (decisión del usuario, 2026-09-24)
 
 ## Objetivo
 

@@ -1,6 +1,6 @@
 # 013 — Lectura y PDF
 
-> Carril: D · Depende de: 009-story-bible-y-versiones · Estado: borrador
+> Carril: D · Depende de: 009-story-bible-y-versiones · Estado: aprobada sin revisión (decisión del usuario, 2026-09-24)
 
 ## Objetivo
 
