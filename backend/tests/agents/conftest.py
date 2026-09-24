@@ -21,7 +21,7 @@ from story_maker.agents.tools import ToolSpec
 from story_maker.config import Config, load_config
 from story_maker.observability.null import NullObservability
 from story_maker.observability.port import Trace
-from story_maker.settings import ROOT
+from story_maker.settings import ROOT, Settings
 from story_maker.store.models import Novel, User
 from story_maker.store.session import create_schema, make_engine, make_session_factory
 
@@ -191,3 +191,34 @@ def chapter_tool() -> ToolSpec:
 @pytest.fixture
 def tool_named() -> Callable[..., ToolSpec]:
     return own_tool
+
+
+@pytest.fixture
+def make_settings(tmp_path: Path) -> Callable[..., Settings]:
+    """Ajustes de prueba, sin `.env`; las claves, marcadores de prueba."""
+
+    def make(**overrides: Any) -> Settings:
+        fields: dict[str, Any] = {
+            "data_dir": tmp_path / "data",
+            "config_path": ROOT / "config.json",
+            "base_url": "http://127.0.0.1:8000",
+            "frontend_dist": tmp_path / "dist",
+            "jwt_secret": "secreto-de-prueba-de-32-caracteres!",
+            "llm_provider": "claude_login",
+            "formal_verifier": "github",
+            "github_repository": None,
+            "lean_workflow": None,
+            "github_token": None,
+            "claude_code_oauth_token": None,
+            "anthropic_base_url": None,
+            "anthropic_auth_token": None,
+            "openrouter_api_key": None,
+            "langfuse_public_key": None,
+            "langfuse_secret_key": None,
+            "langfuse_base_url": None,
+            "langfuse_prompt_label": None,
+        }
+        fields.update(overrides)
+        return Settings(**fields)
+
+    return make
