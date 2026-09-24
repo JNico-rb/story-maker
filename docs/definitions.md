@@ -142,7 +142,7 @@ Cambio del mundo que se sigue del novum, en una frase. Un mundo tiene de 2 a 4 (
 ### Personaje
 - **Atributos:** nombre canónico, tipo (destinatario | allegado | inventado), especie (persona | animal | artificial), fecha de nacimiento (opcional), origen (brief | inventado).
 - Sus rasgos y sus demás datos son `Hecho` con él como sujeto. Su nombre canónico es el valor de su hecho de nombre: cambiar el nombre es cambiar ese hecho, y el código cambia los dos a la vez.
-- Una **variante de nombre** difiere de un nombre canónico en mayúsculas o acentos, o está a distancia de edición ≤ 2 de él: «toby» o «Tobi» por «Toby». Es un defecto de `nombres-exactos`. Arq. §4, §5.
+- Una **variante de nombre** es una palabra que empieza por mayúscula, no es ella misma un nombre canónico y difiere de uno solo en mayúsculas o acentos («TOBY» o «Tóby» por «Toby»), o está cerca de él por distancia de edición según la longitud del canónico: ≤ 2 con 7 letras o más, ≤ 1 con 4 a 6 («Tobi» por «Toby») y 0 con 3 o menos, que solo admiten la variante de mayúsculas o acentos. Es un defecto de `nombres-exactos`. Arq. §4, §5, §11.2.
 
 ### Lugar
 - **Atributos:** nombre canónico, descripción, origen (brief | inventado). Los de origen brief salen de los recuerdos. Arq. §4.
@@ -164,11 +164,11 @@ Registro de que un capítulo de una versión usa un hecho. Responde a lo que pid
 Suceso situado en el tiempo de la ficción.
 - **Atributos:** enunciado, momento (fecha y hora), lugar, personajes presentes (con su edad declarada, si la fuente la fija), tipo (ordinario | excluyente), personaje excluido (solo en uno excluyente), analepsis (sí/no), origen (brief | planificado | registrado), capítulo y beat (vacíos si no se narra).
 - Un evento **excluyente**, como una muerte o una partida definitiva, impide que su personaje excluido esté presente en eventos posteriores (T4). Una **analepsis** narra algo anterior al presente de la trama, y queda fuera de T1.
-- **Origen:** del brief salen los recuerdos; planificados son los del plan, en un beat o como antecedente sin beat; registrados son los del editor al aceptar un capítulo. Si el capítulo se vuelve a aceptar, sus registrados nuevos sustituyen a los anteriores.
+- **Origen:** del brief salen los recuerdos; planificados son los de los beats del plan; registrados son los del editor al aceptar un capítulo. Si el capítulo se vuelve a aceptar, sus registrados nuevos sustituyen a los anteriores.
 - Los nacimientos no son eventos: son la fecha de nacimiento de cada personaje. Arq. §4, §5, §8.
 
 ### Cronologia
-La tabla de eventos de una versión, más las fechas de nacimiento y la fecha del novum. Alimenta el validador formal (§9). En el gate entran los eventos de origen brief, los planificados sin beat y los registrados. Un planificado de un beat se sustituye por lo que el editor registró al narrarlo, para no contarlo dos veces. Arq. §4, §11.
+La tabla de eventos de una versión, más las fechas de nacimiento y la fecha del novum. Alimenta el validador formal (§9). En el gate entran los eventos de origen brief y los registrados, no los planificados: se verifica lo que dice el texto, no lo que se planeó. Arq. §4.5, §11.4.
 
 ### Modelo de clases
 
@@ -201,7 +201,7 @@ classDiagram
 Jerarquía: `Novela → Version → Capitulo`. El `Outline` de cada versión planifica los capítulos y sus `Beat`; el `Capitulo` guarda lo producido.
 
 ### Novela
-- **Atributos:** título, cliente propietario, fecha de creación, versiones.
+- **Atributos:** título, cliente propietario, fecha de creación, modelo de incrustación (el de `retrieval.embedding_model` al crearla, fijo desde entonces), versiones.
 - La **fecha de creación** fija el año presente, y es la fecha en la que se comprueba C4. La **versión vigente** es la publicada de número más alto.
 - **Estado**, que se deriva y no se guarda: `interview` si el brief sigue en borrador; `ready` si está confirmado y no hay versión publicada ni ejecución sin terminar; `in_progress` si hay una ejecución sin terminar (en cola, en curso o interrumpida) y ninguna versión publicada; `published` si hay al menos una versión publicada. Arq. §9.
 
@@ -223,7 +223,7 @@ Plan de la novela y contrato entre la planificación y la escritura. Es de cada 
 
 ### Beat
 Suceso planificado dentro de un capítulo, en el que pasa o cambia algo. No se genera por separado: el writer escribe el capítulo entero.
-- **Atributos:** número, descripción, evento planificado, personajes, hechos que usa, revelación (tema y contenido, opcional).
+- **Atributos:** número, descripción, eventos planificados, personajes, hechos que usa, revelación (tema y contenido, opcional).
 - La proyección del outline muestra al writer el tema de las revelaciones futuras, nunca su contenido (§4). Arq. §5, §6.
 
 ### StyleSheet
@@ -280,7 +280,7 @@ Lo que el orquestador ensambla para una `SesionDeRol` antes de abrirla. **Ningú
 Tarjeta indexada de una entidad de la story bible: un personaje con sus hechos, un lugar, o el mundo con su novum y sus consecuencias. Es la única colección del RAG.
 - **Atributos:** tipo de entidad (personaje | lugar | mundo), entidad, texto, huella, `desde_capitulo`.
 - **Invariantes:**
-  - es inmutable, y las del canon inicial tienen `desde_capitulo` = 0;
+  - es inmutable; las iniciales nacen al aplicar el plan, con `desde_capitulo` = el primer capítulo en cuyos beats aparece su entidad (1 si la entidad viene del brief o es el mundo);
   - si al aceptar el capítulo *n* cambia lo que se sabe de una entidad (por sus eventos registrados), el código añade una **sucesora** con `desde_capitulo` = *n* + 1;
   - en el capítulo *n* rige, por entidad, la de mayor `desde_capitulo` ≤ *n*: ese es el corte temporal;
   - volver a aceptar un capítulo sustituye las sucesoras que creó, y cambiar un hecho en la candidata reconstruye las tarjetas de su entidad.
@@ -307,7 +307,7 @@ Función del sistema que ejecuta un modelo, en sesiones del Claude Agent SDK con
 
 ### SesionDeRol
 Una sesión del Agent SDK de un rol. No es la `Sesion` de Langfuse ni el `TokenDeAcceso`.
-- **Atributos:** rol, novela, ejecución (vacía en la entrevista, la extracción y la propuesta de un cambio), modelo, versión de prompt, tokens de entrada, de salida, de lectura de caché y de escritura de caché, coste en USD, latencia, desenlace, traza.
+- **Atributos:** rol, novela, ejecución (vacía en la entrevista, la extracción y la propuesta de un cambio), capítulo (si lo hay), modelo, versión de prompt, tokens de entrada, de salida, de lectura de caché y de escritura de caché, coste en USD, latencia, desenlace, traza.
 - **Uso y coste:** los tokens salen del `ResultMessage` de la sesión. El coste es ese uso real × `pricing` (precio de lista, §11.1), nunca el `total_cost_usd` del SDK.
 - **Desenlace:** `completed`; `turns_exhausted` (agotó `max_turns`); `time_exhausted` (agotó `session_timeout_seconds`); `cut` (la cortó quien la abrió); `infrastructure_failure` (fallo del proveedor, de transporte o por el límite de uso de la suscripción: no cuenta como intento, y la ejecución pasa a interrumpida). Arq. §7.6, §13.
 
@@ -321,8 +321,8 @@ Acción con schema Pydantic, publicado como JSON Schema, por la que un rol entre
 ### Hook
 Función del harness que el SDK ejecuta antes o después de una tool.
 - **Hook de policy** (`PreToolUse`): aplica la lista blanca del rol, pasa `palabras-prohibidas` sobre los campos narrativos y solo deja que `Skill` cargue `personalizacion-natural`. Cuando deniega, da el motivo. Toda decisión va al audit log.
-- **Hook de validación de capítulo** (`PostToolUse`, tras `submit_chapter`): pasa `schema-salida`, `longitud-capitulo` y `nombres-exactos`. Si hay defectos bloqueantes, sustituye la salida de la tool por los defectos, y el writer corrige en la misma sesión.
-- **Hook de observabilidad**, aparte de los dos del encargo: abre y cierra los spans de las tools que no tienen manejador propio, como las de Playwright MCP. Arq. §7.5.
+- **Hook de validación de capítulo** (`PostToolUse`, tras `submit_chapter`): pasa `longitud-capitulo` y `nombres-exactos` (el schema ya lo validó el manejador de la tool: `schema-salida`). Si hay defectos bloqueantes, sustituye la salida de la tool por los defectos, y el writer corrige en la misma sesión.
+- **Hook de observabilidad**, aparte de los dos del encargo: cierra los spans que el hook de policy abrió para las tools sin manejador propio, como las de Playwright MCP y `Skill`. Arq. §7.5.
 
 ### Skill
 Paquete reutilizable de instrucciones. La de producto es `personalizacion-natural`, que integra los datos del brief sin forzarlos; la cargan writer y editor. Las skills de desarrollo, en `.claude/skills/`, no son del producto (`verification.md` §9.1). Arq. §7.3.
@@ -330,14 +330,15 @@ Paquete reutilizable de instrucciones. La de producto es `personalizacion-natura
 ### Ejecucion
 Una pasada del harness sobre una novela, que termina publicando una versión o fallando.
 - **Tipo:** `generation` (del brief confirmado a la primera versión), `change_request` (aplica una `SolicitudDeCambio`) o `manual_edit` (aplica una `EdicionManual`).
-- **Estado:** en cola → en curso → publicada | fallida. En curso puede pasar a interrumpida, y al reanudar vuelve a en curso.
+- **Estado:** en cola → en curso → publicada | fallida. En curso puede pasar a interrumpida, y al reanudar vuelve a estar en cola, en su puesto original.
 - **Fase**, mientras está en curso:
   - `planning`: el planner;
   - `writing`: el capítulo actual, con writer, hooks y editor; en una edición manual, con los validadores del capítulo y el editor;
   - `gate`: el gate de publicación;
   - `rewriting`: la reescritura dirigida.
-- **Atributos:** novela, tipo, estado, fase, capítulo actual, versión base, candidata, reanudaciones, motivo y detalle del fallo, fecha de creación, fecha de fin. La posición en la cola y el coste acumulado se derivan.
-- **Motivo de fallo:** `retries_exhausted`, `banned_content` (intentos de un capítulo agotados por palabras prohibidas), `render_failure`, `infeasible_config`, `internal_error`, `stale_base` (al arrancar, su versión base ya no es la vigente) y `resumes_exhausted` (se interrumpió con `max_resumes` agotado).
+- **Atributos:** novela, tipo, estado, fase, capítulo actual, versión base, candidata, reanudaciones, motivo y detalle del fallo o de la interrupción, fecha de creación, fecha de fin. La posición en la cola y el coste acumulado se derivan.
+- **Motivo de fallo:** `retries_exhausted`, `banned_content` (intentos de un capítulo agotados por palabras prohibidas), `render_failure`, `unattributable_defect` (defecto del gate sin capítulo al que atribuirlo, como un testigo Lean con solo eventos del brief), `edit_rejected` (el gate atribuye un fallo al capítulo editado a mano), `infeasible_config`, `internal_error`, `stale_base` (al arrancar, su versión base ya no es la vigente) y `resumes_exhausted` (se interrumpió con `max_resumes` agotado).
+- **Motivo de interrupción:** `crash` (caída, o arranque del servidor con la ejecución en curso), `provider_error` (fallo del proveedor o de transporte, también el límite de uso de la suscripción), `verifier_unreachable` y `verifier_timeout`.
 - **Reescritura dirigida:** la de los capítulos a los que un ciclo del gate atribuyó defectos, con el writer reescribiendo y el editor, antes de un ciclo nuevo.
 - **Regeneración:** la de los capítulos afectados por un cambio, en orden, con el writer revisando, los hooks y el editor.
 - **Invariantes:** hay como mucho una ejecución en curso en el servidor, y las demás esperan en una cola FIFO global por fecha de creación. Publicada y fallida son terminales. Al arrancar el servidor, la que estaba en curso pasa a interrumpida. Solo se reanuda desde interrumpida, y desde su último punto de control. Si falla, su candidata pasa a descartada. Arq. §9.1.
@@ -346,7 +347,7 @@ Una pasada del harness sobre una novela, que termina publicando una versión o f
 Un **evaluable** es la unidad cuyos intentos acota `max_retries`: el capítulo (sus entregas, `max_retries.chapter`), el plan (las entregas del planner, `max_retries.plan`), el ciclo del gate (cada pasada sobre la candidata, `max_retries.gate_cycles`) y el cambio (las propuestas del planner para una petición, `max_retries.change`).
 
 Un **intento** es una entrega de un evaluable que se juzga. Cuentan también las que rechaza un hook o un schema.
-- **Atributos:** ejecución (o solicitud de cambio, en un cambio), evaluable, capítulo, número, desenlace.
+- **Atributos:** ejecución (o solicitud de cambio, en un cambio), evaluable, capítulo, ciclo del gate (en la reescritura dirigida), número, desenlace.
 - **Desenlace:** el `Veredicto` que cerró el intento. Queda vacío, y el intento no cuenta, si la ejecución se interrumpió con él abierto.
 - **Invariante:** un evaluable tiene como mucho 1 + `max_retries.<evaluable>` intentos (TLA+ `ReintentosAcotados`). Arq. §7.6.
 
@@ -361,13 +362,13 @@ Cambio que pide el lector sobre una versión publicada, desde la lectura web o d
 - **Atributos:** selección, petición, propuesta, capítulos afectados, hash del código de confirmación, caducidad, versión base, estado, ejecución.
 - La **selección** es un fragmento (versión, capítulo y cita) o un hecho. La **propuesta** es la interpretación estructurada de la petición: los hechos que cambian, con su valor antiguo y el nuevo, o un hecho nuevo.
 - **Estado:** propuesta → confirmada → aplicada. Pasa a caducada si caduca su código. Pasa a rechazada si la deniega la policy, si no hay propuesta válida tras `max_retries.change` o si falla su ejecución, también por `stale_base`.
-- **Invariante:** los capítulos afectados los calcula el código, nunca un modelo. Son los que tienen `UsoDeHecho` de los hechos cambiados, más los que contienen literalmente el valor antiguo. Arq. §10.1.
+- **Invariante:** los capítulos afectados los calcula el código, nunca un modelo. Son los que tienen `UsoDeHecho` de los hechos cambiados, más los que contienen literalmente el valor antiguo, más el del fragmento seleccionado, si lo hay. Arq. §10.1.
 
 ### EdicionManual
 Cambio que el cliente hace a mano en el texto de un capítulo de una versión publicada, desde el editor web.
 - **Atributos:** capítulo, texto nuevo, versión base, estado (en cola | aplicada | rechazada), ejecución.
 - Su texto **no es confiable** para los roles: el editor lo recibe como dato al volver a registrar el capítulo.
-- Si el texto cambia un hecho, el editor lo declara y el código actualiza la story bible de la candidata, que después pasa el gate completo, con Lean. Arq. §10.2, §14.6.
+- Si el texto cambia un hecho, el editor lo declara y el código actualiza la story bible de la candidata, que después pasa el gate completo, con Lean. Arq. §10.3, §14.6.
 
 ### Componentes de código
 Piezas del harness sin modelo:
@@ -409,7 +410,7 @@ classDiagram
 ### Validador
 Comprobación con nombre que corre en un punto concreto del harness. Envía su resultado a Langfuse como `Score`, y a SQLite como `ResultadoDeValidador`.
 - **Atributos:** nombre (que es también la etiqueta de su score), familia (programático | semántico | formal de la historia | formal del sistema), punto de ejecución, bloquea (sí/no), rúbrica (si la aplica).
-- Los nombres están en §12.3. La tabla con el punto de ejecución y lo que comprueba cada uno está en Arq. §11.
+- Los nombres están en §12.3. La tabla con el punto de ejecución y lo que comprueba cada uno está en Arq. §11.2.
 - No envían score el lint en vivo, que no tiene traza, ni TLC, que corre en desarrollo y CI.
 
 ### ResultadoDeValidador
@@ -422,7 +423,7 @@ Aspecto que una rúbrica puntúa de 1 a 5, con una justificación.
 - **Atributos:** identificador (etiqueta kebab-case, única dentro de su rúbrica), rúbrica, umbral (`quality.thresholds`), bloqueante (sí/no).
 - **Criterios**, con **B** para los bloqueantes. De capítulo: `fidelidad-canon` (B), `cumple-beats` (B), `personalizacion-natural`, `prosa`, `tono`. De novela: `continuidad` (B), `coherencia-personajes` (B), `arco-y-final` (B), `ritmo`, `tono`, `personalizacion-natural`, `no-cliche`.
 - **Invariantes:** un bloqueante por debajo de su umbral bloquea aunque la media sea alta. Los criterios de personalización y los de calidad narrativa no se compensan entre sí.
-- Qué juzga cada criterio está en Arq. §11.
+- Qué juzga cada criterio está en Arq. §11.3.
 
 ### Rubrica
 Conjunto de criterios con escala de 1 a 5 y una justificación por criterio. La **de capítulo** la aplica el editor (`rubrica-capitulo`). La **de novela** la aplican el juez (`juez-novela`) y la revisión humana (`revision-humana`), y es la misma para los dos.
@@ -443,17 +444,17 @@ Decisión que toma el código, nunca un modelo, tras cada intento de un evaluabl
 
 ### Score
 Resultado de un validador en Langfuse, asociado a la traza de su ejecución o de su entrevista.
-- **Nombre:** el del validador. Los de rúbrica envían además uno por criterio, con el nombre `<validador>/<criterio>`.
+- **Nombre:** el del validador. Los que juzgan por partes envían además uno por parte, con el nombre `<validador>/<parte>`: por criterio en los de rúbrica (`juez-novela/continuidad`), por invariante en `cronologia-lean` (`T1` a `T5`) y por página en `revision-visual` (`portada`, `indice`, `capitulos`, `ficha`).
 - **Valor:** 1 o 0, según pase o no; de 1 a 5 en un criterio; el valor de la métrica en un linter.
 - **Comentario:** la justificación o el motivo, como la coincidencia de `palabras-prohibidas`. Arq. §13.
 
 ### RevisionHumana
-Evaluación de al menos una novela completa por una persona, el usuario. Usa la rúbrica de novela y se hace en una cola de anotación de Langfuse, para comparar el juicio humano con el del juez. Queda fuera del flujo, y no bloquea. Arq. §11.
+Evaluación de al menos una novela completa por una persona, el usuario. Usa la rúbrica de novela y se puntúa en Langfuse, en una cola de anotación o, si el plan no la incluye, anotando la traza, para comparar el juicio humano con el del juez. Queda fuera del flujo, y no bloquea. Arq. §11.6.
 
 ### Linter
 Validador programático de la prosa. Usa heurísticas en Python puro y no bloquea. Son cuatro: `linter-repeticion`, `linter-legibilidad`, `linter-estilo-ia` y `linter-consistencia`.
-- Corre después del editor, que recibe sus defectos como no bloqueantes, y en el lint en vivo de la edición manual.
-- El **lint en vivo** da diagnósticos sin traza ni score: nombres de la story bible, prohibidas, los cuatro linters y dos avisos ligeros de cronología. Arq. §10.2, §14.5.
+- Corre tras el hook de validación y antes de la sesión del editor (punto `editor`), que recibe sus defectos como no bloqueantes, y en el lint en vivo de la edición manual (`live_lint`).
+- El **lint en vivo** da diagnósticos sin traza ni score: nombres de la story bible, prohibidas, los cuatro linters y dos avisos ligeros de cronología. Arq. §10.3, §14.5.
 
 ### CatalogoDeTropos y Tropo
 El catálogo es una constante en `domain` con los tropos saturados del subgénero post-IA (`domain-knowledge.md` §6). El planner lo usa para evitarlos, y el juez para penalizarlos en `no-cliche`. Un tropo pedido en un deseo de trama no se penaliza.
@@ -526,7 +527,7 @@ Todo lo de esta sección vive en Langfuse. Arq. §13.
 
 - **Sesion:** agrupa las trazas de una novela, desde la entrevista hasta la generación y las regeneraciones. No es una `SesionDeRol`.
 - **Traza:** una por ejecución (la reanudada conserva la suya), por entrevista, por importación de un brief, por propuesta de cambio y por llamada MCP.
-- **Span:** observación con nombre dentro de una traza. Hay uno `rol:<rol>` por sesión de rol, con su capítulo; uno `tool:<tool>` por llamada a tool, también por las denegadas, con nivel WARNING; y uno `validador:<validador>` por validador.
+- **Span:** observación con nombre dentro de una traza. Hay uno `capitulo-<n>` por capítulo, que agrupa sus sesiones de rol; uno `rol:<rol>` por sesión de rol, con su capítulo; uno `tool:<tool>` por llamada a tool, también por las denegadas, con nivel WARNING; y uno `validador:<validador>` por validador.
 - **LlamadaDeModelo:** observación de tipo generación de una sesión de rol, con su modelo, sus tokens, su coste, su latencia y su versión de prompt. Hay una por sesión, porque el uso exacto es el del `ResultMessage`; por un proveedor compatible como OpenRouter, además, el uso por turno llega a cero. Los agregados por capítulo y por novela salen de ellas.
 - **PromptVersionado:** el prompt de sistema de un rol, que es un fichero del workspace. `story-maker prompts push` sube una versión nueva si cambia su huella. En ejecución se lee por la etiqueta `LANGFUSE_PROMPT_LABEL`, y cada llamada de modelo enlaza la versión que usó: así la iteración de tuning muestra qué versión produjo cada resultado.
 - **Mascara:** función que sustituye los nombres y las fechas del brief de la novela por `[NOMBRE_n]` y `[FECHA]` antes de enviar nada a Langfuse.
@@ -536,7 +537,7 @@ Todo lo de esta sección vive en Langfuse. Arq. §13.
 ## 9. Verificación formal
 
 ### FicheroDeCronologia
-Fichero Lean generado desde la `Cronologia` de una versión. Contiene los eventos (momento, lugar, presentes, tipo y analepsis), las fechas de nacimiento y la fecha del novum.
+Fichero Lean generado desde la `Cronologia` de una versión. Contiene los eventos (momento, capítulo y beat, lugar, presentes, tipo y analepsis), las fechas de nacimiento y la fecha del novum.
 - Va **seudonimizado**: los identificadores son los ids de las filas de SQLite, sin nombres, y los años se desplazan 400·*k*, lo que conserva los años bisiestos.
 - **Atributos:** ejecución, huella, resultado, detalle con el invariante violado y su testigo.
 - **Resultado:** `passed` si pasa; `failed` si viola un invariante; `error` si no compila por otra causa. Arq. §11, spec 007.
@@ -575,9 +576,9 @@ Segundo paso obligatorio de una solicitud de cambio, en la web y en MCP. La prim
 - **Invariante:** el código es de un solo uso, se guarda como hash y caduca a los `confirmation_minutes` (15). Arq. §10.1.
 
 ### VistaDeVersion
-HTML que el servidor genera con Jinja2 para una versión, candidata o publicada, con la marca de la empresa. Contiene la portada con la dedicatoria, el índice, los capítulos y la ficha, con enlaces internos. Se abre con un token en la URL.
+HTML que el servidor genera con Jinja2 para una versión, candidata o publicada, con la marca de la empresa. Contiene la portada con la dedicatoria, la **página de novedades** si la versión tiene capítulos cambiados (con un enlace interno a cada uno), el índice, los capítulos y la ficha, con enlaces internos. Se abre con un **token de vista** en la URL, que firma el servidor, vale solo para esa versión y caduca a los `session_timeout_seconds`: no es un `TokenDeAcceso`.
 - La usan el PDF (Playwright `page.pdf`) y el revisor visual, y es la única forma de ver una candidata.
-- El **PDF** se exporta desde esta vista al publicar, con el índice y la ficha enlazados, y se guarda con la versión. Arq. §14.2.
+- El **PDF** se exporta desde esta vista al publicar, con las novedades, el índice y la ficha enlazados, y se guarda con la versión. Arq. §14.2.
 
 ### Lectura web
 La SPA del cliente: portada, índice navegable, capítulos con la marca «cambiado en vN», ficha y selector de versión. Desde ella se selecciona un fragmento o un hecho para pedir un cambio, y se abre el editor manual con lint en vivo. No es la `VistaDeVersion`. Arq. §14.1.
@@ -706,6 +707,7 @@ El código, las tablas, la API, el servidor MCP y los ficheros JSON van en ingl�
 | `Confirmacion` | `confirmation` | `VistaDeVersion` | `version_view` |
 | Lectura web | `reader` | Lint en vivo | `live_lint` |
 | config | `config` | Ajustes del servidor | `settings` |
+| Token de vista | `view_token` | Página de novedades | `whats_new` |
 
 **Componentes de código:** orquestador `orchestrator`, cola `run_queue`, worker `worker`, recuperador `retriever`, puerto de agente `agent_port`, puerto de observabilidad `observability_port`, CLI `cli`. **Hooks:** de policy `policy_hook`, de validación de capítulo `chapter_validation_hook`, de observabilidad `observability_hook`.
 
@@ -728,14 +730,14 @@ El código, las tablas, la API, el servidor MCP y los ficheros JSON van en ingl�
 **Excepción declarada:** lo que se ve en Langfuse va en español, en ASCII y en kebab-case. Lo que una etiqueta nombra por dentro conserva su identificador: `tool:submit_chapter`.
 
 - **Trazas:** `entrevista`, `importacion`, `propuesta-de-cambio`, `mcp:<tool>` y, por tipo de ejecución, `generacion`, `solicitud-de-cambio` y `edicion-manual`.
-- **Spans:** `rol:<etiqueta del rol>`, `tool:<tool>`, `validador:<validador>`. El capítulo va como metadato `capitulo-<n>`.
+- **Spans:** `capitulo-<n>`, que agrupa las sesiones de rol del capítulo *n*; `rol:<etiqueta del rol>`, `tool:<tool>`, `validador:<validador>`.
 - **Prompts:** cada uno se llama como la etiqueta de su rol.
 - **Validadores**, que también dan nombre a sus scores:
   - programáticos: `schema-brief`, `schema-salida`, `citas-verificadas`, `outline`, `longitud-capitulo`, `nombres-exactos`, `palabras-prohibidas`, `elementos-obligatorios`, `revision-visual`, `pdf-enlaces`, `linter-repeticion`, `linter-legibilidad`, `linter-estilo-ia`, `linter-consistencia`;
   - semánticos: `rubrica-capitulo`, `juez-novela`, `revision-humana`;
   - formal de la historia: `cronologia-lean`;
   - formal del sistema: `harness-tla`, que es TLC sobre `Harness.tla` y `Regenerations.tla`, sin score.
-- **Criterios:** los de §6, en el score `<validador>/<criterio>`.
+- **Scores por parte** (§6, `Score`): los criterios de §6, en `<validador>/<criterio>`; los invariantes, en `cronologia-lean/T1` a `cronologia-lean/T5`; las páginas, en `revision-visual/portada`, `/indice`, `/capitulos` y `/ficha`.
 
 **Excepción declarada de TLA+:** los módulos van en inglés (`Harness`, `Regenerations`); las acciones y los invariantes, en español sin acentos, como en §9.
 
@@ -772,14 +774,15 @@ El código, las tablas, la API, el servidor MCP y los ficheros JSON van en ingl�
 | Tipo de Ejecucion | `generation`, `change_request`, `manual_edit` |
 | Estado de Ejecucion | `queued`, `running`, `published`, `failed`, `interrupted` |
 | Fase de Ejecucion | `planning`, `writing`, `gate`, `rewriting` |
-| Motivo de fallo | `retries_exhausted`, `banned_content`, `render_failure`, `infeasible_config`, `internal_error`, `stale_base`, `resumes_exhausted` |
+| Motivo de fallo | `retries_exhausted`, `banned_content`, `render_failure`, `unattributable_defect`, `edit_rejected`, `infeasible_config`, `internal_error`, `stale_base`, `resumes_exhausted` |
+| Motivo de interrupción | `crash`, `provider_error`, `verifier_unreachable`, `verifier_timeout` |
 | Evaluable | `chapter`, `plan`, `gate_cycle`, `change` |
 | Veredicto; desenlace de Intento | `accept`, `rewrite`, `fail` |
 | Tipo de selección | `fragment`, `fact` |
 | Estado de SolicitudDeCambio | `proposed`, `confirmed`, `applied`, `rejected`, `expired` |
 | Estado de EdicionManual | `queued`, `applied`, `rejected` |
 | Familia de Validador | `programmatic`, `semantic`, `formal_story`, `formal_system` |
-| Punto de ejecución | `brief_validation`, `extraction`, `tool_output`, `planning`, `policy_hook`, `validation_hook`, `editor`, `manual_edit`, `publication_gate`, `live_lint`, `evaluation`, `ci` |
+| Punto de ejecución | `brief_validation`, `extraction`, `tool_output`, `planning`, `policy_hook`, `validation_hook`, `editor`, `change_request`, `manual_edit`, `publication_gate`, `live_lint`, `evaluation`, `ci` |
 | Tipo de Rubrica | `chapter`, `novel` |
 | Origen de Tropo | `curated`, `learned` |
 | Ubicación de Coincidencia | `chapter`, `cover`, `sheet`, `request`, `edit`, `tool_field` |

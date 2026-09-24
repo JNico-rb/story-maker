@@ -38,7 +38,7 @@ La **calidad (D)** no es una cuarta capa: son validadores que se evalúan *sobre
 - **Story bible**: la verdad ficcional ya establecida.
 - **Config**: la política del servidor (límites, umbrales, modelos, recuperación).
 
-Las **constantes del encargo** viven en `domain`, no en config, porque nadie las ajusta: 10 capítulos; 1.000–1.500 palabras por capítulo; objetivo por extensión 1.100 / 1.250 / 1.400; 3–6 beats por capítulo. El techo de 100.000 tokens concurrentes es config (`operation.token_ceiling`), validado ≤ 100.000 al arrancar, para que las pruebas puedan usar techos menores.
+Las **constantes** viven en `domain`, no en config, porque nadie las ajusta: del encargo, 10 capítulos y 1.000–1.500 palabras por capítulo; del diseño, objetivo por extensión 1.100 / 1.250 / 1.400 y 3–6 beats por capítulo (`definitions.md` §11.2). El techo de 100.000 tokens concurrentes es config (`operation.token_ceiling`), validado ≤ 100.000 al arrancar, para que las pruebas puedan usar techos menores.
 
 > **Test de frontera.** Una afirmación sobre el destinatario o la ficción es brief o story bible. Un parámetro de forma u operación es config o constante. «Su perro se llama Toby» → brief. «10 capítulos» → encargo. «Tres reintentos» → config.
 
@@ -289,7 +289,7 @@ graph LR
 
 **Unidad.** La `CanonCard`: tarjeta de texto de una entidad de la story bible, generada por código con una plantilla fija: un personaje con sus hechos y los eventos registrados en que participa, un lugar, el novum con sus consecuencias. Lleva `desde_capitulo` y una huella de contenido.
 
-- Las iniciales nacen al aplicar el plan, con `desde_capitulo` = primer capítulo en cuyos beats aparece la entidad (1 si viene del brief).
+- Las iniciales nacen al aplicar el plan, con `desde_capitulo` = primer capítulo en cuyos beats aparece la entidad (1 si viene del brief o es el mundo).
 - Al aceptar el capítulo n, cada entidad con eventos o hechos nuevos recibe una **tarjeta sucesora** con `desde_capitulo = n+1`. Las tarjetas no se editan: se suceden.
 
 **Recuperación**, para el capítulo n:
@@ -315,7 +315,7 @@ El encargo fija **un máximo de 100.000 tokens concurrentes**. Es un **contador 
 1. **Reserva antes de abrir.** Cada sesión de rol reserva `entrada estimada + (max_turns − 1) · max_output_tokens` de su rol y la libera al cerrar. El SDK reenvía en cada turno el prompt, el `CLAUDE.md`, las descripciones de tools y la conversación: por eso se reserva el crecimiento de todos los turnos. `max_output_tokens` del rol cubre lo que crece un turno (salida del modelo más el resultado de su tool; en el revisor visual, una instantánea).
 2. **Estimador local chars/4** sobre los textos que envía el código: prompt de sistema, `CLAUDE.md`, skill, schemas de tools y ventana.
 3. **Si no cabe, espera**, en orden de llegada. En la API, como mucho `api_wait_seconds`; después, **503**. En la ejecución espera sin límite propio: las sesiones de la API están acotadas por `session_timeout_seconds`, así que la espera termina.
-4. **Si una sesión no cabría ni con el techo entero libre**, no espera: en la API, 422 (por ejemplo, un texto libre demasiado largo); en una ejecución, `failed` con `ceiling_infeasible`, que es un error de config.
+4. **Si una sesión no cabría ni con el techo entero libre**, no espera: en la API, 422 (por ejemplo, un texto libre demasiado largo); en una ejecución, `failed` con `infeasible_config`, que es un error de config.
 5. **Uso exacto después.** Al cerrar, se guarda el uso del `ResultMessage` (§13.2). La diferencia entre reserva y uso real se ve en SQLite y Langfuse y sirve para ajustar `max_turns` y `max_output_tokens`.
 
 Dentro de una ejecución hay como mucho una sesión de rol a la vez (Lean corre en paralelo con el juez, pero no consume tokens). El contador reparte el techo entre esa sesión y las de la API (entrevistas, extracciones y propuestas de cambio de otros clientes).
@@ -513,7 +513,7 @@ Los nombres de las transiciones son las acciones de `Harness.tla` (§11.5). La t
 | `Caer` | → `interrupted` | Error del proveedor, verificador inalcanzable o agotado, o arranque del servidor con la ejecución en `running` |
 | `Reanudar` | `interrupted` → `queued` | `POST /api/runs/{id}/resume` o `story-maker resume` |
 
-**Estados.** `published` y `failed` son terminales. `interrupted` es infraestructura, reanudable. `failed` es una decisión del sistema: no puede cumplir con sus límites y lo dice. Motivos de `failed`: `retries_exhausted`, `banned_content`, `render_failure`, `unattributable_defect`, `base_version_stale`, `edit_rejected`, `resumes_exhausted`, `ceiling_infeasible`, `internal_error`. Motivos de `interrupted`: `crash`, `provider_error` (también el límite de uso de la suscripción), `verifier_unreachable`, `verifier_timeout`.
+**Estados.** `published` y `failed` son terminales. `interrupted` es infraestructura, reanudable. `failed` es una decisión del sistema: no puede cumplir con sus límites y lo dice. Motivos de `failed`: `retries_exhausted`, `banned_content`, `render_failure`, `unattributable_defect`, `stale_base`, `edit_rejected`, `resumes_exhausted`, `infeasible_config`, `internal_error`. Motivos de `interrupted`: `crash`, `provider_error` (también el límite de uso de la suscripción), `verifier_unreachable`, `verifier_timeout`.
 
 **Fases** (`runs.phase`) por tipo:
 
@@ -592,7 +592,7 @@ graph TD
     PRO -->|15 min sin confirmar| EXP[expired]
     PRO -->|confirma con el codigo| COLA[Ejecucion change_request<br/>en cola con su version base]
     COLA --> REV{la vigente sigue<br/>siendo la base}
-    REV -->|no| STA[failed base_version_stale<br/>solicitud rejected]
+    REV -->|no| STA[failed stale_base<br/>solicitud rejected]
     REV -->|si| CAN[Candidata copiada<br/>con los hechos aplicados]
     CAN --> REW[writer en modo revision<br/>solo los afectados, en orden]
     REW --> HK[hooks + editor + veredicto]
@@ -612,7 +612,7 @@ graph TD
 
 **La ejecución de cambio:**
 
-1. **Revalida al arrancar**: si la versión vigente ya no es su base → `failed` (`base_version_stale`) y solicitud `rejected` con motivo. El lector repite sobre la versión nueva.
+1. **Revalida al arrancar**: si la versión vigente ya no es su base → `failed` (`stale_base`) y solicitud `rejected` con motivo. El lector repite sobre la versión nueva.
 2. **Crea la candidata** copiando la base (§9.3) y aplica los hechos cambiados como sucesores, con sus CanonCards.
 3. **Reescribe solo los afectados, en orden.** El writer en **modo revisión** recibe el capítulo actual, el cambio y su ventana habitual, con la instrucción de cambiar lo mínimo que exige el cambio y conservar la continuidad. Mismos hooks, editor y veredicto (§8). Los capítulos no afectados quedan literales.
 4. **Gate completo** (§9.4) y publicación con `changed_chapters`. La solicitud pasa a `applied`.
@@ -654,7 +654,7 @@ En el capítulo editado a mano, las puntuaciones del editor se registran pero no
 
 ### 11.2 Validadores y su punto de ejecución
 
-Cada validador tiene nombre, corre en un punto concreto del harness y envía su resultado a Langfuse como score con ese nombre, asociado a la traza (y al span del capítulo, si lo hay). Los de un solo resultado envían 0/1; los de rúbrica, además, un score 1–5 por criterio (`<validador>/<criterio>`). El resultado se copia en `validator_results`.
+Cada validador tiene nombre, corre en un punto concreto del harness y envía su resultado a Langfuse como score con ese nombre, asociado a la traza (y al span del capítulo, si lo hay). Los de un solo resultado envían 0/1; los de rúbrica, además, un score 1–5 por criterio (`<validador>/<criterio>`; nombres por parte en `definitions.md` §12.3). El resultado se copia en `validator_results`, salvo el de los validadores de entrada (`schema-brief`, `citas-verificadas`), que no tienen ejecución: van a la traza de la entrevista o la importación, y los hechos quedan en `extracted_facts`.
 
 | Nombre | Familia | Punto de ejecución | Bloquea | Score en Langfuse | Qué comprueba |
 |---|---|---|---|---|---|
@@ -663,17 +663,19 @@ Cada validador tiene nombre, corre en un punto concreto del harness y envía su 
 | `citas-verificadas` | programática | Extracción | descarta el hecho | 0/1 y nº descartados | Cita literal en el texto libre, sujeto válido, sin solape con inyección |
 | `outline` | programática | Fin de planificación | sí (replanificar) | 0/1 | 10 capítulos, 3–6 beats, obligatorios asignados, eventos válidos, novum anterior al presente |
 | `longitud-capitulo` | programática | Hook de validación; guardado de edición | sí | 0/1 y nº de palabras | 1.000–1.500 palabras |
-| `nombres-exactos` | programática | Hook de validación; guardado de edición; gate | sí | 0/1 | Destinatario y personajes escritos exactamente como en la story bible; una variante de mayúsculas, acentos o distancia de edición ≤ 2 de un nombre canónico es defecto |
+| `nombres-exactos` | programática | Hook de validación; guardado de edición; gate | sí | 0/1 | Destinatario y personajes escritos exactamente como en la story bible; una variante de un nombre canónico es defecto (regla bajo la tabla) |
 | `palabras-prohibidas` | programática | Hook de policy (cada entrega); petición de cambio; guardado de edición; gate | sí | 0/1 con comentario (término, nivel, variante) | Ninguna coincidencia normalizada de los tres niveles |
 | `elementos-obligatorios` | programática | Gate | sí (reescritura dirigida) | 0/1 | Cada elemento obligatorio tiene ≥1 `UsoDeHecho`, comprobado contra la tabla `facts`/`fact_usages` |
 | `revision-visual` | programática (browser MCP) | Gate | sí | 0/1 por portada, índice, capítulos, ficha | Portada, índice, capítulos y ficha renderizan y enlazan; fallo de datos → editor re-registra; de render → `failed` |
 | `pdf-enlaces` | programática | Gate, último paso | sí | 0/1 | El PDF tiene 10 capítulos y los enlaces internos de índice, novedades y ficha resuelven |
-| `linter-repeticion`, `linter-legibilidad`, `linter-estilo-ia`, `linter-consistencia` | programática (opcional) | Tras el hook de validación, antes del veredicto (sus defectos entran en él); lint en vivo | no | Métrica medida, con el umbral en el comentario | §14.5 |
+| `linter-repeticion`, `linter-legibilidad`, `linter-estilo-ia`, `linter-consistencia` | programática (opcional) | Tras el hook de validación y antes del editor, que recibe sus defectos (y con ellos el veredicto); lint en vivo | no | Métrica medida, con el umbral en el comentario | §14.5 |
 | `rubrica-capitulo` | semántica | Editor, cada capítulo | criterios bloqueantes | 0/1 agregado + 1–5 por criterio | §11.3 |
 | `juez-novela` | semántica (LLM-as-judge) | Gate | criterios bloqueantes | 0/1 agregado + 1–5 por criterio | §11.3 |
 | `revision-humana` | semántica (humano) | Evaluación, fuera del flujo | no | 1–5 por criterio, anotado en Langfuse sobre la traza | Misma rúbrica que el juez (§11.6) |
 | `cronologia-lean` | formal de la historia | Gate (también el de una edición manual) | sí | 0/1 y 0/1 por invariante T1–T5 | T1–T5 con `lake build` (§11.4) |
-| TLC `Harness.tla`, `Regenerations.tla` | formal del sistema | Desarrollo y CI | bloquea la integración | no envía score | Invariantes de seguridad y vivacidad (§11.5) |
+| `harness-tla` (TLC sobre `Harness.tla` y `Regenerations.tla`) | formal del sistema | Desarrollo y CI | bloquea la integración | no envía score | Invariantes de seguridad y vivacidad (§11.5) |
+
+**Qué es variante para `nombres-exactos`.** Solo se miran las palabras que empiezan por mayúscula y no son ya un nombre canónico: una palabra corriente en minúscula nunca dispara. Una variante de mayúsculas o acentos de un nombre canónico («TOBY», «Tóby» por «Toby») es siempre defecto. La distancia de edición admitida depende de la longitud del nombre canónico: ≤ 2 con 7 letras o más, ≤ 1 con 4 a 6 («Tobi» por «Toby») y 0 con 3 o menos, que solo admiten la variante de mayúsculas o acentos. Lo que queda, como una palabra corriente a principio de frase a distancia 1 de un nombre corto («Nada» por «Nala»), es riesgo aceptado (`verification.md` §6 U10).
 
 **La revisión visual es programática aunque navegue un modelo.** El revisor recorre la vista y entrega lo observado (sobre la instantánea de accesibilidad): el modelo navega, no juzga. El código compara con la estructura esperada, calculada desde SQLite: portada con título, nombre del destinatario y dedicatoria; índice con 10 entradas que llevan a su capítulo; cada capítulo con título y texto; la ficha con cada personaje y lugar y sus enlaces. El revisor **sigue cada enlace** y entrega adónde llegó. Lo puramente estético (un CSS roto, un solape) no está en la instantánea: es riesgo aceptado (`verification.md` §6).
 
@@ -791,7 +793,7 @@ Cada entrada es de tipo `word` o `topic`. Un **tema** se guarda con su lista de 
 
 **Dónde:** en el hook de policy, sobre cada entrega de un rol (cada capítulo antes de aceptarlo); en la petición de un cambio; en el lint en vivo y el guardado de una edición; en el gate, sobre la novela entera, portada y ficha.
 
-**Si hay coincidencia**, la entrega se devuelve al rol que la hizo (un capítulo, al writer) con el término y el motivo, y cuenta como intento (≤ `max_retries.chapter` en un capítulo). **Agotado, `failed` con `banned_content` e informe.** Cada coincidencia va al audit log y a Langfuse (score `palabras-prohibidas` = 0 con el término, el nivel y la variante en el comentario). Las pruebas cubren al menos un caso por nivel y una variante de acento y de plural (`verification.md` §3).
+**Si hay coincidencia**, la entrega se devuelve al rol que la hizo (un capítulo, al writer) con el término y el motivo, y cuenta como intento (≤ `max_retries.chapter` en un capítulo). **Agotado, `failed` con `banned_content` e informe.** Cada coincidencia va al audit log y a Langfuse (score `palabras-prohibidas` = 0 con el término, el nivel y la variante en el comentario). Las pruebas cubren al menos un caso por nivel y una variante de acento y de plural (`verification.md` §4.3).
 
 ### 12.2 Motor de políticas y audit log
 
@@ -875,7 +877,7 @@ Muestra cualquier versión publicada:
 
 ### 14.2 VistaDeVersion y PDF
 
-La `VistaDeVersion` es **HTML de servidor (Jinja2) de una versión**, candidata o publicada, con la misma marca que la SPA: portada, página de **novedades** si la versión tiene capítulos cambiados (con enlaces internos a cada uno), índice, capítulos y ficha con enlaces internos. `GET /view/versions/{version_id}?token=...`: el token lo firma el servidor con `JWT_SECRET`, vale solo para esa versión y caduca con `session_timeout_seconds`. La usan dos consumidores:
+La `VistaDeVersion` es **HTML de servidor (Jinja2) de una versión**, candidata o publicada, con la misma marca que la SPA: portada, página de **novedades** si la versión tiene capítulos cambiados (con enlaces internos a cada uno), índice, capítulos y ficha con enlaces internos. `GET /view/versions/{version_id}?token=...`: el **token de vista** lo firma el servidor con `JWT_SECRET`, vale solo para esa versión y caduca con `session_timeout_seconds`. La usan dos consumidores:
 
 - el **revisor visual**, que la navega con Playwright MCP en `http://127.0.0.1` (Playwright MCP bloquea `file://`);
 - el **PDF**: Playwright `page.pdf` (con `outline` y `tagged`) sobre el Edge instalado (`channel="msedge"`; en CI Linux, chromium). `pdf-enlaces` lo comprueba con `pypdf`, porque Chromium descarta sin aviso un enlace a un ancla inexistente.
@@ -1071,6 +1073,7 @@ erDiagram
     change_requests |o--o| runs : encola
     manual_edits |o--o| runs : encola
     runs ||--o{ attempts : cuenta
+    change_requests ||--o{ attempts : "cuenta propuestas"
     runs ||--o{ checkpoints : deja
     runs |o--o{ role_sessions : abre
     novels ||--o{ role_sessions : "fuera de ejecucion"
@@ -1103,7 +1106,7 @@ erDiagram
 | `canon_cards`, `canon_cards_fts` | versión | Tarjetas: tipo e id de entidad, `from_chapter`, texto, huella; FTS5 |
 | `embeddings` | global | Huella, modelo, vector; compartidos entre versiones. Solo inserción |
 | `runs` | ejecución | Novela, tipo, estado, fase, capítulo, versión base, candidata, reanudaciones, motivo y detalle del error, fechas. La cola = `queued` por `created_at` |
-| `attempts` | ejecución | Evaluable (`plan`, `chapter`, `gate_cycle`), capítulo?, ciclo del gate?, número, desenlace |
+| `attempts` | ejecución | Ejecución o solicitud de cambio, evaluable (`chapter`, `plan`, `gate_cycle`, `change`), capítulo?, ciclo del gate?, número, desenlace |
 | `checkpoints` | ejecución | Capítulo aceptado (0 = plan). Solo inserción |
 | `role_sessions` | ejecución, o novela fuera de ella | Rol, capítulo?, modelo, versión de prompt, tokens (entrada, salida, caché), coste, latencia, desenlace, traza |
 | `validator_results` | ejecución | Validador, versión, capítulo?, pasa, score, detalle (JSON). De aquí sale la tabla de evals |
@@ -1154,7 +1157,7 @@ GET    /view/versions/{version_id}?token=...                 VistaDeVersion (int
 
 ### 15.9 Organización del backend
 
-Corte por responsabilidad; cada módulo lo posee un carril de desarrollo (`verification.md` §9.4), así que los carriles no chocan. Pruebas en `backend/tests/<modulo>/`.
+Corte por responsabilidad; cada módulo lo posee un carril de desarrollo (tabla de propiedad en `backend/AGENTS.md`), así que los carriles no chocan. Pruebas en `backend/tests/<modulo>/`.
 
 ```
 backend/
@@ -1347,14 +1350,14 @@ Existen como claves de config con valor provisional (§15.4). Se calibran con la
 | `max_retries.*`, `max_turns`, `max_output_tokens`, tiempos, `max_resumes`, `max_mandatory_elements`, `api_wait_seconds` | Uso real frente a reserva y tasa de fallos en las evals |
 | `retrieval.embedding_model`, `retrieval.top_k` | Pruebas doradas de recuperación y calidad del editor |
 
-### 17.2 Por comprobar en el entorno (spec 001)
+### 17.2 Por comprobar en el entorno (en la spec que lo usa)
 
-- El Agent SDK con `LLM_PROVIDER=claude_login` usa el login de la máquina con tools en proceso, hooks, skill y workspace, y devuelve el uso por sesión.
-- Los límites de uso de la suscripción alcanzan para las evals (5 novelas y sus cambios); si no, se reparten en varias tandas gracias a la reanudación.
-- Si el plan Hobby de Langfuse incluye colas de anotación; si no, la revisión humana anota la traza desde la interfaz (§11.6).
-- El workflow de Lean responde dentro de `verifier_timeout_seconds`.
-- El modelo multilingüe de `fastembed` elegido carga bajo Smart App Control.
-- Playwright `page.pdf` con el Edge instalado conserva `outline` y enlaces internos.
+- El Agent SDK con `LLM_PROVIDER=claude_login` usa el login de la máquina con tools en proceso, hooks, skill y workspace, y devuelve el uso por sesión (003).
+- Los límites de uso de la suscripción alcanzan para las evals (5 novelas y sus cambios); si no, se reparten en varias tandas gracias a la reanudación (020).
+- Si el plan Hobby de Langfuse incluye colas de anotación; si no, la revisión humana anota la traza desde la interfaz (§11.6) (020).
+- El workflow de Lean responde dentro de `verifier_timeout_seconds` (007).
+- El modelo multilingüe de `fastembed` elegido carga bajo Smart App Control (016).
+- Playwright `page.pdf` con el Edge instalado conserva `outline` y enlaces internos (013).
 
 Si alguno falla, se reabre la decisión que lo usa, con su motivo.
 
@@ -1414,6 +1417,6 @@ Registro de trade-offs: cada fila da opciones, criterio y elección. Reabrir una
 | Organización del frontend | FSD completo · FSD pages-first | Empezar por lo simple | FSD v2.1 pages-first; sin `widgets` (§14.8) |
 | Cliente API del frontend | A mano · generado con job de deriva en CI · generado y commiteado | Tipos fiables sin otro job | `openapi-typescript`, commiteado (§14.8) (lean, ADR 0006) |
 | Nombres | Todo en español · código en inglés | Un idioma por medio | Código, tablas, API, MCP y JSON en inglés; docs e interfaz en español; etiquetas de Langfuse en español ASCII kebab-case |
-| Aprobaciones de specs y planes (proceso) | Solo el usuario · agentes `auditor` y `verificador` | Carriles paralelos sin cuello de botella; gap cero verificable | Delegadas: el `auditor` aprueba spec y plan, el `verificador` cierra; el usuario ve escalados y hace lo solo humano (decisión del usuario, 2026-09-24; `verification.md` §9.4) |
+| Aprobaciones de specs y planes (proceso) | Solo el usuario · agentes `auditor` y `verificador` | Carriles paralelos sin cuello de botella; gap cero verificable | Delegadas: el `auditor` aprueba spec y plan, el `verificador` cierra; el usuario ve escalados y hace lo solo humano (decisión del usuario, 2026-09-24; `verification.md` §9.7) |
 | Supervisión | Autonomía total · humano en tres momentos | El encargo | Entrevista; cambio o edición sobre una versión publicada; revisión humana (§2) |
 | Ante lo imposible | Degradar · detener | Una degradación silenciosa es indistinguible del éxito | `failed` con motivo e informe (§2) |

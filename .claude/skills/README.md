@@ -11,6 +11,8 @@ desde el origen.
 | `sqlalchemy-code-review` | `existential-birds/beagle`, ruta `plugins/beagle-python/skills/sqlalchemy-code-review` | Apache-2.0 | `d1a7489` |
 | `review-verification-protocol` | `existential-birds/beagle`, ruta `plugins/beagle-python/skills/review-verification-protocol` | Apache-2.0 | `d1a7489` |
 | `feature-sliced-design` | `feature-sliced/skills`, ruta `feature-sliced-design` | MIT | `fd71da4` |
+| `grill-me` | propia del proyecto (el fichero no declara otro origen) | — | — |
+| `verification` | propia del proyecto | — | — |
 | `sqlalchemy-sqlite` | propia del proyecto | — | **no escrita**: bloqueada a propósito, ver abajo |
 
 ## Notas
@@ -34,43 +36,39 @@ solo Markdown: no traen scripts ni ejecutan nada.
 No existe skill oficial de SQLite ni de SQLAlchemy para *escribir* persistencia. Se acordó
 el 2026-09-21 que habrá una skill propia, y **se decidió no escribirla todavía**.
 
-**Por qué no ahora.** `specs/` y `backend/` están vacíos. Una skill que dicte cómo persistir,
+**Por qué no ahora.** Ninguna spec fija todavía el esquema. Una skill que dicte cómo persistir,
 escrita antes de que exista un spec de persistencia, fija decisiones que nadie ha tomado: es
-la deriva que `AGENTS.md` prohíbe, solo que una capa más arriba. Se escribe cuando un spec
+la deriva que `AGENTS.md` prohíbe, solo que una capa más arriba. Se escribe cuando la spec 001
 fije el esquema, no antes.
 
 **Qué será, cuando toque.** Una skill *del proyecto*, no de la librería — deliberadamente
 **no** una gemela de `fastapi`. Lo genérico de SQLAlchemy (sesiones, N+1, `select()` 2.0,
 Alembic) ya lo verifica `sqlalchemy-code-review`; repetirlo en modo imperativo sería duplicar.
-Cubrirá lo que ninguna skill genérica puede saber, que sale de `docs/architecture.md` §9.3 y
-§9.5:
+Cubrirá lo que ninguna skill genérica puede saber, que sale de `docs/architecture.md` §9 y
+§15.6:
 
-- **Concurrencia.** Un worker aparte escribe un punto de control por escena durante horas
-  mientras la API lee el estado del run. En SQLite por defecto eso es `database is locked`:
-  WAL, `busy_timeout` y un único escritor son decisiones, no detalles.
+- **Concurrencia.** El worker, una tarea asyncio en el mismo proceso que la API, escribe un
+  punto de control por capítulo mientras la API lee el estado de la ejecución. En SQLite por
+  defecto eso es `database is locked`: WAL, `busy_timeout` y un único escritor son decisiones,
+  no detalles.
 - **Async es medio espejismo.** SQLAlchemy async sobre `aiosqlite` funciona, pero SQLite no
-  tiene concurrencia de escritura real. Si el worker debe ser síncrono, es decisión de
-  arquitectura y va a `architecture.md`, no a la skill.
-- **Afinidad de tipos.** SQLite no tiene JSON, UUID ni `datetime` con zona nativos. Un
-  `EstadoDelMundo` versionado por escena acaba casi seguro en columna JSON, y eso condiciona
-  cómo se consulta.
+  tiene concurrencia de escritura real. Por eso `architecture.md` §15.1 fija SQLAlchemy 2
+  síncrono; la skill lo aplica, no lo decide.
+- **Afinidad de tipos.** SQLite no tiene JSON, UUID ni `datetime` con zona nativos. Las
+  columnas JSON de la copia por versión (consecuencias, beats, propuesta de un cambio)
+  condicionan cómo se consulta.
 - **`PRAGMA foreign_keys=ON`** no está activo por defecto: hay que fijarlo por conexión o las
   claves ajenas son decorativas.
 - **Los nombres los manda `definitions.md`.** El esquema no puede inventar sinónimos de
-  `EstadoDelMundo`, `canon`, `outline` ni del resto de términos definidos.
-
-Nota: `docs/architecture.md` §10.4 (reutilizar canon entre ejecuciones) sigue abierta, pero es
-decisión de producto y no bloquea el esquema.
+  `StoryBible`, `UsoDeHecho`, `Outline` ni del resto de términos definidos.
 
 `feature-sliced-design` es la skill oficial de Feature-Sliced Design v2.1: enseña la jerarquía
 de capas (`app`, `pages`, `widgets`, `features`, `entities`, `shared`), las reglas de importación
 y dónde colocar cada pieza. Su sesgo declarado es *pages-first*: empezar con `app/`, `pages/` y
 `shared/`, y abrir `features/` o `entities/` solo cuando una responsabilidad compartida y estable
-lo justifique; `widgets/` está desaconsejada. Ese sesgo encaja con el frontend deliberadamente
-delgado de `docs/architecture.md` §9.4 — dos entradas, progreso, dos salidas —, pero conviene
-recordar que la skill no es una decisión de arquitectura: `docs/` no impone hoy ninguna estructura
-de carpetas en el frontend, así que adoptar FSD como norma del proyecto exigiría cerrarlo en
-`architecture.md` antes de escribir specs o código con esa forma.
+lo justifique; `widgets/` está desaconsejada. Ese sesgo encaja con el frontend de
+`docs/architecture.md` §14.8, que adopta FSD v2.1 *pages-first* como decisión cerrada en §18; la
+skill aplica esa decisión, no la toma.
 
 Es solo Markdown más un JSON: no trae scripts ni ejecuta nada. Se copia entera, incluida
 `evals/`, para que reactualizarla sea un `cp` desde el origen; esas evals no se pueden correr
@@ -94,7 +92,7 @@ divergen, la skill está desactualizada.
 | Candidata | Motivo del descarte |
 |---|---|
 | `SecureSkills-io/sqlite-skill` | **Rechazada por seguridad.** Ver abajo. |
-| `sqlite-vec` (`existential-birds/beagle`) | Ya no existe en el repo de origen, y el proyecto no tiene búsqueda semántica, *embeddings* ni RAG en `docs/`. Añadirla sería deriva: código que ningún doc sostiene. |
+| `sqlite-vec` (`existential-birds/beagle`) | Ya no existe en el repo de origen. El proyecto sí usa `sqlite-vec` en su RAG híbrido de una colección (`docs/architecture.md` §6.3, spec 016), pero no hay skill publicada que vendorizar; lo que haga falta saber de él entra en `sqlalchemy-sqlite` cuando se escriba. |
 
 ### Por qué se rechaza `SecureSkills-io/sqlite-skill`
 

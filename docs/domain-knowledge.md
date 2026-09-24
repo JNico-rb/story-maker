@@ -250,7 +250,7 @@ Un mismo texto no es igual de legible para un niño de siete años que para un a
 
 Los objetivos van **solo por `FranjaDeEdad`**: una longitud de frase y un índice de Fernández-Huerta por franja (`quality.readability_targets`). Las cifras no se inventan: se calibran contra textos del público de cada franja.
 
-El tono también pesa —un tono épico admite frases más largas que uno divertido—, pero ese matiz no se fija en cifras: lo juzga la rúbrica (`architecture.md` §11). Un objetivo por franja y tono serían dieciocho combinaciones por calibrar.
+El tono también pesa —un tono épico admite frases más largas que uno divertido—, pero ese matiz no se fija en cifras: lo juzga la rúbrica (`architecture.md` §11.3). Un objetivo por franja y tono serían dieciocho combinaciones por calibrar.
 
 La consistencia de estilo también es dominio: una novela no cambia de narrador ni de tiempo verbal sin motivo, y dos personajes que se tratan de tú no pasan a tratarse de usted.
 
@@ -263,4 +263,4 @@ Preguntar a un juez automático «¿es plausible este futuro?» o «¿es buena e
 Lo que funciona es **descomponer**:
 
 - **El rigor especulativo** no se evalúa en abstracto: se declara y se contrasta. El mundo es un novum concreto con fecha y unas pocas consecuencias (§3.3), y la pregunta pasa a ser si la novela contradice ese mundo declarado o cae en un tropo del catálogo (§6). Un mundo concreto y respetado correlaciona razonablemente con lo que un lector percibe como un mundo bien construido.
-- **La calidad narrativa** se juzga con una rúbrica de criterios concretos, cada uno con escala y justificación (`architecture.md` §11). La rúbrica se calibra contra el juicio humano. Un juez cuya puntuación no se parece a la de una persona que lee la misma novela no mide lo que dice medir.
+- **La calidad narrativa** se juzga con una rúbrica de criterios concretos, cada uno con escala y justificación (`architecture.md` §11.3). La rúbrica se calibra contra el juicio humano. Un juez cuya puntuación no se parece a la de una persona que lee la misma novela no mide lo que dice medir.

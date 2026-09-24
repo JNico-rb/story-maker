@@ -8,6 +8,19 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 4. Cada carril edita solo los bloques de sus specs; esta cabecera y sus tablas son del integrador (checkout principal, V2).
 5. Una spec empieza cuando sus dependencias están cerradas en V2, o en la rama de su propio carril.
 
+## Estado (handoff 2026-09-24)
+
+- **Docs:** la revisión de coherencia de `docs/` entra en el commit del handoff sin auditar. Es la fuente de verdad; lo que contradiga se corrige por el proceso 1.
+- **Specs:** solo `specs/000-scaffolding.md`, en borrador, sin auditar y sin bloque en este fichero. Las 001–028 no llegaron a redactarse: los redactores se cortaron.
+- **Siguiente paso:** etapa 1. Redactar 001–021 en paralelo, un redactor por spec, y auditar la 000. Añadir los bloques aquí de uno en uno y hacer un commit por aprobación. Etapa 2: los planes de backend. Luego parar y pasar la tabla al usuario antes de escribir código. El frontend (022–028) empieza cuando estén aprobadas las specs de backend de las que depende.
+- **Huecos pendientes:**
+  - fastembed no importa en Windows si no se añaden las DLL del entorno al camino de búsqueda;
+  - dos acciones del CI sin comprobar;
+  - falta `ejemplos/`;
+  - faltan las copias de la memoria en `.claude/memory/`;
+  - hay que decidir si vuelve `config.json` (borrado y ya fuera de `CLAUDE.md`);
+  - faltan las condiciones de uso del login de Claude Code.
+
 ## Carriles
 
 | Carril | Specs en orden | Depende de (fuera del carril) | Worktree | Rama | Estado |
@@ -17,7 +30,7 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 | B — plataforma y observabilidad | 009 → 004 → 013 → 015 → 017 | 001, 012, 014 (A) · 002 (C) | `../sm-b` | `carril-b` | espera 000 y 001 |
 | C — entrada y política | 005 → 002 → 008 → 018 → 019 | 001, 003, 011, 012 (A) · 004 (B) | `../sm-c` | `carril-c` | espera 000 (luego 005 arranca con lo puro) |
 | D — formal y calidad | 006 → 007 → 016 → 020 → 021 | 009, 015 (B) · 012 (A) · 002 (C) | `../sm-d` | `carril-d` | espera 000 (luego 006 y 007 arrancan ya) |
-| E — frontend | 022 → 023 → 024 → 025 → 026 → 027 → 028 (`specs/frontend/`) | 002, 008 (C) · 011, 014 (A) · 013 (B) · 018, 019 (C) | `../sm-e` | `carril-e` | specs en redacción (un redactor por spec); espera 000 |
+| E — frontend | 022 → 023 → 024 → 025 → 026 → 027 → 028 (`specs/frontend/`) | 002, 008 (C) · 011, 014 (A) · 013 (B) · 018, 019 (C) | `../sm-e` | `carril-e` | specs sin redactar; esperan a las specs de backend de las que dependen |
 
 ## Specs
 
