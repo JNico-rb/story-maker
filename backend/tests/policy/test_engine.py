@@ -13,6 +13,15 @@ def _peticion(texto: str, entradas: list[EntradaProhibida] | None = None) -> Pet
     )
 
 
+def test_entrada_global_deniega() -> None:
+    entradas = [EntradaProhibida(term="idiota", type="word", level="global")]
+    decision = decide(_peticion("eres un idiota", entradas))
+
+    assert decision.decision == "deny"
+    assert decision.rule == "palabras-prohibidas"
+    assert decision.detail == [{"term": "idiota", "level": "global", "variant": "idiota"}]
+
+
 def test_sin_coincidencia_permite() -> None:
     entradas = [
         EntradaProhibida(term="idiota", type="word", level="global"),
