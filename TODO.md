@@ -420,7 +420,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 008-C01 · Crear una novela para entrevistarla
 - [x] 008-C02 · Lista y detalle de las novelas con su estado derivado
 - [x] 008-C03 · Un turno aplica lo que entrega el entrevistador
-- [ ] 008-C04 · `update_brief` actúa como parche del borrador
+- [x] 008-C04 · `update_brief` actúa como parche del borrador
 - [ ] 008-C05 · `update_brief` no alcanza lo que decide el cliente
 - [ ] 008-C06 · Una dedicatoria con una prohibida no entra por `update_brief`
 - [ ] 008-C07 · Un turno fallido no se guarda

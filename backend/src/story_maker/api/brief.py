@@ -18,12 +18,13 @@ router = APIRouter()
 
 class BriefOut(BaseModel):
     status: Literal["draft", "confirmed"]
+    content: BriefContent
     missing_fields: list[str]
 
 
 def build_brief_out(brief: Brief) -> BriefOut:
     content = BriefContent.model_validate(brief.content) if brief.content else BriefContent()
-    return BriefOut(status=brief.status, missing_fields=missing_fields(content))
+    return BriefOut(status=brief.status, content=content, missing_fields=missing_fields(content))
 
 
 @router.get("/api/novels/{novel_id}/brief", response_model=BriefOut)
