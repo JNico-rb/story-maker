@@ -1,4 +1,5 @@
-"""`linter-legibilidad`: medidas, índice y sus límites (018-C3 a 018-C5)."""
+"""`linter-legibilidad`: medidas, índice, sus límites y la franja del objetivo
+(018-C3 a 018-C6)."""
 
 from __future__ import annotations
 
@@ -77,3 +78,22 @@ def test_el_indice_por_debajo_del_minimo_dispara() -> None:
     assert result.defects[0].message == (
         "índice de Fernández-Huerta 76,04; mínimo de la franja teen: 76,64"
     )
+
+
+def test_la_franja_del_destinatario_elige_el_objetivo() -> None:
+    text = _sentence(["casa"] * 15)
+
+    children = ReadabilityTarget(
+        age_band="children", max_sentence_length=12, min_fernandez_huerta=-1000
+    )
+    adult = ReadabilityTarget(age_band="adult", max_sentence_length=20, min_fernandez_huerta=-1000)
+
+    children_result = lint_readability(text, children)
+    adult_result = lint_readability(text, adult)
+
+    assert children_result.passed is False
+    assert children_result.defects[0].message == (
+        "longitud media de frase 15,00 palabras; máximo de la franja children: 12"
+    )
+    assert adult_result.passed is True
+    assert adult_result.defects == ()
