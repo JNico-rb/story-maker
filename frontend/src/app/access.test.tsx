@@ -41,7 +41,12 @@ function storedValues(): string {
   return all.join("\n");
 }
 
-const EMAIL = "persona@example.com";
+// Cuerpo 422 de FastAPI: `loc` señala el campo que no tiene forma válida.
+function invalid(field: "email" | "password") {
+  return { detail: [{ type: "value_error", loc: ["body", field], msg: "no válido" }] };
+}
+
+const EMAIL ="persona@example.com";
 const PASSWORD = "contrasena-de-prueba";
 
 beforeEach(() => {
@@ -89,6 +94,80 @@ describe("022 registro", () => {
     expect(screen.getByRole("heading", { name: "Crear cuenta" })).toBeInTheDocument();
     expect(screen.getByLabelText("Email")).toHaveValue(EMAIL);
     expect(screen.getByLabelText("Contraseña")).toHaveValue("");
+    expect(storedValues()).toBe("");
+  });
+
+  it("022-C03: an invalid registration shows the message next to the field the API pointed at, keeps the email, clears the password and can be resent", async () => {
+    let attempts = 0;
+    const sent = fakeApi({
+      "POST /api/auth/register": () => {
+        attempts += 1;
+        return attempts === 1
+          ? { status: 422, body: invalid("email") }
+          : { status: 201, body: { id: "c1", email: EMAIL } };
+      },
+    });
+    const user = userEvent.setup();
+    renderAt("/registro");
+
+    await user.type(screen.getByLabelText("Email"), "persona.example.com");
+    await user.type(screen.getByLabelText("Contraseña"), PASSWORD);
+    await user.click(screen.getByRole("button", { name: "Crear cuenta" }));
+
+    expect(await screen.findByLabelText("Email")).toHaveAccessibleDescription(
+      "Revisa el email: no tiene forma de email.",
+    );
+    expect(screen.getByLabelText("Email")).toHaveValue("persona.example.com");
+    expect(screen.getByLabelText("Contraseña")).toHaveValue("");
+    expect(screen.getByLabelText("Contraseña")).not.toHaveAccessibleDescription();
+
+    await user.clear(screen.getByLabelText("Email"));
+    await user.type(screen.getByLabelText("Email"), EMAIL);
+    await user.type(screen.getByLabelText("Contraseña"), PASSWORD);
+    await user.click(screen.getByRole("button", { name: "Crear cuenta" }));
+
+    expect(await screen.findByRole("heading", { name: "Entrar" })).toBeInTheDocument();
+    expect(sent).toHaveLength(2);
+  });
+
+  it("022-C03: a password out of its limits is pointed at next to the password, and the email is kept", async () => {
+    fakeApi({ "POST /api/auth/register": () => ({ status: 422, body: invalid("password") }) });
+    const user = userEvent.setup();
+    renderAt("/registro");
+
+    await user.type(screen.getByLabelText("Email"), EMAIL);
+    await user.type(screen.getByLabelText("Contraseña"), "corta");
+    await user.click(screen.getByRole("button", { name: "Crear cuenta" }));
+
+    expect(await screen.findByLabelText("Contraseña")).toHaveAccessibleDescription(
+      "La contraseña debe tener entre 8 caracteres y 72 bytes.",
+    );
+    expect(screen.getByLabelText("Contraseña")).toHaveValue("");
+    expect(screen.getByLabelText("Email")).toHaveValue(EMAIL);
+    expect(screen.getByLabelText("Email")).not.toHaveAccessibleDescription();
+  });
+});
+
+describe("022 acceso", () => {
+  it("022-C03: an invalid login shows the message next to the field the API pointed at, keeps the email, clears the password and can be resent", async () => {
+    const sent = fakeApi({ "POST /api/auth/login": () => ({ status: 422, body: invalid("password") }) });
+    const user = userEvent.setup();
+    renderAt("/acceso");
+
+    await user.type(screen.getByLabelText("Email"), EMAIL);
+    await user.type(screen.getByLabelText("Contraseña"), PASSWORD);
+    await user.click(screen.getByRole("button", { name: "Entrar" }));
+
+    expect(await screen.findByLabelText("Contraseña")).toHaveAccessibleDescription(
+      "Revisa la contraseña.",
+    );
+    expect(screen.getByLabelText("Email")).toHaveValue(EMAIL);
+    expect(screen.getByLabelText("Contraseña")).toHaveValue("");
+
+    await user.type(screen.getByLabelText("Contraseña"), PASSWORD);
+    await user.click(screen.getByRole("button", { name: "Entrar" }));
+
+    await vi.waitFor(() => expect(sent).toHaveLength(2));
     expect(storedValues()).toBe("");
   });
 });

@@ -1,9 +1,21 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router";
 
+import { invalidFields } from "../../shared/api";
 import { TextField } from "../../shared/ui";
 
-type FieldErrors = { email?: string };
+type FieldErrors = { email?: string; password?: string };
+
+async function errorsFor(response: Response): Promise<FieldErrors> {
+  if (response.status === 409) return { email: "Ese email ya tiene cuenta." };
+  const fields = await invalidFields(response);
+  return {
+    email: fields.has("email") ? "Revisa el email: no tiene forma de email." : undefined,
+    password: fields.has("password")
+      ? "La contraseña debe tener entre 8 caracteres y 72 bytes."
+      : undefined,
+  };
+}
 
 export function RegisterPage() {
   const navigate = useNavigate();
@@ -21,8 +33,8 @@ export function RegisterPage() {
     setPassword("");
     if (response.status === 201) {
       await navigate("/acceso", { state: { registeredEmail: email } });
-    } else if (response.status === 409) {
-      setErrors({ email: "Ese email ya tiene cuenta." });
+    } else {
+      setErrors(await errorsFor(response));
     }
   }
 
@@ -44,6 +56,7 @@ export function RegisterPage() {
           autoComplete="new-password"
           value={password}
           onChange={setPassword}
+          error={errors.password}
         />
         <button type="submit" className="rounded bg-primary px-4 py-2 font-semibold text-secondary">
           Crear cuenta
