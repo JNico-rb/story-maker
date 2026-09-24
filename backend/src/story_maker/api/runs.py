@@ -1,21 +1,21 @@
 """Ejecuciones: lanzar la generación, consultar su progreso por sondeo y reanudar
-(`architecture.md` §9.2, §15.7; 011-C01, C02, C04, C26)."""
+(`architecture.md` §9.2, §15.7; 011-C01, C02, C04, C26), y el informe (011-C30)."""
 
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
-from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from story_maker.api.dependencies import get_current_user_id, get_session
 from story_maker.api.ownership import owned_or_404
 from story_maker.pipeline.queue import LaunchRejected, enqueue_generation
+from story_maker.pipeline.report import build_report, run_cost
 from story_maker.pipeline.runs import ResumeRejected, queue_position, resume_run
-from story_maker.store.models import Novel, RoleSession, Run
+from story_maker.store.models import Novel, Run
 from story_maker.store.session import unit_of_work
 
 router = APIRouter()
@@ -68,9 +68,6 @@ def poll_progress(
     """Coste: la suma de las `SesionDeRol` de la ejecución; posición solo en `queued`; motivo y
     detalle solo en `failed` o `interrupted` (011-C04)."""
     run = owned_or_404(session, Run, run_id, owns_run(session, user_id))
-    cost = session.query(func.coalesce(func.sum(RoleSession.cost_usd), 0.0)).filter(
-        RoleSession.run_id == run.id
-    )
     stopped = run.status in ("failed", "interrupted")
     return ProgressResponse(
         run_id=run.id,
@@ -78,7 +75,7 @@ def poll_progress(
         status=run.status,
         phase=run.phase,
         chapter=run.chapter,
-        cost_usd=float(cost.scalar() or 0.0),
+        cost_usd=run_cost(session, run.id),
         position=queue_position(session, run),
         reason=run.reason if stopped else None,
         reason_detail=run.reason_detail if stopped else None,
@@ -100,3 +97,14 @@ def resume(
     except ResumeRejected as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from None
     return EnqueuedResponse(run_id=run_id, position=position)
+
+
+@router.get("/api/runs/{run_id}/report")
+def report(
+    run_id: int,
+    user_id: Annotated[int, Depends(get_current_user_id)],
+    session: Annotated[Session, Depends(get_session)],
+) -> dict[str, Any]:
+    """El `InformeDeEjecucion`, calculado de lo guardado al pedirlo (011-C30)."""
+    run = owned_or_404(session, Run, run_id, owns_run(session, user_id))
+    return build_report(session, run)
