@@ -2,13 +2,24 @@
 
 from __future__ import annotations
 
+import asyncio
+import contextlib
 import json
 import os
 from collections.abc import Sequence
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from claude_agent_sdk import ClaudeAgentOptions, McpSdkServerConfig, McpServerConfig
+from claude_agent_sdk import (
+    ClaudeAgentOptions,
+    ClaudeSDKClient,
+    ClaudeSDKError,
+    McpSdkServerConfig,
+    McpServerConfig,
+    ResultError,
+    ResultMessage,
+)
 from claude_agent_sdk.types import McpStdioServerConfig
 from mcp.server import Server, ServerRequestContext
 from mcp.types import (
@@ -20,15 +31,18 @@ from mcp.types import (
     Tool,
 )
 
-from story_maker.agents.port import DriverSession, SessionRequest, ToolHooks
+from story_maker.agents.port import DriverSession, EndingName, Final, SessionRequest, ToolHooks
 from story_maker.agents.profiles import BROWSER_TOOLS, SKILL, RoleProfile
 from story_maker.agents.tools import ToolSpec
+from story_maker.agents.usage import Usage
 from story_maker.settings import Settings
 
 HARNESS = "harness"
 BROWSER = "playwright"
 PLAYWRIGHT_MCP = "@playwright/mcp@0.0.82"
 OPENROUTER_BASE_URL = "https://openrouter.ai/api"
+# Lo que se espera, tras `interrupt()`, al resultado final con el uso de la sesión.
+INTERRUPT_GRACE_SECONDS = 5
 
 
 # Telemetría no esencial y memoria automática del CLI apagadas (`architecture.md` §12.6).
@@ -44,6 +58,69 @@ class ProviderConfigError(ValueError):
 
 class RealModelInTests(RuntimeError):
     """Una prueba intentó abrir una sesión real: las pruebas T usan el doble falso (003-I6)."""
+
+
+def final_from_result(message: ResultMessage) -> Final:
+    """El `ResultMessage` de la sesión: su uso es el exacto, también si agotó los turnos."""
+    ending: EndingName
+    if message.subtype == "error_max_turns":
+        ending = "turns_exhausted"
+    elif message.is_error:
+        ending = "provider_error"
+    else:
+        ending = "completed"
+    raw = message.usage
+    usage = (
+        Usage(
+            input_tokens=raw.get("input_tokens", 0),
+            output_tokens=raw.get("output_tokens", 0),
+            cache_read_tokens=raw.get("cache_read_input_tokens", 0),
+            cache_write_tokens=raw.get("cache_creation_input_tokens", 0),
+        )
+        if raw is not None
+        else None
+    )
+    return Final(ending, message.result, usage, message.total_cost_usd)
+
+
+@dataclass
+class SdkSession:
+    """Una sesión del CLI: conectar, enviar el mensaje y leer hasta el resultado final."""
+
+    options: ClaudeAgentOptions
+    message: str
+    final: Final | None = None
+    _client: ClaudeSDKClient | None = None
+
+    async def run(self) -> None:
+        self._client = ClaudeSDKClient(self.options)
+        await self._client.connect()
+        await self._client.query(self.message)
+        await self._receive(self._client)
+
+    async def _receive(self, client: ClaudeSDKClient) -> None:
+        try:
+            async for message in client.receive_response():
+                if isinstance(message, ResultMessage):
+                    self.final = final_from_result(message)
+        except ResultError:
+            # Agotar max_turns lanza ResultError después del ResultMessage: el uso ya llegó.
+            if self.final is None:
+                raise
+
+    async def interrupt(self) -> None:
+        """`interrupt()` corta, pero el subproceso vive hasta `disconnect()` (§15.2, H9)."""
+        if self._client is None:
+            return
+        client = self._client
+        with contextlib.suppress(TimeoutError, ClaudeSDKError):
+            await client.interrupt()
+            async with asyncio.timeout(INTERRUPT_GRACE_SECONDS):
+                await self._receive(client)
+
+    async def disconnect(self) -> None:
+        if self._client is not None:
+            await self._client.disconnect()
 
 
 def harness_tools(tools: Sequence[ToolSpec]) -> list[Tool]:
@@ -179,4 +256,4 @@ class SdkAgent:
     def open(
         self, request: SessionRequest, profile: RoleProfile, hooks: ToolHooks
     ) -> DriverSession:
-        raise NotImplementedError
+        return SdkSession(self.session_options(request, profile, hooks), request.message)
