@@ -538,3 +538,19 @@ def test_prompts_push_uploads_a_changed_role_prompt_from_the_workspace(
     assert result.exit_code == 0
     assert "writer" in result.stdout
     assert fake_langfuse_client.get_prompt("writer", label="produccion").version == 1
+
+
+def test_prompts_push_reports_no_changes_when_nothing_changed(
+    monkeypatch: pytest.MonkeyPatch, base_env: Path, fake_langfuse_client: FakeLangfuseClient
+) -> None:
+    _set_langfuse_env(monkeypatch)
+    _use_fake_langfuse_client(monkeypatch, fake_langfuse_client)
+    prompts_dir = base_env / "backend" / "harness_workspace" / "prompts"
+    prompts_dir.mkdir(parents=True)
+    (prompts_dir / "writer.md").write_text("Escribe con fidelidad al canon.", encoding="utf-8")
+    runner.invoke(app, ["prompts", "push"])
+
+    result = runner.invoke(app, ["prompts", "push"])
+
+    assert result.exit_code == 0
+    assert result.stdout.strip() == "sin cambios"

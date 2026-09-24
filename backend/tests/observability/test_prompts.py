@@ -44,3 +44,18 @@ def test_push_uploads_a_new_version_when_the_role_already_had_one_with_a_differe
 
     assert pushed == ["writer"]
     assert fake_langfuse_client.get_prompt("writer", label=LABEL).version == 2
+
+
+# --- C08: no sube si la huella no cambió -------------------------------------------------------
+
+
+def test_push_uploads_nothing_when_the_fingerprint_is_unchanged(
+    tmp_path: Path, fake_langfuse_client: FakeLangfuseClient
+) -> None:
+    _write_prompt(tmp_path, "editor", "Revisa el capítulo con la rúbrica del rol.")
+    push_prompts(tmp_path, fake_langfuse_client, LABEL)
+
+    pushed_again = push_prompts(tmp_path, fake_langfuse_client, LABEL)
+
+    assert pushed_again == []
+    assert fake_langfuse_client.get_prompt("editor", label=LABEL).version == 1
