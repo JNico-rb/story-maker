@@ -34,7 +34,7 @@ El scaffolding se escribió antes que esta spec (desviación detectada por el us
 
 - `config.json`, ajustes del servidor y contenido de `.env.example`, esquema SQLite (con la carga de `sqlite-vec` y FTS5), API mínima, subórdenes `serve`, `init-db` y `check-env`, y README → 001-base.
 - Primera generación de tipos con `gen:api`, que necesita la API → 001-base; su regeneración, en `/integrar`.
-- Especificaciones TLA+, sus `.cfg` y la config con invariante roto → 006-especificacion-tla.
+- Especificaciones TLA+, sus `.cfg` y las configs de control → 006-especificacion-tla.
 - Biblioteca Lean T1–T5, auditoría de axiomas, ficheros negativos y workflow `workflow_dispatch` del `VerificadorFormal` → 007-validador-lean.
 - Contenido de `backend/harness_workspace/`: 003-puerto-de-agente solo lleva el mecanismo (`agents/`, el `WorkspaceDelHarness` como mecanismo); el `CLAUDE.md` de producto, la skill y los prompts de writer y editor son de 011-produccion-de-capitulos; el prompt de cada rol restante es de su propia spec (008-brief-y-entrevista, 010-planificacion, 012-gate-de-publicacion, 014-cambios-del-lector, 017-revision-visual). Los hooks del producto (de policy y de validación de capítulo) no son los hooks de desarrollo de esta spec → 003, 005, 011.
 - Navegadores de Playwright para el PDF en la CI → 013-lectura-y-pdf. Los cinco briefs de `ejemplos/briefs/` → 020-evals.
@@ -66,7 +66,7 @@ Clases, según `verification.md` §2 (T ejecuta el sistema con entradas concreta
 
 ### 000-C04 · Cada dependencia del stack del backend se importa en el entorno instalado (T)
 - **Dado** el entorno de 000-C03, en el portátil Windows y en la CI Linux
-- **Cuando** una prueba importa `fastapi`, `uvicorn`, `pydantic`, `sqlalchemy`, `sqlite_vec`, `fastembed`, `claude_agent_sdk`, `langfuse`, `fastmcp`, `playwright`, `pypdf`, `jinja2`, `bcrypt`, `jwt` (PyJWT), `typer`, `pytest_asyncio` e `hypothesis`, y se ejecutan `uv run detect-secrets --version` y `uv run pip-audit --version`
+- **Cuando** una prueba importa `fastapi`, `uvicorn`, `pydantic`, `sqlalchemy`, `sqlite_vec`, `fastembed`, `claude_agent_sdk`, `langfuse`, `fastmcp`, `playwright`, `pypdf`, `jinja2`, `bcrypt`, `jwt` (PyJWT), `typer`, `pytest_asyncio` e `hypothesis`, y se piden sus versiones a `detect-secrets` y `pip-audit` como módulos del entorno (`uv run python -m detect_secrets --version`, `uv run python -m pip_audit --version`; Smart App Control puede bloquear el lanzador `.exe` que uv genera para cada orden)
 - **Entonces** todo se importa y responde; `pydantic` y `sqlalchemy` son de la versión mayor 2 y `langfuse` de la 4; en Windows, `fastembed` se importa con el runtime de C++ que declara el proyecto (`architecture.md` §15.3), sin pasos fuera de `uv sync`
 
 ### 000-C05 · El paquete tiene un subpaquete por módulo y `domain` no importa el resto (T)

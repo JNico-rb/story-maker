@@ -93,7 +93,7 @@ Todas dependen de 000. Arranque en paralelo cuando 000 esté cerrada: A (001), C
 - [x] 000-C01 · Git ignora lo generado y los secretos, y versiona lo que se entrega
 - [x] 000-C02 · Git guarda los ficheros de texto con LF y no convierte los binarios
 - [x] 000-C03 · El backend se instala desde su lock y su verificación pasa sin credenciales
-- [ ] 000-C04 · Cada dependencia del stack del backend se importa en el entorno instalado
+- [x] 000-C04 · Cada dependencia del stack del backend se importa en el entorno instalado
 - [x] 000-C05 · El paquete tiene un subpaquete por módulo y `domain` no importa el resto
 - [x] 000-C06 · El frontend se instala desde su lock y su verificación pasa
 - [x] 000-C07 · La SPA muestra la cabecera de marca en la ruta raíz

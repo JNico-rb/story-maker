@@ -12,7 +12,7 @@ permissions:
 
 env:
   # Pinned tools (spec 000-I1); the laptop uses the same versions (tla/README.md).
-  TEMURIN_VERSION: "21.0.12+8"
+  TEMURIN_VERSION: "21.0.12+8.0.LTS"
   TLA2TOOLS_VERSION: "v1.7.4"
 
 jobs:
@@ -68,7 +68,7 @@ jobs:
           auto-config: false
           build: true
           build-args: "--wfail"
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: ${{ env.TEMURIN_VERSION }}

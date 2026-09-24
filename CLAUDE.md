@@ -59,6 +59,7 @@ Cada uso real de un subagente, comando o del browser MCP se registra en `docs/ve
 - **Smart App Control en Enforce**: un binario sin firma ni reputación muere sin mensaje (Git Bash: rc=127). Lean no corre aquí: `FORMAL_VERIFIER=github` y `lake build` en GitHub Actions.
 - **pnpm 10.x** y en Git Bash siempre `pnpm.cmd`; pnpm 11+ no arranca sin el runtime de VC++.
 - **Python 3.12** fijado en `backend/.python-version`: SAC bloquea wheels de 3.14.
+- **SAC y lanzadores de uv**: el `.exe` que uv genera para una orden (p. ej. `detect-secrets`) puede morir bloqueado; se invoca como módulo, `uv run python -m <módulo>`.
 - **uvicorn sin `--reload`**: rompe los subprocesos del Agent SDK en Windows.
 - **`LongPathsEnabled=0`**: Python falla con rutas de más de 260 caracteres → worktrees hermanos con ruta corta (`../sm-<x>`), nunca bajo `.claude/`.
 - **Playwright MCP 0.0.82 bloquea `file://`**: un HTML local se inspecciona sirviéndolo en `http://127.0.0.1`.

@@ -175,7 +175,7 @@ def test_the_memory_mirror_is_sanitised(leak: str) -> None:
 def test_no_versioned_file_holds_a_key_shaped_string() -> None:
     # Same scan as the CI job: every finding must be an audited false positive in the baseline.
     from detect_secrets import SecretsCollection
-    from detect_secrets.settings import default_settings
+    from detect_secrets.settings import transient_settings
 
     baseline = json.loads((ROOT / ".secrets.baseline").read_text(encoding="utf-8"))
     audited = {
@@ -191,7 +191,7 @@ def test_no_versioned_file_holds_a_key_shaped_string() -> None:
         if f != ".secrets.baseline" and not skipped.search(f)
     ]
     secrets = SecretsCollection(root=str(ROOT))
-    with default_settings():
+    with transient_settings(baseline):
         secrets.scan_files(*files)
 
     found = {(name.replace("\\", "/"), secret.secret_hash) for name, secret in secrets} - audited
