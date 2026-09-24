@@ -1,4 +1,4 @@
-"""`linter-legibilidad`: medidas, índice y sus límites (018-C3, 018-C4)."""
+"""`linter-legibilidad`: medidas, índice y sus límites (018-C3 a 018-C5)."""
 
 from __future__ import annotations
 
@@ -43,4 +43,37 @@ def test_la_longitud_media_de_frase_por_encima_del_maximo_dispara() -> None:
     assert len(result.defects) == 1
     assert result.defects[0].message == (
         "longitud media de frase 13,00 palabras; máximo de la franja children: 12"
+    )
+
+
+def _sentence(words: list[str]) -> str:
+    return " ".join(words) + "."
+
+
+def test_el_indice_en_su_minimo_no_dispara() -> None:
+    text = " ".join(_sentence(["casa"] * 10) for _ in range(10))
+    target = ReadabilityTarget(
+        age_band="teen", max_sentence_length=1000, min_fernandez_huerta=76.64
+    )
+    result = lint_readability(text, target)
+
+    assert result.passed is True
+    assert result.metric == 76.64
+    assert result.defects == ()
+
+
+def test_el_indice_por_debajo_del_minimo_dispara() -> None:
+    sentences = [_sentence(["casa"] * 10) for _ in range(9)]
+    sentences.append(_sentence(["ventana", *["casa"] * 9]))
+    text = " ".join(sentences)
+    target = ReadabilityTarget(
+        age_band="teen", max_sentence_length=1000, min_fernandez_huerta=76.64
+    )
+    result = lint_readability(text, target)
+
+    assert result.passed is False
+    assert result.metric == 76.04
+    assert len(result.defects) == 1
+    assert result.defects[0].message == (
+        "índice de Fernández-Huerta 76,04; mínimo de la franja teen: 76,64"
     )
