@@ -521,7 +521,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] 010-I4 · Los intentos del evaluable `plan` nunca superan 1 + `max_retries.plan`, contando los de antes de una reanudación; el cortado por una caíd…
 - [x] 010-I5 · El punto de control 0 existe si y solo si el plan está aplicado, se escribe una sola vez, y relanzar con él nunca abre el planner
 - [x] 010-I6 · `outline` es determinista y exhaustivo
-- [ ] 010-I8 · El prompt del planner en modo `plan` (entrega tardía, carril W; lo lee el `verificador`)
+- [x] 010-I8 · El prompt del planner en modo `plan` (entrega tardía, carril W; lo lee el `verificador`) — `backend/harness_workspace/prompts/planner.md`
 - [ ] 010-C30 · Planificación con el modelo real (D, al final)
 
 ### Closing
