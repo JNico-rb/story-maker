@@ -676,17 +676,17 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
-- [ ] 014-C01 · Una petición sobre un hecho devuelve la propuesta, los afectados y el código
-- [ ] 014-C02 · Los afectados son los usos, más el valor antiguo literal, más el capítulo del fragmento
-- [ ] 014-C03 · Lo que no admite una petición se rechaza antes de la policy
-- [ ] 014-C04 · Una prohibida en la petición la deniega sin abrir el planner
-- [ ] 014-C05 · Una inyección en la petición se marca y no deniega (RT3)
-- [ ] 014-C06 · El código valida la propuesta y una inválida vuelve al planner con sus defectos (RT4)
-- [ ] 014-C07 · Agotados los intentos, la solicitud queda `rejected`
-- [ ] 014-C08 · El planner en modo cambio solo tiene `propose_change` (RT4)
-- [ ] 014-C09 · Sin proveedor, sin sitio en el techo o con la sesión agotada, no queda solicitud
-- [ ] 014-C10 · Confirmar con el código encola una ejecución de cambio con su versión base
-- [ ] 014-C11 · La confirmación exige el código vigente de una solicitud propia en estado `proposed`
+- [x] 014-C01 · Una petición sobre un hecho devuelve la propuesta, los afectados y el código
+- [x] 014-C02 · Los afectados son los usos, más el valor antiguo literal, más el capítulo del fragmento
+- [x] 014-C03 · Lo que no admite una petición se rechaza antes de la policy
+- [x] 014-C04 · Una prohibida en la petición la deniega sin abrir el planner
+- [x] 014-C05 · Una inyección en la petición se marca y no deniega (RT3)
+- [x] 014-C06 · El código valida la propuesta y una inválida vuelve al planner con sus defectos (RT4)
+- [x] 014-C07 · Agotados los intentos, la solicitud queda `rejected`
+- [x] 014-C08 · El planner en modo cambio solo tiene `propose_change` (RT4)
+- [x] 014-C09 · Sin proveedor, sin sitio en el techo o con la sesión agotada, no queda solicitud
+- [x] 014-C10 · Confirmar con el código encola una ejecución de cambio con su versión base
+- [x] 014-C11 · La confirmación exige el código vigente de una solicitud propia en estado `proposed`
 - [ ] 014-C12 · Si al arrancar la versión vigente ya no es su base, la ejecución falla con `stale_base`
 - [ ] 014-C13 · La candidata copia la base y aplica el cambio en una sola transacción
 - [ ] 014-C14 · Solo los afectados pasan por el writer, en orden y en modo revisión
@@ -695,16 +695,16 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [ ] 014-C17 · Si la ejecución de cambio falla, la solicitud queda `rejected` y la base intacta
 - [ ] 014-C18 · Reanudar una ejecución de cambio revalida la base y sigue por el siguiente afectado
 - [ ] 014-C19 · Cada propuesta y cada ejecución de cambio dejan su traza
-- [ ] 014-I1 · El código calcula los capítulos afectados desde la versión base
+- [x] 014-I1 · El código calcula los capítulos afectados desde la versión base
 - [ ] 014-I2 · Receptor único
 - [ ] 014-I3 · Ningún rol escribe canon
-- [ ] 014-I4 · Sin un código válido no se encola nada
-- [ ] 014-I6 · Una petición tiene como mucho 1 + `max_retries.change` intentos (`ReintentosAcotados`)
+- [x] 014-I4 · Sin un código válido no se encola nada
+- [x] 014-I6 · Una petición tiene como mucho 1 + `max_retries.change` intentos (`ReintentosAcotados`)
 - [ ] 014-I7 · Un cambio no modifica la versión base ni ninguna otra versión publicada, tanto si publica como si falla (`VersionAnteriorConservada`)
 - [ ] 014-I8 · Historia lineal
 - [ ] 014-I9 · En la fase `writing` de una ejecución de cambio, solo los afectados pasan por el writer, en orden ascendente
 - [ ] 014-I10 · Los puntos de control de una ejecución de cambio son el 0 y un prefijo de sus afectados en orden, sin huecos ni duplicados
-- [ ] 014-I11 · Toda decisión del motor sobre la petición y sobre los valores nuevos queda en el audit log con origen `change_request`
+- [x] 014-I11 · Toda decisión del motor sobre la petición y sobre los valores nuevos queda en el audit log con origen `change_request`
 - [ ] 014-I12 · Los capítulos cambiados de la versión nueva son exactamente los de huella distinta de su base
 - [ ] 014-C20 · Un cambio real propagado sobre la novela del brief 1 (D, al final)
 

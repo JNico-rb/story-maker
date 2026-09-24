@@ -16,6 +16,8 @@ PROTECTED_ROUTES = {
     ("/api/novels/{novel_id}/versions", "GET"),  # 013
     ("/api/novels/{novel_id}/versions/{number}", "GET"),  # 013
     ("/api/novels/{novel_id}/versions/{number}/pdf", "GET"),  # 013
+    ("/api/novels/{novel_id}/change-requests", "POST"),  # 014
+    ("/api/change-requests/{request_id}/confirm", "POST"),  # 014
 }
 
 # Toda ruta nueva de /api entra aquí (002-I2, 002-I3): así la ruta de una spec nueva, si no
