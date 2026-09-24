@@ -701,7 +701,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] 014-C18 · Reanudar una ejecución de cambio revalida la base y sigue por el siguiente afectado
 - [ ] 014-C19 · Cada propuesta y cada ejecución de cambio dejan su traza
 - [x] 014-I1 · El código calcula los capítulos afectados desde la versión base
-- [ ] 014-I2 · Receptor único
+- [x] 014-I2 · Receptor único
 - [ ] 014-I3 · Ningún rol escribe canon
 - [x] 014-I4 · Sin un código válido no se encola nada
 - [x] 014-I6 · Una petición tiene como mucho 1 + `max_retries.change` intentos (`ReintentosAcotados`)
