@@ -681,3 +681,44 @@ Todas dependen de 000. Arranque en paralelo cuando 000 esté cerrada: A (001), C
 - [ ] Full suite green, type checks clean
 - [ ] Spec updated, or confirmed still true
 - [ ] Docs updated, or confirmed still true
+
+## 017 — revision-visual
+
+- [x] Spec `specs/backend/017-revision-visual.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
+
+### Steps
+- [ ] 017-C01 · La estructura esperada sale de la candidata
+- [ ] 017-C02 · El revisor recibe la dirección de la vista y la forma de lo que entrega, no los valores
+- [ ] 017-C03 · La sesión del revisor solo navega la vista
+- [ ] 017-C04 · Una revisión que coincide pasa
+- [ ] 017-C05 · La comparación tolera espacios y mayúsculas, no letras
+- [ ] 017-C06 · Una portada que no muestra lo suyo es fallo de render
+- [ ] 017-C07 · Un índice que no lleva a sus capítulos es fallo de render
+- [ ] 017-C08 · Un capítulo que no se ve entero es fallo de render
+- [ ] 017-C09 · Una ficha que no enlaza lo que debe es fallo de render
+- [ ] 017-C10 · Una entidad sin capítulo cuyo nombre sale en el texto es un fallo de datos atribuido, y no se abre el revisor
+- [ ] 017-C11 · Una entidad sin capítulo que ningún capítulo nombra es un defecto no atribuible
+- [ ] 017-C12 · Una entrega fuera de schema vuelve al revisor
+- [ ] 017-C13 · Una vista vacía o con error es fallo de render en las cuatro partes
+- [ ] 017-C14 · Una sesión sin entrega válida es un ciclo fallido, no un defecto de la novela
+- [ ] 017-C15 · Sin navegador, la ejecución se interrumpe y no publica
+- [ ] 017-C16 · Cada revisión deja su resultado, su span y sus scores
+- [ ] 017-C17 · Integración: un fallo de datos vuelve al editor y el ciclo siguiente publica
+- [ ] 017-C18 · Integración: un fallo de render hace fallar la ejecución
+- [ ] 017-C19 · La revisión visual corre en el gate de un cambio y de una edición manual
+- [ ] 017-I1 · El resultado lo decide el código
+- [ ] 017-I2 · El revisor nunca recibe los valores que el código compara (título, nombre del destinatario, dedicatoria, títulos y textos de capítulo, no…
+- [ ] 017-I3 · `revision-visual` no escribe canon ni capítulos
+- [ ] 017-I4 · Todo defecto de `revision-visual` es de datos o de render
+- [ ] 017-I5 · Si en un ciclo `revision-visual` no pasa (por datos, render, sin entrega o sin navegador), en ese ciclo no se genera el PDF ni se publica
+- [ ] 017-I6 · La sesión del revisor visual solo tiene sus cuatro tools y el servidor Playwright MCP, sin `Skill`, solo navega el origen de la vista y s…
+- [ ] 017-C20 · Sonda de la vista con el browser MCP de desarrollo (D, al final)
+- [ ] 017-C21 · El revisor real aprueba una vista correcta (D, al final)
+- [ ] 017-C22 · El revisor real caza un enlace de la ficha sembrado roto (D, al final)
+- [ ] 017-C23 · En la primera generación real, la etapa corre en el gate (D, al final)
+
+### Closing
+- [ ] Full suite green, type checks clean
+- [ ] Spec updated, or confirmed still true
+- [ ] Docs updated, or confirmed still true
