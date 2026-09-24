@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import shutil
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -65,6 +66,7 @@ from story_maker.store.models import (
     Run,
     User,
     ValidatorResult,
+    Version,
 )
 from story_maker.store.session import (
     create_schema,
@@ -746,6 +748,28 @@ def evals_run_command(
         typer.echo("evals run necesita --email de un cliente ya registrado")
         raise typer.Exit(1)
 
+    config, observability, user_id = _brief_services(settings, email)
+    mount = build_mount(settings, config, observability, real_adapters(settings, config))
+    try:
+        launches, defects = asyncio.run(_run_evals(mount, config, observability, user_id))
+        with mount.session_factory() as session:
+            for launch in launches:
+                status = session.get_one(Run, launch.run_id).status
+                typer.echo(
+                    f"{launch.slug}: novela {launch.novel_id}, ejecución {launch.run_id} ({status})"
+                )
+    finally:
+        mount.engine.dispose()
+        observability.flush()
+    for slug, defect in defects.items():
+        typer.echo(f"{slug}: {defect}")
+    if defects:
+        raise typer.Exit(1)
+
+
+def _brief_services(settings: Settings, email: str) -> tuple[Config, ObservabilityAdapter, int]:
+    """La config, la observabilidad y el cliente propietario de las órdenes que importan un brief
+    (`evals run`, `example`); sin cualquiera de los tres, código 1 y nada se crea (020-C02)."""
     engine = make_engine(_db_path(settings.data_dir))
     try:
         with make_session_factory(engine)() as session:
@@ -766,23 +790,7 @@ def evals_run_command(
     if observability is None:
         typer.echo(observability_line)
         raise typer.Exit(1)
-
-    mount = build_mount(settings, config, observability, real_adapters(settings, config))
-    try:
-        launches, defects = asyncio.run(_run_evals(mount, config, observability, user.id))
-        with mount.session_factory() as session:
-            for launch in launches:
-                status = session.get_one(Run, launch.run_id).status
-                typer.echo(
-                    f"{launch.slug}: novela {launch.novel_id}, ejecución {launch.run_id} ({status})"
-                )
-    finally:
-        mount.engine.dispose()
-        observability.flush()
-    for slug, defect in defects.items():
-        typer.echo(f"{slug}: {defect}")
-    if defects:
-        raise typer.Exit(1)
+    return config, observability, user.id
 
 
 def eval_slug(path: Path) -> str:
@@ -792,7 +800,7 @@ def eval_slug(path: Path) -> str:
 
 @dataclass(frozen=True)
 class _EvalLaunch:
-    slug: str
+    slug: str | None
     novel_id: int
     run_id: int
 
@@ -839,12 +847,16 @@ def _problems_text(problems: list[dict[str, Any]]) -> str:
     )
 
 
-async def _launch_eval_brief(
-    mount: Mount, config: Config, telemetry: ObservabilityPort, user_id: int, path: Path
+async def _launch_brief(
+    mount: Mount,
+    config: Config,
+    telemetry: ObservabilityPort,
+    user_id: int,
+    path: Path,
+    slug: str | None,
 ) -> _EvalLaunch | str:
-    """El brief del fichero, importado como en la API (008) y con su generación encolada (011);
-    o su defecto, sin novela (020-C04)."""
-    slug = eval_slug(path)
+    """El brief del fichero, importado como en la API (008), marcado con su brief de eval `slug`
+    y con su generación encolada (011); o su defecto, sin novela (020-C04)."""
     try:
         content, banned_entries, free_texts = eval_brief_content(
             json.loads(path.read_text(encoding="utf-8"))
@@ -886,14 +898,83 @@ async def _run_evals(
     launches: list[_EvalLaunch] = []
     defects: dict[str, str] = {}
     for path in sorted(EVAL_BRIEFS_DIR.glob("*.json")):
-        outcome = await _launch_eval_brief(mount, config, telemetry, user_id, path)
+        outcome = await _launch_brief(mount, config, telemetry, user_id, path, eval_slug(path))
         if isinstance(outcome, str):
             defects[eval_slug(path)] = outcome
         else:
             launches.append(outcome)
+    await _drain_queue(mount)
+    return launches, defects
+
+
+async def _drain_queue(mount: Mount) -> None:
+    """El worker del montaje toma la cola hasta vaciarla, sin atajos (020-I3)."""
     while await mount.worker.run_next() is not None:
         pass
-    return launches, defects
+
+
+# --- `example` (020-C15) ----------------------------------------------------------------------
+
+EXAMPLE_PDF = Path("ejemplos") / "novela-ejemplo.pdf"
+
+
+async def _example(
+    mount: Mount, config: Config, telemetry: ObservabilityPort, user_id: int, brief: Path
+) -> _EvalLaunch | str:
+    in_evals = brief.resolve().parent == EVAL_BRIEFS_DIR.resolve()
+    slug = eval_slug(brief) if in_evals else None
+    launch = await _launch_brief(mount, config, telemetry, user_id, brief, slug)
+    if isinstance(launch, _EvalLaunch):
+        await _drain_queue(mount)
+    return launch
+
+
+@app.command(name="example")
+def example_command(
+    brief: Annotated[Path, typer.Argument(help="Brief en JSON, con la forma de ejemplos/briefs/.")],
+    email: Annotated[str, typer.Option("--email", help="Cliente propietario de la novela.")],
+    out: Annotated[
+        Path | None,
+        typer.Option("--out", help="Dónde dejar el PDF; por defecto, ejemplos/novela-ejemplo.pdf."),
+    ] = None,
+) -> None:
+    """Brief → novela publicada de `--email` → su PDF en `--out` (020-C15, `architecture.md`
+    §15.8): el PDF que el gate guardó y pasó `pdf-enlaces`. Es la única orden que escribe fuera
+    de `STORY_MAKER_DATA_DIR` (013-I4)."""
+    try:
+        settings = load_settings()
+    except SettingsError as exc:
+        for error in exc.errors:
+            typer.echo(error)
+        raise typer.Exit(1) from None
+
+    config, observability, user_id = _brief_services(settings, email)
+    target = out or settings_module.ROOT / EXAMPLE_PDF
+    mount = build_mount(settings, config, observability, real_adapters(settings, config))
+    try:
+        launch = asyncio.run(_example(mount, config, observability, user_id, brief))
+        if isinstance(launch, str):
+            typer.echo(f"{brief}: {launch}")
+            raise typer.Exit(1)
+        with mount.session_factory() as session:
+            run = session.get_one(Run, launch.run_id)
+            version = session.scalar(
+                select(Version).where(
+                    Version.novel_id == launch.novel_id, Version.status == "published"
+                )
+            )
+        if version is None or version.pdf_path is None:
+            typer.echo(
+                f"novela {launch.novel_id}: la ejecución {run.id} terminó {run.status} "
+                f"({run.reason}); no hay PDF"
+            )
+            raise typer.Exit(1)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(version.pdf_path, target)
+    finally:
+        mount.engine.dispose()
+        observability.flush()
+    typer.echo(f"novela {launch.novel_id}, ejecución {launch.run_id}: {target}")
 
 
 _BLOCKING = "blocking"

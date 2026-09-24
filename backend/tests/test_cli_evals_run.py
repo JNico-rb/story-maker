@@ -1,4 +1,5 @@
-"""`story-maker evals run` (020-C02, C03, C05) y la validez de los briefs de evals (020-C01)."""
+"""`story-maker evals run` (020-C02..C05), `example` (020-C15) y la validez de los briefs de
+evals (020-C01)."""
 
 from __future__ import annotations
 
@@ -38,6 +39,7 @@ from story_maker.pipeline.planning.plan import (
     StyleSheetSubmission,
     WorldSubmission,
 )
+from story_maker.render.pdf_links import check_pdf_links
 from story_maker.retrieval.fake import FixedVectors
 from story_maker.store import models
 from story_maker.store.session import create_schema, make_engine, make_session_factory
@@ -398,3 +400,37 @@ def test_an_invalid_brief_creates_no_novel_and_the_other_four_still_publish(
             assert [r.status for r in runs] == ["published"] * 4
     finally:
         engine.dispose()
+
+
+# --- 020-C15: `example` produce la novela y su PDF -------------------------------------------
+
+
+def test_example_publishes_a_novel_of_the_client_and_saves_its_pdf_at_the_given_path(
+    eval_env: Path,
+    eval_agent: tuple[EvalAgent, ProgrammedFormalVerifier],
+    tmp_path: Path,
+) -> None:
+    db_path = _db_path(eval_env)
+    user_id = _register(db_path, "cliente@example.com")
+    out = tmp_path / "salida" / "novela-ejemplo.pdf"
+    brief = EVAL_BRIEFS_DIR / "01-ejemplo.json"
+
+    result = runner.invoke(
+        app, ["example", str(brief), "--email", "cliente@example.com", "--out", str(out)]
+    )
+
+    assert result.exit_code == 0, result.stdout
+    engine = make_engine(db_path)
+    try:
+        with make_session_factory(engine)() as session:
+            novel = session.query(models.Novel).one()
+            assert novel.user_id == user_id
+            version = session.query(models.Version).filter_by(novel_id=novel.id).one()
+            assert (version.status, version.number) == ("published", 1)
+            assert version.pdf_path is not None
+            stored = Path(version.pdf_path).read_bytes()
+    finally:
+        engine.dispose()
+    assert out.read_bytes() == stored
+    assert check_pdf_links(out.read_bytes()).passed
+    assert str(out) in result.stdout

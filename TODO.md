@@ -964,7 +964,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] 020-C09 · Sin ejecuciones de evals, la tabla lo dice
 - [x] 020-I1 · Ninguna prueba de esta spec llama a un modelo ni a Langfuse
 - [x] 020-I2 · `evals table` es determinista
-- [ ] 020-C15 · `example` produce la novela y su PDF (movido desde 013)
+- [x] 020-C15 · `example` produce la novela y su PDF (movido desde 013)
 - [ ] 020-C17 · Un brief que ya tiene novela del cliente no se repite (añadido 2026-09-25; también identifica la novela de `example` como la de su brief)
 - [ ] 020-C10 · Cinco briefs reales llenan (a) y (b) (D, al final)
 - [ ] 020-C11 · Una iteración de tuning con antes y después (D, al final)
