@@ -183,6 +183,7 @@ class _Seed:
         cost_usd: float,
         latency_ms: int,
         prompt_version: str | None = "v3",
+        trace_id: str | None = "trace-1",
     ) -> None:
         with unit_of_work(self.session_factory) as uow:
             uow.add(
@@ -202,7 +203,7 @@ class _Seed:
                     sdk_cost_usd=cost_usd,
                     latency_ms=latency_ms,
                     outcome="completed",
-                    trace_id="trace-1",
+                    trace_id=trace_id,
                 )
             )
 
@@ -281,7 +282,9 @@ def test_evals_table_cell_legend_for_each_validator_situation(base_env: Path) ->
 # --- 020-C07: resumen por brief ------------------------------------------------------------------
 
 
-def test_evals_table_summary_computes_per_brief_metrics(base_env: Path) -> None:
+def test_evals_table_summary_computes_per_brief_metrics_and_first_session_trace_id(
+    base_env: Path,
+) -> None:
     db_path = _db_path(base_env)
     seed = _seed_all_five(db_path)
 
@@ -297,7 +300,10 @@ def test_evals_table_summary_computes_per_brief_metrics(base_env: Path) -> None:
         cost_usd=0.5,
         latency_ms=1200,
         prompt_version="v3",
+        trace_id="trace-primera",
     )
+    # varias sesiones de rol en la misma ejecución: la traza que se lista es la de la primera
+    # (por orden de creación), no la última ni todas.
     seed.role_session(
         "ejemplo",
         input_tokens=500,
@@ -306,8 +312,10 @@ def test_evals_table_summary_computes_per_brief_metrics(base_env: Path) -> None:
         cost_usd=0.25,
         latency_ms=800,
         prompt_version="v3",
+        trace_id="trace-segunda",
     )
 
+    # sin ninguna sesión de rol: la traza es «—», no una cadena vacía ni un error.
     seed.run("boda", status="failed", reason="retries_exhausted")
 
     result = runner.invoke(app, ["evals", "table"])
@@ -339,6 +347,10 @@ def test_evals_table_summary_computes_per_brief_metrics(base_env: Path) -> None:
 
     row = _row(result.stdout, "Etiqueta de prompts y commit")
     assert row[0].startswith("v3 · ")
+
+    row = _row(result.stdout, "Identificador de traza")
+    assert row[0] == "trace-primera"
+    assert row[2] == "—"
 
 
 # --- 020-C08: la tabla sale solo de SQLite --------------------------------------------------------

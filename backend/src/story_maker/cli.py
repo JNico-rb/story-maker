@@ -452,7 +452,11 @@ def _row_gate_cycles(session: Session, _novel: Novel | None, run: Run | None) ->
 
 
 def _role_sessions(session: Session, run: Run) -> list[RoleSession]:
-    return list(session.scalars(select(RoleSession).where(RoleSession.run_id == run.id)))
+    return list(
+        session.scalars(
+            select(RoleSession).where(RoleSession.run_id == run.id).order_by(RoleSession.id)
+        )
+    )
 
 
 def _row_tokens(session: Session, _novel: Novel | None, run: Run | None) -> str:
@@ -479,8 +483,9 @@ def _row_latency(session: Session, _novel: Novel | None, run: Run | None) -> str
 
 
 def _row_peak_tokens(session: Session, _novel: Novel | None, run: Run | None) -> str:
-    # Sin marca de tiempo por sesión en el esquema, la aproximación es el máximo de una sola
-    # sesión: no hay forma de saber, desde `role_sessions`, cuáles se solaparon (decisión, 020).
+    # `architecture.md` §6.5: dentro de una ejecución hay como mucho una sesión de rol activa a
+    # la vez, así que las sesiones de una misma ejecución nunca se solapan; el máximo de la suma
+    # de las solapadas es, por tanto, el máximo individual.
     if run is None:
         return "n/a"
     sessions = _role_sessions(session, run)
@@ -513,6 +518,17 @@ def _row_prompt_commit(session: Session, _novel: Novel | None, run: Run | None) 
     return f"{label} · {_git_commit()}"
 
 
+def _row_trace_id(session: Session, _novel: Novel | None, run: Run | None) -> str:
+    # Con varias sesiones de rol en la ejecución, se lista la de la primera (por orden de
+    # creación); sin ninguna, «—» — nunca una cadena vacía ni un error.
+    if run is None:
+        return "n/a"
+    for role_session in _role_sessions(session, run):
+        if role_session.trace_id:
+            return role_session.trace_id
+    return "—"
+
+
 def _table_b(session: Session, briefs: dict[str, EvalBrief]) -> str:
     rows = (
         ("Estado final (`published`/`failed` + motivo)", _row_status),
@@ -523,6 +539,7 @@ def _table_b(session: Session, briefs: dict[str, EvalBrief]) -> str:
         ("Latencia total", _row_latency),
         ("Pico de tokens concurrentes reservados", _row_peak_tokens),
         ("Etiqueta de prompts y commit", _row_prompt_commit),
+        ("Identificador de traza", _row_trace_id),
     )
     header = (
         "| Métrica | "
