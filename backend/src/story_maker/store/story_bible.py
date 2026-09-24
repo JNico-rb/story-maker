@@ -9,8 +9,18 @@ from typing import Literal, cast
 
 from sqlalchemy.orm import Session
 
-from story_maker.store.brief_canon import NAME
-from story_maker.store.models import Character, Event, EventCharacter, Fact, World
+from story_maker.store.brief_canon import NAME, NOMINAL_ATTRIBUTES
+from story_maker.store.models import (
+    Character,
+    Event,
+    EventCharacter,
+    Fact,
+    FactUsage,
+    Novel,
+    Place,
+    Version,
+    World,
+)
 from story_maker.store.session import UnitOfWork
 
 
@@ -131,4 +141,139 @@ def _event_entry(event: Event, presences: tuple[PresenceEntry, ...]) -> EventEnt
         origin=cast(EventOrigin, event.origin),
         chapter=event.chapter,
         beat=event.beat,
+    )
+
+
+@dataclass(frozen=True)
+class WorldEntry:
+    id: int
+    novum_description: str
+    novum_scope: str
+    novum_date: dt.date
+    consequences: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class CharacterEntry:
+    id: int
+    type: str
+    species: str
+    canonical_name: str
+    birth_date: dt.date | None
+    origin: str
+
+
+@dataclass(frozen=True)
+class PlaceEntry:
+    id: int
+    canonical_name: str
+    description: str
+    origin: str
+
+
+@dataclass(frozen=True)
+class FactEntry:
+    """Un hecho con los capítulos que lo usan, en orden ascendente; `nominal` si su valor es un
+    nombre propio (`definitions.md` §2 Hecho nominal)."""
+
+    id: int
+    subject_type: str
+    character_id: int | None
+    place_id: int | None
+    attribute: str
+    value: str
+    origin: str
+    mandatory: bool
+    personal_element_id: int | None
+    nominal: bool
+    chapters: tuple[int, ...]
+
+
+@dataclass(frozen=True)
+class StoryBible:
+    """El canon de una versión (`definitions.md` §2 StoryBible): lo leen 010 a 016 por dentro,
+    de cualquier versión, y la API, de las publicadas."""
+
+    version_id: int
+    present_year: int
+    world: WorldEntry | None
+    characters: tuple[CharacterEntry, ...]
+    places: tuple[PlaceEntry, ...]
+    facts: tuple[FactEntry, ...]
+    chronology: Chronology
+
+
+def read_story_bible(session: Session, version_id: int) -> StoryBible:
+    """La story bible de la versión `version_id`, candidata o no."""
+    version = session.get(Version, version_id)
+    if version is None:
+        raise LookupError(f"no existe la versión {version_id}")
+    novel = session.get(Novel, version.novel_id)
+    if novel is None:
+        raise LookupError(f"no existe la novela {version.novel_id}")
+    world = session.query(World).filter(World.version_id == version_id).one_or_none()
+    characters = session.query(Character).filter(Character.version_id == version_id)
+    places = session.query(Place).filter(Place.version_id == version_id)
+    facts = session.query(Fact).filter(Fact.version_id == version_id).order_by(Fact.id).all()
+    usages = _chapters_by_fact(session, [f.id for f in facts])
+    return StoryBible(
+        version_id=version_id,
+        present_year=novel.created_at.year,
+        world=_world_entry(world) if world else None,
+        characters=tuple(_character_entry(c) for c in characters.order_by(Character.id)),
+        places=tuple(
+            PlaceEntry(p.id, p.canonical_name, p.description, p.origin)
+            for p in places.order_by(Place.id)
+        ),
+        facts=tuple(_fact_entry(f, usages.get(f.id, ())) for f in facts),
+        chronology=read_chronology(session, version_id),
+    )
+
+
+def _chapters_by_fact(session: Session, fact_ids: list[int]) -> dict[int, tuple[int, ...]]:
+    rows = (
+        session.query(FactUsage)
+        .filter(FactUsage.fact_id.in_(fact_ids))
+        .order_by(FactUsage.fact_id, FactUsage.chapter)
+    )
+    out: dict[int, list[int]] = {}
+    for row in rows:
+        out.setdefault(row.fact_id, []).append(row.chapter)
+    return {fact_id: tuple(chapters) for fact_id, chapters in out.items()}
+
+
+def _world_entry(world: World) -> WorldEntry:
+    return WorldEntry(
+        id=world.id,
+        novum_description=world.novum_description,
+        novum_scope=world.novum_scope,
+        novum_date=world.novum_date,
+        consequences=tuple(str(c) for c in world.consequences),
+    )
+
+
+def _character_entry(character: Character) -> CharacterEntry:
+    return CharacterEntry(
+        id=character.id,
+        type=character.type,
+        species=character.species,
+        canonical_name=character.canonical_name,
+        birth_date=character.birth_date,
+        origin=character.origin,
+    )
+
+
+def _fact_entry(fact: Fact, chapters: tuple[int, ...]) -> FactEntry:
+    return FactEntry(
+        id=fact.id,
+        subject_type=fact.subject_type,
+        character_id=fact.character_id,
+        place_id=fact.place_id,
+        attribute=fact.attribute,
+        value=fact.value,
+        origin=fact.origin,
+        mandatory=fact.mandatory,
+        personal_element_id=fact.personal_element_id,
+        nominal=fact.attribute in NOMINAL_ATTRIBUTES,
+        chapters=chapters,
     )

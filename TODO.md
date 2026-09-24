@@ -455,7 +455,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 009-C22 · La versión vigente es la publicada de número más alto
 - [x] 009-I5 · La historia de versiones es lineal
 - [x] 009-C23 · La cronología registrada de una versión
-- [ ] 009-C24 · La story bible de una versión, por su identificador
+- [x] 009-C24 · La story bible de una versión, por su identificador
 - [ ] 009-I3 · Una lectura de una versión nunca devuelve filas de otra versión ni de otra novela
 - [ ] 009-C25 · La API devuelve la story bible de la versión vigente
 - [ ] 009-C26 · La API devuelve la story bible de una versión anterior

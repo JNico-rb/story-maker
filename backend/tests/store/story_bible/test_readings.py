@@ -9,7 +9,7 @@ from typing import Any
 
 from story_maker.store import models
 from story_maker.store.session import unit_of_work
-from story_maker.store.story_bible import PresenceEntry, read_chronology
+from story_maker.store.story_bible import PresenceEntry, read_chronology, read_story_bible
 
 R1 = "se perdió en la feria de su pueblo"
 R2 = "su primer baño en el mar"
@@ -100,3 +100,59 @@ def test_events_with_the_same_moment_are_ordered_by_id(store: Any) -> None:
     statements = [e.statement for e in _chronology(store, k_id).events]
 
     assert statements[3:6] == [E4, "Z: el primero en nacer", "A: el segundo en nacer"]
+
+
+def _story_bible(store: Any, version_id: int) -> Any:
+    with store.session() as session:
+        return read_story_bible(session, version_id)
+
+
+def test_the_story_bible_of_a_version_by_its_id(store: Any, f1: Any) -> None:
+    v1 = store.build_v1()
+
+    bible = _story_bible(store, v1.version_id)
+
+    assert bible.version_id == v1.version_id
+    assert bible.present_year == 2026
+    assert bible.world is not None
+    assert (bible.world.novum_scope, bible.world.novum_date) == (
+        "technological",
+        dt.date(2019, 5, 1),
+    )
+    assert bible.world.novum_description == "las IA aprendieron a soñar"
+    assert bible.world.consequences == ("los sueños se comparten", "nadie duerme solo")
+    characters = {c.canonical_name: c for c in bible.characters}
+    assert set(characters) == {"Marta", "Toby", "Luis", "Rosa", "Iris"}
+    assert (characters["Iris"].type, characters["Iris"].species) == ("invented", "artificial")
+    assert characters["Marta"].birth_date == dt.date(1986, 1, 1)
+    places = {p.canonical_name: p for p in bible.places}
+    assert set(places) == {
+        "la feria del pueblo",
+        "la playa del faro",
+        "la estación",
+        "el mercado de datos",
+    }
+    assert places["el mercado de datos"].description == "un mercado de recuerdos"
+    assert len(bible.facts) == 15
+    chapters = {f.value: f.chapters for f in bible.facts}
+    assert chapters["Marta"] == tuple(range(1, 11))
+    assert chapters["Toby"] == (3, 7)
+    assert chapters["la paella"] == (5,)
+    assert [
+        v for v, used in chapters.items() if used and v not in {"Marta", "Toby", "la paella"}
+    ] == []
+    assert {f.value for f in bible.facts if f.nominal} == {"Marta", "Toby", "Luis", "Rosa", "Iris"}
+    x1 = next(f for f in bible.facts if f.value == "la paella")
+    assert (x1.origin, x1.mandatory, x1.personal_element_id, x1.attribute) == (
+        "free_text",
+        True,
+        10,
+        "comida favorita",
+    )
+    assert bible.chronology == _chronology(store, v1.version_id)
+
+    g_id = store.generation(store.new_novel(), f1)
+    g = _story_bible(store, g_id)
+    assert g.world is None
+    assert (len(g.characters), len(g.places), len(g.facts)) == (4, 3, 13)
+    assert all(f.chapters == () for f in g.facts)
