@@ -277,7 +277,7 @@ Todas dependen de 000. Carriles B y C disueltos (decisión del usuario, 2026-09-
 - [ ] 005-C06 · Letras repetidas y leetspeak simple coinciden
 - [ ] 005-C07 · La coincidencia va por tokens, no por subcadena
 - [ ] 005-C08 · Un tema coincide por cualquiera de sus palabras clave
-- [ ] 005-C10 · La política nunca escanea un campo no marcado como narrativo
+- [ ] 005-C10 · La política nunca escanea un campo no marcado como narrativo (cubre 005-I4)
 - [ ] 005-I3 · Normalización idempotente y coincidencia por tokens (propiedad hypothesis)
 - [ ] 005-C11 · Una tool fuera de la lista blanca del rol deniega
 - [ ] 005-C12 · Una tool de la lista blanca del rol, sin más causa, permite
