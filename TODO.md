@@ -276,11 +276,11 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 005-C01 · Una entrada de nivel global deniega
 - [x] 005-C02 · Una entrada de nivel user deniega solo para su cliente
 - [x] 005-C03 · Una entrada de nivel novel deniega solo para su novela
-- [ ] 005-C04 · Una variante de acento coincide
-- [ ] 005-C05 · Una variante de plural coincide
-- [ ] 005-C06 · Letras repetidas y leetspeak simple coinciden
-- [ ] 005-C07 · La coincidencia va por tokens, no por subcadena
-- [ ] 005-C08 · Un tema coincide por cualquiera de sus palabras clave
+- [x] 005-C04 · Una variante de acento coincide
+- [x] 005-C05 · Una variante de plural coincide
+- [x] 005-C06 · Letras repetidas y leetspeak simple coinciden
+- [x] 005-C07 · La coincidencia va por tokens, no por subcadena
+- [x] 005-C08 · Un tema coincide por cualquiera de sus palabras clave
 - [ ] 005-C10 · La política nunca escanea un campo no marcado como narrativo (cubre 005-I4)
 - [ ] 005-I3 · Normalización idempotente y coincidencia por tokens (propiedad hypothesis)
 - [ ] 005-C11 · Una tool fuera de la lista blanca del rol deniega

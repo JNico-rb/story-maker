@@ -53,6 +53,23 @@ def test_entrada_novel_deniega_solo_para_su_novela() -> None:
     assert decide(peticion_n2).decision == "allow"
 
 
+def test_un_tema_coincide_por_cualquiera_de_sus_palabras_clave() -> None:
+    entradas = [
+        EntradaProhibida(
+            term="divorcio", type="topic", level="global", keywords=["separación", "custodia"]
+        )
+    ]
+    d1 = decide(_peticion("hablaron de la separación", entradas))
+    d2 = decide(_peticion("pidió la custodia", entradas))
+    d3 = decide(_peticion("se fueron de viaje", entradas))
+
+    assert d1.decision == "deny"
+    assert d1.detail == [{"term": "divorcio", "level": "global", "variant": "separación"}]
+    assert d2.decision == "deny"
+    assert d2.detail == [{"term": "divorcio", "level": "global", "variant": "custodia"}]
+    assert d3.decision == "allow"
+
+
 def test_sin_coincidencia_permite() -> None:
     entradas = [
         EntradaProhibida(term="idiota", type="word", level="global"),
