@@ -1,5 +1,5 @@
 """Intentos del evaluable `plan`: interpreta el resultado de una sesión del planner y lo deja
-en `attempts` (010-C18, 010-C26, 010-C29).
+en `attempts`, y el juicio de `outline` en `validator_results` (010-C18, 010-C26, 010-C29).
 
 Abrir la sesión siguiente con los defectos, aplicar el plan aceptado y descartar la candidata
 tras agotar los intentos son las partes de la 010 que esperan a la story bible de 009 (canon
@@ -8,15 +8,19 @@ del brief, `discard()` de la versión) — ver `TODO.md` bloque 010. Aquí solo 
 
 from __future__ import annotations
 
+import datetime as dt
 from dataclasses import dataclass
 from typing import Literal, cast
 
 from story_maker.agents.port import SessionResult
+from story_maker.observability.port import ObservabilityPort, Trace
 from story_maker.pipeline.planning.plan import PlanSubmission
 from story_maker.pipeline.planning.story_bible_view import StoryBibleView
-from story_maker.store.models import Attempt, Run
+from story_maker.store.models import Attempt, Run, ValidatorResult
 from story_maker.store.session import UnitOfWork
-from story_maker.validators.outline import OutlineDefect, judge_outline
+from story_maker.validators.outline import OutlineDefect, OutlineResult, judge_outline
+
+OUTLINE_VALIDATOR = "outline"
 
 Verdict = Literal["accept", "rewrite", "fail"]
 
@@ -69,6 +73,33 @@ def record_plan_attempt(uow: UnitOfWork, run: Run, number: int, verdict: Verdict
     )
     uow.add(attempt)
     return attempt
+
+
+def record_outline_result(
+    uow: UnitOfWork,
+    telemetry: ObservabilityPort,
+    trace: Trace,
+    run: Run,
+    version_id: int,
+    outline: OutlineResult,
+) -> ValidatorResult:
+    """El `ResultadoDeValidador` de un juicio de `outline`, con su span y su score en la traza
+    de la ejecución (010-C29; `definitions.md` Score, `architecture.md` §13.1-§13.3)."""
+    comment = "; ".join(d.message for d in outline.defects) or None
+    with telemetry.span(trace, f"validador:{OUTLINE_VALIDATOR}") as span:
+        telemetry.score(trace, OUTLINE_VALIDATOR, outline.score, comment=comment, span=span)
+    row = ValidatorResult(
+        run_id=run.id,
+        version_id=version_id,
+        validator=OUTLINE_VALIDATOR,
+        chapter=None,
+        passed=outline.passed,
+        score=outline.score,
+        detail=[{"message": d.message, "chapter": d.chapter} for d in outline.defects],
+        created_at=dt.datetime.now(dt.UTC),
+    )
+    uow.add(row)
+    return row
 
 
 def record_provider_failure(run: Run) -> None:

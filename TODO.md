@@ -538,7 +538,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 010-C14 · Referencias y tipo de evento
 - [x] 010-C15 · Fecha del novum
 - [x] 010-C16 · `outline` no juzga la cronología
-- [ ] 010-C17 · Replanificación con los defectos
+- [x] 010-C17 · Replanificación con los defectos
 - [x] 010-C18 · Una sesión sin entrega cuenta como intento
 - [ ] 010-C19 · Intentos agotados
 - [ ] 010-C20 · El plan aceptado se aplica en una transacción
@@ -550,7 +550,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 010-C26 · Fallo del proveedor
 - [ ] 010-C27 · Reserva inviable en el techo
 - [ ] 010-C28 · Una generación nueva tras un fallo tiene su propia candidata
-- [ ] 010-C29 · Resultado y score de `outline`
+- [x] 010-C29 · Resultado y score de `outline`
 - [ ] 010-I1 · Ninguna ventana del planner contiene el contenido de un `TextoLibre` ni la cita de un `HechoExtraido`
 - [ ] 010-I2 · Planificar no modifica ni borra nada de origen brief o free_text
 - [ ] 010-I3 · Una entrega rechazada (schema, policy, `outline` o sin entrega) no deja nada en la candidata

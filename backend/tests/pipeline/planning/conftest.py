@@ -21,7 +21,7 @@ from story_maker.observability.null import NullObservability
 from story_maker.observability.port import Trace
 from story_maker.pipeline.planning.session import BannedTermsPolicy, submit_plan_tool
 from story_maker.settings import ROOT
-from story_maker.store.models import BannedTerm, Novel, Run, User
+from story_maker.store.models import BannedTerm, Novel, Run, User, Version
 from story_maker.store.session import create_schema, make_engine, make_session_factory
 
 
@@ -79,6 +79,25 @@ def run_id(session_factory: sessionmaker[Session], novel_id: int) -> int:
         session.add(run)
         session.commit()
         return run.id
+
+
+@pytest.fixture
+def candidate_version_id(session_factory: sessionmaker[Session], novel_id: int) -> int:
+    """Una fila de `versions` desnuda, solo para satisfacer la clave ajena de
+    `validator_results.version_id` en las pruebas: no es el canon del brief de 009-C10 (010-C01,
+    todavía bloqueado)."""
+    with session_factory() as session:
+        version = Version(
+            novel_id=novel_id,
+            status="candidate",
+            number=None,
+            base_version_id=None,
+            changed_chapters=[],
+            created_at=dt.datetime(2026, 9, 24, 12, 0),
+        )
+        session.add(version)
+        session.commit()
+        return version.id
 
 
 def ban(
