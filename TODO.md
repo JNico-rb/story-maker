@@ -1257,27 +1257,27 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 
 ## 029 — cli
 
-- [x] Spec `specs/backend/029-cli.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
-- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Spec `specs/backend/029-cli.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcada tras el recorte de casos C (usuario, 2026-09-24)
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcada tras el recorte de casos C (usuario, 2026-09-24)
 
 ### Steps
 - [ ] 029-C01 · Entrevistar una novela nueva
-- [ ] 029-C02 · Seguir una entrevista guardada
-- [ ] 029-C03 · Cliente o novela ajenos
-- [ ] 029-C04 · Un turno fallido no se guarda
+- [ ] 029-C02 · Seguir una entrevista guardada (recortado)
+- [ ] 029-C03 · Cliente o novela ajenos (recortado)
+- [ ] 029-C04 · Un turno fallido no se guarda (recortado)
 - [ ] 029-C05 · Texto libre desde un fichero
 - [ ] 029-C06 · Aceptar, rechazar y marcar obligatorio un hecho
 - [ ] 029-C07 · Confirmar el brief pide un sí explícito
 - [ ] 029-C08 · Lanzar la generación pide un sí explícito
 - [ ] 029-C09 · Pedir un cambio sobre un hecho y confirmarlo
-- [ ] 029-C10 · Pedir un cambio sobre un fragmento
+- [ ] 029-C10 · Pedir un cambio sobre un fragmento (recortado)
 - [ ] 029-C11 · Sin un sí, nada se encola
-- [ ] 029-C12 · Petición denegada o rechazada
-- [ ] 029-C13 · Sin proveedor o sin sitio en el techo
-- [ ] 029-C14 · Novela ajena, inexistente o sin versión publicada
-- [ ] 029-I1 · La CLI decide como la API
-- [ ] 029-I2 · Nada se confirma ni se encola sin una respuesta `s`
-- [ ] 029-I3 · El código de confirmación del cambio no aparece nunca en la salida
+- [ ] 029-C12 · Petición denegada o rechazada (recortado)
+- [ ] 029-C13 · Sin proveedor o sin sitio en el techo (recortado)
+- [ ] 029-C14 · Novela ajena, inexistente o sin versión publicada (recortado)
+- [ ] 029-I1 · La CLI decide como la API (recortado)
+- [ ] 029-I2 · Nada se confirma ni se encola sin una respuesta `s` (recortado)
+- [ ] 029-I3 · El código de confirmación del cambio no aparece nunca en la salida (recortado)
 
 ### Closing
 - [ ] Full suite green, type checks clean
