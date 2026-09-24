@@ -38,10 +38,10 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 |---|---|---|---|---|---|
 | 0 — integrador | 000 | — | checkout principal | `V2` | cerrada (D al final) |
 | A | 014 parte A (C01–C11, I1–I4, I6, I11) | 012 | `../sm-a` | `carril-a` | parte A cerrada e integrada |
-| B | 014 parte B (C12–C19 y sus I no recortadas), en paralelo a la A desde `carril-a` | — | `../sm-b` | `carril-b` | en curso |
+| B | 014 parte B (C12–C19 y sus I no recortadas), en paralelo a la A desde `carril-a`. Toca `pipeline/changes/`, `orchestrator.py`, `production.py`, `runs.py`, `windows.py` y sus pruebas; nunca `store/models.py`, `composition.py`, `cli.py`, `api/app.py`, `agents/`, `planning_seam.py` | — | `../sm-b` | `carril-b` | en curso: C12–C15 hechos |
 | D | 020 (C01, C02, C05, I1 integrados; C03, C04 y C15 pasan al carril X, tras el arranque) | — | `../sm-d` | `carril-d` | parcial integrada |
-| X | 031 (C01–C04, I2) | 012 | `../sm-x` | `carril-x` | C01–C05, I2 hechos; cierre en curso |
-| V | 020-C03 (con el arreglo de D2), C04 y C15, desde `carril-x` | 031 | `../sm-v` | `carril-v` | en curso |
+| X | 031 (C01–C04, I2). Toca `composition.py`, `cli.py`, `api/app.py`, `agents/port.py`, `planning_seam.py` | 012 | `../sm-x` | `carril-x` | C01–C05, I2 hechos; cierre en curso |
+| V | 020-C03 (con el arreglo de D2), C04, C15 y C17, desde `carril-x`: el camino a la tanda D. Toca `cli.py`, `composition.py`, `store/models.py` (el brief de eval de la novela) y las pruebas de evals | 031 | `../sm-v` | `carril-v` | en curso |
 | Y | 031-C05 (adaptador de incrustaciones, solo `retrieval/`) | — | `../sm-y` | `carril-y` | cerrada e integrada |
 | E | 026 → 027 (027 con la API simulada según 014) | — | `../sm-e` | `carril-e` | 026 y 027 cerradas e integradas (027-C15 D) |
 | I | 012 (con el WIP de la rama `wip-012-gate`) | 007, 011 | `../sm-i` | `carril-i` | cerrada e integrada |
