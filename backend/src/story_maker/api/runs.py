@@ -5,13 +5,13 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from story_maker.api.dependencies import get_current_user_id, get_session
 from story_maker.api.ownership import owned_or_404
-from story_maker.pipeline.queue import enqueue_generation
+from story_maker.pipeline.queue import LaunchRejected, enqueue_generation
 from story_maker.store.models import Novel
 from story_maker.store.session import unit_of_work
 
@@ -32,6 +32,9 @@ def launch_generation(
 ) -> EnqueuedResponse:
     owned_or_404(session, Novel, novel_id, lambda n: n.user_id == user_id)
     state = request.app.state
-    with unit_of_work(state.session_factory) as uow:
-        run_id, position = enqueue_generation(uow, novel_id, now=state.clock())
+    try:
+        with unit_of_work(state.session_factory) as uow:
+            run_id, position = enqueue_generation(uow, novel_id, now=state.clock())
+    except LaunchRejected as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from None
     return EnqueuedResponse(run_id=run_id, position=position)
