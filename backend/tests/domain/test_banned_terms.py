@@ -1,6 +1,35 @@
 """Normalización y coincidencia por tokens de términos prohibidos (architecture.md §12.1)."""
 
-from story_maker.domain.banned_terms import find_term_matches
+from hypothesis import given
+from hypothesis import strategies as st
+
+from story_maker.domain.banned_terms import find_term_matches, normalize_token
+
+_LOWERCASE_WORDS = st.text(alphabet="abcdefghijklmnopqrstuvwxyzáéíóúñ", min_size=1, max_size=12)
+
+
+@given(_LOWERCASE_WORDS)
+def test_normalizacion_es_idempotente(word: str) -> None:
+    once = normalize_token(word)
+    assert normalize_token(once) == once
+
+
+@given(_LOWERCASE_WORDS)
+def test_variantes_de_mayusculas_acento_plural_y_letras_repetidas_coinciden(word: str) -> None:
+    variants = [
+        word.upper(),
+        word + "s",
+        word[0] + word[0] + word[1:] if word else word,
+    ]
+    for variant in variants:
+        assert find_term_matches(variant, word) == [variant]
+
+
+@given(_LOWERCASE_WORDS, _LOWERCASE_WORDS)
+def test_un_termino_nunca_coincide_dentro_de_otra_palabra(word: str, extra: str) -> None:
+    if normalize_token(word) == normalize_token(word + extra):
+        return
+    assert find_term_matches(word + extra, word) == []
 
 
 def test_una_variante_de_acento_coincide() -> None:
