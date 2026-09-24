@@ -1478,3 +1478,6 @@ Registro de trade-offs: cada fila da opciones, criterio y elección. Reabrir una
 | Un brief inválido en `evals run` (020) | Parar toda la tanda · saltarlo y seguir | No perder cuota por un fichero malo | Se salta con su defecto nombrado, los demás siguen y la orden termina con código distinto de 0 |
 | `evals run` en la CI (020) | Confiar en que nadie la lance · negarse con `CI` definida | `verification.md` §4.2: nunca en CI | Se niega a correr con la variable `CI` definida |
 | Salida de `evals table` (020) | Fichero fijo · salida estándar | Lo más fácil; la tabla se pega a mano en `verification.md` §4.2 | Markdown en la salida estándar |
+| Orden del listado de versiones (013) | Ascendente · descendente por número | Historia lineal de 009; lo más simple | Ascendente por número |
+| Detalle de una versión para la SPA (013) | El HTML de la `VistaDeVersion` · JSON propio | La SPA (026) solo necesita datos | JSON con los mismos bloques: portada, índice, capítulos y ficha |
+| `export-pdf` de una versión publicada (013) | Repetir el gate · regenerar desde la `VistaDeVersion` | Una versión publicada no se revalida | Regenera el PDF sin repetir el gate |
