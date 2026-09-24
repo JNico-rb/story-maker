@@ -4,7 +4,7 @@
 
 El backend genera un `FicheroDeCronologia` por versión (`backend/src/story_maker/formal/generator.py`): la cronología registrada, seudonimizada (ids de fila y años desplazados 400·k), un teorema `cumpleTn` por invariante que se cierra evaluando su comprobador en el núcleo (`decide +kernel`), el informe (`CRONOLOGIA-LEAN {json}`) y `#print axioms` de cada teorema.
 
-**Verificar** un fichero es `lake build --wfail` de la biblioteca y `lake env lean -DwarningAsError=true <fichero>`: un `sorry` o un aviso no pasan, y la auditoría solo admite `propext`, `Classical.choice` y `Quot.sound`. Es `passed` solo si compila, pasa la auditoría y cumple los cinco; `failed` si solo fallan teoremas de invariantes, con su testigo; `error` por cualquier otra causa. La interpretación está en `backend/src/story_maker/formal/lean_output.py` y es la misma en los dos modos del `VerificadorFormal`: `local` (esta máquina, en el directorio de datos) y `github` (el workflow de `workflow/`, ADR 0004).
+**Verificar** un fichero es `lake build --wfail` de la biblioteca y `lake env lean -DwarningAsError=true <fichero>`: un `sorry` o un aviso no pasan, y la auditoría solo admite `propext`, `Classical.choice` y `Quot.sound`. Es `passed` solo si compila, pasa la auditoría y cumple los cinco; `failed` si solo fallan teoremas de invariantes, con su testigo; `error` por cualquier otra causa. La interpretación está en `backend/src/story_maker/formal/lean_output.py` y es la misma en los dos modos del `VerificadorFormal`: `local` (esta máquina, en el directorio de datos) y `github` (el workflow `.github/workflows/verificar-cronologia.yml`, ADR 0004).
 
 **No corre en el portátil de desarrollo** (Smart App Control bloquea los binarios de Lean): se construye y se prueba en GitHub Actions.
 

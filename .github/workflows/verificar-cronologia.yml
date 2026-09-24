@@ -1,5 +1,4 @@
 # Workflow del VerificadorFormal en modo github (spec 007, ADR 0004).
-# Borrador para el integrador: su sitio es .github/workflows/verificar-cronologia.yml, y
 # LEAN_WORKFLOW=verificar-cronologia.yml lo nombra. El backend lo lanza en la rama V2.
 #
 # Seguridad (007-I10): solo workflow_dispatch; el job solo lee el contenido; el input llega a los
