@@ -579,9 +579,9 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [ ] 011-C08 · Ventana del editor
 - [ ] 011-C09 · Cada sesión reserva en el techo, y una que no cabe nunca hace fallar
 - [x] 011-C10 · Una entrega que pasa los hooks llega al editor
-- [ ] 011-C11 · `longitud-capitulo` en sus límites
-- [ ] 011-C12 · `nombres-exactos` sobre el título y el texto
-- [ ] 011-C13 · Qué cuenta como intento en la sesión del writer
+- [x] 011-C11 · `longitud-capitulo` en sus límites
+- [x] 011-C12 · `nombres-exactos` sobre el título y el texto
+- [x] 011-C13 · Qué cuenta como intento en la sesión del writer
 - [ ] 011-C14 · Una sesión del writer que termina sin entrega válida es un intento fallido
 - [ ] 011-C15 · La revisión del editor tiene schema y solo cita lo que existe
 - [ ] 011-C16 · El veredicto lo decide el código
