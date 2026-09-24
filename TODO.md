@@ -695,7 +695,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [ ] 014-C17 · Si la ejecución de cambio falla, la solicitud queda `rejected` y la base intacta
 - [ ] 014-C18 · Reanudar una ejecución de cambio revalida la base y sigue por el siguiente afectado
 - [ ] 014-C19 · Cada propuesta y cada ejecución de cambio dejan su traza
-- [ ] 014-I1 · El código calcula los capítulos afectados desde la versión base
+- [x] 014-I1 · El código calcula los capítulos afectados desde la versión base
 - [ ] 014-I2 · Receptor único
 - [ ] 014-I3 · Ningún rol escribe canon
 - [ ] 014-I4 · Sin un código válido no se encola nada
