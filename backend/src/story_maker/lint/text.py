@@ -13,8 +13,14 @@ _PARAGRAPH_SPLIT_RE = re.compile(r"\n\s*\n")
 #: Signos finales de frase (`Reglas comunes`, «Frase»); ¡ y ¿ no son signos finales.
 _FINAL_CHARS = ".!?…"
 
-#: Vocales de una palabra (`Reglas comunes`, «Sílabas»).
-_VOWELS = "aeiouáéíóúü"
+#: Vocales fuertes, sin y con tilde (`Reglas comunes`, «Sílabas»).
+_STRONG_VOWELS = "aeoáéó"
+
+#: Vocales débiles, sin y con tilde, y ü (`Reglas comunes`, «Sílabas»).
+_WEAK_VOWELS = "iuíúü"
+
+#: Vocales con tilde: solo í y ú separan de una fuerte vecina (`Reglas comunes`, «Sílabas»).
+_ACCENTED_WEAK_VOWELS = "íú"
 
 
 def split_paragraphs(text: str) -> list[str]:
@@ -48,24 +54,47 @@ def find_sequences(words: list[str], phrase: str) -> list[int]:
     ]
 
 
-def _is_vowel(char: str, index: int, length: int) -> bool:
+def _vowel_kind(char: str, index: int, length: int) -> tuple[bool, bool] | None:
+    """`(fuerte, con_tilde)` si `char` es vocal en esa posición, si no `None`."""
     lower = char.lower()
-    if lower in _VOWELS:
+    if lower in _STRONG_VOWELS:
+        return True, lower not in "aeo"
+    if lower in _WEAK_VOWELS:
+        return False, lower in _ACCENTED_WEAK_VOWELS
+    if lower == "y" and index == length - 1:
+        return False, False
+    return None
+
+
+def _splits_hiatus(previous: tuple[bool, bool], current: tuple[bool, bool]) -> bool:
+    """Entre dos vocales fuertes, o entre una débil con tilde y una fuerte vecina
+    (`Reglas comunes`, «Sílabas»)."""
+    previous_strong, previous_accented = previous
+    current_strong, current_accented = current
+    if previous_strong and current_strong:
         return True
-    return lower == "y" and index == length - 1
+    previous_is_accented_weak = not previous_strong and previous_accented
+    current_is_accented_weak = not current_strong and current_accented
+    return (previous_is_accented_weak and current_strong) or (
+        current_is_accented_weak and previous_strong
+    )
 
 
 def count_syllables(word: str) -> int:
-    """Núcleos vocálicos de `word` (`Reglas comunes`, «Sílabas»)."""
+    """Núcleos vocálicos de `word` (`Reglas comunes`, «Sílabas»): una serie de vocales es
+    un solo núcleo, salvo hiato entre dos fuertes o entre una débil con tilde y una fuerte."""
     length = len(word)
-    runs = 0
-    previous_was_vowel = False
+    nuclei = 0
+    previous_vowel: tuple[bool, bool] | None = None
     for index, char in enumerate(word):
-        is_vowel = _is_vowel(char, index, length)
-        if is_vowel and not previous_was_vowel:
-            runs += 1
-        previous_was_vowel = is_vowel
-    return runs
+        vowel = _vowel_kind(char, index, length)
+        if vowel is None:
+            previous_vowel = None
+            continue
+        if previous_vowel is None or _splits_hiatus(previous_vowel, vowel):
+            nuclei += 1
+        previous_vowel = vowel
+    return nuclei
 
 
 def count_sentences(paragraph: str) -> int:
