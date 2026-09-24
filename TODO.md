@@ -19,7 +19,7 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 - Contexto: cada spec nueva, un implementador nuevo. Retomar uno ya lanzado (SendMessage) solo para arreglos cortos de esa misma spec. En cada prompt: «HAZ EL TRABAJO TÚ MISMO: no lances subagentes» (uno que delegó no hizo nada) y la ruta absoluta del worktree.
 - Lean no corre en el portátil. La CI corre también en `carril-*`: para ver el Lean de un carril, `git push --force-with-lease origin carril-<x>` (solo en ramas de carril, nunca en V2) y leer la CI con la API pública de GitHub (`curl .../actions/runs?branch=carril-<x>`). `gh` no está instalado.
 
-**Integradas en V2:** 000 (D al final: C15, C16, C17, C19), 001, 002, 003, 004, 005, 006, 007, 009, 013 y 022 (frontend).
+**Integradas en V2:** 000 (D al final: C15, C16, C17, C19), 001, 002, 003, 004, 005, 006, 007, 009, 013, 016 (recortada) y 022 (frontend).
 
 **En curso (a las 2026-09-24 ~16:00; los pasos, en el bloque de cada spec de su rama):**
 
@@ -77,7 +77,7 @@ Prioridad: los validadores y su evidencia; lo demás es secundario. La lectura e
 | D — formal y lectura | 006 → 004 → 013 → 020 | 001 (004) · 009 (013 parcial) · 012 (020) | `../sm-d` | `carril-d` | 006, 004 y 013 integradas; siguiente, 020 parcial |
 | F — linters de prosa | 018 | 011 (018 parcial: C18–C23) | `../sm-f` | `carril-f` | 018: los 19 pasos de linters puros hechos; C18–C23 esperan 011 |
 | G — planificación | 010 | 003, 004 · 009 (010 parcial: aplicar el plan a la story bible) | `../sm-g` | `carril-g` | 010 en curso (lo que no usa la 009) |
-| H — recuperación | 016 | 009 (016 parcial: tarjetas desde la story bible) | `../sm-h` | `carril-h` | recortado: verificar e integrar lo hecho |
+| H — recuperación | 016 | 009 (016 parcial: tarjetas desde la story bible) | `../sm-h` | `carril-h` | cerrado recortado (016 integrada; I3–I5, I7, I8 recortados) |
 | E — frontend | 022 → 023 → 024 → 025 → 026 → 027 → 028 (`specs/frontend/`) | las de backend de la tabla de specs, cerradas en V2 | `../sm-e` | `carril-e` | congelado |
 
 **Frontend (022–028, decisión del usuario 2026-09-24).** Las specs se redactan ya, de dos en dos, mientras los carriles programan el backend: spec → plan en `TODO.md` → casillas marcadas por el integrador, sin revisión. **Revisión solo como excepción:** únicamente ante un error claro que impide que funcione o que deja sin cubrir un requisito de `project-constraints.md`; una sola corrección, sin rondas. El carril E (`../sm-e`) empieza cada spec cuando sus dependencias de backend están cerradas en V2, sin adelantarse. El backend manda: si hay que elegir, primero se integran A, C y D.
