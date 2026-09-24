@@ -622,11 +622,11 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
-- [ ] 013-C01 · Portada, índice y ficha de una versión sin capítulos cambiados
-- [ ] 013-C02 · Página de novedades y marca de cambio
-- [ ] 013-C03 · Una entidad sin capítulo aparece en la ficha sin enlaces
-- [ ] 013-C04 · La VistaDeVersion sirve también una candidata
-- [ ] 013-C05 · Dos versiones de la misma novela no se mezclan
+- [x] 013-C01 · Portada, índice y ficha de una versión sin capítulos cambiados
+- [x] 013-C02 · Página de novedades y marca de cambio
+- [x] 013-C03 · Una entidad sin capítulo aparece en la ficha sin enlaces
+- [x] 013-C04 · La VistaDeVersion sirve también una candidata
+- [x] 013-C05 · Dos versiones de la misma novela no se mezclan
 - [ ] 013-I3 · La VistaDeVersion y el detalle de la API de una versión no muestran nada de otra versión ni de otra novela
 - [x] 013-C06 · El token de vista se emite firmado y con sus reclamaciones
 - [x] 013-C07 · Un token de vista inválido responde 401
