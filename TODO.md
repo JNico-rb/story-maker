@@ -620,8 +620,8 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 
 ## 012 — gate-de-publicacion
 
-- [x] Spec `specs/backend/012-gate-de-publicacion.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
-- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Spec `specs/backend/012-gate-de-publicacion.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcada tras el recorte de casos C (usuario, 2026-09-24)
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcada tras el recorte de casos C (usuario, 2026-09-24)
 
 ### Steps
 - [ ] 012-C1 · La candidata entra al gate con sus 10 capítulos aceptados
@@ -629,13 +629,13 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 012-C3 · Un elemento obligatorio sin uso se atribuye a los capítulos que el outline le asignó
 - [ ] 012-C4 · Un nombre no canónico en un capítulo se atribuye a ese capítulo — necesita la regla de variantes de 011 (fuera de alcance de la spec 012, no en V2 todavía)
 - [x] 012-C5 · Una prohibida en un capítulo se atribuye a ese capítulo
-- [ ] 012-C6 · Una prohibida en la portada o en la ficha hace fallar la ejecución
+- [ ] 012-C6 · Una prohibida en la portada o en la ficha hace fallar la ejecución (recortado)
 - [ ] 012-C7 · Una etapa que falla corta la pasada
-- [ ] 012-C8 · Lean y el juez corren a la vez
+- [ ] 012-C8 · Lean y el juez corren a la vez (recortado)
 - [x] 012-C9 · Un invariante Lean violado se atribuye a los capítulos de los eventos del testigo
 - [x] 012-C10 · Un testigo Lean sin capítulo hace fallar la ejecución
 - [x] 012-C11 · Un `FicheroDeCronologia` que no compila hace fallar la ejecución
-- [ ] 012-C12 · Una interrupción en la etapa 2 no gasta la pasada
+- [ ] 012-C12 · Una interrupción en la etapa 2 no gasta la pasada (recortado)
 - [x] 012-C13 · Un criterio bloqueante del juez bajo su umbral se atribuye a los capítulos que cita
 - [x] 012-C14 · Ningún criterio compensa a otro
 - [x] 012-C15 · Una entrega inválida del juez se corrige en su sesión, y sin entrega válida la pasada falla
