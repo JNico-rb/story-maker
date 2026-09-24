@@ -1132,11 +1132,11 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] 026-C06 · Ficha con enlaces a los capítulos donde aparece cada entidad
 - [x] 026-C07 · Una entidad sin capítulos aparece en la ficha sin enlaces
 - [x] 026-C08 · El selector lista las versiones publicadas, en el orden que entrega la API
-- [ ] 026-C09 · Cambiar de versión recarga todo el contenido con el de la versión elegida
-- [ ] 026-C10 · Descargar el PDF de la versión que se está viendo
-- [ ] 026-C11 · El PDF aún no está disponible
-- [ ] 026-C12 · Fallo al cargar la lista de versiones
-- [ ] 026-C13 · Fallo al cargar el detalle de una versión
+- [x] 026-C09 · Cambiar de versión recarga todo el contenido con el de la versión elegida
+- [x] 026-C10 · Descargar el PDF de la versión que se está viendo
+- [x] 026-C11 · El PDF aún no está disponible
+- [x] 026-C12 · Fallo al cargar la lista de versiones
+- [x] 026-C13 · Fallo al cargar el detalle de una versión
 - [ ] 026-I1 · Lo mostrado (portada, novedades, índice, capítulos, ficha) es siempre de una sola versión, la que marca el selector; nunca mezcla datos d… (recortado)
 - [ ] 026-I3 · Todo enlace interno de la página de novedades, del índice y de la ficha lleva al capítulo correcto dentro de la propia pantalla (recortado)
 - [ ] 026-I4 · Un error de cualquier llamada de esta pantalla (lista de versiones, detalle, PDF) siempre se muestra; nunca se descarta en silencio ni de… (recortado)
@@ -1144,9 +1144,9 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [ ] 026-C14 · El recorrido completo se observa en el navegador (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-24: `pnpm.cmd lint`, `pnpm.cmd typecheck`, `pnpm.cmd build`, `pnpm.cmd test` (39 pasadas) en verde
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 027 — cambio-del-lector
 

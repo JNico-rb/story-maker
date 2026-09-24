@@ -1,4 +1,5 @@
 import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -206,5 +207,111 @@ describe("026 lectura", () => {
     const select = await screen.findByRole("combobox", { name: "Versión" });
     const options = within(select).getAllByRole("option");
     expect(options.map((option) => option.textContent)).toEqual(["v2", "v1"]);
+  });
+
+  it("026-C09: switching version reloads all the content with the chosen version's", async () => {
+    const user = userEvent.setup();
+    fakeApi({
+      [`GET ${BASE}`]: () => json(200, LIST),
+      [`GET ${BASE}/1`]: () => json(200, detail(1)),
+      [`GET ${BASE}/2`]: () => json(200, detail(2)),
+    });
+    renderReading();
+
+    await screen.findByRole("region", { name: "Novedades" });
+    expect(await screen.findByText("Nala")).toBeInTheDocument();
+
+    await user.selectOptions(screen.getByRole("combobox", { name: "Versión" }), "1");
+
+    await screen.findByText("Toby");
+    expect(screen.queryByText("Nala")).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Novedades" })).not.toBeInTheDocument();
+    expect(screen.queryByText(/cambiado en v/i)).not.toBeInTheDocument();
+  });
+
+  it("026-C10: downloads the PDF of the version being viewed", async () => {
+    class FakeUrl extends URL {
+      static createObjectURL = vi.fn<(blob: Blob) => string>(() => "blob:mock-url");
+      static revokeObjectURL = vi.fn();
+    }
+    vi.stubGlobal("URL", FakeUrl);
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
+    const user = userEvent.setup();
+    const pdfBytes = new Blob(["%PDF-1.4 contenido de prueba"], { type: "application/pdf" });
+    apiAtV1({
+      [`GET ${BASE}/1/pdf`]: () => new Response(pdfBytes, { status: 200, headers: { "Content-Type": "application/pdf" } }),
+    });
+    renderReading();
+
+    await screen.findByRole("region", { name: "Portada" });
+    await user.click(screen.getByRole("button", { name: "Descargar PDF" }));
+
+    await vi.waitFor(() => expect(FakeUrl.createObjectURL).toHaveBeenCalledTimes(1));
+    const [blobArg] = FakeUrl.createObjectURL.mock.calls[0] ?? [];
+    expect(blobArg?.type).toBe("application/pdf");
+    expect(clickSpy).toHaveBeenCalledTimes(1);
+    expect(FakeUrl.revokeObjectURL).toHaveBeenCalledTimes(1);
+
+    clickSpy.mockRestore();
+  });
+
+  it("026-C11: the PDF is not available yet", async () => {
+    const user = userEvent.setup();
+    apiAtV1({
+      [`GET ${BASE}/1/pdf`]: () => new Response(null, { status: 404 }),
+    });
+    renderReading();
+
+    await screen.findByRole("region", { name: "Portada" });
+    await user.click(screen.getByRole("button", { name: "Descargar PDF" }));
+
+    await screen.findByText(/el pdf.*no está disponible/i);
+    expect(screen.getByRole("region", { name: "Portada" })).toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: "Índice" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Ficha" })).toBeInTheDocument();
+  });
+
+  it("026-C12: failing to load the versions list shows an error with a retry", async () => {
+    const user = userEvent.setup();
+    let attempt = 0;
+    fakeApi({
+      [`GET ${BASE}`]: () => {
+        attempt += 1;
+        return attempt === 1 ? new Response(null, { status: 500 }) : json(200, LIST);
+      },
+      [`GET ${BASE}/2`]: () => json(200, detail(2)),
+    });
+    renderReading();
+
+    await screen.findByText(/no se pudo cargar/i);
+    expect(screen.queryByRole("combobox", { name: "Versión" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Portada" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /reintentar/i }));
+
+    expect(await screen.findByRole("combobox", { name: "Versión" })).toBeInTheDocument();
+    expect(await screen.findByRole("region", { name: "Portada" })).toBeInTheDocument();
+  });
+
+  it("026-C13: failing to load a version's detail shows an error with a retry, selector still available", async () => {
+    const user = userEvent.setup();
+    let attempt = 0;
+    fakeApi({
+      [`GET ${BASE}`]: () => json(200, LIST),
+      [`GET ${BASE}/2`]: () => {
+        attempt += 1;
+        return attempt === 1 ? new Response(null, { status: 500 }) : json(200, detail(2));
+      },
+    });
+    renderReading();
+
+    await screen.findByText(/no se pudo cargar esa versión/i);
+    const select = await screen.findByRole("combobox", { name: "Versión" });
+    expect(select).toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Portada" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /reintentar/i }));
+
+    expect(await screen.findByRole("region", { name: "Portada" })).toBeInTheDocument();
   });
 });

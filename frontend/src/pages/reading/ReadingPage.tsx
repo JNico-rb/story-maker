@@ -6,24 +6,47 @@ import type { components } from "../../shared/api/schema";
 
 type VersionsList = components["schemas"]["VersionsListResponse"];
 type VersionDetail = components["schemas"]["VersionDetailResponse"];
-type Load<T> = { status: "loading" } | { status: "ready"; data: T };
+type Load<T> = { status: "loading" } | { status: "ready"; data: T } | { status: "error" };
 
 // Cada carga vive en un componente con `key`: cambiar de versión lo desmonta y la respuesta
-// tardía de la anterior se descarta, así nunca se mezclan dos versiones (026-I1).
-function useJson<T>(path: string): Load<T> {
+// tardía de la anterior se descarta, así nunca se mezclan dos versiones (026-I1). Un fallo se
+// muestra siempre, nunca se descarta en silencio ni deja contenido de una carga anterior (026-I4).
+function useJson<T>(path: string): [Load<T>, () => void] {
+  const [attempt, setAttempt] = useState(0);
   const [load, setLoad] = useState<Load<T>>({ status: "loading" });
   useEffect(() => {
     let current = true;
     void apiFetch(path)
-      .then((response) => response.json() as Promise<T>)
+      .then((response) => {
+        if (!response.ok) throw new Error(`fallo al cargar ${path}`);
+        return response.json() as Promise<T>;
+      })
       .then((data) => {
         if (current) setLoad({ status: "ready", data });
+      })
+      .catch(() => {
+        if (current) setLoad({ status: "error" });
       });
     return () => {
       current = false;
     };
-  }, [path]);
-  return load;
+  }, [path, attempt]);
+  const retry = () => {
+    setLoad({ status: "loading" });
+    setAttempt((n) => n + 1);
+  };
+  return [load, retry];
+}
+
+function LoadError({ message, onRetry }: { message: string; onRetry: () => void }) {
+  return (
+    <p role="alert" className="mb-6">
+      {message}{" "}
+      <button type="button" onClick={onRetry} className="underline">
+        Reintentar
+      </button>
+    </p>
+  );
 }
 
 function Cover({ view }: { view: VersionDetail["view"] }) {
@@ -106,13 +129,46 @@ function Ficha({ entities }: { entities: VersionDetail["view"]["ficha"] }) {
   );
 }
 
+function DownloadPdf({ novelId, version }: { novelId: string; version: number }) {
+  const [unavailable, setUnavailable] = useState(false);
+
+  async function handleClick() {
+    const response = await apiFetch(`/api/novels/${novelId}/versions/${version}/pdf`);
+    if (response.status === 404) {
+      setUnavailable(true);
+      return;
+    }
+    setUnavailable(false);
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `version-${version}.pdf`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  return (
+    <div className="mb-6">
+      <button type="button" onClick={() => void handleClick()} className="underline">
+        Descargar PDF
+      </button>
+      {unavailable && <p role="alert">El PDF de esta versión aún no está disponible.</p>}
+    </div>
+  );
+}
+
 function VersionContent({ novelId, version }: { novelId: string; version: number }) {
-  const load = useJson<VersionDetail>(`/api/novels/${novelId}/versions/${version}`);
+  const [load, retry] = useJson<VersionDetail>(`/api/novels/${novelId}/versions/${version}`);
   if (load.status === "loading") return <p>Cargando la versión…</p>;
+  if (load.status === "error") {
+    return <LoadError message="No se pudo cargar esa versión." onRetry={retry} />;
+  }
   const { view } = load.data;
   return (
     <>
       <Cover view={view} />
+      <DownloadPdf novelId={novelId} version={version} />
       <News changedChapters={view.changed_chapters} />
       <Index chapters={view.chapters} changedChapters={view.changed_chapters} version={version} />
       {view.chapters.map((chapter) => (
@@ -124,9 +180,12 @@ function VersionContent({ novelId, version }: { novelId: string; version: number
 }
 
 function Versions({ novelId }: { novelId: string }) {
-  const load = useJson<VersionsList>(`/api/novels/${novelId}/versions`);
+  const [load, retry] = useJson<VersionsList>(`/api/novels/${novelId}/versions`);
   const [chosen, setChosen] = useState<number | null>(null);
   if (load.status === "loading") return <p>Cargando las versiones…</p>;
+  if (load.status === "error") {
+    return <LoadError message="No se pudo cargar la lista de versiones." onRetry={retry} />;
+  }
   const versions = load.data.versions;
   // La vigente es la publicada de número más alto (definitions.md §3); la API las da en orden.
   const shown = chosen ?? versions.at(-1)?.number;
