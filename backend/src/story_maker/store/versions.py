@@ -7,11 +7,16 @@ Cuándo se publica o se descarta lo deciden 012 y 011; aquí solo el cambio de e
 from __future__ import annotations
 
 import datetime as dt
+from typing import NoReturn
 
 from sqlalchemy.orm import Session
 
 from story_maker.store.models import Chapter, Version
 from story_maker.store.session import UnitOfWork
+
+
+class VersionTransitionRejected(ValueError):
+    """Una publicación o un descarte que no sale de una candidata válida (009-C20)."""
 
 
 def current_version(session: Session, novel_id: int) -> Version | None:
@@ -24,9 +29,29 @@ def current_version(session: Session, novel_id: int) -> Version | None:
     )
 
 
+STATE_NAMES = {"candidate": "candidata", "published": "publicada", "discarded": "descartada"}
+
+
+def version_label(version: Version) -> str:
+    """«versión 12 (v2)»: su id y, si lo tiene, su número."""
+    number = f" (v{version.number})" if version.number is not None else ""
+    return f"versión {version.id}{number}"
+
+
 def publish(uow: UnitOfWork, version: Version, *, pdf_path: str, now: dt.datetime) -> Version:
-    """Publica la candidata con el número siguiente al de la vigente."""
+    """Publica la candidata con el número siguiente al de la vigente. Exige que su base sea la
+    vigente; la de generación, que no haya ninguna publicada (historia lineal, 009-I5)."""
+    if version.status == "published":
+        _reject(version, "ya está publicada")
+    if version.status == "discarded":
+        _reject(version, "está descartada")
     current = current_version(uow.session, version.novel_id)
+    if version.base_version_id is None and current is not None:
+        _reject(version, "ya hay una versión publicada")
+    if version.base_version_id is not None and (
+        current is None or current.id != version.base_version_id
+    ):
+        _reject(version, "su versión base no es la vigente")
     version.status = "published"
     version.number = current.number + 1 if current and current.number else 1
     version.published_at = now
@@ -38,9 +63,15 @@ def publish(uow: UnitOfWork, version: Version, *, pdf_path: str, now: dt.datetim
 
 def discard(uow: UnitOfWork, version: Version) -> Version:
     """Descarta la candidata: queda sin número y no admite más escrituras."""
+    if version.status != "candidate":
+        _reject(version, f"está {STATE_NAMES[version.status]}")
     version.status = "discarded"
     uow.session.flush()
     return version
+
+
+def _reject(version: Version, reason: str) -> NoReturn:
+    raise VersionTransitionRejected(f"la {version_label(version)} {reason}")
 
 
 def changed_chapters(session: Session, version: Version) -> list[int]:

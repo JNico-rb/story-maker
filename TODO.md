@@ -449,7 +449,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 009-C17 · Publicar la primera versión
 - [x] 009-C18 · Publicar una copia: número siguiente y capítulos cambiados por huella
 - [x] 009-C19 · Descartar una candidata
-- [ ] 009-C20 · Las transiciones que no salen de una candidata válida se rechazan
+- [x] 009-C20 · Las transiciones que no salen de una candidata válida se rechazan
 - [ ] 009-C21 · Solo una candidata admite escrituras
 - [ ] 009-I1 · Solo una candidata admite escrituras; una publicada o descartada no cambia nunca
 - [ ] 009-C22 · La versión vigente es la publicada de número más alto

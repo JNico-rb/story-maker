@@ -6,6 +6,10 @@ from __future__ import annotations
 
 from typing import Any
 
+import pytest
+
+from story_maker.store.versions import VersionTransitionRejected
+
 
 def test_publishing_the_first_version(store: Any, f1: Any) -> None:
     novel_id = store.new_novel()
@@ -59,3 +63,35 @@ def test_discarding_a_candidate(store: Any) -> None:
     next_id, _ = store.copy(v2.version_id)
     store.publish(next_id)
     assert store.version(next_id).number == 3
+
+
+def test_transitions_that_do_not_start_from_a_valid_candidate_are_rejected(
+    store: Any, f1: Any
+) -> None:
+    v2 = store.build_v2()
+    novel_id, v2_id = v2.v1.novel_id, v2.version_id
+    k3_id, _ = store.copy(v2_id)
+    store.discard(k3_id)
+    k2_id, _ = store.copy(v2.v1.version_id)
+    generation_id = store.generation(novel_id, f1)
+    cases = [
+        (store.publish, v2_id, "ya está publicada"),
+        (store.discard, v2_id, "está publicada"),
+        (store.publish, k3_id, "está descartada"),
+        (store.discard, k3_id, "está descartada"),
+        (store.publish, k2_id, "su versión base no es la vigente"),
+        (store.publish, generation_id, "ya hay una versión publicada"),
+    ]
+    all_versions = [v2.v1.version_id, v2_id, k3_id, k2_id, generation_id]
+    fingerprints = {v: store.fingerprint(v) for v in all_versions}
+
+    for operation, version_id, reason in cases:
+        with pytest.raises(VersionTransitionRejected) as rejected:
+            operation(version_id)
+        assert f"versión {version_id}" in str(rejected.value), reason
+        assert reason in str(rejected.value)
+
+    assert {v: store.fingerprint(v) for v in all_versions} == fingerprints
+    assert store.version(k2_id).status == "candidate"
+    assert store.version(generation_id).status == "candidate"
+    assert store.current(novel_id) == v2_id
