@@ -857,7 +857,7 @@ El cliente de Langfuse se crea con una **función de máscara** por novela: ante
 
 ### 13.6 Fallos silenciosos y doble nulo
 
-Con claves inválidas el exportador falla sin error visible. Por eso el arranque llama a `auth_check()` y falla si no pasa o si a un rol le falta el prompt con la etiqueta. En pruebas, un **doble nulo** sustituye a Langfuse: la aplicación arranca y opera sin él, y ninguna prueba T exporta.
+Con claves inválidas el exportador falla sin error visible. Por eso el arranque llama a `auth_check()` y falla si no pasa o si a un rol con fichero de prompt en el workspace le falta el prompt con la etiqueta; un rol sin fichero (`visual_reviewer`, fuera de alcance) no se exige. En pruebas, un **doble nulo** sustituye a Langfuse: la aplicación arranca y opera sin él, y ninguna prueba T exporta.
 
 ---
 

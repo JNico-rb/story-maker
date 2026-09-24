@@ -43,7 +43,7 @@ Dar el **adaptador real** del puerto de observabilidad que 001-base deja abierto
 ### `auth_check()` y `check-env`
 
 #### 004-C03 — `check-env` informa «ok» cuando las credenciales son válidas y cada rol tiene su prompt vigente (T)
-- **Entrada:** las cuatro variables de Langfuse; el cliente simulado confirma las credenciales y da, para los siete roles de `definitions.md` §12.2, una versión de prompt con la etiqueta `LANGFUSE_PROMPT_LABEL`.
+- **Entrada:** las cuatro variables de Langfuse; el cliente simulado confirma las credenciales y da, para cada rol de `definitions.md` §12.2 con fichero de prompt en el workspace (los que sube `prompts push`), una versión de prompt con la etiqueta `LANGFUSE_PROMPT_LABEL`.
 - **Salida:** la línea de observabilidad de `check-env` (001-C14) dice `ok` con el adaptador real, no el doble nulo. `serve` arranca.
 
 #### 004-C04 — `check-env` falla si las credenciales de Langfuse no son válidas (T)
@@ -51,8 +51,12 @@ Dar el **adaptador real** del puerto de observabilidad que 001-base deja abierto
 - **Salida:** la línea de observabilidad de `check-env` falla, nombra Langfuse y el motivo, sin mostrar las claves. Código 1. Nunca se calla el fallo (`architecture.md` §13.6).
 
 #### 004-C05 — `check-env` falla si a un rol le falta el prompt con la etiqueta vigente (T)
-- **Entrada:** credenciales válidas; el cliente simulado no tiene versión con `LANGFUSE_PROMPT_LABEL` para uno de los siete roles.
+- **Entrada:** credenciales válidas; el cliente simulado no tiene versión con `LANGFUSE_PROMPT_LABEL` para uno de los roles con fichero de prompt en el workspace.
 - **Salida:** la línea de observabilidad falla y nombra el rol sin prompt. Código 1.
+
+#### 004-C16 — `check-env` no exige prompt a un rol sin fichero en el workspace (T)
+- **Entrada:** credenciales válidas; el workspace no tiene fichero de prompt para `visual_reviewer` (017, fuera de alcance) y el cliente simulado tampoco tiene versión para él; los demás roles, sí.
+- **Salida:** la línea de observabilidad dice `ok`, sin nombrar `visual_reviewer`. `serve` arranca.
 
 #### 004-C06 — `serve` no arranca en las mismas situaciones que `check-env` (T)
 - **Entrada:** `serve` en cualquiera de las situaciones de fallo de 004-C04 y 004-C05.
