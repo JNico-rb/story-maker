@@ -451,3 +451,21 @@ def test_check_env_fails_naming_langfuse_when_credentials_are_invalid(
     assert "credenciales" in result.stdout
     assert LANGFUSE_ENV["LANGFUSE_SECRET_KEY"] not in result.stdout
     assert LANGFUSE_ENV["LANGFUSE_PUBLIC_KEY"] not in result.stdout
+
+
+# --- C05: check-env falla si a un rol le falta el prompt con la etiqueta vigente ---------------
+
+
+def test_check_env_fails_naming_the_role_missing_its_current_prompt(
+    monkeypatch: pytest.MonkeyPatch, base_env: Path, fake_langfuse_client: FakeLangfuseClient
+) -> None:
+    runner.invoke(app, ["init-db"])
+    _set_langfuse_env(monkeypatch)
+    _register_all_role_prompts(fake_langfuse_client)
+    del fake_langfuse_client._prompts[("writer", "produccion")]
+    _use_fake_langfuse_client(monkeypatch, fake_langfuse_client)
+
+    result = runner.invoke(app, ["check-env"])
+
+    assert result.exit_code == 1
+    assert "writer" in result.stdout
