@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router";
 
+import { TextField } from "../../shared/ui";
+
 type ArrivalState = { registeredEmail?: string } | null;
 
 export function LoginPage() {
@@ -17,26 +19,14 @@ export function LoginPage() {
         </p>
       )}
       <form noValidate className="flex flex-col gap-4">
-        <label className="flex flex-col gap-1">
-          Email
-          <input
-            type="email"
-            autoComplete="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            className="rounded border border-secondary/30 px-3 py-2"
-          />
-        </label>
-        <label className="flex flex-col gap-1">
-          Contraseña
-          <input
-            type="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            className="rounded border border-secondary/30 px-3 py-2"
-          />
-        </label>
+        <TextField label="Email" type="email" autoComplete="email" value={email} onChange={setEmail} />
+        <TextField
+          label="Contraseña"
+          type="password"
+          autoComplete="current-password"
+          value={password}
+          onChange={setPassword}
+        />
         <button type="submit" className="rounded bg-primary px-4 py-2 font-semibold text-secondary">
           Entrar
         </button>

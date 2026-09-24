@@ -73,4 +73,22 @@ describe("022 registro", () => {
     expect(sent[0]?.body).toEqual({ email: EMAIL, password: PASSWORD });
     expect(storedValues()).toBe("");
   });
+
+  it("022-C02: an email that already has an account keeps the registration form, says so next to the email and clears the password", async () => {
+    fakeApi({ "POST /api/auth/register": () => ({ status: 409, body: { detail: "conflicto" } }) });
+    const user = userEvent.setup();
+    renderAt("/registro");
+
+    await user.type(screen.getByLabelText("Email"), EMAIL);
+    await user.type(screen.getByLabelText("Contraseña"), PASSWORD);
+    await user.click(screen.getByRole("button", { name: "Crear cuenta" }));
+
+    expect(await screen.findByLabelText("Email")).toHaveAccessibleDescription(
+      "Ese email ya tiene cuenta.",
+    );
+    expect(screen.getByRole("heading", { name: "Crear cuenta" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Email")).toHaveValue(EMAIL);
+    expect(screen.getByLabelText("Contraseña")).toHaveValue("");
+    expect(storedValues()).toBe("");
+  });
 });
