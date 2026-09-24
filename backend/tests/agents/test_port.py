@@ -428,3 +428,43 @@ async def test_with_blocking_defects_the_model_reads_the_defects_instead_of_the_
         ("accepted", ()),
     ]
     assert len(fake.sessions) == 1
+
+
+async def test_checks_run_only_on_allowed_valid_deliveries_and_non_blocking_does_not_block(
+    port: AgentPort,
+    fake: FakeAgent,
+    policy: Any,
+    make_request: Callable[..., SessionRequest],
+) -> None:
+    policy.rule = writer_rule([])
+    checked: list[dict[str, Any]] = []
+    repeated = Defect("linter-repeticion", "«muy» aparece 9 veces", False)
+
+    def checks(value: BaseModel) -> list[Defect]:
+        checked.append(value.model_dump())
+        return [repeated]
+
+    valid = {"title": "Tres", "text": "limpio"}
+    fake.script(
+        "writer",
+        "write",
+        Script(
+            steps=(
+                Call("submit_chapter", {"title": "Uno", "text": "prohibido"}),
+                Call("submit_chapter", {"title": "Dos"}),
+                Call("submit_chapter", valid),
+                Say("Fin."),
+            ),
+            usage=USAGE,
+        ),
+    )
+
+    result = await port.run(make_request("writer", "write", chapter_checks=checks))
+
+    assert checked == [valid]
+    assert [(c.status, c.defects) for c in result.calls] == [
+        ("denied", ()),
+        ("schema_rejected", ()),
+        ("accepted", (repeated,)),
+    ]
+    assert fake.sessions[0].reads[2] == ACK
