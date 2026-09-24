@@ -25,7 +25,7 @@ from tests.test_composition import (
     served_app,
 )
 
-from story_maker.agents.fake import Call, FakeAgent, Say, Script
+from story_maker.agents.fake import Call, FakeAgent, Hang, Say, Script
 from story_maker.agents.port import SessionRequest
 from story_maker.agents.profiles import role_profile
 from story_maker.agents.sdk import SdkAgent, provider_env
@@ -47,7 +47,7 @@ from story_maker.pipeline.planning.plan import (
 )
 from story_maker.pipeline.queue import enqueue_generation
 from story_maker.settings import ROOT, Settings
-from story_maker.store.models import Brief, Novel, RoleSession, Run, User
+from story_maker.store.models import Brief, Chapter, Novel, RoleSession, Run, User
 from story_maker.store.session import make_engine, make_session_factory, unit_of_work
 
 NOW = dt.datetime(2026, 9, 24, 12, 0)
@@ -308,3 +308,47 @@ def test_the_agent_of_the_mount_is_the_one_of_llm_provider_with_the_role_profile
     assert options.env == provider_env(settings)
     assert options.env["ANTHROPIC_AUTH_TOKEN"] == "TU_CLAVE_AQUI"
     assert options.model == config.roles["planner"].model
+
+
+def writer_sessions(fake: FakeAgent) -> int:
+    return sum(opened.request.role == "writer" for opened in fake.sessions)
+
+
+async def test_stopping_the_server_stops_the_worker_without_losing_anything(
+    data_dir: Path,
+    tmp_path: Path,
+    session_factory: sessionmaker[Session],
+    config: Config,
+) -> None:
+    running_id = queue_generation(session_factory, config)
+    queued_id = queue_generation(session_factory, config, email="otra@example.com")
+    fake = FakeAgent()
+    fake.script("planner", "plan", script(Call("submit_plan", plan())))
+    fake.script(
+        "writer",
+        "write",
+        script(Call("submit_chapter", {"title": "El faro", "text": chapter_text()})),
+    )
+    fake.script("editor", None, script(Call("submit_review", chapter_review())))
+    fake.script("writer", "write", Script(steps=(Hang(),), usage=USAGE))
+    settings = make_settings(data_dir, tmp_path / "sin-dist")
+
+    await serve_until(
+        app_with(settings, fake, NullObservability()), lambda: writer_sessions(fake) == 2
+    )
+
+    pending = [task for task in asyncio.all_tasks() if task is not asyncio.current_task()]
+    assert pending == []
+    open_session = fake.sessions[-1]
+    assert (open_session.interrupted, open_session.disconnected) == (True, True)
+    assert status_of(session_factory, running_id) == "running"
+    assert status_of(session_factory, queued_id) == "queued"
+    with session_factory() as session:
+        assert [c.number for c in session.query(Chapter).all()] == [1]
+
+    restarted = app_with(settings, FakeAgent(), NullObservability())
+    await serve_until(restarted, lambda: status_of(session_factory, running_id) != "running")
+
+    with session_factory() as session:
+        run = session.get_one(Run, running_id)
+        assert (run.status, run.reason) == ("interrupted", "crash")
