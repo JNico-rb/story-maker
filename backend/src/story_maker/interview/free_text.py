@@ -15,10 +15,11 @@ from story_maker.agents.ceiling import NeverFits, NoRoomInTime
 from story_maker.agents.port import AgentPort, PolicyEngine, SessionRequest
 from story_maker.agents.tools import ToolSpec
 from story_maker.domain.brief import BriefContent, is_fact_verified
-from story_maker.observability.port import ObservabilityPort
-from story_maker.policy.types import CampoNarrativo, PeticionDePolitica
+from story_maker.observability.port import ObservabilityPort, Trace
+from story_maker.policy.audit import record_decision
+from story_maker.policy.types import CampoNarrativo, DecisionDePolitica, PeticionDePolitica
 from story_maker.store.models import Brief, ExtractedFact, FreeText
-from story_maker.store.session import unit_of_work
+from story_maker.store.session import UnitOfWork, unit_of_work
 
 ROLE = "extractor"
 MAX_FREE_TEXT_CHARS = 20000
@@ -76,6 +77,10 @@ def interview_trace_key(novel_id: int) -> str:
     return f"interview:{novel_id}"
 
 
+def import_trace_key(novel_id: int) -> str:
+    return f"import:{novel_id}"
+
+
 def _build_message(text: str, content: BriefContent) -> str:
     subjects = [
         {"name": content.recipient.name, "relation": "destinatario"},
@@ -100,6 +105,8 @@ async def run_free_text(
     user_id: int,
     text: str,
     now: dt.datetime,
+    trace_key: str | None = None,
+    trace_name: str = "entrevista",
 ) -> FreeTextResult | FreeTextFailure:
     with session_factory() as session:
         brief_row = session.query(Brief).filter(Brief.novel_id == novel_id).one()
@@ -107,11 +114,11 @@ async def run_free_text(
             BriefContent.model_validate(brief_row.content) if brief_row.content else BriefContent()
         )
 
-    marked_phrases = _detect_injection(policy, user_id, novel_id, text)
-
     with telemetry.trace(
-        interview_trace_key(novel_id), name="entrevista", session=str(novel_id)
+        trace_key or interview_trace_key(novel_id), name=trace_name, session=str(novel_id)
     ) as trace:
+        marked_phrases = _detect_injection(policy, telemetry, trace, user_id, novel_id, text)
+
         request = SessionRequest(
             role=ROLE,
             mode=None,
@@ -150,14 +157,17 @@ async def run_free_text(
         )
 
     with unit_of_work(session_factory) as uow:
+        all_discarded = list(dict.fromkeys([*marked_phrases, *delivery.discarded_instructions]))
         free_text_row = FreeText(
             novel_id=novel_id,
             content=text,
-            discarded_instructions=delivery.discarded_instructions or None,
+            discarded_instructions=all_discarded or None,
             created_at=now,
         )
         uow.add(free_text_row)
         uow.session.flush()
+        for instruction in delivery.discarded_instructions:
+            _record_declared_instruction(uow, telemetry, trace, user_id, novel_id, instruction)
         fact_rows = []
         for fact, verified in zip(delivery.facts, verified_flags, strict=True):
             row = ExtractedFact(
@@ -194,9 +204,17 @@ async def run_free_text(
     )
 
 
-def _detect_injection(policy: PolicyEngine, user_id: int, novel_id: int, text: str) -> list[str]:
+def _detect_injection(
+    policy: PolicyEngine,
+    telemetry: ObservabilityPort,
+    trace: Trace,
+    user_id: int,
+    novel_id: int,
+    text: str,
+) -> list[str]:
     """Llama al motor de políticas sobre el texto libre entero (origen `free_text`): registra la
-    decisión en el audit log y devuelve las frases que el detector marcó (008-C20)."""
+    decisión en el audit log y en la traza `entrevista`, y devuelve las frases que el detector
+    marcó (008-C20)."""
     peticion = PeticionDePolitica(
         origen="free_text",
         cliente=str(user_id),
@@ -204,6 +222,40 @@ def _detect_injection(policy: PolicyEngine, user_id: int, novel_id: int, text: s
         campos=[CampoNarrativo(path="content", texto=text, narrativo=True)],
     )
     decision = policy.decide(peticion)
+    _span_for_free_text_decision(telemetry, trace, decision)
     if decision.decision == "flag" and decision.detail:
         return [str(item.get("phrase", "")) for item in decision.detail if "phrase" in item]
     return []
+
+
+def _record_declared_instruction(
+    uow: UnitOfWork,
+    telemetry: ObservabilityPort,
+    trace: Trace,
+    user_id: int,
+    novel_id: int,
+    instruction: str,
+) -> None:
+    """La instrucción que el propio extractor declaró como descartada es otra decisión `flag`,
+    aparte de la del detector: no la busca un patrón, la declara el rol (008-C20)."""
+    peticion = PeticionDePolitica(origen="free_text", cliente=str(user_id), novela=str(novel_id))
+    decision = DecisionDePolitica(
+        decision="flag",
+        rule="instruccion-declarada-por-extractor",
+        detail=[{"instruction": instruction}],
+    )
+    record_decision(uow, peticion, decision)
+    _span_for_free_text_decision(telemetry, trace, decision)
+
+
+def _span_for_free_text_decision(
+    telemetry: ObservabilityPort, trace: Trace, decision: DecisionDePolitica
+) -> None:
+    level = "WARNING" if decision.decision == "flag" else "DEFAULT"
+    reason = (
+        "; ".join(", ".join(f"{k}={v}" for k, v in item.items()) for item in decision.detail)
+        if decision.detail
+        else None
+    )
+    with telemetry.span(trace, "tool:free_text", level=level, reason=reason):
+        pass
