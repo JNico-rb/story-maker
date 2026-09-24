@@ -295,6 +295,33 @@ def test_a_role_session_without_run_id_is_admitted(session_factory: sessionmaker
     session.close()
 
 
+def test_a_role_session_without_a_final_result_keeps_usage_and_cost_empty(
+    session_factory: sessionmaker[Session],
+) -> None:
+    session = session_factory()
+    novel = make_novel(session)
+    row = models.RoleSession(
+        novel_id=novel.id,
+        role="writer",
+        model="m",
+        reserved_tokens=9_001,
+        latency_ms=600_000,
+        outcome="time_exhausted",
+    )
+    session.add(row)
+    session.flush()  # no lanza: uso y coste vacíos, nunca a cero (architecture.md §18)
+    session.expire(row)
+
+    assert (
+        row.input_tokens,
+        row.output_tokens,
+        row.cache_read_tokens,
+        row.cache_write_tokens,
+        row.cost_usd,
+    ) == (None, None, None, None, None)
+    session.close()
+
+
 # --- C10: enumerados, rangos, unicidades y coherencia ---------------------------------------------
 
 
