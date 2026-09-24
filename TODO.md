@@ -541,10 +541,10 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 010-C17 · Replanificación con los defectos
 - [x] 010-C18 · Una sesión sin entrega cuenta como intento
 - [x] 010-C19 · Intentos agotados
-- [ ] 010-C20 · El plan aceptado se aplica en una transacción
-- [ ] 010-C21 · StyleSheet
-- [ ] 010-C22 · CanonCards iniciales
-- [ ] 010-C23 · La transacción de aplicación falla
+- [x] 010-C20 · El plan aceptado se aplica en una transacción
+- [x] 010-C21 · StyleSheet
+- [x] 010-C22 · CanonCards iniciales
+- [x] 010-C23 · La transacción de aplicación falla
 - [ ] 010-C24 · Relanzar antes del punto de control 0
 - [ ] 010-C25 · Relanzar tras el punto de control 0
 - [x] 010-C26 · Fallo del proveedor

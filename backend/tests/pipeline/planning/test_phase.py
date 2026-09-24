@@ -1,7 +1,7 @@
 """Replanificación con los defectos (010-C17) y resultado y score de `outline` (010-C29).
 
-Esta prueba solo llega hasta el veredicto `accept` del segundo intento; aplicar el plan a la
-story bible (010-C20) es un paso aparte."""
+Esta prueba llega hasta la aplicación del plan aceptado (010-C20), con `finalize_accepted_plan`
+(`pipeline/planning/phase.py`)."""
 
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ import json
 import pytest
 from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
+from tests.pipeline.planning.test_candidate import reference_brief
 from tests.validators.test_outline import STORY_BIBLE, reference_plan
 
 from story_maker.agents.fake import Call, FakeAgent, Say, Script
@@ -19,11 +20,13 @@ from story_maker.domain.trope_catalog import TROPE_CATALOG
 from story_maker.observability.null import NullObservability
 from story_maker.observability.port import Trace
 from story_maker.pipeline.planning.brief_view import BriefView, RecipientView
-from story_maker.pipeline.planning.phase import run_plan_phase
+from story_maker.pipeline.planning.candidate import start_generation_phase
+from story_maker.pipeline.planning.phase import finalize_accepted_plan, run_plan_phase
 from story_maker.pipeline.planning.session import submit_plan_tool
-from story_maker.store.models import Attempt, RoleSession, ValidatorResult
+from story_maker.store.models import Attempt, Checkpoint, RoleSession, Run, ValidatorResult
 
 BRIEF = BriefView(recipient=RecipientView(name="Marta", age=40))
+NOW = dt.datetime(2026, 9, 24, 12, 0)
 
 NINE_CHAPTER_PLAN = json.loads(reference_plan().model_dump_json())
 NINE_CHAPTER_PLAN["chapters"] = NINE_CHAPTER_PLAN["chapters"][:9]
@@ -44,8 +47,9 @@ async def test_a_rejected_plan_is_retried_with_its_defects_and_the_second_attemp
     run_id: int,
     user_id: int,
     novel_id: int,
-    candidate_version_id: int,
 ) -> None:
+    version = start_generation_phase(session_factory, run_id, novel_id, reference_brief(), now=NOW)
+    candidate_version_id = version.id
     fake.script(
         "planner",
         "plan",
@@ -84,7 +88,7 @@ async def test_a_rejected_plan_is_retried_with_its_defects_and_the_second_attemp
         catalog=TROPE_CATALOG,
         present_year=2026,
         max_retries=2,
-        now=dt.datetime(2026, 9, 24, 12, 0),
+        now=NOW,
     )
 
     assert outcome.verdict == "accept"
@@ -93,6 +97,10 @@ async def test_a_rejected_plan_is_retried_with_its_defects_and_the_second_attemp
     second_window = fake.sessions[1].request.message
     assert "9 capítulos" in second_window
     assert "El verano de Marta" not in second_window  # el plan rechazado no vuelve a entrar
+
+    finalize_accepted_plan(
+        session_factory, telemetry, trace, run_id, candidate_version_id, outcome, now=NOW
+    )
 
     with session_factory() as session:
         attempts = session.scalars(select(Attempt).order_by(Attempt.number)).all()
@@ -106,6 +114,12 @@ async def test_a_rejected_plan_is_retried_with_its_defects_and_the_second_attemp
 
         role_sessions = session.scalars(select(RoleSession)).all()
         assert len(role_sessions) == 2
+
+        run = session.get(Run, run_id)
+        assert run is not None
+        assert run.phase == "writing"
+        (checkpoint,) = session.scalars(select(Checkpoint).filter_by(run_id=run_id)).all()
+        assert checkpoint.chapter == 0
 
     scores = [s for s in trace.scores if s.name == "outline"]
     assert [s.value for s in scores] == [0, 1]

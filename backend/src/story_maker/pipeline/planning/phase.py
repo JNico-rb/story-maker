@@ -1,9 +1,10 @@
 """Bucle de intentos de la fase `planning`: abre sesiones del planner hasta aceptar un plan o
-agotar `max_retries.plan` (010-C17, 010-C29).
+agotar `max_retries.plan` (010-C17, 010-C29), y aplica el plan aceptado (010-C20, 010-C23).
 
-Aplicar el plan aceptado a la story bible (010-C20), el punto de control 0 y el paso a
-`writing` esperan a la 009 (`TODO.md` bloque 010): esta función llega hasta el veredicto
-`accept` y lo devuelve; no lo aplica."""
+Un plan `accept` no se registra en el bucle: su intento, su `ResultadoDeValidador` y la
+aplicación entera se escriben en `finalize_accepted_plan`, una sola transacción — si la
+aplicación falla, tampoco queda el intento (010-C23, «el intento aceptado queda sin desenlace y
+no cuenta»)."""
 
 from __future__ import annotations
 
@@ -15,6 +16,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from story_maker.agents.port import AgentPort, SessionRequest
 from story_maker.domain.trope_catalog import Trope
 from story_maker.observability.port import ObservabilityPort, Trace
+from story_maker.pipeline.planning.apply import apply_accepted_plan
 from story_maker.pipeline.planning.attempts import (
     PlanAttemptOutcome,
     judge_plan_delivery,
@@ -70,6 +72,10 @@ async def run_plan_phase(
             attempt_number=attempt_number,
             max_retries=max_retries,
         )
+        if outcome.verdict == "accept":
+            # Su intento y su aplicación son una sola transacción (010-C23): ver
+            # `finalize_accepted_plan`, que quien llama invoca aparte.
+            return outcome
         with unit_of_work(session_factory) as uow:
             run = _run(uow.session, run_id)
             record_plan_attempt(uow, run, attempt_number, outcome.verdict)
@@ -85,6 +91,40 @@ async def run_plan_phase(
             return outcome
         defects = outcome.defects
         attempt_number += 1
+
+
+def finalize_accepted_plan(
+    session_factory: sessionmaker[Session],
+    telemetry: ObservabilityPort,
+    trace: Trace,
+    run_id: int,
+    version_id: int,
+    outcome: PlanAttemptOutcome,
+    *,
+    now: dt.datetime,
+) -> None:
+    """El intento `accept`, su `ResultadoDeValidador` y la aplicación entera del plan, en una
+    sola transacción (010-C20, 010-C23). Si algo falla a mitad, nada de eso queda: ni el
+    intento, ni el mundo, ni el outline, ni el punto de control 0; la ejecución termina `failed`
+    con `internal_error` y la candidata pasa a descartada, en una transacción aparte."""
+    if outcome.verdict != "accept" or outcome.plan is None:
+        raise ValueError("solo se aplica un plan aceptado")
+    try:
+        with unit_of_work(session_factory) as uow:
+            run = _run(uow.session, run_id)
+            record_plan_attempt(uow, run, outcome.attempt_number, "accept")
+            record_outline_result(
+                uow, telemetry, trace, run, version_id, OutlineResult(passed=True, defects=())
+            )
+            apply_accepted_plan(uow, run, version_id, outcome.plan, now=now)
+    except Exception:
+        with unit_of_work(session_factory) as uow:
+            run = _run(uow.session, run_id)
+            run.status = "failed"
+            run.reason = "internal_error"
+            run.finished_at = now
+            discard(uow, version_id)
+        raise
 
 
 def _run(session: Session, run_id: int) -> Run:

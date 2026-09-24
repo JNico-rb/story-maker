@@ -34,6 +34,7 @@ class PlanAttemptOutcome:
     verdict: Verdict
     defects: tuple[OutlineDefect, ...]
     plan: PlanSubmission | None
+    attempt_number: int
 
 
 def judge_plan_delivery(
@@ -54,13 +55,13 @@ def judge_plan_delivery(
         plan = cast(PlanSubmission, deliveries[-1].value)
         outline = judge_outline(plan, story_bible, present_year=present_year)
         if outline.passed:
-            return PlanAttemptOutcome("accept", (), plan)
+            return PlanAttemptOutcome("accept", (), plan, attempt_number)
         defects = outline.defects
     else:
         plan = None
         defects = (OutlineDefect(f"sin entrega: {result.outcome}"),)
     verdict: Verdict = "rewrite" if attempt_number <= max_retries else "fail"
-    return PlanAttemptOutcome(verdict, defects, plan)
+    return PlanAttemptOutcome(verdict, defects, plan, attempt_number)
 
 
 def record_plan_attempt(uow: UnitOfWork, run: Run, number: int, verdict: Verdict) -> Attempt:
