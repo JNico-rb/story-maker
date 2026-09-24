@@ -799,7 +799,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [ ] 016-C8 · El modelo es el de la novela, no el de la config
 - [ ] 016-C9 · Todo o nada con la transacción del llamante
 - [x] 016-C10 · Corte temporal
-- [ ] 016-C11 · El canal léxico compara palabras, sin mayúsculas ni acentos
+- [x] 016-C11 · El canal léxico compara palabras, sin mayúsculas ni acentos
 - [ ] 016-C12 · BM25 con las estadísticas de la versión en el capítulo *n
 - [ ] 016-C13 · Consultas con signos de búsqueda o sin palabras
 - [ ] 016-C14 · El canal denso compara por fragmentos
