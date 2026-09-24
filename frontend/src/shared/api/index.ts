@@ -1,2 +1,3 @@
 // Cliente HTTP tipado con los tipos de schema.d.ts (`pnpm gen:api`).
-export {};
+export { apiFetch } from "./apiFetch";
+export { invalidFields } from "./invalidFields";

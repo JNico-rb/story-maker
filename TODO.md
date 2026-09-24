@@ -954,25 +954,25 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
-- [ ] 022-C01 · Registro válido lleva a la pantalla de acceso
-- [ ] 022-C02 · Registro con un email ya usado
-- [ ] 022-C03 · Errores de datos inválidos, campo a campo
-- [ ] 022-C04 · Acceso válido guarda la sesión y entra
-- [ ] 022-C05 · Credenciales incorrectas
-- [ ] 022-C06 · Cada petición a una pantalla protegida envía la sesión guardada
-- [ ] 022-C07 · Sin sesión guardada, una pantalla protegida redirige a acceso
-- [ ] 022-C08 · Una sesión rechazada por el servidor redirige a acceso
-- [ ] 022-C09 · Cerrar sesión borra la sesión guardada sin avisar al servidor
-- [ ] 022-I1 · El token de la sesión solo viaja en la cabecera de autorización de cada petición
-- [ ] 022-I2 · Ninguna contraseña escrita en un formulario queda guardada ni se vuelve a mostrar tras enviarse, la petición salga bien o mal
-- [ ] 022-I3 · Una sesión guardada sobrevive a volver a cargar la pantalla, hasta que se cierra sesión o el servidor la rechaza
-- [ ] 022-I4 · Una pantalla protegida nunca pide datos a la API antes de comprobar que hay una sesión guardada
+- [x] 022-C01 · Registro válido lleva a la pantalla de acceso
+- [x] 022-C02 · Registro con un email ya usado
+- [x] 022-C03 · Errores de datos inválidos, campo a campo
+- [x] 022-C04 · Acceso válido guarda la sesión y entra
+- [x] 022-C05 · Credenciales incorrectas
+- [x] 022-C06 · Cada petición a una pantalla protegida envía la sesión guardada
+- [x] 022-C07 · Sin sesión guardada, una pantalla protegida redirige a acceso
+- [x] 022-C08 · Una sesión rechazada por el servidor redirige a acceso
+- [x] 022-C09 · Cerrar sesión borra la sesión guardada sin avisar al servidor
+- [x] 022-I1 · El token de la sesión solo viaja en la cabecera de autorización de cada petición
+- [x] 022-I2 · Ninguna contraseña escrita en un formulario queda guardada ni se vuelve a mostrar tras enviarse, la petición salga bien o mal
+- [x] 022-I3 · Una sesión guardada sobrevive a volver a cargar la pantalla, hasta que se cierra sesión o el servidor la rechaza
+- [x] 022-I4 · Una pantalla protegida nunca pide datos a la API antes de comprobar que hay una sesión guardada
 - [ ] 022-C10 · El recorrido completo se observa en el navegador (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-24: front lint 0 errores · typecheck limpio · build OK · vitest 3 ficheros, 26 pruebas verdes; 022-C10 (D, al final)
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 023 — mis-novelas
 
