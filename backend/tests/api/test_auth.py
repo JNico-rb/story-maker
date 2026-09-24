@@ -55,3 +55,18 @@ def test_valid_registration_creates_a_bcrypt_hashed_user(
     assert user.created_at is not None
     assert user.password_hash != "contraseña-1"
     assert bcrypt.checkpw("contraseña-1".encode(), user.password_hash.encode("utf-8"))
+
+
+def test_the_email_is_stored_normalized(
+    client: TestClient, session_factory: sessionmaker[Session]
+) -> None:
+    response = client.post(
+        "/api/auth/register",
+        json={"email": "  Cliente-A@Example.COM ", "password": "contraseña-1"},
+    )
+
+    assert response.status_code == 201
+    assert response.json()["email"] == "cliente-a@example.com"
+
+    (user,) = _users(session_factory)
+    assert user.email == "cliente-a@example.com"
