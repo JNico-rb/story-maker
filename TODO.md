@@ -156,7 +156,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 002-C04 · Email sin forma de email
 - [x] 002-C05 · Contraseña en sus límites
 - [x] 002-C06 · Registro con cuerpo incompleto
-- [ ] 002-C07 · Acceso válido
+- [x] 002-C07 · Acceso válido
 - [ ] 002-C08 · Al entrar, el email no distingue mayúsculas
 - [ ] 002-C09 · Credenciales incorrectas
 - [ ] 002-C10 · Acceso con cuerpo incompleto

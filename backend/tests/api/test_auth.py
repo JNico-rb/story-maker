@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import datetime as dt
 from collections.abc import Iterator
 from pathlib import Path
 
 import bcrypt
+import jwt
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session, sessionmaker
@@ -15,6 +17,19 @@ from story_maker.store.models import User
 from story_maker.store.session import create_schema, make_engine, make_session_factory
 
 JWT_SECRET = "x" * 32
+
+
+class FakeClock:
+    """Reloj controlable para las pruebas de emisión y caducidad del token (002-C07, 002-C14)."""
+
+    def __init__(self, now: dt.datetime) -> None:
+        self._now = now
+
+    def __call__(self) -> dt.datetime:
+        return self._now
+
+    def set(self, now: dt.datetime) -> None:
+        self._now = now
 
 
 @pytest.fixture
@@ -28,6 +43,17 @@ def session_factory(tmp_path: Path) -> Iterator[sessionmaker[Session]]:
 @pytest.fixture
 def client(session_factory: sessionmaker[Session]) -> TestClient:
     app = create_app(session_factory=session_factory, jwt_secret=JWT_SECRET)
+    return TestClient(app)
+
+
+@pytest.fixture
+def clock() -> FakeClock:
+    return FakeClock(dt.datetime(2026, 1, 1, 12, 0, 0, tzinfo=dt.UTC))
+
+
+@pytest.fixture
+def clocked_client(session_factory: sessionmaker[Session], clock: FakeClock) -> TestClient:
+    app = create_app(session_factory=session_factory, jwt_secret=JWT_SECRET, clock=clock)
     return TestClient(app)
 
 
@@ -202,3 +228,39 @@ def test_registration_with_an_incomplete_body_is_rejected(
 
     assert response.status_code == 422
     assert _users(session_factory) == []
+
+
+def test_valid_login_returns_a_jwt_with_exactly_the_specified_claims(
+    clocked_client: TestClient, clock: FakeClock
+) -> None:
+    register = clocked_client.post(
+        "/api/auth/register",
+        json={"email": "cliente-a@example.com", "password": "contraseña-1"},
+    )
+    user_id = register.json()["id"]
+
+    response = clocked_client.post(
+        "/api/auth/login",
+        json={"email": "cliente-a@example.com", "password": "contraseña-1"},
+    )
+
+    assert response.status_code == 200
+    assert set(response.json()) == {"access_token"}
+    token = response.json()["access_token"]
+
+    payload = jwt.decode(
+        token,
+        JWT_SECRET,
+        algorithms=["HS256"],
+        audience="access_token",
+        issuer="story-maker",
+        options={"verify_exp": False},
+    )
+    t0 = int(clock().timestamp())
+    assert payload == {
+        "sub": str(user_id),
+        "iat": t0,
+        "exp": t0 + 24 * 3600,
+        "aud": "access_token",
+        "iss": "story-maker",
+    }
