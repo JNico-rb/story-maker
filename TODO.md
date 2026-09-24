@@ -882,31 +882,31 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
-- [ ] 018-C1 · `linter-repeticion`: una palabra repetida en un párrafo
-- [ ] 018-C2 · `linter-repeticion`: una muletilla repetida en un párrafo
-- [ ] 018-C3 · `linter-legibilidad`: medidas e índice
-- [ ] 018-C4 · `linter-legibilidad`: la longitud media de frase en su límite
-- [ ] 018-C5 · `linter-legibilidad`: el índice en su límite
-- [ ] 018-C6 · `linter-legibilidad`: la franja del destinatario elige el objetivo
-- [ ] 018-C7 · Recuento de sílabas
-- [ ] 018-C8 · Recuento de frases
-- [ ] 018-C9 · `linter-estilo-ia`: la densidad de adverbios en -mente en su límite
-- [ ] 018-C10 · `linter-estilo-ia`: palabras en -mente que no son adverbios
-- [ ] 018-C11 · `linter-estilo-ia`: clichés y giros de texto generado
-- [ ] 018-C12 · `linter-consistencia`: narrador en tercera persona
-- [ ] 018-C13 · `linter-consistencia`: narrador en primera persona
-- [ ] 018-C14 · `linter-consistencia`: tratamiento sin excepciones
-- [ ] 018-C15 · `linter-consistencia`: tratamiento con excepciones y mezcla
-- [ ] 018-C16 · Capítulo limpio
-- [ ] 018-C17 · Texto sin palabras
+- [x] 018-C1 · `linter-repeticion`: una palabra repetida en un párrafo
+- [x] 018-C2 · `linter-repeticion`: una muletilla repetida en un párrafo
+- [x] 018-C3 · `linter-legibilidad`: medidas e índice
+- [x] 018-C4 · `linter-legibilidad`: la longitud media de frase en su límite
+- [x] 018-C5 · `linter-legibilidad`: el índice en su límite
+- [x] 018-C6 · `linter-legibilidad`: la franja del destinatario elige el objetivo
+- [x] 018-C7 · Recuento de sílabas
+- [x] 018-C8 · Recuento de frases
+- [x] 018-C9 · `linter-estilo-ia`: la densidad de adverbios en -mente en su límite
+- [x] 018-C10 · `linter-estilo-ia`: palabras en -mente que no son adverbios
+- [x] 018-C11 · `linter-estilo-ia`: clichés y giros de texto generado
+- [x] 018-C12 · `linter-consistencia`: narrador en tercera persona
+- [x] 018-C13 · `linter-consistencia`: narrador en primera persona
+- [x] 018-C14 · `linter-consistencia`: tratamiento sin excepciones
+- [x] 018-C15 · `linter-consistencia`: tratamiento con excepciones y mezcla
+- [x] 018-C16 · Capítulo limpio
+- [x] 018-C17 · Texto sin palabras
 - [ ] 018-C18 · Corren tras los hooks y antes del editor, que recibe sus avisos
 - [ ] 018-C19 · Una entrega que no pasa los hooks no llega a los linters
 - [ ] 018-C20 · Con solo avisos, el capítulo se acepta
 - [ ] 018-C21 · En una reescritura por otra causa, el writer recibe los avisos
 - [ ] 018-C22 · Con la aceptación: un resultado por linter en SQLite y en el informe
 - [ ] 018-C23 · Tras el commit: un score por linter en Langfuse
-- [ ] 018-I1 · Todo aviso es un `Defecto` no bloqueante, sin criterio de rúbrica, con su capítulo y un mensaje que nombra lo detectado y su párrafo (o e…
-- [ ] 018-I2 · Los linters son deterministas
+- [x] 018-I1 · Todo aviso es un `Defecto` no bloqueante, sin criterio de rúbrica, con su capítulo y un mensaje que nombra lo detectado y su párrafo (o e…
+- [x] 018-I2 · Los linters son deterministas
 
 ### Closing
 - [ ] Full suite green, type checks clean
