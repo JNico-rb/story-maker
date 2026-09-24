@@ -190,7 +190,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 ### Steps
 - [x] 003-C28 · El doble recorre el camino del SDK y es determinista
 - [x] 003-I9 · El doble falso es determinista
-- [ ] 003-C29 · Una sesión sin guion hace fallar la prueba
+- [x] 003-C29 · Una sesión sin guion hace fallar la prueba
 - [ ] 003-I6 · Ninguna prueba T llega a un modelo
 - [ ] 003-I7 · Solo el puerto de agente usa el Agent SDK
 - [ ] 003-C01 · Cada rol abre con su lista blanca y nada más

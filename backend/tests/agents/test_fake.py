@@ -7,6 +7,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+import pytest
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 from pydantic import BaseModel
@@ -14,7 +15,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
 
 from story_maker.agents.ceiling import TokenCeiling
-from story_maker.agents.fake import Call, FakeAgent, Say, Script
+from story_maker.agents.fake import Call, FakeAgent, MissingScript, Say, Script
 from story_maker.agents.port import AgentPort, Defect, SessionRequest
 from story_maker.agents.usage import Usage
 from story_maker.config import Config
@@ -174,3 +175,35 @@ def test_the_same_script_gives_the_same_result(
         )
 
     assert once() == once()
+
+
+@pytest.mark.parametrize(("role", "mode"), [("editor", None), ("writer", "rewrite")])
+async def test_a_session_without_a_script_fails_before_reserving_or_opening(
+    role: str,
+    mode: str | None,
+    port: AgentPort,
+    fake: FakeAgent,
+    ceiling: TokenCeiling,
+    session_factory: sessionmaker[Session],
+    make_request: Callable[..., SessionRequest],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fake.script("writer", "write", WRITER_SCRIPT)
+    acquired: list[int] = []
+    real_acquire = ceiling.acquire
+
+    async def spy_acquire(amount: int, timeout: float | None) -> Any:
+        acquired.append(amount)
+        return await real_acquire(amount, timeout)
+
+    monkeypatch.setattr(ceiling, "acquire", spy_acquire)
+    request = make_request(role, mode)
+
+    with pytest.raises(MissingScript, match=rf"{role}.*{mode}"):
+        await port.run(request)
+
+    assert acquired == []
+    assert fake.sessions == []
+    assert request.trace.spans == []
+    with session_factory() as session:
+        assert session.scalars(select(RoleSession)).all() == []

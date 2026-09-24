@@ -15,6 +15,13 @@ from story_maker.agents.profiles import RoleProfile
 from story_maker.agents.usage import Usage
 
 
+class MissingScript(LookupError):
+    """La prueba abrió una sesión de un rol y modo para el que no dio guion."""
+
+    def __init__(self, role: str, mode: str | None) -> None:
+        super().__init__(f"sin guion para el rol {role} en modo {mode}")
+
+
 @dataclass(frozen=True)
 class Say:
     """El modelo responde con texto y termina."""
@@ -86,7 +93,8 @@ class FakeAgent:
         self._scripts[(role, mode)].append(script)
 
     def prepare(self, request: SessionRequest) -> None:
-        return None
+        if not self._scripts[(request.role, request.mode)]:
+            raise MissingScript(request.role, request.mode)
 
     def open(self, request: SessionRequest, profile: RoleProfile, hooks: ToolHooks) -> FakeSession:
         script = self._scripts[(request.role, request.mode)].popleft()
