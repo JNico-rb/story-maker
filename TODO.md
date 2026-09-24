@@ -463,9 +463,9 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 009 · Escritura de la fila de `chronology_files` para la 007 (alcance de la spec; paso añadido por el integrador, prueba en tests/store/story_bible/test_chronology_files.py)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-24: uv run pytest (464 passed), uv run ruff check . (all checks passed), uv run ruff format --check . (81 files formatted), uv run mypy src (no issues, 45 files)
+- [x] Spec updated, or confirmed still true — verificador 2026-09-24: confirmada, sin cambios
+- [x] Docs updated, or confirmed still true — verificador 2026-09-24: confirmados, sin cambios (architecture.md §18 ya trae las filas «spec 009»)
 
 ## 010 — planificacion
 
