@@ -539,7 +539,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 010-C15 · Fecha del novum
 - [x] 010-C16 · `outline` no juzga la cronología
 - [ ] 010-C17 · Replanificación con los defectos
-- [ ] 010-C18 · Una sesión sin entrega cuenta como intento
+- [x] 010-C18 · Una sesión sin entrega cuenta como intento
 - [ ] 010-C19 · Intentos agotados
 - [ ] 010-C20 · El plan aceptado se aplica en una transacción
 - [ ] 010-C21 · StyleSheet
@@ -547,7 +547,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [ ] 010-C23 · La transacción de aplicación falla
 - [ ] 010-C24 · Relanzar antes del punto de control 0
 - [ ] 010-C25 · Relanzar tras el punto de control 0
-- [ ] 010-C26 · Fallo del proveedor
+- [x] 010-C26 · Fallo del proveedor
 - [ ] 010-C27 · Reserva inviable en el techo
 - [ ] 010-C28 · Una generación nueva tras un fallo tiene su propia candidata
 - [ ] 010-C29 · Resultado y score de `outline`
