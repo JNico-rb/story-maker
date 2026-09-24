@@ -20,7 +20,7 @@ from sqlalchemy.orm import Session
 
 from story_maker.agents.ceiling import NeverFits
 from story_maker.observability.port import Trace
-from story_maker.pipeline.changes.run import revalidate_base, start_change
+from story_maker.pipeline.changes.run import revalidate_base, revise_affected, start_change
 from story_maker.pipeline.production import ChapterProducer, Production
 from story_maker.pipeline.runs import RunStop, fail_run, get_run, stop_run
 from story_maker.store.models import Checkpoint
@@ -95,7 +95,7 @@ class Orchestrator:
 
     async def _change(self, run_id: int, trace: Trace) -> None:
         """Ejecución de cambio (014): revalida la base al arrancar y al relanzarse; sin punto de
-        control, crea la candidata; después, el gate."""
+        control, crea la candidata; revisa los afectados que quedan; después, el gate."""
         p = self.production
         with unit_of_work(p.session_factory) as uow:
             run = get_run(uow.session, run_id)
@@ -104,6 +104,8 @@ class Orchestrator:
             if run.phase in ("gate", "rewriting"):
                 run.phase, run.chapter = "gate", None
             phase = run.phase
-        if phase != "gate" and last is None:
-            start_change(p, run_id)
+        if phase != "gate":
+            if last is None:
+                start_change(p, run_id)
+            await revise_affected(p, run_id, trace, after=last or 0)
         await self.gate(run_id, trace)

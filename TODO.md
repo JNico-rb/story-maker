@@ -694,7 +694,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] 014-C11 · La confirmación exige el código vigente de una solicitud propia en estado `proposed`
 - [x] 014-C12 · Si al arrancar la versión vigente ya no es su base, la ejecución falla con `stale_base`
 - [x] 014-C13 · La candidata copia la base y aplica el cambio en una sola transacción
-- [ ] 014-C14 · Solo los afectados pasan por el writer, en orden y en modo revisión
+- [x] 014-C14 · Solo los afectados pasan por el writer, en orden y en modo revisión
 - [ ] 014-C15 · Superado el gate, se publica la versión nueva y la solicitud pasa a `applied`
 - [ ] 014-C16 · La reescritura dirigida del gate puede tocar un capítulo no afectado
 - [ ] 014-C17 · Si la ejecución de cambio falla, la solicitud queda `rejected` y la base intacta
@@ -707,10 +707,10 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] 014-I6 · Una petición tiene como mucho 1 + `max_retries.change` intentos (`ReintentosAcotados`)
 - [ ] 014-I7 · Un cambio no modifica la versión base ni ninguna otra versión publicada, tanto si publica como si falla (`VersionAnteriorConservada`)
 - [ ] 014-I8 · Historia lineal
-- [ ] 014-I9 · En la fase `writing` de una ejecución de cambio, solo los afectados pasan por el writer, en orden ascendente
+- [ ] 014-I9 · En la fase `writing` de una ejecución de cambio, solo los afectados pasan por el writer, en orden ascendente (recortado)
 - [ ] 014-I10 · Los puntos de control de una ejecución de cambio son el 0 y un prefijo de sus afectados en orden, sin huecos ni duplicados
 - [x] 014-I11 · Toda decisión del motor sobre la petición y sobre los valores nuevos queda en el audit log con origen `change_request`
-- [ ] 014-I12 · Los capítulos cambiados de la versión nueva son exactamente los de huella distinta de su base
+- [ ] 014-I12 · Los capítulos cambiados de la versión nueva son exactamente los de huella distinta de su base (recortado)
 - [ ] 014-C20 · Un cambio real propagado sobre la novela del brief 1 (D, al final)
 
 ### Closing

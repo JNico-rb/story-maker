@@ -63,10 +63,15 @@ def _dump(payload: dict[str, Any]) -> str:
     return json.dumps(payload, ensure_ascii=False, default=str)
 
 
-def writer_message(window: WriterWindow, defects: Sequence[Mapping[str, Any]]) -> str:
+def writer_message(
+    window: WriterWindow,
+    defects: Sequence[Mapping[str, Any]],
+    extra: Mapping[str, Any] | None = None,
+) -> str:
     """La ventana del writer y sus entradas: el objetivo de palabras y, al reescribir, los
-    defectos del intento anterior; nunca su texto (011-C17)."""
-    call_inputs: dict[str, Any] = {"target_words": window.target_words}
+    defectos del intento anterior; nunca su texto (011-C17). En modo revisión, `extra` trae el
+    capítulo actual, el cambio y la instrucción (014-C14)."""
+    call_inputs: dict[str, Any] = {"target_words": window.target_words, **(extra or {})}
     if defects:
         call_inputs["defects"] = [dict(d) for d in defects]
     return _dump(
@@ -89,14 +94,17 @@ def editor_message(
     text: str,
     lint_defects: Sequence[Mapping[str, Any]],
     gate_defects: Sequence[Mapping[str, Any]] = (),
+    extra: Mapping[str, Any] | None = None,
 ) -> str:
     """La ventana del editor y sus entradas: el título y el texto entregados y los defectos de los
     linters (vacíos hasta 018). Nada de la sesión del writer (011-I8). En la reescritura dirigida,
-    también los defectos Lean del gate, con su precedencia (012-C9, §9.4)."""
+    también los defectos Lean del gate, con su precedencia (012-C9, §9.4). En modo revisión,
+    `extra` trae el cambio (014-C14)."""
     call_inputs: dict[str, Any] = {
         "title": title,
         "text": text,
         "lint_defects": [dict(d) for d in lint_defects],
+        **(extra or {}),
     }
     if gate_defects:
         call_inputs["gate_defects"] = {
