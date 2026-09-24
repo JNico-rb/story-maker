@@ -360,7 +360,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [ ] 007-C24 · La auditoría de axiomas no pasa en vacío (necesita CI)
 - [x] 007-I2 · Solo es `passed` lo que compila, pasa la auditoría y cumple los cinco invariantes
 - [x] 007-I3 · El `FicheroDeCronologia` no lleva datos personales
-- [ ] 007-I4 · La seudonimización no cambia el resultado de ningún comprobador
+- [x] 007-I4 · La seudonimización no cambia el resultado de ningún comprobador
 - [ ] 007-I6 · El fichero solo contiene filas de la versión que se verifica
 - [ ] 007-I7 · El verificador solo escribe en `STORY_MAKER_DATA_DIR`
 - [ ] 007-I8 · `GITHUB_TOKEN` nunca aparece en el fichero, el input, el resultado, la fila, un mensaje de error ni un registro

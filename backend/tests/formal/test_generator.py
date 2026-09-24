@@ -403,3 +403,62 @@ def test_the_file_never_carries_personal_data_only_ids_dates_numbers_and_yes_no(
     source = generate_chronology_file(chronology, k=k)
 
     assert words(source) <= TEMPLATE_WORDS
+
+
+@settings(max_examples=200)
+@given(chronology=chronologies(), k=st.integers(1, 10))
+def test_the_pseudonymisation_changes_nothing_the_invariants_read(
+    chronology: Chronology, k: int
+) -> None:
+    """Inyectiva; conserva el orden y la igualdad de todo par de instantes, el día y el mes, los
+    bisiestos y la edad en años cumplidos; los ids son los de las filas (§3.4)."""
+    parsed = parse(generate_chronology_file(chronology, k=k))
+    recorded = sorted((e for e in chronology.events if e.origin != "planned"), key=lambda e: e.id)
+    births = {c.id: c.birth_date for c in chronology.characters if c.birth_date is not None}
+
+    # Ids de fila, tal cual: cada id de un testigo es el de su fila.
+    assert [e.id for e in parsed.events] == [e.id for e in recorded]
+    assert set(parsed.births) == set(births)
+    for real, written in zip(recorded, parsed.events, strict=True):
+        assert written.place == real.place_id
+        assert written.excluded == real.excluded_character_id
+        assert sorted(p for p, _ in written.presences) == sorted(
+            p.character_id for p in real.presences
+        )
+        assert (written.chapter, written.beat, written.analepsis) == (
+            real.chapter,
+            real.beat,
+            real.analepsis,
+        )
+
+    # Instantes: momentos y nacimientos (a las 00:00), reales y desplazados, en el mismo orden.
+    real_instants = [e.moment for e in recorded] + [
+        dt.datetime(b.year, b.month, b.day) for b in (births[c] for c in sorted(births))
+    ]
+    shifted = [dt.datetime(*e.moment) for e in parsed.events] + [
+        dt.datetime(*parsed.births[c]) for c in sorted(births)
+    ]
+    for real, moved in zip(real_instants, shifted, strict=True):
+        assert moved.year == real.year + 400 * k
+        assert (moved.month, moved.day, moved.hour, moved.minute) == (
+            real.month,
+            real.day,
+            real.hour,
+            real.minute,
+        )
+        assert calendar.isleap(moved.year) == calendar.isleap(real.year)
+    for i, a in enumerate(real_instants):
+        for j, b in enumerate(real_instants):
+            assert (a < b) == (shifted[i] < shifted[j])
+            assert (a == b) == (shifted[i] == shifted[j])
+
+    # Edades en años cumplidos de cada personaje con nacimiento en cada evento.
+    for real, written in zip(recorded, parsed.events, strict=True):
+        for presence in real.presences:
+            birth = births.get(presence.character_id)
+            if birth is None:
+                continue
+            moment = real.moment
+            assert completed_years(
+                (birth.year, birth.month, birth.day), (moment.year, moment.month, moment.day)
+            ) == completed_years(parsed.births[presence.character_id], written.moment)
