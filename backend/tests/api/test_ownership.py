@@ -687,3 +687,20 @@ def test_someone_elses_resource_in_a_state_that_would_409_still_answers_404(
 
     assert b_confirms.status_code == 404
     assert b_confirms.status_code != 409
+
+
+def test_the_owner_of_what_is_created_is_the_clients_token(client: TestClient) -> None:
+    a_id, a_token = _register_and_login(client, "cliente-a@example.com")
+    _b_id, b_token = _register_and_login(client, "cliente-b@example.com")
+    headers_a = {"Authorization": f"Bearer {a_token}"}
+    headers_b = {"Authorization": f"Bearer {b_token}"}
+
+    created = client.post("/api/_test/novels", json={"user_id": a_id}, headers=headers_b)
+    assert created.status_code == 201
+    new_id = created.json()["id"]
+
+    b_listing = client.get("/api/_test/novels", headers=headers_b)
+    a_gets_it = client.get(f"/api/_test/novels/{new_id}", headers=headers_a)
+
+    assert new_id in [n["id"] for n in b_listing.json()]
+    assert a_gets_it.status_code == 404

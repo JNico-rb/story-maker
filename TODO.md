@@ -170,7 +170,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 002-C18 · Una entrada global no es de ningún cliente
 - [x] 002-C19 · Un listado solo contiene lo del cliente
 - [x] 002-C20 · Lo ajeno no cambia nada
-- [ ] 002-C21 · El propietario de lo creado es el cliente del token
+- [x] 002-C21 · El propietario de lo creado es el cliente del token
 - [ ] 002-I1 · La contraseña nunca queda en claro
 - [ ] 002-I2 · Toda ruta de `/api` salvo el registro y el acceso exige un `TokenDeAcceso` válido
 - [ ] 002-I3 · Para B, un recurso de A es indistinguible de uno inexistente y no cambia nada
