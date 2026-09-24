@@ -30,6 +30,7 @@ function ProposalView({ proposal }: { proposal: Proposal }) {
 export function ChangeRequestPanel({
   novelId,
   selection,
+  onDiscard,
   onConfirmed,
 }: {
   novelId: string;
@@ -65,7 +66,7 @@ export function ChangeRequestPanel({
         <button type="button" disabled={state.confirming} onClick={() => void handleConfirm()}>
           Confirmar
         </button>
-        <button type="button" disabled={state.confirming}>
+        <button type="button" disabled={state.confirming} onClick={onDiscard}>
           Descartar
         </button>
       </section>

@@ -182,6 +182,27 @@ describe("027 cambio del lector", () => {
     expect(await screen.findByText(/Nombre del perro/)).toBeInTheDocument();
   });
 
+  it("027-C10: discarding the proposal calls onDiscard without confirming anything", async () => {
+    const user = userEvent.setup();
+    const onDiscard = vi.fn();
+    const { calls } = fakeApi(() =>
+      json(201, {
+        id: "req-1",
+        proposal: { fact: "Nombre del perro", old_value: "Toby", new_value: "Nala" },
+        affected_chapters: [2, 5, 7],
+        code: "SECRETO-123",
+        expires_at: "2026-09-25T12:00:00Z",
+      }),
+    );
+    renderPanel(onDiscard);
+
+    await sendRequest(user);
+    await user.click(screen.getByRole("button", { name: "Descartar" }));
+
+    expect(onDiscard).toHaveBeenCalledTimes(1);
+    expect(calls).toHaveLength(1);
+  });
+
   it("027-C08: sending disables the action while it is in progress", async () => {
     const user = userEvent.setup();
     let resolveResponse: (response: Response) => void = () => undefined;
