@@ -19,6 +19,9 @@ GRAMMATICAL_WORDS: frozenset[str] = frozenset(
         "unos",
         "unas",
         "lo",
+        # Contracciones de preposición y artículo
+        "al",
+        "del",
         # Preposiciones
         "a",
         "ante",

@@ -835,7 +835,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 018-C13 · `linter-consistencia`: narrador en primera persona
 - [x] 018-C14 · `linter-consistencia`: tratamiento sin excepciones
 - [x] 018-C15 · `linter-consistencia`: tratamiento con excepciones y mezcla
-- [ ] 018-C16 · Capítulo limpio
+- [x] 018-C16 · Capítulo limpio
 - [ ] 018-C17 · Texto sin palabras
 - [ ] 018-C18 · Corren tras los hooks y antes del editor, que recibe sus avisos
 - [ ] 018-C19 · Una entrega que no pasa los hooks no llega a los linters
