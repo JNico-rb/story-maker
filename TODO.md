@@ -218,13 +218,13 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 003-I1 · La suma de las reservas abiertas nunca supera `token_ceiling`
 - [x] 003-I2 · Toda reserva se libera exactamente una vez
 - [x] 003-C21 · Agotar los turnos conserva el uso
-- [ ] 003-C22 · Pasar de `session_timeout_seconds` interrumpe y desconecta
-- [ ] 003-C23 · Un fallo del proveedor es `infrastructure_failure`, no `completed`
+- [ ] 003-C22 · Pasar de `session_timeout_seconds` interrumpe y desconecta — parcial: falta la variante sin resultado final (uso vacío); `role_sessions` declara tokens y `cost_usd` NOT NULL (001)
+- [ ] 003-C23 · Un fallo del proveedor es `infrastructure_failure`, no `completed` — parcial: falta el fallo de transporte sin resultado final (uso vacío); mismo NOT NULL de `role_sessions` (001)
 - [x] 003-C24 · Quien abre la sesión puede cortarla
-- [ ] 003-C25 · El coste es el uso real por el precio de lista del modelo
+- [ ] 003-C25 · El coste es el uso real por el precio de lista del modelo — parcial: falta el coste del SDK en la `LlamadaDeModelo`; `ModelCall`/`model_call()` sin `sdk_cost_usd` (001)
 - [x] 003-I5 · El coste de una `SesionDeRol` es su uso × `operation.pricing`, nunca el que declara el SDK
 - [x] 003-C26 · Toda sesión abierta deja su `SesionDeRol`, y solo ellas
-- [ ] 003-C27 · Cada sesión y cada llamada a tool dejan su span
+- [ ] 003-C27 · Cada sesión y cada llamada a tool dejan su span — parcial: falta el coste del SDK en la `LlamadaDeModelo`; `ModelCall`/`model_call()` sin `sdk_cost_usd` (001)
 - [x] 003-I8 · Sesiones concurrentes no comparten estado
 - [ ] 003-C30 · El login funciona con tools en proceso, hooks y skill (D, al final)
 - [ ] 003-C31 · La sesión real no hereda nada del entorno de desarrollo (D, al final)

@@ -307,7 +307,9 @@ class LiveSession:
                 pending.span.close()
         self._pending.clear()
 
-    def _tool_span(self, tool: str, level: str = "DEFAULT", reason: str | None = None) -> Any:
+    def _tool_span(
+        self, tool: str, level: str = "DEFAULT", reason: str | None = None
+    ) -> AbstractContextManager[Span]:
         return self.telemetry.span(
             self.request.trace,
             f"tool:{tool}",
@@ -317,19 +319,15 @@ class LiveSession:
         )
 
     def _resolve_own(self, call: ToolCall) -> None:
-        rejected = call.status == "schema_rejected"
-        level = "WARNING" if rejected or call.status == "blocked" else "DEFAULT"
-        reason = (
-            "; ".join(call.errors)
-            if rejected
-            else _defects_text(call.defects)
-            if call.status == "blocked"
-            else None
-        )
-        with self._tool_span(call.tool, level, reason) as span:
-            self.telemetry.score(
-                self.request.trace, "schema-salida", 0 if rejected else 1, span=span
-            )
+        """Una entrega resuelta: su span `tool:<tool>` con su nivel y su `schema-salida`."""
+        warnings = {
+            "schema_rejected": "; ".join(call.errors),
+            "blocked": _defects_text(call.defects),
+        }
+        reason = warnings.get(call.status)
+        with self._tool_span(call.tool, "DEFAULT" if reason is None else "WARNING", reason) as span:
+            valid = 0 if call.status == "schema_rejected" else 1
+            self.telemetry.score(self.request.trace, "schema-salida", valid, span=span)
         call.own = True
         self._record_call(call)
 
