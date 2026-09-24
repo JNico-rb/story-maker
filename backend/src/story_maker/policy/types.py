@@ -35,6 +35,7 @@ class PeticionDePolitica(BaseModel):
     rol: str | None = None
     tool: str | None = None
     skill: str | None = None
+    url: str | None = None
     campos: list[CampoNarrativo] = []
     banned_entries: list[EntradaProhibida] = []
 

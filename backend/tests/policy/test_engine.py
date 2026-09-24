@@ -70,6 +70,27 @@ def test_un_tema_coincide_por_cualquiera_de_sus_palabras_clave() -> None:
     assert d3.decision == "allow"
 
 
+def test_el_revisor_visual_solo_navega_el_origen_de_la_vista() -> None:
+    base_url = "http://127.0.0.1:8000"
+    propio = PeticionDePolitica(
+        origen="policy_hook",
+        cliente="c1",
+        rol="visual_reviewer",
+        tool="browser_navigate",
+        url="http://127.0.0.1:8000/view/versions/3?token=t",
+    )
+    otro_host = propio.model_copy(update={"url": "http://evil.example.com"})
+    otro_puerto = propio.model_copy(update={"url": "http://127.0.0.1:9999"})
+
+    assert decide(propio, base_url=base_url).decision == "allow"
+    d1 = decide(otro_host, base_url=base_url)
+    d2 = decide(otro_puerto, base_url=base_url)
+    assert d1.decision == "deny"
+    assert d1.rule == "origen-de-navegacion"
+    assert d2.decision == "deny"
+    assert d2.rule == "origen-de-navegacion"
+
+
 def test_una_tool_fuera_de_la_lista_blanca_del_rol_deniega() -> None:
     d1 = decide(PeticionDePolitica(origen="policy_hook", cliente="c1", rol="writer", tool="Bash"))
     d2 = decide(

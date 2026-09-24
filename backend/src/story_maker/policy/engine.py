@@ -1,6 +1,7 @@
 """MotorDePoliticas: función pura que decide allow | deny | flag (architecture.md §12.2)."""
 
 from story_maker.domain.banned_terms import find_term_matches
+from story_maker.policy.navigation import is_own_origin
 from story_maker.policy.types import DecisionDePolitica, EntradaProhibida, PeticionDePolitica
 from story_maker.policy.whitelist import ALLOWED_SKILL, is_tool_allowed
 
@@ -49,8 +50,27 @@ def _check_whitelist(peticion: PeticionDePolitica) -> DecisionDePolitica | None:
     return None
 
 
-def decide(peticion: PeticionDePolitica) -> DecisionDePolitica:
+def _check_navigation(
+    peticion: PeticionDePolitica, base_url: str | None
+) -> DecisionDePolitica | None:
+    if peticion.rol != "visual_reviewer" or peticion.tool != "browser_navigate":
+        return None
+    if peticion.url is None or base_url is None:
+        return None
+    if not is_own_origin(base_url, peticion.url):
+        return DecisionDePolitica(
+            decision="deny",
+            rule="origen-de-navegacion",
+            detail=[{"url": peticion.url}],
+        )
+    return None
+
+
+def decide(peticion: PeticionDePolitica, base_url: str | None = None) -> DecisionDePolitica:
     decision = _check_whitelist(peticion)
+    if decision is not None:
+        return decision
+    decision = _check_navigation(peticion, base_url)
     if decision is not None:
         return decision
     decision = _check_banned_terms(peticion)
