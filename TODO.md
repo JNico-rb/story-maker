@@ -339,13 +339,13 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 007-C03 · k se elige al azar en cada fichero, entre 1 y 10
 - [x] 007-C04 · La misma cronología y el mismo k dan el mismo fichero
 - [x] 007-C05 · El 29 de febrero y las edades se conservan al desplazar
-- [ ] 007-C06 · Solo entra la versión que se verifica
-- [ ] 007-C07 · Un testigo con eventos narrados da un defecto por capítulo
-- [ ] 007-C08 · Un testigo solo con eventos del brief da un defecto sin capítulo
-- [ ] 007-C09 · Una verificación que pasa deja su fichero y su fila
-- [ ] 007-C10 · Un invariante violado deja la fila `failed` y devuelve los defectos
-- [ ] 007-C11 · Un fichero que no compila por otra causa es `error` y nunca `passed`
-- [ ] 007-C12 · Sin veredicto no hay fila
+- [ ] 007-C06 · Solo entra la versión que se verifica (espera 009)
+- [ ] 007-C07 · Un testigo con eventos narrados da un defecto por capítulo (espera 009)
+- [ ] 007-C08 · Un testigo solo con eventos del brief da un defecto sin capítulo (espera 009)
+- [ ] 007-C09 · Una verificación que pasa deja su fichero y su fila (espera 009)
+- [ ] 007-C10 · Un invariante violado deja la fila `failed` y devuelve los defectos (espera 009)
+- [ ] 007-C11 · Un fichero que no compila por otra causa es `error` y nunca `passed` (espera 009)
+- [ ] 007-C12 · Sin veredicto no hay fila (espera 009)
 - [x] 007-C13 · El modo local compila en el directorio de datos e interpreta la salida
 - [x] 007-C14 · El modo github envía el fichero comprimido por `workflow_dispatch`
 - [x] 007-C15 · El modo github sondea la ejecución y lee el resultado del artefacto
@@ -361,10 +361,10 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 007-I2 · Solo es `passed` lo que compila, pasa la auditoría y cumple los cinco invariantes
 - [x] 007-I3 · El `FicheroDeCronologia` no lleva datos personales
 - [x] 007-I4 · La seudonimización no cambia el resultado de ningún comprobador
-- [ ] 007-I6 · El fichero solo contiene filas de la versión que se verifica
-- [ ] 007-I7 · El verificador solo escribe en `STORY_MAKER_DATA_DIR`
+- [ ] 007-I6 · El fichero solo contiene filas de la versión que se verifica (espera 009)
+- [ ] 007-I7 · El verificador solo escribe en `STORY_MAKER_DATA_DIR` (espera 009: el modo local ya solo escribe en el directorio de datos, 007-C13; falta guardar el fichero, 007-C09)
 - [x] 007-I8 · `GITHUB_TOKEN` nunca aparece en el fichero, el input, el resultado, la fila, un mensaje de error ni un registro
-- [ ] 007-I12 · La fila de `chronology_files` solo existe con un resultado (`passed`, `failed` o `error`), y su huella es la del fichero guardado
+- [ ] 007-I12 · La fila de `chronology_files` solo existe con un resultado (`passed`, `failed` o `error`), y su huella es la del fichero guardado (espera 009)
 - [ ] 007-C25 · Una verificación real por GitHub Actions responde a tiempo (D, al final)
 
 ### Closing
