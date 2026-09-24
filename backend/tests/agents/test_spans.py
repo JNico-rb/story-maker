@@ -121,6 +121,7 @@ async def test_each_session_and_each_tool_call_leave_their_span(
     assert (call.cache_read_tokens, call.cache_write_tokens) == (30, 10)
     assert call.cost_usd == result.cost_usd
     assert call.latency_ms == result.latency_ms
+    assert call.sdk_cost_usd == 20.0  # solo como contraste
     assert children(role_span) == [
         ("tool:Skill", "DEFAULT", None),
         ("tool:submit_chapter", "WARNING", "término prohibido"),
