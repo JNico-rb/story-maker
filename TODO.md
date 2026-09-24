@@ -1084,11 +1084,11 @@ Todas dependen de 000. Carril B disuelto y C rehecho (decisión del usuario, 202
 - [ ] 026-C11 · El PDF aún no está disponible
 - [ ] 026-C12 · Fallo al cargar la lista de versiones
 - [ ] 026-C13 · Fallo al cargar el detalle de una versión
-- [ ] 026-C14 · El recorrido completo se observa en el navegador (D, al final)
 - [ ] 026-I1 · Lo mostrado (portada, novedades, índice, capítulos, ficha) es siempre de una sola versión, la que marca el selector; nunca mezcla datos d…
 - [ ] 026-I3 · Todo enlace interno de la página de novedades, del índice y de la ficha lleva al capítulo correcto dentro de la propia pantalla
 - [ ] 026-I4 · Un error de cualquier llamada de esta pantalla (lista de versiones, detalle, PDF) siempre se muestra; nunca se descarta en silencio ni de…
 - [ ] 026-I5 · Ninguna llamada de esta pantalla a la API real
+- [ ] 026-C14 · El recorrido completo se observa en el navegador (D, al final)
 
 ### Closing
 - [ ] Full suite green, type checks clean
