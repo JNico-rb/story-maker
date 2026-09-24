@@ -583,7 +583,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 011-C12 · `nombres-exactos` sobre el título y el texto
 - [x] 011-C13 · Qué cuenta como intento en la sesión del writer
 - [x] 011-C14 · Una sesión del writer que termina sin entrega válida es un intento fallido
-- [ ] 011-C15 · La revisión del editor tiene schema y solo cita lo que existe
+- [x] 011-C15 · La revisión del editor tiene schema y solo cita lo que existe
 - [x] 011-C16 · El veredicto lo decide el código
 - [ ] 011-C17 · Reescribir es una sesión nueva con los defectos
 - [ ] 011-C18 · Los intentos de un capítulo se agotan con motivo
