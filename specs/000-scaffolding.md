@@ -36,7 +36,7 @@ El scaffolding se escribió antes que esta spec (desviación detectada por el us
 - Primera generación de tipos con `gen:api`, que necesita la API → 001-base; su regeneración, en `/integrar`.
 - Especificaciones TLA+, sus `.cfg` y la config con invariante roto → 006-especificacion-tla.
 - Biblioteca Lean T1–T5, auditoría de axiomas, ficheros negativos y workflow `workflow_dispatch` del `VerificadorFormal` → 007-validador-lean.
-- Contenido de `backend/harness_workspace/` (`WorkspaceDelHarness`) → 003-puerto-de-agente y 011-produccion-de-capitulos. Los hooks del producto (de policy y de validación de capítulo) no son los hooks de desarrollo de esta spec → 003, 005, 011.
+- Contenido de `backend/harness_workspace/`: 003-puerto-de-agente solo lleva el mecanismo (`agents/`, el `WorkspaceDelHarness` como mecanismo); el `CLAUDE.md` de producto, la skill y los prompts de writer y editor son de 011-produccion-de-capitulos; el prompt de cada rol restante es de su propia spec (008-brief-y-entrevista, 010-planificacion, 012-gate-de-publicacion, 014-cambios-del-lector, 017-revision-visual). Los hooks del producto (de policy y de validación de capítulo) no son los hooks de desarrollo de esta spec → 003, 005, 011.
 - Navegadores de Playwright para el PDF en la CI → 013-lectura-y-pdf. Los cinco briefs de `ejemplos/briefs/` → 020-evals.
 - Pantallas del producto (acceso, mis novelas, entrevista, progreso, lectura) → specs de frontend 022+.
 - Escaneo del historial, triage de `pip-audit` y `pnpm audit`, `docs/security-report.md` → 021-auditoria-de-seguridad.
@@ -210,7 +210,7 @@ No aplica: la 000 no ejecuta validadores del producto ni emite trazas.
 
 ## Docs referenciados
 
-- `architecture.md` §14.8 (frontend, marca, proxy, tipos generados), §15.1 (stack), §15.3 (entorno Windows; LF en el índice), §15.5 (directorio de datos por defecto `backend/data/`; `LANGFUSE_MCP_AUTH`, solo desarrollo), §15.9 (organización del backend y regla de dependencias), §16.20 (Claude Code en el desarrollo), §18 (organización del frontend, cliente de la API, dónde corre Lean, valores de la marca); ADR 0004.
+- `architecture.md` §14.8 (frontend, marca, proxy, tipos generados), §15.1 (stack), §15.3 (entorno Windows; LF en el índice), §15.5 (directorio de datos por defecto `backend/data/`; `LANGFUSE_MCP_AUTH`, solo desarrollo), §15.9 (organización del backend y regla de dependencias), §16.20 (Claude Code en el desarrollo), §18 (organización del frontend, cliente de la API, dónde corre Lean, valores de la marca, forma de clave de `guard-secretos` — 000-C09); ADR 0004.
 - `verification.md` §2 (clases), §3.1–§3.3 (tipos, análisis estático, regla de dependencias), §3.7 (sin contratos de importación), §4.6 (CI, un job `formal`), §4.10 (TLC en el portátil y en la CI), §5 (filas R.2 —clon limpio, 000-C14—, R.10, R.12, R.13, P.1), §6 (U28), §9.2 (servidores MCP), §9.3 (log del browser MCP), §9.5 (espejo de memoria), §9.6 (hooks, rutas guardadas y permisos).
 - `definitions.md` §11.3 (ajustes del servidor; `LANGFUSE_MCP_AUTH` no es del producto).
 - `AGENTS.md` (proceso 2, excepción de la 000; puerta «Write tests or code»; formato de `TODO.md` y del acta del `auditor`), `CLAUDE.md` raíz (órdenes canónicas, trampas del entorno, secretos), `backend/AGENTS.md` y `frontend/AGENTS.md` (stack, órdenes, módulos, propiedad de la 000, marca).
@@ -227,7 +227,7 @@ No aplica: la 000 no ejecuta validadores del producto ni emite trazas.
 | ¿Página de inicio? | No hay pantalla de inicio en los docs: la ruta raíz muestra la cabecera de marca de la aplicación, que reutilizarán las pantallas; la 000 no posee slices de `pages/` | `architecture.md` §14.8, §18 («Valores de la marca»), `frontend/AGENTS.md` |
 | ¿Qué rutas guarda `guard-plan`? | Las siete de la puerta «Write tests or code»: `backend/src`, `backend/tests`, `frontend/src`, `frontend/tests`, `lean`, `tla`, `.github/workflows` | `verification.md` §9.6, `AGENTS.md` |
 | ¿Y los manifiestos, `backend/harness_workspace/` y `.claude/`? | Sin guardar: los escribe solo el integrador y los revisan `/integrar` y el `verificador` | `verification.md` §9.6 |
-| ¿Qué es el «cuerpo» de una clave? | 20 o más caracteres de `[A-Za-z0-9_-]` tras un prefijo que empieza palabra; `Basic ` + 40 o más de base64 | Decisión sobre «seguidos de su cuerpo» y «base64 largo» (`verification.md` §9.6) |
+| ¿Qué es el «cuerpo» de una clave? | 20 o más caracteres de `[A-Za-z0-9_-]` tras un prefijo que empieza palabra; `Basic ` + 40 o más de base64 | `architecture.md` §18, fila «Forma de clave de `guard-secretos`» |
 | ¿Qué entradas son «git de lectura» y «commit» en `allow`? | Lectura: `status`, `diff`, `log`, `show`; commit: `add` y `commit`; nada que publique (`push`) | Decisión sobre `verification.md` §9.6: lo mínimo que usan los carriles |
 | ¿Desde qué sesión se demuestra `guard-plan` en un worktree? | Una sesión nueva abierta en la raíz del worktree: el hook lee el `TODO.md` de la raíz de su sesión y trata lo demás como ruta de fuera | 000-C10, `verification.md` §9.6 |
 | ¿Con qué se verifica que los hooks no dependen de paquetes? | Con el clon limpio de 000-C14 (D), invariante aparte de la independencia del directorio actual (T) | `verification.md` §2 |
