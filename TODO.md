@@ -614,9 +614,9 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [ ] 011-C32 · Una producción real con el login de Claude Code llega al gate y se reanuda (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-24: pytest 1342 passed, ruff check clean, ruff format clean, mypy 128 files clean
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 012 — gate-de-publicacion
 
