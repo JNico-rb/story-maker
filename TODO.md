@@ -230,6 +230,38 @@ Todas dependen de 000. Carriles B y C disueltos (decisión del usuario, 2026-09-
 - [ ] Spec updated, or confirmed still true
 - [ ] Docs updated, or confirmed still true
 
+## 004 — observabilidad
+
+- [x] Spec `specs/backend/004-observabilidad.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
+
+### Steps
+- [ ] 004-C01 · Con las cuatro variables de Langfuse, se usa el adaptador real
+- [ ] 004-C02 · Sin alguna variable de Langfuse, se usa el doble nulo
+- [ ] 004-I2 · Con alguna variable ausente, el puerto usa siempre el doble nulo
+- [ ] 004-C03 · `check-env` informa «ok» con credenciales válidas y prompts vigentes
+- [ ] 004-C04 · `check-env` falla si las credenciales de Langfuse no son válidas
+- [ ] 004-C05 · `check-env` falla si a un rol le falta el prompt con la etiqueta vigente
+- [ ] 004-I3 · `auth_check()` nunca falla en silencio
+- [ ] 004-C06 · `serve` no arranca en las mismas situaciones que `check-env`
+- [ ] 004-C07 · `prompts push` sube una versión nueva si cambia la huella del fichero
+- [ ] 004-C08 · `prompts push` no sube si la huella no cambió
+- [ ] 004-I4 · Sube si y solo si cambia la huella
+- [ ] 004-C09 · Al arrancar, cada `LlamadaDeModelo` enlaza la versión de prompt leída por la etiqueta
+- [ ] 004-C10 · La máscara sustituye nombres y fechas sin tocar tokens, coste, latencia ni scores
+- [ ] 004-I1 · Todo texto exportado pasa antes por la máscara
+- [ ] 004-C11 · La máscara de una llamada MCP con varias novelas es la unión de sus máscaras
+- [ ] 004-C12 · Cada resultado de validador se exporta como Score con su nombre canónico
+- [ ] 004-C13 · TLC no envía score
+- [ ] 004-I7 · Ninguna llamada real a modelo o Langfuse en una prueba T
+- [ ] 004-C14 · Una ejecución real vista en Langfuse (D, al final)
+- [ ] 004-C15 · Iteración de tuning con antes y después de un prompt cambiado (D, al final)
+
+### Closing
+- [ ] Full suite green, type checks clean
+- [ ] Spec updated, or confirmed still true
+- [ ] Docs updated, or confirmed still true
+
 ## 006 — especificacion-tla
 
 - [x] Spec `specs/backend/006-especificacion-tla.md` approved — auditor 2026-09-24: ronda 2; 10 casos (4 A, 4 I, 2 D) e 11 invariantes (6 A, 4 I, 1 U) trazados contra arq §7.6, §8.3–§8.4, §9.1–§9.4, §10.1–§10.3, §11.1–§11.2, §11.5, §16.18, §18, definitions §5, §6, §9, §12.3, verif §2, §3.6, §4.6, §4.10, §5, §6 U30, §8, constraints §5d y 000; las 4 contradicciones de la ronda 1 cerradas en los docs; sin bloqueantes; menores: I9 e I11 citan 011, 012 y 014 donde verif §4.10 y U30 dicen 010, 011, 012, 014 y 019; C10 omite la columna Efecto de verif §8; C7 dice que el push a V2 lo decide el integrador y 000-C18 que el usuario; «Excepción de la 006» debería decir que son términos de definitions §9; la tabla de C9 junta `Gate` y `Publicar` en una fila
