@@ -811,11 +811,11 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 016-C20 · Sin modelo no hay recuperación a medias
 - [x] 016-I1 · Determinista
 - [x] 016-I2 · Corte temporal
-- [ ] 016-I3 · Solo la versión pedida
-- [ ] 016-I4 · Las CanonCards son función de la story bible
-- [ ] 016-I5 · Solo tarjetas de entidades
-- [ ] 016-I7 · Un vector por (huella, modelo), solo inserción
-- [ ] 016-I8 · No degrada en silencio (`architecture.md` §2, premisa 5)
+- [ ] 016-I3 · Solo la versión pedida (recortado)
+- [ ] 016-I4 · Las CanonCards son función de la story bible (recortado)
+- [ ] 016-I5 · Solo tarjetas de entidades (recortado)
+- [ ] 016-I7 · Un vector por (huella, modelo), solo inserción (recortado)
+- [ ] 016-I8 · No degrada en silencio (`architecture.md` §2, premisa 5) (recortado)
 - [ ] 016-C21 · El modelo real carga en el portátil (D, al final)
 - [ ] 016-C22 · Línea base dorada con el modelo real (D, al final)
 
