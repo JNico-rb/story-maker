@@ -243,7 +243,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 004-C01 · Con las cuatro variables de Langfuse, se usa el adaptador real
 - [x] 004-C02 · Sin alguna variable de Langfuse, se usa el doble nulo
 - [x] 004-I2 · Con alguna variable ausente, el puerto usa siempre el doble nulo
-- [ ] 004-C03 · `check-env` informa «ok» con credenciales válidas y prompts vigentes
+- [x] 004-C03 · `check-env` informa «ok» con credenciales válidas y prompts vigentes
 - [ ] 004-C04 · `check-env` falla si las credenciales de Langfuse no son válidas
 - [ ] 004-C05 · `check-env` falla si a un rol le falta el prompt con la etiqueta vigente
 - [ ] 004-I3 · `auth_check()` nunca falla en silencio

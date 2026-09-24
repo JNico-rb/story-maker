@@ -413,3 +413,21 @@ def test_with_zero_one_or_three_of_the_four_vars_the_port_is_always_the_null_dou
     assert isinstance(observability, NullObservability)
     observability_line = next(line for line in lines if line.startswith("observabilidad"))
     assert "doble nulo" in observability_line
+
+
+# --- C03: check-env informa «ok» con credenciales válidas y prompts vigentes ------------------
+
+
+def test_check_env_reports_ok_for_langfuse_with_valid_credentials_and_prompts(
+    monkeypatch: pytest.MonkeyPatch, base_env: Path, fake_langfuse_client: FakeLangfuseClient
+) -> None:
+    runner.invoke(app, ["init-db"])
+    _set_langfuse_env(monkeypatch)
+    _register_all_role_prompts(fake_langfuse_client)
+    _use_fake_langfuse_client(monkeypatch, fake_langfuse_client)
+
+    result = runner.invoke(app, ["check-env"])
+
+    assert result.exit_code == 0
+    lines = result.stdout.strip().splitlines()
+    assert lines[3] == "observabilidad: ok (Langfuse)"
