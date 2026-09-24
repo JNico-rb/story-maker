@@ -347,7 +347,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [ ] 007-C11 · Un fichero que no compila por otra causa es `error` y nunca `passed`
 - [ ] 007-C12 · Sin veredicto no hay fila
 - [x] 007-C13 · El modo local compila en el directorio de datos e interpreta la salida
-- [ ] 007-C14 · El modo github envía el fichero comprimido por `workflow_dispatch`
+- [x] 007-C14 · El modo github envía el fichero comprimido por `workflow_dispatch`
 - [ ] 007-C15 · El modo github sondea la ejecución y lee el resultado del artefacto
 - [ ] 007-C16 · El input cabe en el límite de 65.535 caracteres o no se envía
 - [ ] 007-C17 · Un GitHub inalcanzable o lento interrumpe sin reintentar
