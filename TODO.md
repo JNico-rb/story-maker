@@ -445,7 +445,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 008-C26 · Lista prohibida de nivel `user`
 - [x] 008-C27 · Audit log de la novela
 - [x] 008-C28 · Importar un brief válido
-- [ ] 008-C29 · Importación rechazada antes de extraer
+- [x] 008-C29 · Importación rechazada antes de extraer
 - [ ] 008-C30 · Importación con una extracción fallida
 - [ ] 008-C31 · Trazas y scores de la entrevista y de la importación
 - [ ] 008-I1 · Importar y confirmar deciden igual
