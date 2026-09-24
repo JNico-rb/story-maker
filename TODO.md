@@ -457,9 +457,11 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [ ] 008-C33 · Extracción real de una carta con inyección (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
+
+— verificador 2026-09-24: backend (uv run pytest 1190 passed, ruff check clean, ruff format --check clean, mypy src clean) verdes.
 
 ## 009 — story-bible-y-versiones
 
