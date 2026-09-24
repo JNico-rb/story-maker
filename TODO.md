@@ -820,7 +820,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
-- [ ] 018-C1 · `linter-repeticion`: una palabra repetida en un párrafo
+- [x] 018-C1 · `linter-repeticion`: una palabra repetida en un párrafo
 - [ ] 018-C2 · `linter-repeticion`: una muletilla repetida en un párrafo
 - [ ] 018-C3 · `linter-legibilidad`: medidas e índice
 - [ ] 018-C4 · `linter-legibilidad`: la longitud media de frase en su límite
