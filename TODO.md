@@ -116,19 +116,19 @@ Todas dependen de 000. Carril B disuelto y C rehecho (decisión del usuario, 202
 - [x] 001-C01 · El `config.json` del repositorio es válido y lleva los valores de §15.4
 - [x] 001-C02 · La config se valida entera y nombra cada clave que falta, sobra o no vale
 - [x] 001-C05 · `.env.example` lista los ajustes sin valores
-- [ ] 001-C06 · `init-db` crea la base con el esquema completo
-- [ ] 001-C07 · `init-db` no pisa una base existente sin `--reset`
+- [x] 001-C06 · `init-db` crea la base con el esquema completo
+- [x] 001-C07 · `init-db` no pisa una base existente sin `--reset`
 - [x] 001-C08 · Toda conexión abre la base igual
 - [x] 001-C09 · Ámbito y referencias obligatorias
 - [x] 001-C10 · Enumerados, rangos, unicidades y coherencia
 - [x] 001-C11 · Solo inserción y CanonCards inmutables
 - [x] 001-C12 · El índice FTS5 sigue a las CanonCards, sin acentos
 - [x] 001-C13 · Una unidad de trabajo es todo o nada
-- [ ] 001-C14 · `check-env` informa de cada comprobación
-- [ ] 001-I1 · Ninguna salida reproduce el valor de un ajuste secreto
-- [ ] 001-C15 · `serve` no arranca con config, ajustes o base inválidos
-- [ ] 001-C16 · `serve` escucha en `STORY_MAKER_BASE_URL`, en un solo proceso
-- [ ] 001-I2 · `init-db`, `check-env` y `serve` solo crean o cambian ficheros dentro del directorio de datos
+- [x] 001-C14 · `check-env` informa de cada comprobación
+- [x] 001-I1 · Ninguna salida reproduce el valor de un ajuste secreto
+- [x] 001-C15 · `serve` no arranca con config, ajustes o base inválidos
+- [x] 001-C16 · `serve` escucha en `STORY_MAKER_BASE_URL`, en un solo proceso
+- [x] 001-I2 · `init-db`, `check-env` y `serve` solo crean o cambian ficheros dentro del directorio de datos
 - [x] 001-C17 · Salud, esquema OpenAPI y errores de la API
 - [x] 001-C18 · La SPA compilada se sirve en el mismo origen sin tapar la API
 - [x] 001-C19 · El doble nulo captura lo emitido, sin red

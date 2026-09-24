@@ -65,6 +65,24 @@ def _resolve_path(value: str | None, default: Path) -> Path:
     return path if path.is_absolute() else ROOT / path
 
 
+def resolve_paths(
+    env: dict[str, str] | None = None, env_file: Path | None = None
+) -> tuple[Path, Path]:
+    """Directorio de datos y ruta de `config.json`, sin validar el resto de los ajustes.
+
+    `check-env` y `serve` los necesitan incluso cuando otro ajuste (p. ej. `JWT_SECRET`) es
+    inválido: cada comprobación corre con independencia de las demás (C14)."""
+    source_env = dict(os.environ if env is None else env)
+    dotenv = _read_dotenv(env_file if env_file is not None else ROOT / ".env")
+
+    def get(key: str) -> str | None:
+        return source_env.get(key) or dotenv.get(key) or None
+
+    data_dir = _resolve_path(get("STORY_MAKER_DATA_DIR"), ROOT / "backend" / "data")
+    config_path = _resolve_path(get("STORY_MAKER_CONFIG"), ROOT / "config.json")
+    return data_dir, config_path
+
+
 def load_settings(env: dict[str, str] | None = None, env_file: Path | None = None) -> Settings:
     """Lee ajustes de `env` (por defecto `os.environ`) y del `.env` raíz; el entorno prevalece."""
     source_env = dict(os.environ if env is None else env)

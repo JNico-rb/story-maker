@@ -47,6 +47,45 @@ def create_schema(engine: Engine) -> None:
         connection.execute(text(CANON_CARDS_FTS_DDL))
 
 
+def schema_diff(engine: Engine) -> list[str]:
+    """Tablas o columnas que le faltan o le sobran a `engine` frente al esquema de C6 (C14)."""
+    problems: list[str] = []
+    with engine.connect() as connection:
+        actual_tables = {
+            row[0]
+            for row in connection.execute(text("SELECT name FROM sqlite_master WHERE type='table'"))
+        }
+        for table in Base.metadata.sorted_tables:
+            if table.name not in actual_tables:
+                problems.append(f"falta la tabla {table.name}")
+                continue
+            actual_columns = {
+                row[1] for row in connection.execute(text(f"PRAGMA table_info({table.name})"))
+            }
+            expected_columns = {column.name for column in table.columns}
+            missing = sorted(expected_columns - actual_columns)
+            extra = sorted(actual_columns - expected_columns)
+            problems += [f"falta la columna {table.name}.{c}" for c in missing]
+            problems += [f"sobra la columna {table.name}.{c}" for c in extra]
+    return problems
+
+
+def dense_channel_ok(engine: Engine) -> bool:
+    """El canal denso (`sqlite-vec`) responde en `engine` (C8, C14)."""
+    try:
+        with engine.connect() as connection:
+            connection.execute(
+                text("SELECT vec_distance_cosine(:a, :b)"),
+                {
+                    "a": sqlite_vec.serialize_float32([1, 0]),
+                    "b": sqlite_vec.serialize_float32([0, 1]),
+                },
+            )
+        return True
+    except Exception:
+        return False
+
+
 def make_session_factory(engine: Engine) -> sessionmaker[Session]:
     return sessionmaker(bind=engine, expire_on_commit=False)
 
