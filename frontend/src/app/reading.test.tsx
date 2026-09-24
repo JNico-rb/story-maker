@@ -1,4 +1,5 @@
 import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -206,5 +207,25 @@ describe("026 lectura", () => {
     const select = await screen.findByRole("combobox", { name: "Versión" });
     const options = within(select).getAllByRole("option");
     expect(options.map((option) => option.textContent)).toEqual(["v2", "v1"]);
+  });
+
+  it("026-C09: switching version reloads all the content with the chosen version's", async () => {
+    const user = userEvent.setup();
+    fakeApi({
+      [`GET ${BASE}`]: () => json(200, LIST),
+      [`GET ${BASE}/1`]: () => json(200, detail(1)),
+      [`GET ${BASE}/2`]: () => json(200, detail(2)),
+    });
+    renderReading();
+
+    await screen.findByRole("region", { name: "Novedades" });
+    expect(await screen.findByText("Nala")).toBeInTheDocument();
+
+    await user.selectOptions(screen.getByRole("combobox", { name: "Versión" }), "1");
+
+    await screen.findByText("Toby");
+    expect(screen.queryByText("Nala")).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Novedades" })).not.toBeInTheDocument();
+    expect(screen.queryByText(/cambiado en v/i)).not.toBeInTheDocument();
   });
 });
