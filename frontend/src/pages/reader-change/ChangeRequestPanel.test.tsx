@@ -144,4 +144,34 @@ describe("027 cambio del lector", () => {
     expect(screen.getByRole("textbox", { name: "Petición" })).toHaveValue("el perro se llama Nala");
     expect(screen.queryByRole("section", { name: "Propuesta de cambio" })).not.toBeInTheDocument();
   });
+
+  it("027-C07: a server failure while requesting the change offers a retry without losing what was written", async () => {
+    const user = userEvent.setup();
+    let attempt = 0;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        attempt += 1;
+        if (attempt === 1) return new Response(null, { status: 500 });
+        return json(201, {
+          id: "req-1",
+          proposal: { fact: "Nombre del perro", old_value: "Toby", new_value: "Nala" },
+          affected_chapters: [2],
+          code: "SECRETO-123",
+          expires_at: "2026-09-25T12:00:00Z",
+        });
+      }),
+    );
+    renderPanel();
+
+    await sendRequest(user);
+
+    expect(await screen.findByText(/no se pudo (enviar|completar)/i)).toBeInTheDocument();
+    const textbox = screen.getByRole("textbox", { name: "Petición" });
+    expect(textbox).toHaveValue("el perro se llama Nala");
+
+    await user.click(screen.getByRole("button", { name: "Pedir el cambio" }));
+
+    expect(await screen.findByText(/Nombre del perro/)).toBeInTheDocument();
+  });
 });

@@ -1172,7 +1172,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] 027-C04 · Una propuesta sin afectados se muestra igual
 - [x] 027-C05 · Petición rechazada por la policy o por la propuesta
 - [x] 027-C06 · Petición sobre una selección que ya no vale
-- [ ] 027-C07 · Fallo del servidor al pedir el cambio
+- [x] 027-C07 · Fallo del servidor al pedir el cambio
 - [ ] 027-C08 · Enviar deshabilita la acción mientras está en curso
 - [ ] 027-C09 · Confirmar encola la ejecución y lo indica en la lectura
 - [ ] 027-C10 · Descartar no confirma nada
