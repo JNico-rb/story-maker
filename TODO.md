@@ -16,8 +16,7 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 - **Ruta crítica:** 000 → 001 → 002 → 009 → 010 → 011 → 012 → 014 → 015 → 021 (carril A). B lleva 003, 008 y 017; C, 005, 007 y 019; F, 018; G, 010; H, 016; D, 006, 004, 013 y 020.
 - **Avisos abiertos:**
   - Adaptador del motor de políticas real para el puerto de agente (carga de prohibidas por cliente y novela, `base_url` del revisor visual, `record_decision` en el audit log): lo cablea la primera spec que abre sesiones reales, 008, y lo reutiliza 011; patrón en `tests/agents/test_port.py` (`RealEngine`) de carril-b.
-  - 009 ofrece la lectura de la `Cronologia` y la escritura de `chronology_files` (lo pide 007).
-  - 012 decide qué hace el gate con el `error` de 007; la propuesta es `failed` con `internal_error`.
+    - 012 decide qué hace el gate con el `error` de 007; la propuesta es `failed` con `internal_error`.
   - 014: la propuesta pedida por MCP cuelga de `mcp:request_change` (lo pide 015).
 - **Tareas humanas:** `GITHUB_TOKEN` de grano fino para 007-C25; decidir si V2 pasa a ser la rama por defecto (`workflow_dispatch`).
 
@@ -26,7 +25,7 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 | Carril | Specs en orden | Depende de (fuera del carril) | Worktree | Rama | Estado |
 |---|---|---|---|---|---|
 | 0 — scaffolding (integrador) | 000 | — | checkout principal | `V2` | cerrada (D al final) |
-| A — ruta crítica | 001 → 002 → 009 → 011 → 012 → 014 → 015 → 021 | 003, 004 (010) · 010 (011) · 005, 006 (011) · 007 (012) · 008, 013 (015) | `../sm-a` | `carril-a` | 001 y 002 integradas; 009 en curso |
+| A — ruta crítica | 001 → 002 → 009 → 011 → 012 → 014 → 015 → 021 | 003, 004 (010) · 010 (011) · 005, 006 (011) · 007 (012) · 008, 013 (015) | `../sm-a` | `carril-a` | 001, 002 y 009 integradas; 011 espera 010 |
 | B — agentes y entrada | 003 → 008 → 017 | 001 (003) · 002, 004, 005 (008) · 012, 013 (017) | `../sm-b` | `carril-b` | 003 integrada; 008 en curso |
 | C — formal y edición | 005 → 007 → 019 | 001 (005 parcial) · 009 (007 parcial) · 012, 018 (019) | `../sm-c` | `carril-c` | 005 integrada; 007: 21/32, el resto espera 009 |
 | D — formal y lectura | 006 → 004 → 013 → 020 | 001 (004) · 009 (013 parcial) · 012 (020) | `../sm-d` | `carril-d` | 006 y 004 integradas; 013 en curso (lo que no usa la 009) |
