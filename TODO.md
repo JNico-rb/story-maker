@@ -1292,7 +1292,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] 031-C05 · El adaptador de incrustaciones (carril Y)
 - [x] 031-C01 · `serve` monta la API completa
 - [ ] 031-C04 · Una novela nueva usa el modelo de incrustación real (tras C05 en V2)
-- [ ] 031-C02 · Arrancar el servidor pone el worker a tomar la cola
+- [x] 031-C02 · Arrancar el servidor pone el worker a tomar la cola
 - [ ] 031-C03 · Parar el servidor apaga el worker sin perder nada
 - [ ] 031-I2 · Ninguna prueba de esta spec llama a un modelo, a Langfuse ni a GitHub
 - [ ] 031-I1 · El montaje es uno (lo lee el `verificador`)
