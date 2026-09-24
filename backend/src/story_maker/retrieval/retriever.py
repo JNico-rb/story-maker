@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from fractions import Fraction
 
@@ -15,6 +15,15 @@ from story_maker.retrieval.lexical import bm25, candidates, words
 from story_maker.store.models import CanonCard
 
 RRF_K = 60
+
+# Orden del enumerado del tipo de entidad (`definitions.md` §12.4): primero decide el tipo.
+ENTITY_TYPES = ("character", "place", "world")
+
+
+def stable_key(card: CanonCard) -> tuple[int, int, int]:
+    """Desempate estable: tipo de entidad, id de la entidad y `from_chapter`, ascendentes."""
+    entity_id = card.character_id or card.place_id or 0
+    return (ENTITY_TYPES.index(card.entity_type), entity_id, card.from_chapter)
 
 
 @dataclass(frozen=True)
@@ -35,8 +44,21 @@ class RankedCard:
 
 
 def fuse(entries: Iterable[RankedCard]) -> list[RankedCard]:
-    """Las entradas por RRF descendente."""
-    return sorted(entries, key=lambda entry: -entry.rrf)
+    """Las entradas por RRF descendente; los empates, por la clave estable."""
+    return sorted(entries, key=lambda entry: (-entry.rrf, stable_key(entry.card)))
+
+
+def channel_ranks(
+    eligible: Sequence[CanonCard], measure: Mapping[int, float], *, higher_first: bool
+) -> dict[int, int]:
+    """Rangos consecutivos desde 1 de las tarjetas con `measure`; los empates, por la clave
+    estable."""
+    sign = -1 if higher_first else 1
+    ranked = sorted(
+        (card for card in eligible if card.id in measure),
+        key=lambda card: (sign * measure[card.id], stable_key(card)),
+    )
+    return {card.id: rank for rank, card in enumerate(ranked, start=1)}
 
 
 def eligible_cards(session: Session, version_id: int, chapter: int) -> list[CanonCard]:
@@ -64,13 +86,11 @@ def rank_cards(
     query_words = {word for fragment in fragments for word in words(fragment)}
     lexical = candidates(session, query_words, [card.id for card in eligible])
     scores = bm25(query_words, {card.id: card.text for card in eligible}, lexical)
-    by_score = sorted(scores, key=lambda card_id: -scores[card_id])
-    lexical_ranks = {card_id: rank for rank, card_id in enumerate(by_score, start=1)}
+    lexical_ranks = channel_ranks(eligible, scores, higher_first=True)
     model = novel_model(session, version_id)
     query_vectors = embed_texts(embedder, model, fragments)
     distances = min_distances(session, model, [card.id for card in eligible], query_vectors)
-    by_distance = sorted(distances, key=lambda card_id: distances[card_id])
-    dense_ranks = {card_id: rank for rank, card_id in enumerate(by_distance, start=1)}
+    dense_ranks = channel_ranks(eligible, distances, higher_first=False)
     return fuse(
         RankedCard(card, lexical_ranks.get(card.id), scores.get(card.id), dense_ranks.get(card.id))
         for card in eligible
