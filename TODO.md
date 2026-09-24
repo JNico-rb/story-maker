@@ -262,6 +262,43 @@ Todas dependen de 000. Carriles B y C disueltos (decisión del usuario, 2026-09-
 - [ ] Spec updated, or confirmed still true
 - [ ] Docs updated, or confirmed still true
 
+## 005 — guardarrailes
+
+- [x] Spec `specs/backend/005-guardarrailes.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
+
+### Steps
+- [ ] 005-C09 · Sin coincidencia, permite
+- [ ] 005-C01 · Una entrada de nivel global deniega
+- [ ] 005-C02 · Una entrada de nivel user deniega solo para su cliente
+- [ ] 005-C03 · Una entrada de nivel novel deniega solo para su novela
+- [ ] 005-C04 · Una variante de acento coincide
+- [ ] 005-C05 · Una variante de plural coincide
+- [ ] 005-C06 · Letras repetidas y leetspeak simple coinciden
+- [ ] 005-C07 · La coincidencia va por tokens, no por subcadena
+- [ ] 005-C08 · Un tema coincide por cualquiera de sus palabras clave
+- [ ] 005-C10 · La política nunca escanea un campo no marcado como narrativo
+- [ ] 005-I3 · Normalización idempotente y coincidencia por tokens (propiedad hypothesis)
+- [ ] 005-C11 · Una tool fuera de la lista blanca del rol deniega
+- [ ] 005-C12 · Una tool de la lista blanca del rol, sin más causa, permite
+- [ ] 005-C13 · Solo personalizacion-natural se admite como skill
+- [ ] 005-C14 · El revisor visual solo navega el origen de la vista
+- [ ] 005-C15 · Una frase dirigida al sistema en español se marca, no deniega
+- [ ] 005-C16 · Una frase dirigida al sistema en inglés se marca
+- [ ] 005-C17 · Un texto sin patrón de inyección no se marca
+- [ ] 005-I1 · policy/ no importa agents/
+- [ ] 005-I5 · El detector de inyección nunca deniega por sí solo
+- [ ] 005-I6 · Cada coincidencia lleva término, nivel y variante en su detalle
+- [ ] 005-C18 · Sembrar la lista global no duplica entradas
+- [ ] 005-C19 · Toda decisión deja una fila en el audit log
+- [ ] 005-C20 · El origen de cada decisión es uno de los seis declarados
+- [ ] 005-I2 · Toda petición decidida deja exactamente una fila en audit_log
+
+### Closing
+- [ ] Full suite green, type checks clean
+- [ ] Spec updated, or confirmed still true
+- [ ] Docs updated, or confirmed still true
+
 ## 006 — especificacion-tla
 
 - [x] Spec `specs/backend/006-especificacion-tla.md` approved — auditor 2026-09-24: ronda 2; 10 casos (4 A, 4 I, 2 D) e 11 invariantes (6 A, 4 I, 1 U) trazados contra arq §7.6, §8.3–§8.4, §9.1–§9.4, §10.1–§10.3, §11.1–§11.2, §11.5, §16.18, §18, definitions §5, §6, §9, §12.3, verif §2, §3.6, §4.6, §4.10, §5, §6 U30, §8, constraints §5d y 000; las 4 contradicciones de la ronda 1 cerradas en los docs; sin bloqueantes; menores: I9 e I11 citan 011, 012 y 014 donde verif §4.10 y U30 dicen 010, 011, 012, 014 y 019; C10 omite la columna Efecto de verif §8; C7 dice que el push a V2 lo decide el integrador y 000-C18 que el usuario; «Excepción de la 006» debería decir que son términos de definitions §9; la tabla de C9 junta `Gate` y `Publicar` en una fila

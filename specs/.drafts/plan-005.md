@@ -1,0 +1,27 @@
+- [ ] 005-C09 · Sin coincidencia, permite
+- [ ] 005-C01 · Una entrada de nivel global deniega
+- [ ] 005-C02 · Una entrada de nivel user deniega solo para su cliente
+- [ ] 005-C03 · Una entrada de nivel novel deniega solo para su novela
+- [ ] 005-C04 · Una variante de acento coincide
+- [ ] 005-C05 · Una variante de plural coincide
+- [ ] 005-C06 · Letras repetidas y leetspeak simple coinciden
+- [ ] 005-C07 · La coincidencia va por tokens, no por subcadena
+- [ ] 005-C08 · Un tema coincide por cualquiera de sus palabras clave
+- [ ] 005-C10 · La política nunca escanea un campo no marcado como narrativo
+- [ ] 005-I3 · Normalización idempotente y coincidencia por tokens (propiedad hypothesis)
+- [ ] 005-C11 · Una tool fuera de la lista blanca del rol deniega
+- [ ] 005-C12 · Una tool de la lista blanca del rol, sin más causa, permite
+- [ ] 005-C13 · Solo personalizacion-natural se admite como skill
+- [ ] 005-C14 · El revisor visual solo navega el origen de la vista
+- [ ] 005-C15 · Una frase dirigida al sistema en español se marca, no deniega
+- [ ] 005-C16 · Una frase dirigida al sistema en inglés se marca
+- [ ] 005-C17 · Un texto sin patrón de inyección no se marca
+- [ ] 005-I1 · policy/ no importa agents/
+- [ ] 005-I5 · El detector de inyección nunca deniega por sí solo
+- [ ] 005-I6 · Cada coincidencia lleva término, nivel y variante en su detalle
+- [ ] 005-C18 · Sembrar la lista global no duplica entradas
+- [ ] 005-C19 · Toda decisión deja una fila en el audit log
+- [ ] 005-C20 · El origen de cada decisión es uno de los seis declarados
+- [ ] 005-I2 · Toda petición decidida deja exactamente una fila en audit_log
+
+Nota: 005 no tiene casos D — el MotorDePoliticas es código puro y nunca llama a un modelo (objetivo, alcance).
