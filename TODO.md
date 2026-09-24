@@ -790,40 +790,40 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
-- [ ] 016-C1 · Tarjetas iniciales al aplicar el plan
-- [ ] 016-C2 · Qué dice una tarjeta
-- [ ] 016-C3 · Aceptar un capítulo crea sucesoras solo donde algo cambia
-- [ ] 016-C4 · Una entidad aparece antes de lo planeado
-- [ ] 016-C5 · Volver a aceptar un capítulo
-- [ ] 016-C6 · Un hecho cambiado reconstruye las tarjetas de su entidad
-- [ ] 016-C7 · Vectores por huella y modelo
-- [ ] 016-C8 · El modelo es el de la novela, no el de la config
-- [ ] 016-C9 · Todo o nada con la transacción del llamante
-- [ ] 016-C10 · Corte temporal
-- [ ] 016-C11 · El canal léxico compara palabras, sin mayúsculas ni acentos
-- [ ] 016-C12 · BM25 con las estadísticas de la versión en el capítulo *n
-- [ ] 016-C13 · Consultas con signos de búsqueda o sin palabras
-- [ ] 016-C14 · El canal denso compara por fragmentos
-- [ ] 016-C15 · Fusión RRF con k = 60
-- [ ] 016-C16 · Desempate estable
-- [ ] 016-C17 · Consulta prospectiva del writer
-- [ ] 016-C18 · La consulta retrospectiva del editor tiene otro punto ciego
-- [ ] 016-C19 · `top_k` por rol y escasez
-- [ ] 016-C20 · Sin modelo no hay recuperación a medias
-- [ ] 016-I1 · Determinista
-- [ ] 016-I2 · Corte temporal
-- [ ] 016-I3 · Solo la versión pedida
-- [ ] 016-I4 · Las CanonCards son función de la story bible
-- [ ] 016-I5 · Solo tarjetas de entidades
-- [ ] 016-I7 · Un vector por (huella, modelo), solo inserción
-- [ ] 016-I8 · No degrada en silencio (`architecture.md` §2, premisa 5)
+- [x] 016-C1 · Tarjetas iniciales al aplicar el plan
+- [x] 016-C2 · Qué dice una tarjeta
+- [x] 016-C3 · Aceptar un capítulo crea sucesoras solo donde algo cambia
+- [x] 016-C4 · Una entidad aparece antes de lo planeado
+- [x] 016-C5 · Volver a aceptar un capítulo
+- [x] 016-C6 · Un hecho cambiado reconstruye las tarjetas de su entidad
+- [x] 016-C7 · Vectores por huella y modelo
+- [x] 016-C8 · El modelo es el de la novela, no el de la config
+- [x] 016-C9 · Todo o nada con la transacción del llamante
+- [x] 016-C10 · Corte temporal
+- [x] 016-C11 · El canal léxico compara palabras, sin mayúsculas ni acentos
+- [x] 016-C12 · BM25 con las estadísticas de la versión en el capítulo *n
+- [x] 016-C13 · Consultas con signos de búsqueda o sin palabras
+- [x] 016-C14 · El canal denso compara por fragmentos
+- [x] 016-C15 · Fusión RRF con k = 60
+- [x] 016-C16 · Desempate estable
+- [x] 016-C17 · Consulta prospectiva del writer
+- [x] 016-C18 · La consulta retrospectiva del editor tiene otro punto ciego
+- [x] 016-C19 · `top_k` por rol y escasez
+- [x] 016-C20 · Sin modelo no hay recuperación a medias
+- [x] 016-I1 · Determinista
+- [x] 016-I2 · Corte temporal
+- [ ] 016-I3 · Solo la versión pedida (recortado)
+- [ ] 016-I4 · Las CanonCards son función de la story bible (recortado)
+- [ ] 016-I5 · Solo tarjetas de entidades (recortado)
+- [ ] 016-I7 · Un vector por (huella, modelo), solo inserción (recortado)
+- [ ] 016-I8 · No degrada en silencio (`architecture.md` §2, premisa 5) (recortado)
 - [ ] 016-C21 · El modelo real carga en el portátil (D, al final)
 - [ ] 016-C22 · Línea base dorada con el modelo real (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-24: `uv run pytest` 867 passed; `uv run ruff check .` sin hallazgos; `uv run ruff format --check .` 176 ficheros formateados; `uv run mypy src` sin incidencias (88 ficheros).
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 017 — revision-visual
 
