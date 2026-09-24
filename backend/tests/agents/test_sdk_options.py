@@ -9,14 +9,16 @@ import json
 import os
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import pytest
 from claude_agent_sdk import ClaudeAgentOptions
+from pydantic import BaseModel, Field
 
 from story_maker.agents.port import SessionRequest
 from story_maker.agents.profiles import role_profile
 from story_maker.agents.sdk import ProviderConfigError, SdkAgent
+from story_maker.agents.tools import ToolSpec
 from story_maker.config import Config
 from story_maker.settings import Settings
 
@@ -310,3 +312,41 @@ def test_anthropic_compatible_without_its_variables_does_not_build_the_adapter(
 
     for variable in named:
         assert variable in str(failed.value)
+
+
+class PlanInput(BaseModel):
+    title: str
+    dedication: str | None = None
+    tone: Literal["tender", "funny", "epic"]
+    beats: list[str] = Field(min_length=2, max_length=4)
+
+
+def harness_server(options: ClaudeAgentOptions) -> Any:
+    assert isinstance(options.mcp_servers, dict)
+    return options.mcp_servers["harness"]["instance"]  # type: ignore[typeddict-item]
+
+
+async def test_the_schema_the_session_publishes_is_the_one_derived_from_the_tool_model(
+    config: Config,
+    workspace: Path,
+    make_settings: Callable[..., Settings],
+    make_request: Callable[..., SessionRequest],
+) -> None:
+    tool = ToolSpec(name="submit_plan", model=PlanInput, description="Entrega el plan")
+    agent = SdkAgent(make_settings(), workspace=workspace)
+    options = agent.session_options(
+        make_request("planner", "plan", tools=(tool,)),
+        role_profile(config, "planner", "plan"),
+        NoHooks(),
+    )
+
+    listing = await harness_server(options).get_request_handler("tools/list").handler(None, None)
+
+    (published,) = listing.tools
+    assert published.name == "submit_plan"
+    schema = published.input_schema
+    assert schema == PlanInput.model_json_schema()
+    assert sorted(schema["required"]) == ["beats", "title", "tone"]
+    assert schema["properties"]["tone"]["enum"] == ["tender", "funny", "epic"]
+    assert schema["properties"]["beats"]["minItems"] == 2
+    assert schema["properties"]["beats"]["maxItems"] == 4
