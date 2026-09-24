@@ -8,22 +8,13 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 4. Cada carril edita solo los bloques de sus specs; esta cabecera y sus tablas son del integrador (checkout principal, V2).
 5. Una spec empieza cuando sus dependencias están cerradas en V2, o en la rama de su propio carril.
 
-## Estado (handoff 2026-09-24, corte por cuota)
+## Estado (2026-09-24, etapa 2 en curso)
 
-- **Etapa 1 cortada** por el límite de gasto mensual de la organización (HTTP 429, se reinicia a las 13:00 de Madrid). No queda ningún subagente en marcha.
-- **Specs commiteadas como borrador, sin aprobar:** 000 (ronda 2 hecha, falta auditarla), 001, 002, 003, 006, 007, 008, 009, 010, 011, 012, 014, 015, 016, 017, 018, 019. Completas y con informe: 000, 002, 006, 007, 015. Las demás las cortó la cuota: pueden estar incompletas y sin sus decisiones en §18, así que el auditor lo dirá. **Sin redactar:** 004, 005, 013, 020, 021.
-- **Borradores de plan** (no se commitean): `specs/.drafts/plan-000.md` y `plan-006.md`. **Bloques** en este fichero: 000 y 002.
-- **Docs cambiados** (en el commit de este checkpoint, sin auditar):
-  - §18 de architecture.md: decisiones de 000, 002, 006, 007 y 015.
-  - architecture.md: §14.4 (`confirm_change(change_request_id, code)`), §15.3, §15.5, §15.7 y §15.8.
-  - verification.md: §9.6, U28 y U29.
-  - AGENTS.md proceso 2: excepción de 000.
-  - backend/AGENTS.md: el audit log pasa a 008.
-  - Dependencias nuevas en las tablas: 008 y 009 ← 002 · 011 ← 002 y 006 · 015 ← 008.
-- **Antes de auditar 000 (ronda 2):**
-  - ampliar §9.6: `deny` de `Bash(git push -f*)`, `allow` de `Bash(git branch*)` y `additionalDirectories` de los worktrees, que ya están en `.claude/settings.json`;
-  - decidir si las pruebas de los hooks (`node --test`) entran en el job `frontend` de §4.6;
-  - una ronda de redactor sobre 000-C11 y 000-C18.
+- **000:** spec y plan aprobados; implementación en V2 (integrador), pasos C01–C05 en verde.
+- **001:** spec redactada entera; auditor en curso (spec y plan).
+- **006:** auditor ronda 1 con 4 contradicciones en docs; el integrador los corrige y va a ronda 2.
+- **Borradores** (sin aprobar, pueden estar incompletos): 002, 003, 007, 008, 009, 010, 011, 012, 014, 015, 016, 017, 018, 019. **Sin redactar:** 004, 005, 013, 020, 021.
+- **Borradores de plan:** `specs/.drafts/plan-NNN.md`. **Bloques** en este fichero: 000, 001, 002, 006.
 - **Avisos abiertos:**
   - README: la tabla TLA+ contradice §9.1; la corrige 006-C9.
   - `ci.yml` descarga `tla2tools` «latest», contra 000-I1; lo corrige el plan de 000.
@@ -42,17 +33,15 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
   - Nunca se recorta alcance: si falta cuota, se para.
   - Un solo carril al principio; el segundo, cuando el primero cierre una spec en verde.
 - **Siguiente:**
-  1. Cerrar §9.6 y la ronda de 000.
-  2. `auditor` sobre 000.
-  3. De dos en dos: redactar 004, 005, 013, 020 y 021, y auditar el resto. Por cada aprobación, su bloque, su plan y sus commits.
-  4. Frontend 022–028 cuando estén aprobadas 002, 008, 011, 013, 014, 018 y 019.
-  5. Parar en la tabla final de la etapa 2.
+  1. Cerrar 000 (TDD en V2 + `verificador`) y aprobar el plan de 001 → arrancar el carril A.
+  2. De dos en dos, por la ruta crítica: terminar y auditar 002, 009, 010, 011…; redactar 004, 005, 013, 020 y 021.
+  3. Frontend 022–028 cuando estén aprobadas 002, 008, 011, 013, 014, 018 y 019.
 
 ## Carriles
 
 | Carril | Specs en orden | Depende de (fuera del carril) | Worktree | Rama | Estado |
 |---|---|---|---|---|---|
-| 0 — scaffolding (integrador) | 000 | — | checkout principal | `V2` | código escrito antes de su spec: spec a posteriori y verificar lo existente |
+| 0 — scaffolding (integrador) | 000 | — | checkout principal | `V2` | spec y plan aprobados; implementación en curso |
 | A — núcleo de generación | 001 → 003 → 010 → 011 → 012 → 014 | 004, 009 (B) · 002, 005 (C) · 006, 007 (D) | `../sm-a` | `carril-a` | espera 000 |
 | B — plataforma y observabilidad | 009 → 004 → 013 → 015 → 017 | 001, 012, 014 (A) · 002, 008 (C) | `../sm-b` | `carril-b` | espera 000 y 001 |
 | C — entrada y política | 005 → 002 → 008 → 018 → 019 | 001, 003, 011, 012 (A) · 004 (B) | `../sm-c` | `carril-c` | espera 000 (luego 005 arranca con lo puro) |
@@ -101,11 +90,11 @@ Todas dependen de 000. Arranque en paralelo cuando 000 esté cerrada: A (001), C
 - [x] Plan below approved — auditor 2026-09-24: ronda 1; 23 pasos, uno por caso (20) y por invariante T (I3, I4, I5), con los nombres de la spec, en orden de construcción; cierre con el formato de AGENTS.md; gap cero
 
 ### Steps
-- [ ] 000-C01 · Git ignora lo generado y los secretos, y versiona lo que se entrega
-- [ ] 000-C02 · Git guarda los ficheros de texto con LF y no convierte los binarios
-- [ ] 000-C03 · El backend se instala desde su lock y su verificación pasa sin credenciales
+- [x] 000-C01 · Git ignora lo generado y los secretos, y versiona lo que se entrega
+- [x] 000-C02 · Git guarda los ficheros de texto con LF y no convierte los binarios
+- [x] 000-C03 · El backend se instala desde su lock y su verificación pasa sin credenciales
 - [ ] 000-C04 · Cada dependencia del stack del backend se importa en el entorno instalado
-- [ ] 000-C05 · El paquete tiene un subpaquete por módulo y `domain` no importa el resto
+- [x] 000-C05 · El paquete tiene un subpaquete por módulo y `domain` no importa el resto
 - [ ] 000-C06 · El frontend se instala desde su lock y su verificación pasa
 - [ ] 000-C07 · La SPA muestra la cabecera de marca en la ruta raíz
 - [ ] 000-C08 · El tema define la marca y el logotipo es el de `images/`
@@ -130,12 +119,72 @@ Todas dependen de 000. Arranque en paralelo cuando 000 esté cerrada: A (001), C
 - [ ] Spec updated, or confirmed still true
 - [ ] Docs updated, or confirmed still true
 
+## 001 — base
+
+- [ ] Spec `specs/backend/001-base.md` approved
+- [ ] Plan below approved
+
+### Steps
+- [ ] 001-C03 · Ajustes: valores por defecto, rutas desde la raíz y precedencia del entorno
+- [ ] 001-C04 · Ajustes obligatorios y condicionales
+- [ ] 001-C01 · El `config.json` del repositorio es válido y lleva los valores de §15.4
+- [ ] 001-C02 · La config se valida entera y nombra cada clave que falta, sobra o no vale
+- [ ] 001-C05 · `.env.example` lista los ajustes sin valores
+- [ ] 001-C06 · `init-db` crea la base con el esquema completo
+- [ ] 001-C07 · `init-db` no pisa una base existente sin `--reset`
+- [ ] 001-C08 · Toda conexión abre la base igual
+- [ ] 001-C09 · Ámbito y referencias obligatorias
+- [ ] 001-C10 · Enumerados, rangos, unicidades y coherencia
+- [ ] 001-C11 · Solo inserción y CanonCards inmutables
+- [ ] 001-C12 · El índice FTS5 sigue a las CanonCards, sin acentos
+- [ ] 001-C13 · Una unidad de trabajo es todo o nada
+- [ ] 001-C14 · `check-env` informa de cada comprobación
+- [ ] 001-I1 · Ninguna salida reproduce el valor de un ajuste secreto
+- [ ] 001-C15 · `serve` no arranca con config, ajustes o base inválidos
+- [ ] 001-C16 · `serve` escucha en `STORY_MAKER_BASE_URL`, en un solo proceso
+- [ ] 001-I2 · `init-db`, `check-env` y `serve` solo crean o cambian ficheros dentro del directorio de datos
+- [ ] 001-C17 · Salud, esquema OpenAPI y errores de la API
+- [ ] 001-C18 · La SPA compilada se sirve en el mismo origen sin tapar la API
+- [ ] 001-C19 · El doble nulo captura lo emitido, sin red
+- [ ] 001-C20 · Niveles y excepciones de los spans
+- [ ] 001-C21 · Prompts, comprobación y vaciado con el doble nulo
+- [ ] 001-I3 · Ni el doble nulo ni las órdenes de esta spec abren una conexión fuera de la máquina
+- [ ] 001-C22 · Primera generación de los tipos del frontend
+- [ ] 001-C23 · Un clon limpio arranca siguiendo el README
+
+### Closing
+- [ ] Full suite green, type checks clean
+- [ ] Spec updated, or confirmed still true
+- [ ] Docs updated, or confirmed still true
+
 ## 002 — autenticacion
 
 - [ ] Spec `specs/backend/002-autenticacion.md` approved
 - [ ] Plan below approved
 
 ### Steps
+
+### Closing
+- [ ] Full suite green, type checks clean
+- [ ] Spec updated, or confirmed still true
+- [ ] Docs updated, or confirmed still true
+
+## 006 — especificacion-tla
+
+- [ ] Spec `specs/backend/006-especificacion-tla.md` approved
+- [ ] Plan below approved
+
+### Steps
+- [ ] C4 — Las transiciones de `Harness.tla` son las de §9.1
+- [ ] C1 — `Harness.tla` pasa en el modelo pequeño
+- [ ] C5 — Las transiciones de `Regenerations.tla` son las de §10.2
+- [ ] C2 — `Regenerations.tla` pasa con dos cambios
+- [ ] C3 — Ninguna acción queda sin disparar
+- [ ] C6 — Cada config de control da el contraejemplo de su propiedad
+- [ ] C9 — El README dice qué transición implementa cada acción
+- [ ] C10 — Un contraejemplo real queda registrado con su cambio
+- [ ] C8 — En el portátil, el mismo veredicto
+- [ ] C7 — La CI decide con las configs de la 006
 
 ### Closing
 - [ ] Full suite green, type checks clean

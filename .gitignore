@@ -21,6 +21,8 @@ __pycache__/
 .hypothesis/
 .playwright-mcp/
 lean/.lake/
+# Directorio de datos por defecto, sin STORY_MAKER_DATA_DIR (architecture.md §15.5)
+/backend/data/
 tla/states/
 tla/*_TTrace_*
 tla2tools.jar
