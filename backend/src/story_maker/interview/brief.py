@@ -12,6 +12,7 @@ from typing import Any, Literal, cast
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.orm import Session, sessionmaker
 
+from story_maker.agents.ceiling import NeverFits, NoRoomInTime
 from story_maker.agents.port import AgentPort, SessionRequest
 from story_maker.agents.tools import ToolSpec
 from story_maker.domain.brief import (
@@ -191,7 +192,14 @@ async def run_turn(
             tools=(UPDATE_BRIEF_TOOL,),
             trace=trace,
         )
-        result = await agent_port.run(request)
+        try:
+            result = await agent_port.run(request)
+        except NoRoomInTime:
+            # Sin sitio en el techo en `api_wait_seconds`: no se abre sesión (008-C07).
+            return TurnFailure(status=503, reason="no_room_in_time")
+        except NeverFits:
+            # La reserva no cabría ni con el techo entero libre: config inviable (008-C07).
+            return TurnFailure(status=422, reason="never_fits")
 
     if result.outcome != "completed" or result.text is None:
         return TurnFailure(status=503, reason=result.outcome)

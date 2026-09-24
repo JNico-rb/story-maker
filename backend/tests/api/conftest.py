@@ -74,9 +74,15 @@ def telemetry() -> NullObservability:
 
 
 @pytest.fixture
+def ceiling(config: Config) -> TokenCeiling:
+    return TokenCeiling(config.token_ceiling)
+
+
+@pytest.fixture
 def agent_port(
     fake: FakeAgent,
     config: Config,
+    ceiling: TokenCeiling,
     session_factory: sessionmaker[Session],
     workspace: Path,
     telemetry: NullObservability,
@@ -84,7 +90,7 @@ def agent_port(
     return AgentPort(
         agent=fake,
         config=config,
-        ceiling=TokenCeiling(config.token_ceiling),
+        ceiling=ceiling,
         policy=RealPolicyEngine(session_factory, base_url="http://127.0.0.1:8000"),
         telemetry=telemetry,
         session_factory=session_factory,
