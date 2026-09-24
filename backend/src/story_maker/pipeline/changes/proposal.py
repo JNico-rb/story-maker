@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from story_maker.agents.tools import ToolSpec
 
@@ -34,6 +34,16 @@ class ProposeChangeInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
     changes: list[FactChange] = Field(default_factory=list)
     new_fact: NewFact | None = None
+
+    @model_validator(mode="after")
+    def _one_kind_each_fact_once(self) -> ProposeChangeInput:
+        """Hechos a cambiar o un hecho nuevo, nunca las dos cosas ni ninguna (014-C06)."""
+        if bool(self.changes) == (self.new_fact is not None):
+            raise ValueError("entrega hechos a cambiar o un hecho nuevo, exactamente una cosa")
+        ids = [change.fact_id for change in self.changes]
+        if len(ids) != len(set(ids)):
+            raise ValueError("cada hecho a cambiar va una sola vez")
+        return self
 
 
 def propose_change_tool() -> ToolSpec:

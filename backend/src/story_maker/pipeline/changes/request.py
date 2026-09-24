@@ -14,12 +14,13 @@ import hashlib
 import json
 import secrets
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, cast
 
 from sqlalchemy.orm import Session, sessionmaker
 
-from story_maker.agents.port import AgentPort, SessionRequest
+from story_maker.agents.port import AgentPort, SessionRequest, ToolCall
 from story_maker.config import Config
 from story_maker.observability.port import ObservabilityPort
 from story_maker.pipeline.changes.affected import affected_chapters
@@ -30,9 +31,10 @@ from story_maker.pipeline.changes.selection import (
     FragmentSelection,
     selection_obstacle,
 )
+from story_maker.pipeline.changes.validation import proposal_defects
 from story_maker.pipeline.runs import naive
 from story_maker.store.models import Attempt, ChangeRequest
-from story_maker.store.session import unit_of_work
+from story_maker.store.session import UnitOfWork, unit_of_work
 from story_maker.store.story_bible import StoryBible, read_story_bible
 from story_maker.store.versions import current_version
 
@@ -102,29 +104,36 @@ async def request_change(
             detail = {"reason": BANNED_TERMS, **(decision.detail or [{}])[0]}
             detail.pop("location", None)
             return RequestFailure(422, detail)
-        session_request = SessionRequest(
-            role=ROLE,
-            mode=MODE,
-            user_id=user_id,
-            novel_id=novel_id,
-            prompt=prompt,
-            message=_message(selection, request, bible),
-            tools=(propose_change_tool(),),
-            trace=trace,
-        )
-        result = await agent_port.run(session_request)
-        proposal = cast(ProposeChangeInput, result.deliveries[-1].value)
-        values = {fact.id: fact.value for fact in bible.facts}
-        for change in proposal.changes:
-            judge_text(
-                session_factory,
-                telemetry,
-                trace,
+        found = await _interpret(
+            agent_port,
+            SessionRequest(
+                role=ROLE,
+                mode=MODE,
                 user_id=user_id,
                 novel_id=novel_id,
-                location="tool_field",
-                text=change.new_value,
-            )
+                prompt=prompt,
+                message=_message(selection, request, bible, []),
+                tools=(propose_change_tool(),),
+                trace=trace,
+            ),
+            lambda defects: _message(selection, request, bible, defects),
+            lambda proposal: proposal_defects(
+                proposal,
+                bible,
+                selection,
+                lambda text: judge_text(
+                    session_factory,
+                    telemetry,
+                    trace,
+                    user_id=user_id,
+                    novel_id=novel_id,
+                    location="tool_field",
+                    text=text,
+                ),
+            ),
+        )
+        proposal = found.proposal
+        values = {fact.id: fact.value for fact in bible.facts}
         out_proposal = {
             "changes": [
                 {
@@ -157,16 +166,59 @@ async def request_change(
         )
         uow.add(row)
         uow.session.flush()
-        uow.add(
-            Attempt(
-                change_request_id=row.id,
-                evaluable=CHANGE_EVALUABLE,
-                number=1,
-                outcome="accept",
-            )
-        )
+        _add_attempts(uow, row.id, found.outcomes)
         request_id = row.id
     return ProposalOut(request_id, out_proposal, affected, code)
+
+
+@dataclass
+class _Interpretation:
+    proposal: ProposeChangeInput
+    outcomes: list[str]
+
+
+async def _interpret(
+    agent_port: AgentPort,
+    first: SessionRequest,
+    message: Callable[[list[str]], str],
+    validate: Callable[[ProposeChangeInput], list[str]],
+) -> _Interpretation:
+    """Sesiones del planner hasta una entrega válida. Cada entrega es un `Intento`: un error de
+    schema vuelve en la misma sesión; un defecto de validación abre una sesión nueva con él."""
+    outcomes: list[str] = []
+    session_request = first
+    while True:
+        result = await agent_port.run(session_request)
+        defects: list[str] = []
+        for call in result.calls:
+            if not _is_attempt(call):
+                continue
+            if call.status == "schema_rejected":
+                defects = list(call.errors)
+            else:
+                defects = validate(cast(ProposeChangeInput, call.value))
+            if not defects:
+                outcomes.append("accept")
+                return _Interpretation(cast(ProposeChangeInput, call.value), outcomes)
+            outcomes.append("rewrite")
+        session_request = dataclasses.replace(first, message=message(defects))
+
+
+def _is_attempt(call: ToolCall) -> bool:
+    """Una entrega de `propose_change`, válida por schema o no; una llamada denegada no lo es."""
+    return call.own and call.status in ("accepted", "schema_rejected")
+
+
+def _add_attempts(uow: UnitOfWork, request_id: int, outcomes: list[str]) -> None:
+    for number, outcome in enumerate(outcomes, start=1):
+        uow.add(
+            Attempt(
+                change_request_id=request_id,
+                evaluable=CHANGE_EVALUABLE,
+                number=number,
+                outcome=outcome,
+            )
+        )
 
 
 def _save_rejected(
@@ -191,11 +243,18 @@ def _save_rejected(
         )
 
 
-def _message(selection: FactSelection | FragmentSelection, request: str, bible: StoryBible) -> str:
-    payload = {
+def _message(
+    selection: FactSelection | FragmentSelection,
+    request: str,
+    bible: StoryBible,
+    defects: list[str],
+) -> str:
+    payload: dict[str, Any] = {
         "instructions": INSTRUCTIONS,
         "selection": selection.model_dump(),
         "request": request,
         "story_bible": dataclasses.asdict(bible),
     }
+    if defects:
+        payload["defects"] = defects
     return json.dumps(payload, ensure_ascii=False, default=str)
