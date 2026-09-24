@@ -482,7 +482,11 @@ class AgentPort:
             await driver.disconnect()
             return live.stop_outcome
         await driver.disconnect()
-        running.result()
+        failure = running.exception()
+        if failure is not None:
+            # Transporte o proveedor caídos, agotados los reintentos del propio SDK (§7.6).
+            live.error = failure
+            return "infrastructure_failure"
         return _OUTCOME_OF[driver.final.ending] if driver.final else "infrastructure_failure"
 
     def _record(

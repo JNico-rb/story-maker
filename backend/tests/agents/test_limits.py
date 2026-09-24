@@ -228,6 +228,34 @@ async def test_a_provider_error_result_is_infrastructure_failure_with_its_usage_
     assert row.input_tokens == FINAL_USAGE.input_tokens
 
 
+async def test_a_transport_failure_is_infrastructure_failure_with_empty_usage_and_no_retry(
+    port: AgentPort,
+    fake: FakeAgent,
+    ceiling: TokenCeiling,
+    session_factory: sessionmaker[Session],
+    make_request: Callable[..., SessionRequest],
+) -> None:
+    fake.script(
+        "writer",
+        "write",
+        Script(steps=(Call("submit_chapter", CHAPTER), Fail(result=False)), usage=FINAL_USAGE),
+    )
+
+    result = await port.run(make_request("writer", "write"))
+
+    assert result.outcome == "infrastructure_failure"
+    assert isinstance(result.error, ConnectionError)
+    assert (result.usage, result.cost_usd) == (None, None)
+    assert [c.status for c in result.calls] == ["accepted"]
+    assert len(fake.sessions) == 1
+    assert fake.sessions[0].disconnected
+    assert ceiling.in_use == 0
+    with session_factory() as session:
+        (row,) = session.scalars(select(RoleSession)).all()
+    assert row.outcome == "infrastructure_failure"
+    assert empty_usage(row)
+
+
 def test_an_sdk_error_result_from_the_provider_is_a_provider_error_with_its_usage() -> None:
     final = final_from_result(
         result_message(is_error=True, api_error_status=429, result="API Error: usage limit")
