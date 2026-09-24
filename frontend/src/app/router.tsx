@@ -1,8 +1,22 @@
 import { createBrowserRouter, type RouteObject } from "react-router";
 
-import { AppHeader } from "../shared/ui";
+import { LoginPage } from "../pages/login";
+import { RegisterPage } from "../pages/register";
+import { BrandLayout } from "./BrandLayout";
 
-// Mientras no haya pantallas, la ruta raíz muestra la cabecera de marca (spec 000).
-export const routes: RouteObject[] = [{ path: "/", element: <AppHeader /> }];
+export function buildRoutes(): RouteObject[] {
+  return [
+    {
+      element: <BrandLayout />,
+      children: [
+        { path: "/", element: null },
+        { path: "/acceso", element: <LoginPage /> },
+        { path: "/registro", element: <RegisterPage /> },
+      ],
+    },
+  ];
+}
+
+export const routes = buildRoutes();
 
 export const router = createBrowserRouter(routes);
