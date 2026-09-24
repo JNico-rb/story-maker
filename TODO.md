@@ -452,7 +452,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 008-I2 · Las comprobaciones son deterministas y solo dependen del brief, de las tres listas, de la fecha de creación de la novela y de `max_mandat…
 - [x] 008-I3 · Un hecho sin verificar no sale nunca
 - [ ] 008-I4 · Toda ruta de esta spec exige `TokenDeAcceso` (401) y trata como inexistente (404) la novela, el hecho o la entrada prohibida de otro cliente (recortado)
-- [ ] 008-I5 · Un turno, una extracción, una confirmación y una importación se guardan enteros o no se guardan
+- [x] 008-I5 · Un turno, una extracción, una confirmación y una importación se guardan enteros o no se guardan
 - [ ] 008-C32 · Entrevista real con el login de Claude Code (D, al final)
 - [ ] 008-C33 · Extracción real de una carta con inyección (D, al final)
 
