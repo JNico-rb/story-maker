@@ -41,10 +41,10 @@ A spec touches only its modules and their `tests/<module>/`. In a shared module 
 | 002 autenticacion | A | `api/` (auth, current-user dependency, ownership), `store/` (user repository) |
 | 003 puerto-de-agente | D | `agents/` |
 | 004 observabilidad | D | `observability/` (Langfuse adapter, mask, prompts, scores), `cli.py` (`prompts push`) |
-| 005 guardarrailes | D | `policy/`, `domain/` (banned-term normalization) |
+| 005 guardarrailes | C | `policy/`, `domain/` (banned-term normalization) |
 | 006 especificacion-tla | D | `tla/` (repo root) |
 | 007 validador-lean | D | `formal/`, `lean/` (repo root) |
-| 008 brief-y-entrevista | D | `interview/`, `domain/` (brief rules, C1–C6), `api/` (novels, interview, free texts, brief, banned terms, audit log), `harness_workspace/` (interviewer and extractor prompts) |
+| 008 brief-y-entrevista | C | `interview/`, `domain/` (brief rules, C1–C6), `api/` (novels, interview, free texts, brief, banned terms, audit log), `harness_workspace/` (interviewer and extractor prompts) |
 | 009 story-bible-y-versiones | A | `store/` (story bible and version-copy repositories), `api/` (story bible) |
 | 010 planificacion | A | `pipeline/` (planning), `validators/` (`outline`), planner prompt |
 | 011 produccion-de-capitulos | A | `pipeline/` (queue, worker, production, resume), `validators/` (chapter), `harness_workspace/` (product `CLAUDE.md`, skill, writer and editor prompts), `api/` (runs), `cli.py` (`resume`) |
@@ -54,7 +54,7 @@ A spec touches only its modules and their `tests/<module>/`. In a shared module 
 | 015 servidor-mcp | A | `api/` (MCP server) |
 | 016 recuperacion-hibrida | D | `retrieval/` |
 | 017 revision-visual | D | `validators/` (visual review), visual reviewer prompt |
-| 018 linters-de-prosa | D | `lint/`, `api/` (chapter lint) |
-| 019 edicion-manual | D | `pipeline/` (manual edit), `api/` (chapter save) |
+| 018 linters-de-prosa | C | `lint/`, `api/` (chapter lint) |
+| 019 edicion-manual | C | `pipeline/` (manual edit), `api/` (chapter save) |
 | 020 evals | D | `cli.py` (`evals run\|table`), `ejemplos/briefs/` |
 | 021 auditoria-de-seguridad | A | `docs/security-report.md` via the `seguridad` subagent; fixes go to the owning lane |
