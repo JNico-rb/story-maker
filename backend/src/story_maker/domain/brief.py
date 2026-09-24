@@ -5,7 +5,7 @@ C1-C6 y cota de obligatorios (`definitions.md` §1, `architecture.md` §3.2,
 from __future__ import annotations
 
 import datetime as dt
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -82,3 +82,66 @@ def age_band(age: int) -> FranjaDeEdad:
     if age < 18:
         return "teen"
     return "adult"
+
+
+# Campos que un turno puede sustituir enteros (008-C04): cada clave del parche reemplaza el
+# valor correspondiente del contenido; una clave ausente del parche deja el campo como estaba.
+_PATCHABLE_SCALARS = ("occasion", "genre", "tone", "length", "dedication", "banned_asked")
+_PATCHABLE_LISTS = ("close_ones", "recollections", "plot_wishes")
+_RECIPIENT_SCALARS = ("name", "age", "birth_date", "relation")
+
+
+def apply_patch(content: BriefContent, patch: dict[str, Any]) -> BriefContent:
+    """El borrador tras aplicar `patch` (008-C04): cada clave presente reemplaza su valor entero,
+    listas incluidas; una clave ausente no toca nada. `patch` ya viene de
+    `UpdateBriefInput.model_dump(exclude_unset=True)`, así que solo trae lo que el rol entregó."""
+    data = content.model_dump(mode="json")
+    for key in _RECIPIENT_SCALARS:
+        if key in patch:
+            data["recipient"][key] = patch[key]
+    if "traits" in patch:
+        data["recipient"]["traits"] = patch["traits"]
+    for key in (*_PATCHABLE_SCALARS, *_PATCHABLE_LISTS):
+        if key in patch:
+            data[key] = patch[key]
+    return BriefContent.model_validate(data)
+
+
+MISSING_FIELDS = (
+    "name",
+    "age",
+    "traits",
+    "recollections",
+    "occasion",
+    "genre",
+    "tone",
+    "length",
+    "dedication",
+    "banned_asked",
+)
+
+
+def missing_fields(content: BriefContent) -> list[str]:
+    """`DatoFaltante`, uno por campo obligatorio sin valor (`definitions.md` §1, 008-C09)."""
+    missing = []
+    if not content.recipient.name.strip():
+        missing.append("name")
+    if content.recipient.age is None:
+        missing.append("age")
+    if not content.recipient.traits:
+        missing.append("traits")
+    if not content.recollections:
+        missing.append("recollections")
+    if content.occasion is None:
+        missing.append("occasion")
+    if content.genre is None:
+        missing.append("genre")
+    if content.tone is None:
+        missing.append("tone")
+    if content.length is None:
+        missing.append("length")
+    if not content.dedication.strip():
+        missing.append("dedication")
+    if not content.banned_asked:
+        missing.append("banned_asked")
+    return missing

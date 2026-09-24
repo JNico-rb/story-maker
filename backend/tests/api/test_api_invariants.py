@@ -21,6 +21,7 @@ NOVEL_ROUTES = {
     ("/api/novels", "GET"),
     ("/api/novels/{novel_id}", "GET"),
     ("/api/novels/{novel_id}/interview/messages", "GET"),
+    ("/api/novels/{novel_id}/interview/messages", "POST"),
     ("/api/novels/{novel_id}/brief", "GET"),
 }
 ALL_ROUTES = PUBLIC_ROUTES | PROTECTED_ROUTES | NOVEL_ROUTES
