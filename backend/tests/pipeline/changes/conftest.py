@@ -25,6 +25,7 @@ from sqlalchemy import event as sa_event
 from sqlalchemy.orm import Session, sessionmaker
 from tests.pipeline.conftest import (
     NOW,
+    FixedWindows,
     PhaseDouble,
     Seed,
     chapter_call,
@@ -41,6 +42,8 @@ from story_maker.pipeline.acceptance import CardSync, chapter_hash
 from story_maker.pipeline.changes.affected import affected_chapters
 from story_maker.pipeline.orchestrator import Orchestrator
 from story_maker.pipeline.production import Production
+from story_maker.pipeline.runs import resume_run
+from story_maker.pipeline.windows import WriterWindow
 from story_maker.pipeline.worker import Worker
 from story_maker.retrieval.cards import sync_canon_cards
 from story_maker.retrieval.fake import FixedVectors
@@ -89,6 +92,42 @@ def v1_text(number: int) -> str:
 
 def real_cards(uow: UnitOfWork, version_id: int) -> None:
     sync_canon_cards(uow, version_id, FixedVectors())
+
+
+class ServerStopped(BaseException):
+    """El proceso muere: nada lo captura y la ejecución se queda `running`."""
+
+
+@dataclass
+class CrashingWindows(FixedWindows):
+    """Las ventanas de 011; la primera vez que el writer pide `crash_at`, el servidor se
+    detiene."""
+
+    crash_at: int | None = None
+
+    def writer(self, session: Session, version_id: int, chapter: int) -> WriterWindow:
+        if chapter == self.crash_at:
+            self.crash_at = None
+            raise ServerStopped
+        return super().writer(session, version_id, chapter)
+
+
+@pytest.fixture
+def windows() -> CrashingWindows:
+    return CrashingWindows()
+
+
+async def crash_and_restart(worker: Worker) -> None:
+    """Corre la primera de la cola hasta que el servidor se detiene, y lo arranca de nuevo: lo
+    que estaba `running` queda `interrupted` con `crash` (011-C25)."""
+    with pytest.raises(ServerStopped):
+        await worker.run_next()
+    worker.recover()
+
+
+def resume(session_factory: sessionmaker[Session], run_id: int) -> None:
+    with unit_of_work(session_factory) as uow:
+        resume_run(uow, run_id)
 
 
 @pytest.fixture
@@ -190,6 +229,7 @@ def confirm(
     *,
     created_at: dt.datetime = NOW,
     fragment_chapter: int | None = None,
+    request: str = "que cambie",
 ) -> Confirmed:
     """Lo que deja confirmar (014-C10): la solicitud `confirmed` con su propuesta y sus afectados
     (calculados como en 014-C02), y su ejecución `change_request` `queued` con la versión base."""
@@ -219,7 +259,7 @@ def confirm(
             base_version_id=base_id,
             selection_type=selection["type"],
             selection=selection,
-            request="que cambie",
+            request=request,
             proposal=proposal,
             affected_chapters=affected,
             code_hash="h",
