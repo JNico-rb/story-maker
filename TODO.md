@@ -560,9 +560,9 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [ ] 010-C30 · Planificación con el modelo real (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-24: `uv run pytest` 902 passed; `uv run ruff check .` OK; `uv run ruff format --check .` OK (185 files); `uv run mypy src` OK (91 files). 010-I1/I2 recortados; 010-C30 (D) queda al final.
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 011 — produccion-de-capitulos
 
