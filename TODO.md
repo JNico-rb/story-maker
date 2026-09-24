@@ -682,7 +682,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] 014-C04 · Una prohibida en la petición la deniega sin abrir el planner
 - [x] 014-C05 · Una inyección en la petición se marca y no deniega (RT3)
 - [x] 014-C06 · El código valida la propuesta y una inválida vuelve al planner con sus defectos (RT4)
-- [ ] 014-C07 · Agotados los intentos, la solicitud queda `rejected`
+- [x] 014-C07 · Agotados los intentos, la solicitud queda `rejected`
 - [ ] 014-C08 · El planner en modo cambio solo tiene `propose_change` (RT4)
 - [ ] 014-C09 · Sin proveedor, sin sitio en el techo o con la sesión agotada, no queda solicitud
 - [ ] 014-C10 · Confirmar con el código encola una ejecución de cambio con su versión base

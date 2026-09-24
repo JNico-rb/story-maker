@@ -14,7 +14,7 @@ import hashlib
 import json
 import secrets
 import uuid
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from typing import Any, cast
 
@@ -116,6 +116,7 @@ async def request_change(
                 tools=(propose_change_tool(),),
                 trace=trace,
             ),
+            1 + config.max_retries[CHANGE_EVALUABLE],
             lambda defects: _message(selection, request, bible, defects),
             lambda proposal: proposal_defects(
                 proposal,
@@ -133,6 +134,11 @@ async def request_change(
             ),
         )
         proposal = found.proposal
+        if proposal is None:
+            _save_rejected(
+                session_factory, novel_id, base.id, selection, request, now, found.outcomes
+            )
+            return RequestFailure(422, {"defects": found.defects})
         values = {fact.id: fact.value for fact in bible.facts}
         out_proposal = {
             "changes": [
@@ -173,35 +179,56 @@ async def request_change(
 
 @dataclass
 class _Interpretation:
-    proposal: ProposeChangeInput
+    """La entrega aceptada, o ninguna si se agotan los intentos, con el desenlace de cada uno."""
+
+    proposal: ProposeChangeInput | None
     outcomes: list[str]
+    defects: list[str]
 
 
 async def _interpret(
     agent_port: AgentPort,
     first: SessionRequest,
+    max_attempts: int,
     message: Callable[[list[str]], str],
     validate: Callable[[ProposeChangeInput], list[str]],
 ) -> _Interpretation:
-    """Sesiones del planner hasta una entrega válida. Cada entrega es un `Intento`: un error de
-    schema vuelve en la misma sesión; un defecto de validación abre una sesión nueva con él."""
+    """Sesiones del planner hasta una entrega válida o hasta `max_attempts` intentos. Cada
+    entrega es un `Intento`: un error de schema vuelve en la misma sesión; un defecto de
+    validación abre una sesión nueva con él. La sesión en curso se corta al último intento."""
     outcomes: list[str] = []
+    defects: list[str] = []
     session_request = first
     while True:
-        result = await agent_port.run(session_request)
-        defects: list[str] = []
-        for call in result.calls:
-            if not _is_attempt(call):
-                continue
+        used = len(outcomes)
+        request = dataclasses.replace(session_request, cut_when=_cut_at(used, max_attempts))
+        result = await agent_port.run(request)
+        for call in [c for c in result.calls if _is_attempt(c)][: max_attempts - used]:
             if call.status == "schema_rejected":
                 defects = list(call.errors)
             else:
                 defects = validate(cast(ProposeChangeInput, call.value))
             if not defects:
                 outcomes.append("accept")
-                return _Interpretation(cast(ProposeChangeInput, call.value), outcomes)
-            outcomes.append("rewrite")
+                return _Interpretation(cast(ProposeChangeInput, call.value), outcomes, [])
+            outcomes.append("rewrite" if len(outcomes) + 1 < max_attempts else "fail")
+        if len(outcomes) >= max_attempts:
+            return _Interpretation(None, outcomes, defects)
         session_request = dataclasses.replace(first, message=message(defects))
+
+
+def _cut_at(used: int, max_attempts: int) -> Callable[[ToolCall], bool]:
+    """`cut_when` de 003: la entrega que gasta el último intento corta la sesión."""
+    count = used
+
+    def cut_when(call: ToolCall) -> bool:
+        nonlocal count
+        if not _is_attempt(call):
+            return False
+        count += 1
+        return count >= max_attempts
+
+    return cut_when
 
 
 def _is_attempt(call: ToolCall) -> bool:
@@ -209,7 +236,7 @@ def _is_attempt(call: ToolCall) -> bool:
     return call.own and call.status in ("accepted", "schema_rejected")
 
 
-def _add_attempts(uow: UnitOfWork, request_id: int, outcomes: list[str]) -> None:
+def _add_attempts(uow: UnitOfWork, request_id: int, outcomes: Sequence[str]) -> None:
     for number, outcome in enumerate(outcomes, start=1):
         uow.add(
             Attempt(
@@ -228,19 +255,21 @@ def _save_rejected(
     selection: FactSelection | FragmentSelection,
     request: str,
     now: dt.datetime,
+    outcomes: Sequence[str] = (),
 ) -> None:
     with unit_of_work(session_factory) as uow:
-        uow.add(
-            ChangeRequest(
-                novel_id=novel_id,
-                base_version_id=base_id,
-                selection_type=selection.type,
-                selection=selection.model_dump(),
-                request=request,
-                status="rejected",
-                created_at=naive(now),
-            )
+        row = ChangeRequest(
+            novel_id=novel_id,
+            base_version_id=base_id,
+            selection_type=selection.type,
+            selection=selection.model_dump(),
+            request=request,
+            status="rejected",
+            created_at=naive(now),
         )
+        uow.add(row)
+        uow.session.flush()
+        _add_attempts(uow, row.id, outcomes)
 
 
 def _message(
