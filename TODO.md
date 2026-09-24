@@ -241,31 +241,31 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
-- [ ] 004-C01 · Con las cuatro variables de Langfuse, se usa el adaptador real
-- [ ] 004-C02 · Sin alguna variable de Langfuse, se usa el doble nulo
-- [ ] 004-I2 · Con alguna variable ausente, el puerto usa siempre el doble nulo
-- [ ] 004-C03 · `check-env` informa «ok» con credenciales válidas y prompts vigentes
-- [ ] 004-C04 · `check-env` falla si las credenciales de Langfuse no son válidas
-- [ ] 004-C05 · `check-env` falla si a un rol le falta el prompt con la etiqueta vigente
-- [ ] 004-I3 · `auth_check()` nunca falla en silencio
-- [ ] 004-C06 · `serve` no arranca en las mismas situaciones que `check-env`
-- [ ] 004-C07 · `prompts push` sube una versión nueva si cambia la huella del fichero
-- [ ] 004-C08 · `prompts push` no sube si la huella no cambió
-- [ ] 004-I4 · Sube si y solo si cambia la huella
-- [ ] 004-C09 · Al arrancar, cada `LlamadaDeModelo` enlaza la versión de prompt leída por la etiqueta
-- [ ] 004-C10 · La máscara sustituye nombres y fechas sin tocar tokens, coste, latencia ni scores
-- [ ] 004-I1 · Todo texto exportado pasa antes por la máscara
-- [ ] 004-C11 · La máscara de una llamada MCP con varias novelas es la unión de sus máscaras
-- [ ] 004-C12 · Cada resultado de validador se exporta como Score con su nombre canónico
-- [ ] 004-C13 · TLC no envía score
-- [ ] 004-I7 · Ninguna llamada real a modelo o Langfuse en una prueba T
+- [x] 004-C01 · Con las cuatro variables de Langfuse, se usa el adaptador real
+- [x] 004-C02 · Sin alguna variable de Langfuse, se usa el doble nulo
+- [x] 004-I2 · Con alguna variable ausente, el puerto usa siempre el doble nulo
+- [x] 004-C03 · `check-env` informa «ok» con credenciales válidas y prompts vigentes
+- [x] 004-C04 · `check-env` falla si las credenciales de Langfuse no son válidas
+- [x] 004-C05 · `check-env` falla si a un rol le falta el prompt con la etiqueta vigente
+- [x] 004-I3 · `auth_check()` nunca falla en silencio
+- [x] 004-C06 · `serve` no arranca en las mismas situaciones que `check-env`
+- [x] 004-C07 · `prompts push` sube una versión nueva si cambia la huella del fichero
+- [x] 004-C08 · `prompts push` no sube si la huella no cambió
+- [x] 004-I4 · Sube si y solo si cambia la huella
+- [x] 004-C09 · Al arrancar, cada `LlamadaDeModelo` enlaza la versión de prompt leída por la etiqueta
+- [x] 004-C10 · La máscara sustituye nombres y fechas sin tocar tokens, coste, latencia ni scores
+- [x] 004-I1 · Todo texto exportado pasa antes por la máscara
+- [x] 004-C11 · La máscara de una llamada MCP con varias novelas es la unión de sus máscaras
+- [x] 004-C12 · Cada resultado de validador se exporta como Score con su nombre canónico
+- [x] 004-C13 · TLC no envía score
+- [x] 004-I7 · Ninguna llamada real a modelo o Langfuse en una prueba T
 - [ ] 004-C14 · Una ejecución real vista en Langfuse (D, al final)
 - [ ] 004-C15 · Iteración de tuning con antes y después de un prompt cambiado (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-24: `uv run pytest` 339 passed; `uv run ruff check .` all checks passed; `uv run ruff format --check .` 66 files already formatted; `uv run mypy src` no issues found in 40 source files
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 005 — guardarrailes
 
