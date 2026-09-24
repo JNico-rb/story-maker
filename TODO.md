@@ -460,6 +460,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 009-C25 · La API devuelve la story bible de la versión vigente
 - [x] 009-C26 · La API devuelve la story bible de una versión anterior
 - [x] 009-C27 · La API rechaza lo que no existe, lo mal formado, lo anónimo y lo ajeno
+- [x] 009 · Escritura de la fila de `chronology_files` para la 007 (alcance de la spec; paso añadido por el integrador, prueba en tests/store/story_bible/test_chronology_files.py)
 
 ### Closing
 - [ ] Full suite green, type checks clean
