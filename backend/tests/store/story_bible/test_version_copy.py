@@ -281,3 +281,13 @@ def test_a_copy_that_fails_at_any_row_leaves_nothing_and_the_base_intact(
         copy()
     assert _table_sizes(store) == sizes
     assert store.fingerprint(v1.version_id) == before
+
+
+def test_every_version_is_self_contained(store: Any, f1: Any) -> None:
+    generation_id = store.generation(store.new_novel(), f1)
+    assert store.foreign_references(generation_id) == []
+
+    v1 = store.build_v1()
+    k_id, _ = store.copy(v1.version_id)
+    assert store.foreign_references(v1.version_id) == []
+    assert store.foreign_references(k_id) == []

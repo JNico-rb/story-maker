@@ -355,11 +355,41 @@ class Store:
             out["canon_cards_fts"] = [{"rowid": r[0], "text": r[1]} for r in fts]
             return out
 
+    def foreign_references(self, version_id: int) -> list[str]:
+        """Referencias de filas de la versión que no resuelven en ella misma (009-I2)."""
+        with self.session() as session:
+            found = []
+            for label, sql in FOREIGN_REFERENCE_QUERIES.items():
+                rows = session.execute(text(sql), {"v": version_id}).all()
+                found += [f"{label}: {tuple(r)}" for r in rows]
+            return found
+
     def fingerprint(self, version_id: int) -> str:
         """La huella de una versión: su fila y todas sus filas de ámbito versión (009-C13)."""
         dumped = json.dumps(self.dump(version_id), sort_keys=True, default=str)
         return hashlib.sha256(dumped.encode()).hexdigest()
 
+
+# Cada consulta da las filas de la versión :v cuya referencia apunta a otra versión. Un
+# `UsoDeHecho` y un presente son de la versión de su hecho y de su evento: el hecho de un uso
+# resuelve por construcción, y el personaje de un presente se comprueba abajo.
+FOREIGN_REFERENCE_QUERIES = {
+    "sujeto personaje de un hecho": "SELECT f.id FROM facts f JOIN characters c "
+    "ON c.id = f.character_id WHERE f.version_id = :v AND c.version_id != :v",
+    "sujeto lugar de un hecho": "SELECT f.id FROM facts f JOIN places p "
+    "ON p.id = f.place_id WHERE f.version_id = :v AND p.version_id != :v",
+    "lugar de un evento": "SELECT e.id FROM events e JOIN places p ON p.id = e.place_id "
+    "WHERE e.version_id = :v AND p.version_id != :v",
+    "excluido de un evento": "SELECT e.id FROM events e JOIN characters c "
+    "ON c.id = e.excluded_character_id WHERE e.version_id = :v AND c.version_id != :v",
+    "presente de un evento": "SELECT ec.id FROM event_characters ec JOIN events e "
+    "ON e.id = ec.event_id JOIN characters c ON c.id = ec.character_id "
+    "WHERE e.version_id = :v AND c.version_id != :v",
+    "personaje de una CanonCard": "SELECT k.id FROM canon_cards k JOIN characters c "
+    "ON c.id = k.character_id WHERE k.version_id = :v AND c.version_id != :v",
+    "lugar de una CanonCard": "SELECT k.id FROM canon_cards k JOIN places p "
+    "ON p.id = k.place_id WHERE k.version_id = :v AND p.version_id != :v",
+}
 
 VERSION_SCOPED: tuple[Any, ...] = (
     models.World,
