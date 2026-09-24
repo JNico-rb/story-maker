@@ -14,9 +14,9 @@ Excepción declarada: `config.json`, `.env`, `.env.example`, las órdenes de `st
 
 - **Config**: `config.json` en la raíz del repositorio (ruta en `STORY_MAKER_CONFIG`), con las claves y los valores de `architecture.md` §15.4, validada entera al arrancar (`definitions.md` §11.1).
 - **Ajustes del servidor** (`definitions.md` §11.3, `architecture.md` §15.5): lectura del entorno y del `.env` de la raíz, valores por defecto, ajustes obligatorios y condicionales, y `.env.example`.
-- **Esquema SQLite completo** (`architecture.md` §15.6): las 31 tablas con sus columnas (tabla de C6), referencias, enumerados, unicidades, tablas de solo inserción, el índice FTS5 de las CanonCards y el canal denso (`sqlite-vec`) disponible en cada conexión, y la unidad de trabajo transaccional.
+- **Esquema SQLite completo** (`architecture.md` §15.6): las 31 tablas con sus columnas (tabla de C6), referencias, enumerados, unicidades, tablas de solo inserción, el índice FTS5 de las CanonCards y el canal denso de vectores disponible en cada conexión, y la unidad de trabajo transaccional.
 - **Órdenes** `init-db`, `check-env` y `serve` (`architecture.md` §15.8).
-- **API mínima**: salud en `GET /health` (fuera de `/api`, sin token), esquema OpenAPI de toda la aplicación en `/api/openapi.json`, forma de los errores de `/api` y la SPA compilada en el mismo origen (`architecture.md` §14.8, §15.7).
+- **API mínima**: salud en `GET /health` y esquema OpenAPI en `GET /openapi.json` (los dos fuera de `/api`, sin token, para que `gen:api` los lea sin credenciales), forma de los errores de `/api` y la SPA compilada en el mismo origen (`architecture.md` §14.8, §15.7).
 - **Puerto de observabilidad y doble nulo** (`architecture.md` §13, §15.9): lo que se puede emitir (trazas, spans, llamadas de modelo, scores, prompts versionados, comprobación y vaciado) y lo que el doble captura.
 - **Constantes del encargo** (`definitions.md` §11.2): 10 capítulos, de 1.000 a 1.500 palabras por capítulo y 100.000 tokens concurrentes. Además, los identificadores que valida la config: los siete roles (`definitions.md` §12.2), los criterios de las dos rúbricas (§6) y las `FranjaDeEdad` (§12.4).
 - **README**: la sección de arranque (`.env`, `config.json`, `init-db`, `check-env`, `serve`). La escribe el integrador con el texto que le entrega el carril.
@@ -64,12 +64,16 @@ Un caso es **T** si una prueba lo decide sola, con ajustes de fixture, la base e
 | `operation.roles.writer.model` con un modelo sin entrada en `operation.pricing` | rechazo: nombra el modelo sin precio |
 | Precio de un modelo que ningún rol usa | válida |
 | Un precio sin `cache_write`, o con un valor negativo | rechazo |
+| Un precio con `input` = 0 | válida: 0 no es negativo |
 | Sin `quality.thresholds.continuidad` | rechazo |
 | `quality.thresholds.tono` = 1 o 5 | válida |
 | `quality.thresholds.tono` = 0 o 6 | rechazo: el umbral va de 1 a 5 |
 | Sin `quality.readability_targets.teen` | rechazo |
+| `quality.readability_targets.children.sentence_length` = 0, o `.fernandez_huerta` = 0 | rechazo |
 | `operation.max_retries.chapter` = 0 | válida |
 | `operation.max_retries.chapter` = −1 | rechazo |
+| `operation.max_resumes` = 0 | válida |
+| `operation.max_resumes` = −1 | rechazo |
 | `operation.roles.editor.max_turns` = 0, o `max_output_tokens` = 0 | rechazo |
 | `api_wait_seconds`, `session_timeout_seconds`, `verifier_timeout_seconds`, `access_token_hours`, `confirmation_minutes`, `max_mandatory_elements` o un `retrieval.top_k` a 0 | rechazo |
 | `retrieval.embedding_model` vacío | rechazo |
@@ -158,7 +162,7 @@ Partiendo de la entrada válida de C3:
 | `runs` | ejecución | `novel_id`, `type`, `status`, `phase?`, `chapter?`, `base_version_id?`, `candidate_version_id?`, `resumes`, `reason?`, `reason_detail?`, `created_at`, `finished_at?` |
 | `attempts` | ejecución | `run_id?`, `change_request_id?`, `evaluable`, `chapter?`, `gate_cycle?`, `number`, `outcome?` |
 | `checkpoints` | ejecución | `run_id`, `chapter`, `created_at` |
-| `role_sessions` | ejecución, o novela fuera de ella | `novel_id`, `run_id?`, `role`, `chapter?`, `model`, `prompt_version?`, `input_tokens`, `output_tokens`, `cache_read_tokens`, `cache_write_tokens`, `cost_usd`, `sdk_cost_usd?` (el `total_cost_usd` del SDK, solo como contraste, `architecture.md` §13.2), `latency_ms`, `outcome`, `trace_id?` |
+| `role_sessions` | ejecución, o novela fuera de ella | `novel_id`, `run_id?`, `role`, `chapter?`, `model`, `prompt_version?`, `reserved_tokens` (la reserva del `TechoDeTokens` al abrir la sesión, `architecture.md` §6.5.1; la calcula 003, esta spec solo declara la columna), `input_tokens`, `output_tokens`, `cache_read_tokens`, `cache_write_tokens`, `cost_usd`, `sdk_cost_usd?` (el `total_cost_usd` del SDK, solo como contraste, `architecture.md` §13.2), `latency_ms`, `outcome`, `trace_id?` |
 | `validator_results` | ejecución | `run_id`, `version_id`, `validator`, `chapter?`, `passed`, `score?`, `detail` (JSON), `created_at` |
 | `chronology_files` | ejecución | `run_id`, `content_hash`, `result`, `detail?` (JSON: invariante violado y testigo), `created_at` |
 
@@ -195,10 +199,10 @@ Partiendo de la entrada válida de C3:
 | Regla | Se rechaza | Se admite |
 |---|---|---|
 | Enumerados de C6 | `runs.status` = `paused`; `audit_log.decision` = `block`; `versions.status` = `draft`; `interview_messages.author` = `system`; `role_sessions.role` = `narrator` | cada valor de su enumerado |
-| Número de capítulo de 1 a 10 (`chapters.number`, `outline_chapters.number`, `fact_usages.chapter`, `manual_edits.chapter`, `events.chapter`) | 0 y 11 | 1 y 10 |
+| Número de capítulo de 1 a 10 (`chapters.number`, `outline_chapters.number`, `fact_usages.chapter`, `manual_edits.chapter`, `events.chapter`, `runs.chapter`, `attempts.chapter`, `role_sessions.chapter`, `validator_results.chapter`) | 0 y 11 | 1 y 10 |
 | Punto de control de 0 (el plan) a 10 (`checkpoints.chapter`) | −1 y 11 | 0 y 10 |
 | `canon_cards.from_chapter` ≥ 1; `attempts.number` ≥ 1; `runs.resumes` ≥ 0 | 0; 0; −1 | 1; 1; 0 |
-| Una sola fila por clave: `users.email`; `briefs.novel_id` e `interviews.novel_id`; `worlds.version_id` y `style_sheets.version_id`; (versión, número) en `chapters` y en `outline_chapters`; (novela, número) en `versions`; (ejecución, capítulo) en `checkpoints`; (hecho, capítulo) en `fact_usages`; (evento, personaje) en `event_characters`; (versión, entidad, `from_chapter`) en `canon_cards`; (huella, modelo) en `embeddings`; `runs.candidate_version_id` | la segunda fila con la misma clave | varias versiones `candidate` sin número en la misma novela |
+| Una sola fila por clave: `users.email`; `briefs.novel_id` e `interviews.novel_id`; `worlds.version_id` y `style_sheets.version_id`; (versión, número) en `chapters` y en `outline_chapters`; (novela, número) en `versions`; (ejecución, capítulo) en `checkpoints`; (hecho, capítulo) en `fact_usages`; (evento, personaje) en `event_characters`; (versión, entidad, `from_chapter`) en `canon_cards`; (huella, modelo) en `embeddings`; `runs.candidate_version_id`; `change_requests.run_id`; `manual_edits.run_id` (una ejecución encola como mucho una solicitud de cambio o una edición manual, `architecture.md` §15.6, diagrama `|o--o|`) | la segunda fila con la misma clave | varias versiones `candidate` sin número en la misma novela |
 | `versions`: número y fecha de publicación si y solo si está `published` | `published` sin número; `candidate` con número | `published` con número y fecha |
 | `banned_terms` según su nivel | `user` sin usuario o con novela; `novel` sin novela o con usuario; `global` con usuario o con novela | los tres bien formados |
 | Sujeto de `facts` y entidad de `canon_cards` según su tipo | `character` sin personaje o con lugar; `place` sin lugar; `world` con personaje o lugar | los tres bien formados |
@@ -206,6 +210,8 @@ Partiendo de la entrada válida de C3:
 | `runs.reason` | `stale` | `stale_base`, `crash` o vacío |
 
 #### C11 — Solo inserción y CanonCards inmutables (T)
+
+El rechazo lo decide el código, en la misma unidad de trabajo de C13, antes de tocar SQLite: ninguna regla de esta tabla depende de un disparador del motor (`architecture.md` §18 «Solo inserción y sincronía del índice FTS5»).
 
 | Entrada | Salida |
 |---|---|
@@ -221,6 +227,8 @@ Partiendo de la entrada válida de C3:
 | Se añade una tarjeta con el texto «La canción de Toby» y se busca `cancion` en `canon_cards_fts` | la devuelve; también con `Canción` y con `CANCION` |
 | Se borra esa tarjeta | la búsqueda ya no la devuelve |
 | Una transacción añade una tarjeta y se deshace | no existen ni la tarjeta ni su entrada del índice: el índice y la story bible nunca discrepan (`architecture.md` §6.4) |
+
+La sincronía la mantiene el código, dentro de la misma unidad de trabajo de C13 que escribe `canon_cards`: no hay disparadores del motor que la mantengan por su cuenta.
 
 #### C13 — Una unidad de trabajo es todo o nada (T)
 
@@ -263,7 +271,7 @@ Partiendo de la entrada válida de C3:
 | Petición | Respuesta |
 |---|---|
 | `GET /health`, sin token | 200 `{"status": "ok", "version": "<versión del paquete>"}`, la misma versión que `--version`; fuera de `/api`, no exige `TokenDeAcceso` (002-I2 solo alcanza a `/api`) |
-| `GET /api/openapi.json` | 200 con el esquema OpenAPI de toda la aplicación (un único proceso FastAPI), que incluye `/health` aunque esa ruta no lleve el prefijo `/api` |
+| `GET /openapi.json`, sin token | 200 con el esquema OpenAPI de toda la aplicación (un único proceso, `architecture.md` §1.4), que incluye `/health` aunque ninguno de los dos lleve el prefijo `/api`; así lo lee `gen:api` sin credenciales |
 | `GET /api/no-existe` | 404 en JSON con `detail`, nunca el `index.html` de la SPA |
 
 Todo error de la API es JSON con un campo `detail`, que es la forma que heredan los códigos 401, 404, 409, 422 y 503 de `architecture.md` §15.7.
@@ -318,7 +326,7 @@ Todo queda en el orden de emisión y la prueba lo puede leer. El doble no usa la
 #### C22 — Primera generación de los tipos del frontend (D)
 
 - **Entrada:** `serve` escuchando en `http://127.0.0.1:8000` y `pnpm.cmd gen:api` desde `frontend/`.
-- **Salida:** se escriben los tipos de la API a partir de `/api/openapi.json`, que a estas alturas documenta únicamente `/health`; `pnpm.cmd typecheck` sale con 0. Los commitea el integrador en `/integrar` (`architecture.md` §14.8).
+- **Salida:** se escriben los tipos de la API a partir de `/openapi.json`, que a estas alturas documenta únicamente `/health`; `pnpm.cmd typecheck` sale con 0. Los commitea el integrador en `/integrar` (`architecture.md` §14.8).
 
 #### C23 — Un clon limpio arranca siguiendo el README (D)
 
@@ -352,7 +360,7 @@ Todo queda en el orden de emisión y la prueba lo puede leer. El doble no usa la
 |---|---|---|
 | ¿Qué entrega la 001? | Config, ajustes, esquema completo, sesión, API mínima, las tres órdenes, constantes del encargo, puerto de observabilidad y doble nulo | `architecture.md` §15.6, §15.9; `backend/AGENTS.md`; 000 (fuera de alcance) |
 | ¿Hasta dónde llega el detalle del esquema? | Columnas, referencias, enumerados y unicidades aquí: es el contrato entre carriles | `architecture.md` §15.6 («detalle por columna, de la 001»); `definitions.md` §12 |
-| ¿Cómo se garantiza el solo inserción y la sincronía del índice FTS5? | En la propia base, para todos los carriles a la vez | Decisión, para §18 |
+| ¿Cómo se garantiza el solo inserción y la sincronía del índice FTS5? | En código, no en la base: toda escritura de `audit_log`, `checkpoints`, `embeddings`, `canon_cards` y de su entrada en `canon_cards_fts` pasa por la unidad de trabajo del backend (C13), que decide el rechazo antes de tocar SQLite; sin disparadores del motor, para todos los carriles a la vez | `architecture.md` §6.4, §18 («Solo inserción y sincronía del índice FTS5») |
 | ¿Qué ajustes son obligatorios? | `JWT_SECRET` (≥ 32), `FORMAL_VERIFIER` (sin valor por defecto; `github` exige sus tres variables), `LLM_PROVIDER` por defecto `claude_login` (`anthropic_compatible` exige credenciales); Langfuse, lo fija 004 | `definitions.md` §11.3; decisión, para §18 |
 | ¿Directorio de datos, rutas relativas y `.env`? | Por defecto `<raíz>/backend/data` (no `<raíz>/data`: así lo fija §15.5, y es lo que 000-C01 ya ignora como `backend/data/`); las demás rutas relativas, desde la raíz, sin depender del directorio actual; el `.env` de la raíz, y el entorno prevalece | `architecture.md` §15.5; `specs/000-scaffolding.md` 000-C01; decisión, para §18. Corregido en esta ronda: un `<raíz>/data` anterior era incorrecto |
 | ¿Umbral por criterio, si `tono` y `personalizacion-natural` están en las dos rúbricas? | Una clave por identificador: diez umbrales | `architecture.md` §15.4 (`quality.thresholds.<criterio>`); decisión, para §18 |
@@ -364,4 +372,4 @@ Todo queda en el orden de emisión y la prueba lo puede leer. El doble no usa la
 | ¿Continuidad de la traza reanudada sin columna en `runs`? | Abrir la traza del mismo objeto la continúa | `architecture.md` §9.2, §15.6; decisión, para §18 |
 | ¿`LANGFUSE_MCP_AUTH` en `.env.example`? | Solo en un comentario: va en el entorno del usuario y el backend no la lee | `architecture.md` §15.5; README («nunca en el repo») |
 | ¿Vuelve `config.json`? | Sí: los docs lo dan por existente (`TODO.md` lo tenía como hueco) | `architecture.md` §15.4; `definitions.md` §11.1 |
-| ¿Dónde vive `/api/openapi.json` y qué documenta? | Un solo proceso FastAPI (§1.4): la ruta bajo `/api` documenta toda la aplicación, `/health` incluida, aunque esa ruta no lleve el prefijo. Así `gen:api` (C22) tiene siempre una fuente única | `architecture.md` §1.4, §15.7, §15.9; decisión, para §18 |
+| ¿Dónde vive el esquema OpenAPI y qué documenta? | En `GET /openapi.json`, fuera de `/api` y sin token, igual que `/health`: `gen:api` (C22) lo necesita sin credenciales. Un solo proceso (§1.4) documenta toda la aplicación, `/health` incluida, aunque ninguna de las dos rutas lleve el prefijo `/api` | `architecture.md` §1.4, §15.7, §15.9; decisión, para §18 |

@@ -108,11 +108,11 @@ Todas dependen de 000. Arranque en paralelo cuando 000 esté cerrada: A (001), C
 - [x] 000-C13 · Cada herramienta falla ante su defecto sembrado
 - [x] 000-C14 · Un clon limpio funciona en el portátil
 - [x] 000-C20 · TLC arranca en el portátil sobre Temurin portable
-- [ ] 000-C15 · Claude Code conecta los servidores de `.mcp.json`
-- [ ] 000-C16 · Playwright MCP inspecciona la SPA en Edge: marca, mismo origen y proxy de `/api`
-- [ ] 000-C17 · En una sesión real, los hooks y los permisos actúan
-- [ ] 000-C18 · La primera CI de `V2` sale en verde, con Lean y TLC
-- [ ] 000-C19 · La CI se pone en rojo ante defectos sembrados
+- [ ] 000-C15 · Claude Code conecta los servidores de `.mcp.json` (D, al final)
+- [ ] 000-C16 · Playwright MCP inspecciona la SPA en Edge: marca, mismo origen y proxy de `/api` (D, al final)
+- [ ] 000-C17 · En una sesión real, los hooks y los permisos actúan (D, al final)
+- [ ] 000-C18 · La primera CI de `V2` sale en verde, con Lean y TLC (D, al final)
+- [ ] 000-C19 · La CI se pone en rojo ante defectos sembrados (D, al final)
 
 ### Closing
 - [ ] Full suite green, type checks clean
@@ -121,8 +121,8 @@ Todas dependen de 000. Arranque en paralelo cuando 000 esté cerrada: A (001), C
 
 ## 001 — base
 
-- [ ] Spec `specs/backend/001-base.md` approved
-- [ ] Plan below approved
+- [x] Spec `specs/backend/001-base.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
 - [ ] 001-C03 · Ajustes: valores por defecto, rutas desde la raíz y precedencia del entorno
@@ -149,8 +149,8 @@ Todas dependen de 000. Arranque en paralelo cuando 000 esté cerrada: A (001), C
 - [ ] 001-C20 · Niveles y excepciones de los spans
 - [ ] 001-C21 · Prompts, comprobación y vaciado con el doble nulo
 - [ ] 001-I3 · Ni el doble nulo ni las órdenes de esta spec abren una conexión fuera de la máquina
-- [ ] 001-C22 · Primera generación de los tipos del frontend
-- [ ] 001-C23 · Un clon limpio arranca siguiendo el README
+- [ ] 001-C22 · Primera generación de los tipos del frontend (D, al final)
+- [ ] 001-C23 · Un clon limpio arranca siguiendo el README (D, al final)
 
 ### Closing
 - [ ] Full suite green, type checks clean
