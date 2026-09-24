@@ -225,7 +225,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 003-I5 · El coste de una `SesionDeRol` es su uso × `operation.pricing`, nunca el que declara el SDK
 - [x] 003-C26 · Toda sesión abierta deja su `SesionDeRol`, y solo ellas
 - [ ] 003-C27 · Cada sesión y cada llamada a tool dejan su span
-- [ ] 003-I8 · Sesiones concurrentes no comparten estado
+- [x] 003-I8 · Sesiones concurrentes no comparten estado
 - [ ] 003-C30 · El login funciona con tools en proceso, hooks y skill (D, al final)
 - [ ] 003-C31 · La sesión real no hereda nada del entorno de desarrollo (D, al final)
 - [ ] 003-C32 · Los límites reales terminan la sesión sin dejar subprocesos (D, al final)
