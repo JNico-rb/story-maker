@@ -398,4 +398,11 @@ describe("022 invariantes", () => {
     expect(router.state.location.pathname).toBe("/sonda");
     expect(sent.at(-1)?.headers.get("Authorization")).toBe(`Bearer ${TOKEN}`);
   }, 15_000);
+
+  it("022-I4: without a stored session, a protected request never reaches the API, even outside a guarded screen", async () => {
+    const sent = fakeApi({ "GET /api/novels": () => ({ status: 200, body: [] }) });
+
+    await expect(apiFetch("/api/novels")).rejects.toThrow("sin sesión guardada");
+    expect(sent).toEqual([]);
+  });
 });
