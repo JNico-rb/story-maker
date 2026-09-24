@@ -5,7 +5,9 @@ from __future__ import annotations
 
 import datetime as dt
 
+import pytest
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, sessionmaker
 from tests.pipeline.planning.conftest import ban
 from tests.pipeline.planning.test_candidate import reference_brief
@@ -117,6 +119,34 @@ async def test_the_accepted_plan_is_applied_in_one_transaction(
         assert checkpoint.chapter == 0
 
     assert _brief_origin_fingerprint(session_factory, version_id) == before
+
+
+async def test_checkpoint_zero_is_written_only_once(
+    session_factory: sessionmaker[Session], run_id: int, novel_id: int
+) -> None:
+    """010-I5: el punto de control 0 se escribe una sola vez por ejecución; aplicar un segundo
+    plan sobre la misma ejecución choca con la restricción única de `checkpoints` en vez de
+    dejar un segundo punto de control 0."""
+    version_id = _build_candidate(session_factory, run_id, novel_id)
+    with unit_of_work(session_factory) as uow:
+        run = uow.session.get(Run, run_id)
+        assert run is not None
+        apply_accepted_plan(uow, run, version_id, reference_plan(), now=NOW)
+
+    other_version_id = _build_candidate(session_factory, run_id, novel_id)
+
+    def _apply_again() -> None:
+        with unit_of_work(session_factory) as uow:
+            run = uow.session.get(Run, run_id)
+            assert run is not None
+            apply_accepted_plan(uow, run, other_version_id, reference_plan(), now=NOW)
+
+    with pytest.raises(IntegrityError):
+        _apply_again()
+
+    with session_factory() as session:
+        checkpoints = session.scalars(select(Checkpoint).filter_by(run_id=run_id)).all()
+    assert [c.chapter for c in checkpoints] == [0]
 
 
 async def test_the_style_sheet_carries_the_age_band_and_the_banned_topics(
