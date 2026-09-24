@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from story_maker.api.app import create_app
 from story_maker.api.auth import create_access_token
-from story_maker.store.models import Brief, Novel, Run, User, Version
+from story_maker.store.models import Brief, Novel, RoleSession, Run, User, Version
 from story_maker.store.session import create_schema, make_engine, make_session_factory
 
 JWT_SECRET = "x" * 32
@@ -171,3 +171,76 @@ def test_launching_on_a_foreign_or_missing_novel_is_404_and_without_token_401(
     assert client.post("/api/novels/999/runs", headers=headers(owner)).status_code == 404
     assert client.post(f"/api/novels/{novel_id}/runs").status_code == 401
     assert run_count(session_factory) == 0
+
+
+def add_session(session_factory: sessionmaker[Session], run_id: int, cost: float | None) -> None:
+    with session_factory() as session:
+        run = session.get_one(Run, run_id)
+        session.add(
+            RoleSession(
+                novel_id=run.novel_id,
+                run_id=run_id,
+                role="writer",
+                chapter=4,
+                model="modelo",
+                reserved_tokens=1000,
+                cost_usd=cost,
+                latency_ms=10,
+                outcome="completed" if cost is not None else "infrastructure_failure",
+            )
+        )
+        session.commit()
+
+
+def test_progress_is_polled_with_type_status_phase_chapter_cost_position_and_reason(
+    client: TestClient, session_factory: sessionmaker[Session]
+) -> None:
+    owner = add_user(session_factory, "cliente@example.com")
+    stranger = add_user(session_factory, "otro@example.com")
+    first = add_run(session_factory, add_novel(session_factory, stranger), "queued")
+    second = add_run(
+        session_factory, add_novel(session_factory, owner), "queued", NOW.replace(hour=12)
+    )
+    running = add_run(
+        session_factory, add_novel(session_factory, owner), "running", phase="writing", chapter=4
+    )
+    add_session(session_factory, running, 0.5)
+    add_session(session_factory, running, 0.25)
+    add_session(session_factory, running, None)
+    interrupted = add_run(
+        session_factory,
+        add_novel(session_factory, owner),
+        "interrupted",
+        reason="provider_error",
+        reason_detail="capítulo 6: error del proveedor",
+    )
+
+    def poll(run_id: int) -> dict[str, object]:
+        response = client.get(f"/api/runs/{run_id}", headers=headers(owner))
+        assert response.status_code == 200, response.text
+        body: dict[str, object] = response.json()
+        return body
+
+    assert poll(second) == {
+        "run_id": second,
+        "type": "generation",
+        "status": "queued",
+        "phase": None,
+        "chapter": None,
+        "cost_usd": 0.0,
+        "position": 2,
+        "reason": None,
+        "reason_detail": None,
+    }
+    progress = poll(running)
+    assert (progress["phase"], progress["chapter"], progress["position"]) == ("writing", 4, None)
+    assert progress["cost_usd"] == pytest.approx(0.75)
+    assert progress["reason"] is None
+    stopped = poll(interrupted)
+    assert (stopped["reason"], stopped["reason_detail"]) == (
+        "provider_error",
+        "capítulo 6: error del proveedor",
+    )
+    assert stopped["position"] is None
+    assert client.get(f"/api/runs/{first}", headers=headers(owner)).status_code == 404
+    assert client.get("/api/runs/999", headers=headers(owner)).status_code == 404
