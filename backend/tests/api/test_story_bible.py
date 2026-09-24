@@ -160,3 +160,33 @@ def test_the_api_returns_the_story_bible_of_an_earlier_version(
     assert v2_toby[2] == "Nala"
     assert v1_toby[0] != v2_toby[0]
     assert v1_toby[1] != v2_toby[1]
+
+
+def test_the_api_rejects_what_does_not_exist_the_malformed_the_anonymous_and_the_foreign(
+    client: TestClient, session_factory: sessionmaker[Session]
+) -> None:
+    user_id, headers = _client_token(client, "cliente-a@example.com")
+    _b_id, b_headers = _client_token(client, "cliente-b@example.com")
+    n1 = _seed_n1(session_factory, user_id)
+    with unit_of_work(session_factory) as uow:
+        n2 = Novel(user_id=user_id, title=None, embedding_model="m1", created_at=NOW)
+        uow.add(n2)
+        uow.session.flush()
+        create_generation_candidate(uow, n2.id, BRIEF, now=NOW)
+    url = f"/api/novels/{n1.novel_id}/story-bible"
+
+    assert client.get(f"/api/novels/{n2.id}/story-bible", headers=headers).status_code == 404
+    assert client.get(f"{url}?version=3", headers=headers).status_code == 404
+    for malformed in ("0", "-1", "uno"):
+        response = client.get(f"{url}?version={malformed}", headers=headers)
+        assert response.status_code == 422, malformed
+        assert [e["loc"] for e in response.json()["detail"]] == [["query", "version"]]
+        assert all(set(e) == {"loc", "msg", "type"} for e in response.json()["detail"])
+    assert client.get(url).status_code == 401
+
+    missing = client.get("/api/novels/999999/story-bible", headers=b_headers)
+    for foreign in (url, f"{url}?version=1", f"{url}?version=2"):
+        response = client.get(foreign, headers=b_headers)
+        assert response.status_code == 404, foreign
+        assert response.text == missing.text, foreign
+    assert "Marta" not in client.get(url, headers=b_headers).text
