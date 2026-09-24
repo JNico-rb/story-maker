@@ -4,11 +4,11 @@
 
 ## Objetivo
 
-Pedir un cambio desde la lectura de 026: seleccionar un fragmento o un hecho, escribir la petición, ver la propuesta y los capítulos afectados, confirmarla o descartarla, y ver en la lectura la versión nueva cuando se publique.
+Pedir un cambio desde la lectura de 026: seleccionar un fragmento, escribir la petición, ver la propuesta y los capítulos afectados, confirmarla o descartarla, y ver en la lectura la versión nueva cuando se publique.
 
 ## Alcance
 
-- Abrir el formulario de petición a partir de una selección (fragmento o hecho) hecha en la lectura de 026.
+- Abrir el formulario de petición a partir de un fragmento seleccionado en la lectura de 026: esta spec añade a la lectura la acción «pedir un cambio» sobre el texto seleccionado de un capítulo.
 - Enviar la petición y mostrar lo que entrega la API: la propuesta (hecho, valor antiguo, valor nuevo, o hecho nuevo), los capítulos afectados y la caducidad.
 - Confirmar la propuesta o descartarla, y lo que hace la pantalla en cada caso.
 - La caducidad de la propuesta sin confirmar.
@@ -18,7 +18,8 @@ Pedir un cambio desde la lectura de 026: seleccionar un fragmento o un hecho, es
 ## Fuera de alcance
 
 - Forma exacta de las rutas, códigos, reglas de la policy, del planner en modo cambio, del cálculo de afectados y de la caducidad del código → 014-cambios-del-lector; aquí solo se observa lo que la SPA hace con esa respuesta.
-- Contenido de la lectura (índice, capítulos, ficha, selector de versión, marca «cambiado en vN») y cómo se selecciona un fragmento o un hecho en ella → «la lectura de 026».
+- Contenido de la lectura (índice, capítulos, ficha, selector de versión, marca «cambiado en vN») → «la lectura de 026».
+- Seleccionar un hecho desde la lectura: la lectura no expone los hechos ni sus ids; el encargo pide «un fragmento o un hecho» y basta el fragmento. La API admite los dos (014-cambios-del-lector) (`architecture.md` §18, «Alcance del frontend»).
 - Sondeo detallado, reanudación e informe de una ejecución → CLI (`architecture.md` §15.8); la pantalla de progreso (025) queda fuera de alcance.
 - Sesión, token y acceso sin sesión válida → 022-acceso.
 - El editor manual (§10.3) → 019-edicion-manual y su spec de frontend, si la hay.
@@ -30,9 +31,9 @@ Pedir un cambio desde la lectura de 026: seleccionar un fragmento o un hecho, es
 
 ### Pedir el cambio
 
-#### 027-C01 — Seleccionar un fragmento o un hecho abre el formulario de petición (T)
-- **Entrada:** en la lectura de 026, la persona selecciona un fragmento del texto de un capítulo, o un hecho de la ficha de personajes y lugares, y pulsa «pedir un cambio».
-- **Salida:** se abre el formulario de petición, con la selección elegida visible (la cita, o el hecho con su valor actual) y un campo de texto vacío para escribir la petición.
+#### 027-C01 — Seleccionar un fragmento abre el formulario de petición (T)
+- **Entrada:** en la lectura de 026, la persona selecciona un fragmento del texto de un capítulo y pulsa «pedir un cambio». La SPA envía la selección como fragmento: versión que se lee, capítulo y cita.
+- **Salida:** se abre el formulario de petición, con la cita visible y un campo de texto vacío para escribir la petición.
 
 #### 027-C02 — La petición vacía no se puede enviar (T)
 - **Entrada:** el formulario de 027-C01 con el campo de texto vacío.
@@ -91,7 +92,7 @@ Pedir un cambio desde la lectura de 026: seleccionar un fragmento o un hecho, es
 ### Recorrido visual (D, al final de la spec)
 
 #### 027-C15 — Recorrido real: pedir, confirmar y ver la versión nueva (D)
-- **Entrada:** con el servidor real y la novela publicada del brief de ejemplo, el revisor sigue la lectura con Playwright MCP: selecciona el hecho del nombre del perro, pide «el perro se llama Nala», ve la propuesta y los afectados, confirma y, cuando se publica, abre la versión nueva en el selector.
+- **Entrada:** con el servidor real y la novela publicada del brief de ejemplo, el revisor sigue la lectura con Playwright MCP: selecciona un fragmento de un capítulo donde aparece el perro, pide «el perro se llama Nala», ve la propuesta y los afectados, confirma y, cuando se publica, abre la versión nueva en el selector.
 - **Salida:** la pantalla se ve con la marca corporativa de `specs/000-scaffolding.md` en cada paso, y la versión nueva se lee con sus capítulos cambiados marcados. El resultado se anota en `docs/verification.md` §9.3, junto con 014-C20.
 
 ## Invariantes
@@ -102,7 +103,7 @@ Pedir un cambio desde la lectura de 026: seleccionar un fragmento o un hecho, es
 | 027-I2 | Confirmar nunca se dispara sin que la persona pulse «confirmar»; ningún temporizador ni sondeo la confirma por su cuenta | T | 027-C12: avanzar el reloj hasta la caducidad no encola nada |
 | 027-I3 | Un error de cualquier llamada de esta pantalla (pedir, confirmar) siempre se muestra; nunca se descarta en silencio ni deja la pantalla como si hubiera ido bien | T | 027-C05 a 027-C07, 027-C13, 027-C14 |
 | 027-I4 | La pantalla nunca calcula los capítulos afectados, el valor antiguo o el nuevo, ni la caducidad por su cuenta: muestra tal cual lo que entrega la API | A | Revisión de que el componente no deriva estos valores, los recibe ya resueltos |
-| 027-I5 | La petición nunca se envía sin una selección previa de fragmento o hecho | T | 027-C01, 027-C02 |
+| 027-I5 | La petición nunca se envía sin un fragmento seleccionado | T | 027-C01, 027-C02 |
 
 ## Docs referenciados
 
