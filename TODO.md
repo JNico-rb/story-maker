@@ -1283,7 +1283,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 ## 030 — report-metrics
 
 - [x] Spec `specs/backend/030-report-metrics.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
-- [ ] Plan below approved
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
 - [ ] 030-C07 · Sin ejecuciones, el informe lo dice
