@@ -113,7 +113,11 @@ def _treatment_defects(paragraphs: list[str], style_sheet: StyleSheetInput) -> l
 
 
 def lint_consistency(text: str, style_sheet: StyleSheetInput) -> LinterResult:
-    """Avisa si la narración o el tratamiento no respetan la StyleSheet (018-C12 a 018-C15)."""
+    """Avisa si la narración o el tratamiento no respetan la StyleSheet (018-C12 a 018-C15).
+    Un texto sin palabras no avisa, tampoco el de narrador en primera persona (018-C17)."""
+    if not extract_words(text):
+        return LinterResult(validator=_VALIDATOR, passed=True, metric=0, defects=())
+
     paragraphs = split_paragraphs(text)
     defects = _narrator_defects(paragraphs, style_sheet)
     missing = _missing_first_person_defect(paragraphs, style_sheet)
