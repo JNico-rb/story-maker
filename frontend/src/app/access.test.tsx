@@ -208,7 +208,8 @@ describe("022 acceso", () => {
     await user.type(screen.getByLabelText("Contraseña"), PASSWORD);
     await user.click(screen.getByRole("button", { name: "Entrar" }));
 
-    await vi.waitFor(() => expect(router.state.location.pathname).toBe("/"));
+    expect(await screen.findByRole("button", { name: "Cerrar sesión" })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe("/");
     expect(screen.queryByRole("heading", { name: "Entrar" })).not.toBeInTheDocument();
     expect(readSession()).toBe(TOKEN);
     expect(sent[0]?.body).toEqual({ email: EMAIL, password: PASSWORD });
@@ -285,5 +286,21 @@ describe("022 rutas protegidas", () => {
     expect(await screen.findByRole("heading", { name: "Entrar" })).toBeInTheDocument();
     const later = sent.slice(before);
     expect(later.filter((request) => request.headers.get("Authorization")?.includes(TOKEN))).toEqual([]);
+  });
+});
+
+describe("022 cierre de sesión", () => {
+  it("022-C09: logging out from the main screen clears the stored session and shows the access screen without calling the API", async () => {
+    saveSession(TOKEN);
+    const sent = fakeApi({});
+    const user = userEvent.setup();
+    const router = renderAt("/");
+
+    await user.click(await screen.findByRole("button", { name: "Cerrar sesión" }));
+
+    await vi.waitFor(() => expect(router.state.location.pathname).toBe("/acceso"));
+    expect(await screen.findByRole("heading", { name: "Entrar" })).toBeInTheDocument();
+    expectNoSession();
+    expect(sent).toEqual([]);
   });
 });

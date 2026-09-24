@@ -960,7 +960,7 @@ Todas dependen de 000. Carril B disuelto y C rehecho (decisión del usuario, 202
 - [x] 022-C06 · Cada petición a una pantalla protegida envía la sesión guardada
 - [x] 022-C07 · Sin sesión guardada, una pantalla protegida redirige a acceso
 - [x] 022-C08 · Una sesión rechazada por el servidor redirige a acceso
-- [ ] 022-C09 · Cerrar sesión borra la sesión guardada sin avisar al servidor
+- [x] 022-C09 · Cerrar sesión borra la sesión guardada sin avisar al servidor
 - [ ] 022-I1 · El token de la sesión solo viaja en la cabecera de autorización de cada petición
 - [ ] 022-I2 · Ninguna contraseña escrita en un formulario queda guardada ni se vuelve a mostrar tras enviarse, la petición salga bien o mal
 - [ ] 022-I3 · Una sesión guardada sobrevive a volver a cargar la pantalla, hasta que se cierra sesión o el servidor la rechaza
