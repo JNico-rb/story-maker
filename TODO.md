@@ -72,7 +72,7 @@ MVP = lo estrictamente obligatorio del enunciado + la primera novela real. Prior
 | H — recuperación | 016 | 009 (016 parcial: tarjetas desde la story bible) | `../sm-h` | `carril-h` | cerrado recortado (016 integrada; I3–I5, I7, I8 recortados) |
 | I — gate (012 parcial) | 012 | 007 · 011 (012 parcial: validadores de novela, juez, rúbrica y catálogo empiezan antes; el bucle del gate, la reescritura y la publicación esperan a 011) | `../sm-i` | `carril-i` | 012 parcial en curso |
 | J — métricas | 030 | 001, 004 | `../sm-j` | `carril-j` | 030 en curso |
-| E — frontend | 022 → 023 → 024 → 025 → 026 → 027 → 028 (`specs/frontend/`) | las de backend de la tabla de specs, cerradas en V2 | `../sm-e` | `carril-e` | congelado (recorte) |
+| E — frontend | 022 → 023 → 024 → 025 → 026 → 027 → 028 (`specs/frontend/`) | las de backend de la tabla de specs, cerradas en V2 | `../sm-e` | `carril-e` | 026 en curso (usuario, 2026-09-24: adelantar 026 mientras avanza 011); 023–025 y 027–028 congelados |
 
 **Congelado (recorte).** **Frontend (022–028, decisión del usuario 2026-09-24).** Las specs se redactan ya, de dos en dos, mientras los carriles programan el backend: spec → plan en `TODO.md` → casillas marcadas por el integrador, sin revisión. **Revisión solo como excepción:** únicamente ante un error claro que impide que funcione o que deja sin cubrir un requisito de `project-constraints.md`; una sola corrección, sin rondas. El carril E (`../sm-e`) empieza cada spec cuando sus dependencias de backend están cerradas en V2, sin adelantarse. El backend manda: si hay que elegir, primero se integran A, C y D.
 
