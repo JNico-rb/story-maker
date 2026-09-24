@@ -14,12 +14,12 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from story_maker.agents.ceiling import TokenCeiling
 from story_maker.agents.fake import Call, FakeAgent, Script
-from story_maker.agents.policy_port import PolicyDecision, PolicyRequest
 from story_maker.agents.port import AgentPort, SessionRequest
 from story_maker.agents.tools import ToolSpec
 from story_maker.agents.usage import Usage
 from story_maker.config import Config
 from story_maker.observability.null import NullObservability
+from story_maker.policy.types import DecisionDePolitica, PeticionDePolitica
 
 USAGE = Usage(input_tokens=1, output_tokens=1, cache_read_tokens=0, cache_write_tokens=0)
 PROPERTY = settings(
@@ -58,13 +58,13 @@ def test_no_tool_runs_without_an_allow_or_flag_decision_taken_before(
     decisions = iter(decision for _, decision in plan)
 
     class ScriptedPolicy:
-        def decide(self, request: PolicyRequest) -> PolicyDecision:
-            number = {f.path: f.value for f in request.fields}["n"]
+        def decide(self, request: PeticionDePolitica) -> DecisionDePolitica:
+            number = {c.path: c.texto for c in request.campos}["n"]
             decision = next(decisions)
             events.append(f"decide {number} {decision}")
             if decision == "raise":
                 raise RuntimeError("motor caído")
-            return PolicyDecision(decision, "motivo")  # type: ignore[arg-type]
+            return DecisionDePolitica(decision=decision, rule="motivo")  # type: ignore[arg-type]
 
     fake = FakeAgent()
     steps = tuple(

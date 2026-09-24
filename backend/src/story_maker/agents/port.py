@@ -20,12 +20,12 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session, sessionmaker
 
 from story_maker.agents.ceiling import TokenCeiling, reservation
-from story_maker.agents.policy_port import PolicyEngine, PolicyField, PolicyRequest
-from story_maker.agents.profiles import RoleProfile, role_profile
+from story_maker.agents.profiles import SKILL, RoleProfile, role_profile
 from story_maker.agents.tools import ToolSpec
 from story_maker.agents.usage import Usage, cost_usd
 from story_maker.config import Config
 from story_maker.observability.port import ModelCall, Score, Span, Trace
+from story_maker.policy.types import CampoNarrativo, DecisionDePolitica, PeticionDePolitica
 from story_maker.store.models import RoleSession
 from story_maker.store.session import unit_of_work
 
@@ -151,6 +151,12 @@ class Agent(Protocol):
     ) -> DriverSession: ...
 
 
+class PolicyEngine(Protocol):
+    """El `MotorDePoliticas` de 005, ya con las prohibidas, el origen y el audit log (§12.2)."""
+
+    def decide(self, peticion: PeticionDePolitica) -> DecisionDePolitica: ...
+
+
 class Telemetry(Protocol):
     """Lo que el puerto emite por el puerto de observabilidad (doble nulo en las pruebas)."""
 
@@ -228,29 +234,33 @@ class LiveSession:
     def _specs(self) -> dict[str, ToolSpec]:
         return {spec.name: spec for spec in self.request.tools}
 
+    def _policy_request(self, tool: str, tool_input: dict[str, Any]) -> PeticionDePolitica:
+        spec = self._specs.get(tool)
+        run_id = self.request.run_id
+        return PeticionDePolitica(
+            origen="policy_hook",
+            cliente=str(self.request.user_id),
+            novela=str(self.request.novel_id),
+            ejecucion=str(run_id) if run_id is not None else None,
+            rol=self.request.role,
+            tool=tool,
+            skill=tool_input.get("skill") if tool == SKILL else None,
+            url=tool_input.get("url") if tool == "browser_navigate" else None,
+            campos=_fields(tool_input, spec.narrative if spec else ()),
+        )
+
     def before_tool(self, call_id: str, tool: str, tool_input: dict[str, Any]) -> str | None:
         """Hook de policy (`PreToolUse`): None deja correr la tool; un texto la deniega."""
         if self.stopping:
             return STOPPED
-        spec = self._specs.get(tool)
         try:
-            decision = self.policy.decide(
-                PolicyRequest(
-                    origin="policy_hook",
-                    user_id=self.request.user_id,
-                    novel_id=self.request.novel_id,
-                    run_id=self.request.run_id,
-                    role=self.request.role,
-                    tool=tool,
-                    fields=_fields(tool_input, spec.narrative if spec else ()),
-                )
-            )
+            decision = self.policy.decide(self._policy_request(tool, tool_input))
         except Exception as exc:
             # Sin decisión no corre ninguna tool; no es un intento del rol (§18, spec 003).
             self.stop("infrastructure_failure", exc)
             return STOPPED
         if decision.decision == "deny":
-            reason = decision.reason or "denegada por la política"
+            reason = _motive(decision)
             with self._tool_span(tool, "WARNING", reason):
                 pass
             self._record_call(
@@ -343,14 +353,23 @@ def _defects_text(defects: Sequence[Defect]) -> str:
     return "\n".join(["Defectos bloqueantes:", *lines])
 
 
-def _fields(tool_input: dict[str, Any], narrative: tuple[str, ...]) -> tuple[PolicyField, ...]:
+def _motive(decision: DecisionDePolitica) -> str:
+    """El motivo tal como lo da la política: su regla y, si lo hay, su detalle."""
+    rule = decision.rule or "denegada por la política"
+    if not decision.detail:
+        return rule
+    detail = "; ".join(", ".join(f"{k}={v}" for k, v in item.items()) for item in decision.detail)
+    return f"{rule}: {detail}"
+
+
+def _fields(tool_input: dict[str, Any], narrative: tuple[str, ...]) -> list[CampoNarrativo]:
     """Cada texto de la entrada con su ruta; narrativo si su ruta, sin índices, está marcada.
 
     La política nunca debe escanear lo no marcado, como una lista de prohibidas (§7.5)."""
-    return tuple(
-        PolicyField(path=path, value=value, narrative=re.sub(r"\[\d+\]", "[]", path) in narrative)
-        for path, value in _texts(tool_input, "")
-    )
+    return [
+        CampoNarrativo(path=path, texto=text, narrativo=re.sub(r"\[\d+\]", "[]", path) in narrative)
+        for path, text in _texts(tool_input, "")
+    ]
 
 
 def _texts(value: Any, path: str) -> list[tuple[str, str]]:

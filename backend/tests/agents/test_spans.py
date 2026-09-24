@@ -12,7 +12,6 @@ from pydantic import BaseModel
 
 from story_maker.agents.ceiling import TokenCeiling
 from story_maker.agents.fake import Call, FakeAgent, Say, Script
-from story_maker.agents.policy_port import PolicyDecision, PolicyRequest
 from story_maker.agents.port import AgentPort, Defect, SessionRequest
 from story_maker.agents.profiles import role_profile
 from story_maker.agents.sdk import SdkAgent
@@ -20,6 +19,7 @@ from story_maker.agents.usage import Usage
 from story_maker.config import Config
 from story_maker.observability.null import NullObservability
 from story_maker.observability.port import Span, Trace
+from story_maker.policy.types import DecisionDePolitica, PeticionDePolitica
 from story_maker.settings import Settings
 
 USAGE = Usage(input_tokens=120, output_tokens=80, cache_read_tokens=30, cache_write_tokens=10)
@@ -61,12 +61,12 @@ async def test_each_session_and_each_tool_call_leave_their_span(
     events: list[str] = []
     telemetry = SpyObservability(events)
 
-    def rule(request: PolicyRequest) -> PolicyDecision:
+    def rule(request: PeticionDePolitica) -> DecisionDePolitica:
         events.append(f"decide {request.tool}")
-        text = {f.path: f.value for f in request.fields}.get("text")
+        text = {c.path: c.texto for c in request.campos}.get("text")
         if text == "prohibido":
-            return PolicyDecision("deny", "término prohibido")
-        return PolicyDecision("allow")
+            return DecisionDePolitica(decision="deny", rule="término prohibido")
+        return DecisionDePolitica(decision="allow")
 
     policy.rule = rule
     results = iter([[Defect("longitud-capitulo", "demasiado corto", True)], []])

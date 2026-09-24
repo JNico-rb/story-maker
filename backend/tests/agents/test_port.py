@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import datetime as dt
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any, Literal
 
 import pytest
@@ -13,12 +13,17 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from story_maker.agents.ceiling import TokenCeiling
 from story_maker.agents.fake import Call, FakeAgent, Say, Script
-from story_maker.agents.policy_port import PolicyDecision, PolicyRequest
 from story_maker.agents.port import ACK, AgentPort, Defect, SessionRequest
 from story_maker.agents.profiles import ToolsMismatch
 from story_maker.agents.tools import ToolSpec
 from story_maker.agents.usage import Usage
-from story_maker.store.models import AuditLog, Base, RoleSession
+from story_maker.config import Config
+from story_maker.observability.null import NullObservability
+from story_maker.policy.audit import record_decision
+from story_maker.policy.engine import decide
+from story_maker.policy.types import DecisionDePolitica, EntradaProhibida, PeticionDePolitica
+from story_maker.store.models import Base, RoleSession
+from story_maker.store.session import unit_of_work
 
 USAGE = Usage(input_tokens=10, output_tokens=5, cache_read_tokens=0, cache_write_tokens=0)
 
@@ -175,19 +180,19 @@ def logged_chapter_tool(events: list[str]) -> ToolSpec:
     return ToolSpec(name="submit_chapter", model=LoggedChapter, narrative=("title", "text"))
 
 
-def writer_rule(events: list[str]) -> Callable[[PolicyRequest], PolicyDecision]:
-    def rule(request: PolicyRequest) -> PolicyDecision:
-        values = {f.path: f.value for f in request.fields}
+def writer_rule(events: list[str]) -> Callable[[PeticionDePolitica], DecisionDePolitica]:
+    def rule(request: PeticionDePolitica) -> DecisionDePolitica:
+        values = {c.path: c.texto for c in request.campos}
         events.append(f"decide {request.tool} {values}")
         if request.tool == "Skill":
             if values.get("skill") == "personalizacion-natural":
-                return PolicyDecision("allow")
-            return PolicyDecision("deny", "skill no admitida")
+                return DecisionDePolitica(decision="allow")
+            return DecisionDePolitica(decision="deny", rule="skill no admitida")
         if request.tool == "submit_chapter":
             if "prohibido" in values.get("text", ""):
-                return PolicyDecision("deny", "término prohibido")
-            return PolicyDecision("flag")
-        return PolicyDecision("deny", "tool fuera de la lista blanca del rol")
+                return DecisionDePolitica(decision="deny", rule="término prohibido")
+            return DecisionDePolitica(decision="flag")
+        return DecisionDePolitica(decision="deny", rule="tool fuera de la lista blanca del rol")
 
     return rule
 
@@ -216,11 +221,11 @@ async def test_every_tool_call_goes_through_the_policy_first_and_its_decision_ap
         make_request("writer", "write", run_id=run_id, tools=(logged_chapter_tool(events),))
     )
 
-    assert [(r.origin, r.user_id, r.novel_id, r.run_id, r.role) for r in policy.requests] == [
-        ("policy_hook", user_id, novel_id, run_id, "writer")
+    assert [(r.origen, r.cliente, r.novela, r.ejecucion, r.rol) for r in policy.requests] == [
+        ("policy_hook", str(user_id), str(novel_id), str(run_id), "writer")
     ] * 5
     assert [r.tool for r in policy.requests] == [c.tool for c in calls]
-    assert [{f.path: f.value for f in r.fields} for r in policy.requests] == [
+    assert [{c.path: c.texto for c in r.campos} for r in policy.requests] == [
         c.input for c in calls
     ]
     # cada decisión, antes de que corra su tool; lo denegado no corre
@@ -256,8 +261,8 @@ class OutlineInput(BaseModel):
     banned: list[str]
 
 
-def fields_of(request: PolicyRequest) -> list[tuple[str, str, bool]]:
-    return [(f.path, f.value, f.narrative) for f in request.fields]
+def fields_of(request: PeticionDePolitica) -> list[tuple[str, str, bool]]:
+    return [(c.path, c.texto, c.narrativo) for c in request.campos]
 
 
 async def test_the_policy_receives_as_narrative_only_the_fields_the_tool_marks(
@@ -307,6 +312,10 @@ async def test_the_policy_receives_as_narrative_only_the_fields_the_tool_marks(
     ]
     assert fields_of(skill_request) == [("skill", "personalizacion-natural", False)]
     assert fields_of(navigate_request) == [("url", "http://127.0.0.1:8000/view/1", False)]
+    # la skill y la URL de destino llegan además en sus campos de la petición (005)
+    assert (plan_request.skill, plan_request.url) == (None, None)
+    assert skill_request.skill == "personalizacion-natural"
+    assert navigate_request.url == "http://127.0.0.1:8000/view/1"
 
 
 async def test_if_the_policy_fails_the_tool_does_not_run_and_the_error_reaches_the_opener(
@@ -320,7 +329,7 @@ async def test_if_the_policy_fails_the_tool_does_not_run_and_the_error_reaches_t
     events: list[str] = []
     failure = RuntimeError("motor de políticas caído")
 
-    def broken(request: PolicyRequest) -> PolicyDecision:
+    def broken(request: PeticionDePolitica) -> DecisionDePolitica:
         raise failure
 
     policy.rule = broken
@@ -359,24 +368,10 @@ async def test_a_session_only_writes_its_role_session_and_what_the_policy_record
 ) -> None:
     decide = writer_rule([])
 
-    def recording(request: PolicyRequest) -> PolicyDecision:
+    def recording(request: PeticionDePolitica) -> DecisionDePolitica:
         decision = decide(request)
-        with session_factory() as session:
-            session.add(
-                AuditLog(
-                    user_id=request.user_id,
-                    novel_id=request.novel_id,
-                    run_id=request.run_id,
-                    role=request.role,
-                    tool=request.tool,
-                    origin=request.origin,
-                    decision=decision.decision,
-                    rule="doble",
-                    detail={},
-                    created_at=dt.datetime(2026, 9, 24, 12, 0),
-                )
-            )
-            session.commit()
+        with unit_of_work(session_factory) as uow:
+            record_decision(uow, request, decision)
         return decision
 
     policy.rule = recording
@@ -468,3 +463,56 @@ async def test_checks_run_only_on_allowed_valid_deliveries_and_non_blocking_does
         ("accepted", (repeated,)),
     ]
     assert fake.sessions[0].reads[2] == ACK
+
+
+class RealEngine:
+    """Adaptador fino de prueba: el motor de 005 con una prohibida global y el origen."""
+
+    def __init__(self, banned: list[EntradaProhibida]) -> None:
+        self.banned = banned
+
+    def decide(self, peticion: PeticionDePolitica) -> DecisionDePolitica:
+        with_entries = peticion.model_copy(update={"banned_entries": self.banned})
+        return decide(with_entries, base_url="http://127.0.0.1:8000")
+
+
+async def test_the_real_policy_engine_decides_behind_the_policy_hook(
+    config: Config,
+    fake: FakeAgent,
+    ceiling: TokenCeiling,
+    telemetry: NullObservability,
+    session_factory: sessionmaker[Session],
+    workspace: Path,
+    make_request: Callable[..., SessionRequest],
+) -> None:
+    port = AgentPort(
+        agent=fake,
+        config=config,
+        ceiling=ceiling,
+        policy=RealEngine([EntradaProhibida(term="idiota", type="word", level="global")]),
+        telemetry=telemetry,
+        session_factory=session_factory,
+        workspace=workspace,
+    )
+    calls = (
+        Call("Skill", {"skill": "personalizacion-natural"}),
+        Call("Skill", {"skill": "otra-skill"}),
+        Call("submit_chapter", {"title": "Uno", "text": "Era un idiota."}),
+        Call("submit_chapter", {"title": "Uno", "text": "Era un buen hombre."}),
+        Call("Bash", {"command": "dir"}),
+    )
+    fake.script("writer", "write", Script(steps=(*calls, Say("Fin.")), usage=USAGE))
+
+    result = await port.run(make_request("writer", "write"))
+
+    assert [(c.tool, c.status) for c in result.calls] == [
+        ("Skill", "accepted"),
+        ("Skill", "denied"),
+        ("submit_chapter", "denied"),
+        ("submit_chapter", "accepted"),
+        ("Bash", "denied"),
+    ]
+    reasons = [c.reason or "" for c in result.calls]
+    assert reasons[1].startswith("skill-no-admitida")
+    assert reasons[2].startswith("palabras-prohibidas")
+    assert reasons[4].startswith("lista-blanca")

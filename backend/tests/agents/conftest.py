@@ -15,12 +15,12 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from story_maker.agents.ceiling import TokenCeiling
 from story_maker.agents.fake import FakeAgent
-from story_maker.agents.policy_port import PolicyDecision, PolicyRequest
 from story_maker.agents.port import AgentPort, SessionRequest
 from story_maker.agents.tools import ToolSpec
 from story_maker.config import Config, load_config
 from story_maker.observability.null import NullObservability
 from story_maker.observability.port import Trace
+from story_maker.policy.types import DecisionDePolitica, PeticionDePolitica
 from story_maker.settings import ROOT, Settings
 from story_maker.store.models import Novel, Run, User
 from story_maker.store.session import create_schema, make_engine, make_session_factory
@@ -51,11 +51,13 @@ CHAPTER_TOOL = ToolSpec(
 class DoublePolicy:
     """Doble del `MotorDePoliticas`: registra cada petición y decide con `rule`."""
 
-    def __init__(self, rule: Callable[[PolicyRequest], PolicyDecision] | None = None) -> None:
-        self.requests: list[PolicyRequest] = []
-        self.rule = rule or (lambda _request: PolicyDecision(decision="allow"))
+    def __init__(
+        self, rule: Callable[[PeticionDePolitica], DecisionDePolitica] | None = None
+    ) -> None:
+        self.requests: list[PeticionDePolitica] = []
+        self.rule = rule or (lambda _request: DecisionDePolitica(decision="allow"))
 
-    def decide(self, request: PolicyRequest) -> PolicyDecision:
+    def decide(self, request: PeticionDePolitica) -> DecisionDePolitica:
         self.requests.append(request)
         return self.rule(request)
 

@@ -11,9 +11,9 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session, sessionmaker
 
 from story_maker.agents.fake import Call, FakeAgent, Say, Script
-from story_maker.agents.policy_port import PolicyDecision, PolicyRequest
 from story_maker.agents.port import AgentPort, Defect, SessionRequest
 from story_maker.agents.usage import Usage
+from story_maker.policy.types import DecisionDePolitica, PeticionDePolitica
 from story_maker.store.models import Novel
 
 USAGE = Usage(input_tokens=1, output_tokens=1, cache_read_tokens=0, cache_write_tokens=0)
@@ -44,9 +44,9 @@ async def test_concurrent_sessions_share_no_state(
     novels = {"A": novel_id, "B": other_novel(session_factory, user_id)}
     order: list[str] = []
 
-    def rule(request: PolicyRequest) -> PolicyDecision:
-        order.append(next(n for n, i in novels.items() if i == request.novel_id))
-        return PolicyDecision("allow")
+    def rule(request: PeticionDePolitica) -> DecisionDePolitica:
+        order.append(next(n for n, i in novels.items() if str(i) == request.novela))
+        return DecisionDePolitica(decision="allow")
 
     policy.rule = rule
     checked: dict[str, list[str]] = {"A": [], "B": []}
@@ -83,5 +83,5 @@ async def test_concurrent_sessions_share_no_state(
         assert [c.input["text"] for c in result.deliveries] == expected
         assert checked[name] == expected
         assert result.text == name
-        requests = [r for r in policy.requests if r.novel_id == novels[name]]
-        assert [{f.path: f.value for f in r.fields}["text"] for r in requests] == expected
+        requests = [r for r in policy.requests if r.novela == str(novels[name])]
+        assert [{c.path: c.texto for c in r.campos}["text"] for r in requests] == expected
