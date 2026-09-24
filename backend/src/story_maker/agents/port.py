@@ -307,6 +307,7 @@ class AgentPort:
 
     async def run(self, request: SessionRequest) -> SessionResult:
         profile = role_profile(self._config, request.role, request.mode)
+        profile.check_tools([spec.name for spec in request.tools])
         self._agent.prepare(request)
         reserved = self.reservation(request)
         ticket = await self._ceiling.acquire(reserved, timeout=None)

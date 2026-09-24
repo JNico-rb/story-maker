@@ -35,6 +35,18 @@ WHITELIST: dict[tuple[str, str | None], tuple[str, ...]] = {
 }
 
 
+class ToolsMismatch(ValueError):
+    """Las tools propias declaradas no cuadran con la lista blanca del rol y modo."""
+
+    def __init__(self, role: str, mode: str | None, extra: list[str], missing: list[str]) -> None:
+        self.extra = extra
+        self.missing = missing
+        super().__init__(
+            f"las tools de {role} en modo {mode} no cuadran con su lista blanca: "
+            f"sobran {extra or 'ninguna'}; faltan {missing or 'ninguna'}"
+        )
+
+
 @dataclass(frozen=True)
 class RoleProfile:
     role: str
@@ -53,6 +65,12 @@ class RoleProfile:
     @property
     def uses_skill(self) -> bool:
         return SKILL in self.whitelist
+
+    def check_tools(self, declared: list[str]) -> None:
+        extra = [tool for tool in declared if tool not in self.own_tools]
+        missing = [tool for tool in self.own_tools if tool not in declared]
+        if extra or missing:
+            raise ToolsMismatch(self.role, self.mode, extra, missing)
 
 
 def role_profile(config: Config, role: str, mode: str | None) -> RoleProfile:
