@@ -24,6 +24,13 @@ CRITERIA = (
 
 AGE_BANDS = ("children", "teen", "adult")
 
+# Vocabulario de atributos de los hechos del brief (`definitions.md` §2 Hecho, §11.2; 009).
+NAME = "name"
+TRAIT = "trait"
+RECOLLECTION = "recollection"
+RELATIONSHIP = "relationship"
+NOMINAL_ATTRIBUTES = frozenset({NAME})
+
 # Del plan y del outline (010; `definitions.md` §11.2).
 MIN_CONSEQUENCES = 2
 MAX_CONSEQUENCES = 4

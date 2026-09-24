@@ -487,6 +487,64 @@ def personal_elements(
     return elements
 
 
+# --- Problemas que bloquean confirmar o importar (008-C09 a 008-C13, 008-I1) -------------------
+
+
+def missing_field_problems(content: BriefContent) -> list[dict[str, Any]]:
+    return [
+        {
+            "loc": ["body", "brief", "missing_fields", name],
+            "msg": f"falta: {name}",
+            "type": "missing_field",
+        }
+        for name in missing_fields(content)
+    ]
+
+
+def contradiction_problems(contradictions_found: list[Contradiccion]) -> list[dict[str, Any]]:
+    return [
+        {
+            "loc": ["body", "brief", "contradictions", *item.fields],
+            "msg": f"contradicción {item.rule}",
+            "type": "contradiction",
+        }
+        for item in contradictions_found
+    ]
+
+
+def schema_error_problems(errors: list[SchemaError]) -> list[dict[str, Any]]:
+    return [
+        {"loc": ["body", "brief", *item.fields], "msg": item.message, "type": "schema_error"}
+        for item in errors
+    ]
+
+
+def mandatory_cap_problems(count: int, max_mandatory_elements: int) -> list[dict[str, Any]]:
+    if count <= max_mandatory_elements:
+        return []
+    msg = f"{count} de {max_mandatory_elements}"
+    return [{"loc": ["body", "brief", "mandatory_count"], "msg": msg, "type": "mandatory_cap"}]
+
+
+def brief_problems(
+    content: BriefContent,
+    created_at: dt.date,
+    banned_entries: list[BannedEntry],
+    accepted_facts: list[AcceptedFact],
+    max_mandatory_elements: int,
+) -> list[dict[str, Any]]:
+    """Todo lo que bloquea la confirmación o la importación (008-C09 a 008-C13); mismo cálculo
+    para las dos vías, así que deciden igual (008-I1)."""
+    return (
+        missing_field_problems(content)
+        + contradiction_problems(
+            all_contradictions(content, created_at, banned_entries, accepted_facts)
+        )
+        + schema_error_problems(schema_errors(content, accepted_facts))
+        + mandatory_cap_problems(mandatory_count(content, accepted_facts), max_mandatory_elements)
+    )
+
+
 # --- HechoExtraido: citas-verificadas (008-C18, 008-C19, 008-C20) -----------------------------
 
 _WHITESPACE = re.compile(r"\s+")

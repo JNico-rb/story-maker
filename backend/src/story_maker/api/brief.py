@@ -17,9 +17,13 @@ from story_maker.domain.brief import (
     ElementoPersonal,
     SchemaError,
     all_contradictions,
+    contradiction_problems,
+    mandatory_cap_problems,
     mandatory_count,
+    missing_field_problems,
     missing_fields,
     personal_elements,
+    schema_error_problems,
     schema_errors,
 )
 from story_maker.interview.brief import interview_trace_key
@@ -90,49 +94,14 @@ def build_brief_out(
     )
 
 
-def _missing_field_problems(content: BriefContent) -> list[dict[str, Any]]:
-    return [
-        {
-            "loc": ["body", "brief", "missing_fields", name],
-            "msg": f"falta: {name}",
-            "type": "missing_field",
-        }
-        for name in missing_fields(content)
-    ]
-
-
-def _contradiction_problems(contradictions: list[Contradiccion]) -> list[dict[str, Any]]:
-    return [
-        {
-            "loc": ["body", "brief", "contradictions", *item.fields],
-            "msg": f"contradicción {item.rule}",
-            "type": "contradiction",
-        }
-        for item in contradictions
-    ]
-
-
-def _mandatory_cap_problems(brief_out: BriefOut) -> list[dict[str, Any]]:
-    if brief_out.mandatory_count <= brief_out.max_mandatory_elements:
-        return []
-    msg = f"{brief_out.mandatory_count} de {brief_out.max_mandatory_elements}"
-    return [{"loc": ["body", "brief", "mandatory_count"], "msg": msg, "type": "mandatory_cap"}]
-
-
-def _schema_error_problems(errors: list[SchemaError]) -> list[dict[str, Any]]:
-    return [
-        {"loc": ["body", "brief", *item.fields], "msg": item.message, "type": "schema_error"}
-        for item in errors
-    ]
-
-
 def brief_problems(brief_out: BriefOut) -> list[dict[str, Any]]:
-    """Todo lo que bloquea la confirmación (008-C09 a 008-C13)."""
+    """Todo lo que bloquea la confirmación (008-C09 a 008-C13); los mismos generadores de
+    problemas que usa la importación (008-I1, `domain.brief.brief_problems`)."""
     return (
-        _missing_field_problems(brief_out.content)
-        + _contradiction_problems(brief_out.contradictions)
-        + _schema_error_problems(brief_out.schema_errors)
-        + _mandatory_cap_problems(brief_out)
+        missing_field_problems(brief_out.content)
+        + contradiction_problems(brief_out.contradictions)
+        + schema_error_problems(brief_out.schema_errors)
+        + mandatory_cap_problems(brief_out.mandatory_count, brief_out.max_mandatory_elements)
     )
 
 

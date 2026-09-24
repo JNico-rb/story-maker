@@ -104,9 +104,10 @@ def list_novels(session: Session, user_id: int) -> list[NovelSummary]:
     return [novel_summary(session, novel) for novel in novels]
 
 
-def load_banned_entries(session: Session, user_id: int, novel_id: int) -> list[BannedEntry]:
+def load_banned_entries(session: Session, user_id: int, novel_id: int | None) -> list[BannedEntry]:
     """Las tres listas que alcanzan a la novela: `global`, `user` del cliente y `novel` de ella
-    (`architecture.md` §12.1, 008-C11)."""
+    (`architecture.md` §12.1, 008-C11). Con `novel_id=None` (importación, antes de crear la
+    novela), solo trae `global` y `user`: ninguna fila `novel` existe todavía."""
     rows = (
         session.query(BannedTerm)
         .filter(
