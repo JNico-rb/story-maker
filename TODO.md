@@ -437,7 +437,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 009-C09 · Cada elemento personal queda representado y los obligatorios, marcados
 - [x] 009-I7 · Todo ElementoPersonal del brief tiene al menos un hecho que lo representa, y el de uno obligatorio es obligatorio
 - [x] 009-C10 · Crear la candidata de generación es todo o nada
-- [ ] 009-C11 · La copia reproduce la base entera con identificadores nuevos
+- [x] 009-C11 · La copia reproduce la base entera con identificadores nuevos
 - [ ] 009-C12 · La copia no vuelve a incrustar: comparte los vectores
 - [ ] 009-C13 · La base no cambia al copiarla ni al trabajar la candidata
 - [ ] 009-C14 · Copiar es todo o nada
