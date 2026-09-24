@@ -236,8 +236,8 @@ Todas dependen de 000. Arranque en paralelo cuando 000 esté cerrada: A (001), C
 - [ ] C6 — Cada config de control da el contraejemplo de su propiedad
 - [ ] C9 — El README dice qué transición implementa cada acción
 - [ ] C10 — Un contraejemplo real queda registrado con su cambio
-- [ ] C8 — En el portátil, el mismo veredicto
-- [ ] C7 — La CI decide con las configs de la 006
+- [ ] C8 — En el portátil, el mismo veredicto (D, al final)
+- [ ] C7 — La CI decide con las configs de la 006 (D, al final)
 
 ### Closing
 - [ ] Full suite green, type checks clean
