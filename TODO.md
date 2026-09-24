@@ -577,7 +577,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [ ] 011-I9 · Las ventanas solo llevan datos de la candidata de su novela, nunca de otra novela del mismo cliente ni de otro cliente (recortado)
 - [ ] 011-I10 · El tamaño estimado de la ventana entra en la reserva de su sesión (recortado)
 - [ ] 011-I11 · Los usos y los eventos registrados solo citan hechos y entidades de la candidata (recortado)
-- [ ] 011-I12 · El `CLAUDE.md` de producto (entrega tardía, carril W; lo lee el `verificador`)
+- [x] 011-I12 · El `CLAUDE.md` de producto (entrega tardía, carril W; lo lee el `verificador`) — `backend/harness_workspace/CLAUDE.md`
 - [ ] 011-I13 · La skill `personalizacion-natural` (entrega tardía, carril W)
 - [ ] 011-I14 · Los prompts del writer (`write`, `rewrite`) y del editor (entrega tardía, carril W)
 - [ ] 011-C32 · Una producción real con el login de Claude Code llega al gate y se reanuda (D, al final)
