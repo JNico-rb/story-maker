@@ -36,7 +36,15 @@ function Cover({ view }: { view: VersionDetail["view"] }) {
   );
 }
 
-function Index({ chapters }: { chapters: VersionDetail["view"]["chapters"] }) {
+function Index({
+  chapters,
+  changedChapters,
+  version,
+}: {
+  chapters: VersionDetail["view"]["chapters"];
+  changedChapters: number[];
+  version: number;
+}) {
   return (
     <nav aria-label="Índice" className="mb-10">
       <ol className="space-y-1">
@@ -44,11 +52,28 @@ function Index({ chapters }: { chapters: VersionDetail["view"]["chapters"] }) {
           <li key={chapter.number}>
             <a href={`#capitulo-${chapter.number}`}>
               Capítulo {chapter.number}: {chapter.title}
+              {changedChapters.includes(chapter.number) && ` — cambiado en v${version}`}
             </a>
           </li>
         ))}
       </ol>
     </nav>
+  );
+}
+
+function News({ changedChapters }: { changedChapters: number[] }) {
+  if (changedChapters.length === 0) return null;
+  return (
+    <section aria-label="Novedades" className="mb-10">
+      <h3 className="font-reading text-xl font-semibold text-secondary">Novedades</h3>
+      <ul className="space-y-1">
+        {changedChapters.map((number) => (
+          <li key={number}>
+            <a href={`#capitulo-${number}`}>Capítulo {number}</a>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
@@ -68,7 +93,8 @@ function VersionContent({ novelId, version }: { novelId: string; version: number
   return (
     <>
       <Cover view={view} />
-      <Index chapters={view.chapters} />
+      <News changedChapters={view.changed_chapters} />
+      <Index chapters={view.chapters} changedChapters={view.changed_chapters} version={version} />
       {view.chapters.map((chapter) => (
         <Chapter key={chapter.number} chapter={chapter} />
       ))}

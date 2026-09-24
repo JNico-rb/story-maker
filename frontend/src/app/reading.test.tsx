@@ -136,4 +136,25 @@ describe("026 lectura", () => {
 
     expect(screen.queryByText(/cambiado en v/i)).not.toBeInTheDocument();
   });
+
+  it("026-C04: the news page links to the changed chapters and the index marks them", async () => {
+    fakeApi({
+      [`GET ${BASE}`]: () => json(200, { versions: LIST.versions }),
+      [`GET ${BASE}/2`]: () => json(200, detail(2)),
+    });
+    renderReading();
+
+    const news = await screen.findByRole("region", { name: "Novedades" });
+    const newsLinks = within(news).getAllByRole("link");
+    expect(newsLinks).toHaveLength(2);
+    expect(newsLinks[0]).toHaveAttribute("href", "#capitulo-3");
+    expect(newsLinks[1]).toHaveAttribute("href", "#capitulo-7");
+
+    const index = screen.getByRole("navigation", { name: "Índice" });
+    const indexLinks = within(index).getAllByRole("link");
+    const markedLinks = indexLinks.filter((link) => /cambiado en v2/.test(link.textContent ?? ""));
+    expect(markedLinks).toHaveLength(2);
+    expect(within(index).getByRole("link", { name: /Título 3 v2.*cambiado en v2/s })).toBeInTheDocument();
+    expect(within(index).getByRole("link", { name: /Título 7 v2.*cambiado en v2/s })).toBeInTheDocument();
+  });
 });
