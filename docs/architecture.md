@@ -1524,3 +1524,4 @@ Registro de trade-offs: cada fila da opciones, criterio y elección. Reabrir una
 | Qué reciben las escrituras del store (009) | Objetos del ORM · identificadores | Un objeto desligado de la sesión no guardaba nada y no avisaba | Identificadores |
 | Datos de beats y elementos asignados al copiar una versión (009) | Traducir ids dentro del JSON · copiarlo tal cual | Lo más simple | Se copia tal cual; la 010 no mete ids de fila en él |
 | Edge para imprimir PDF (013) | Chromium de Playwright · el Edge instalado | Sin descargar navegadores en el portátil; probado con Playwright 1.63 | Canal `msedge` en Windows; Chromium por defecto en la CI |
+| Dónde va `story-maker example` (013 → 020) | En la lectura (013) · con las evals (020) | `example` recorre el pipeline entero (008, 010, 011, 012); en 013 bloqueaba una spec de la que dependen 015, 017 y 026 | En la 020, junto a `evals run`: 020-C15 (T) y 020-C16 (D) |

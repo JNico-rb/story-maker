@@ -17,7 +17,7 @@ Medir el sistema sobre cinco briefs fijos y dejar la evidencia en el repo: `stor
 
 - Importar y validar un brief, comprobaciones C1–C6 y extracción de hechos → 008-brief-y-entrevista (esta spec las usa).
 - Producir, validar y publicar → 011-produccion-de-capitulos, 012-gate-de-publicacion. Scores en Langfuse y `prompts push` → 004-observabilidad.
-- Cambio del lector → 014-cambios-del-lector (aquí solo se usa en la demo §4.2 f). `story-maker example` y `ejemplos/novela-ejemplo.pdf` → 013-lectura-y-pdf.
+- Cambio del lector → 014-cambios-del-lector (aquí solo se usa en la demo §4.2 f). La `VistaDeVersion`, el PDF, `pdf-enlaces` y `export-pdf` → 013-lectura-y-pdf.
 - Auditoría de seguridad y red-team D → 021-auditoria-de-seguridad.
 
 ## Comportamiento observable
@@ -77,7 +77,18 @@ Las filas son los validadores de `verification.md` §4.2 (a), en ese orden; las 
 - **Entrada:** `evals table` sobre una base sin novelas de evals.
 - **Salida:** código distinto de 0 y un mensaje que pide correr `evals run`; no se escribe ninguna tabla.
 
+### `example` (movido desde 013)
+
+#### 020-C15 — `example` produce la novela y su PDF (T)
+- **Entrada:** `story-maker example ejemplos/briefs/ejemplo.json --email <cliente registrado>`, con el doble determinista del puerto de agente.
+- **Salida:** una novela nueva, propiedad del cliente de `--email`, con una versión publicada y su PDF guardado en la ruta que recibe la orden.
+
 ### Demostraciones (con modelo real, al final)
+
+#### 020-C16 — La novela de ejemplo real (D)
+- **Entrada:** `story-maker example` sobre el brief del README, con el modelo real.
+- **Salida:** `ejemplos/novela-ejemplo.pdf`, con 10 capítulos, pasa `pdf-enlaces`. Es el fichero que se commitea.
+
 
 #### 020-C10 — Cinco briefs reales llenan (a) y (b) (D)
 `evals run` con el login de Claude Code y `evals table` pegada en `verification.md` §4.2 (a) y (b), con números.

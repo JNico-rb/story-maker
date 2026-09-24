@@ -49,12 +49,12 @@ A spec touches only its modules and their `tests/<module>/`. In a shared module 
 | 010 planificacion | G | `pipeline/` (planning), `validators/` (`outline`), `domain/` (trope catalog, plan and outline constants), planner prompt |
 | 011 produccion-de-capitulos | A | `pipeline/` (queue, worker, production, resume), `validators/` (chapter), `harness_workspace/` (product `CLAUDE.md`, skill, writer and editor prompts), `api/` (runs), `cli.py` (`resume`) |
 | 012 gate-de-publicacion | A | `pipeline/` (gate, publication), `validators/` (novel, judge), `domain/` (novel rubric; uses the trope catalog of 010), judge prompt |
-| 013 lectura-y-pdf | D | `render/`, `api/` (versions, PDF, `/view`), `cli.py` (`example`, `export-pdf`), `ejemplos/novela-ejemplo.pdf` |
+| 013 lectura-y-pdf | D | `render/`, `api/` (versions, PDF, `/view`), `cli.py` (`export-pdf`) |
 | 014 cambios-del-lector | A | `pipeline/` (changes), `api/` (change requests), planner change-mode prompt |
 | 015 servidor-mcp | A | `api/` (MCP server) |
 | 016 recuperacion-hibrida | H | `retrieval/` |
 | 017 revision-visual | B | `validators/` (visual review), visual reviewer prompt |
 | 018 linters-de-prosa | F | `lint/`, `api/` (chapter lint) |
 | 019 edicion-manual | C | `pipeline/` (manual edit), `api/` (chapter save) |
-| 020 evals | D | `cli.py` (`evals run\|table`), `ejemplos/briefs/` |
+| 020 evals | D | `cli.py` (`evals run\|table`, `example`), `ejemplos/briefs/`, `ejemplos/novela-ejemplo.pdf` |
 | 021 auditoria-de-seguridad | A | `docs/security-report.md` via the `seguridad` subagent; fixes go to the owning lane |

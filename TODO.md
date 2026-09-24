@@ -618,7 +618,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 
 ## 013 — lectura-y-pdf
 
-- [x] Spec `specs/backend/013-lectura-y-pdf.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Spec `specs/backend/013-lectura-y-pdf.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; `example` (C16, C19) movido a 020
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
@@ -908,8 +908,8 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 
 ## 020 — evals
 
-- [x] Spec `specs/backend/020-evals.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
-- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Spec `specs/backend/020-evals.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; recibe `example` desde 013 (C15, C16)
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; pasos C15 y C16 añadidos
 
 ### Steps
 - [ ] 020-C01 · Los cinco briefs del repositorio son válidos
@@ -923,11 +923,13 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [ ] 020-C09 · Sin ejecuciones de evals, la tabla lo dice
 - [ ] 020-I1 · Ninguna prueba de esta spec llama a un modelo ni a Langfuse
 - [ ] 020-I2 · `evals table` es determinista
+- [ ] 020-C15 · `example` produce la novela y su PDF (movido desde 013)
 - [ ] 020-C10 · Cinco briefs reales llenan (a) y (b) (D, al final)
 - [ ] 020-C11 · Una iteración de tuning con antes y después (D, al final)
 - [ ] 020-C12 · Juez frente a revisión humana (D, al final)
 - [ ] 020-C13 · El caso que solo detecta Lean (D, al final)
 - [ ] 020-C14 · Un cambio del lector propagado y su coste (D, al final)
+- [ ] 020-C16 · La novela de ejemplo real (D, al final)
 
 ### Closing
 - [ ] Full suite green, type checks clean

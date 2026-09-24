@@ -13,7 +13,7 @@ Renderizar una versión (candidata o publicada) como `VistaDeVersion` y como PDF
 - **PDF**: generado desde la `VistaDeVersion` con Playwright sobre el Edge instalado; guardado por versión en el directorio de datos; servido tal cual por `GET /api/novels/{id}/versions/{v}/pdf`.
 - **`pdf-enlaces`**: comprueba con `pypdf` que el PDF tiene los 10 capítulos y que los enlaces internos del índice, de la página de novedades y de la ficha resuelven a un ancla existente.
 - **API de lectura**: `GET /api/novels/{id}/versions` (historial publicado con sus capítulos cambiados) y `GET /api/novels/{id}/versions/{v}` (detalle de una versión publicada: portada, índice, capítulos y ficha, para la SPA).
-- **CLI**: `example <brief.json>` (brief → novela → PDF, con `--email` de un cliente ya registrado como propietario, deja el PDF en la ruta que recibe) y `export-pdf <novela> <v>` (regenera y guarda el PDF de una versión ya publicada). `ejemplos/novela-ejemplo.pdf` es el resultado commiteado de `example` sobre el brief del README.
+- **CLI**: `export-pdf <novela> <v>` (regenera y guarda el PDF de una versión ya publicada). `example` y `ejemplos/novela-ejemplo.pdf` → 020-evals: necesitan el pipeline completo (decisión del integrador, 2026-09-24).
 
 ## Fuera de alcance
 
@@ -115,9 +115,7 @@ Con B, un cliente que no posee N:
 
 ### CLI
 
-#### 013-C16 — `example` produce la novela y su PDF (T)
-- **Entrada:** `story-maker example ejemplos/briefs/ejemplo.json --email <cliente registrado>`, con el doble determinista del puerto de agente.
-- **Salida:** una novela nueva, propiedad del cliente de `--email`, con una versión publicada y su PDF guardado en la ruta que recibe la orden.
+#### 013-C16 — (movido a 020-C15: `example` necesita el pipeline completo)
 
 #### 013-C17 — `export-pdf` regenera el PDF de una versión publicada (T)
 - **Entrada:** `story-maker export-pdf <novela> 1`, con la versión 1 ya publicada y su PDF existente.
@@ -127,9 +125,7 @@ Con B, un cliente que no posee N:
 - **Entrada:** `export-pdf` con una novela inexistente, o con una versión sin publicar.
 - **Salida:** error con el motivo, y ningún fichero se escribe ni se sobrescribe.
 
-#### 013-C19 — La novela de ejemplo real (D, al final)
-- **Entrada:** `story-maker example` sobre el brief del README, con el modelo real.
-- **Salida:** `ejemplos/novela-ejemplo.pdf`, con 10 capítulos, pasa `pdf-enlaces`. Es el fichero que se commitea.
+#### 013-C19 — (movido a 020-C16)
 
 ## Invariantes
 
@@ -138,7 +134,7 @@ Con B, un cliente que no posee N:
 | 013-I1 | Todo enlace interno del PDF y de la `VistaDeVersion` (índice, novedades, ficha) resuelve a un ancla que existe en el mismo documento | T | 013-C01, 013-C02, 013-C09, 013-C10 |
 | 013-I2 | El token de vista solo vale para la versión a la que se emitió, nunca como `TokenDeAcceso`, y caduca con `operation.session_timeout_seconds` | T | 013-C06, 013-C07 |
 | 013-I3 | La `VistaDeVersion` y el detalle de la API de una versión no muestran nada de otra versión ni de otra novela | T | 013-C05, 013-C14, 013-C15 |
-| 013-I4 | El backend solo escribe el PDF de una versión en `STORY_MAKER_DATA_DIR`; la única excepción es `example`, que lo escribe en la ruta que recibe | T | 013-C11, 013-C16. Refuerzo de `verification.md` §12.6 |
+| 013-I4 | El backend solo escribe el PDF de una versión en `STORY_MAKER_DATA_DIR`; la única excepción es `example` (020), que lo escribe en la ruta que recibe | T | 013-C11; la excepción, en 020-C15. Refuerzo de `verification.md` §12.6 |
 | 013-I5 | Con los mismos datos de versión, la `VistaDeVersion` y el PDF que produce son iguales | T | Genera dos veces la vista de V1 y compara el HTML; genera dos veces su PDF y compara el resultado de `pdf-enlaces` y el número de capítulos |
 
 ## Scores y trazas
