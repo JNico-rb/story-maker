@@ -20,7 +20,7 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 - Parada: una spec que falla 2 veces con opus para su carril y se avisa al usuario.
 - Lean no corre en el portátil. La CI corre también en `carril-*`: `git push --force-with-lease origin carril-<x>` (nunca en V2) y leer la CI con la API pública de GitHub. `gh` no está instalado.
 
-**Integradas en V2:** 000 (D al final), 001, 002, 003, 004, 005, 006, 007, 009, 013, 016 (cerrada recortada) y 022 (frontend).
+**Integradas en V2:** 000 (D al final), 001, 002, 003, 004, 005, 006, 007, 009, 010, 013, 016 (cerrada recortada) y 022 (frontend).
 
 ### Alcance (usuario, 2026-09-24)
 
@@ -32,8 +32,15 @@ MVP = lo estrictamente obligatorio del enunciado + la primera novela real. Prior
 - **Cierre de una spec:** bastan sus casos C y los invariantes I que mapean a TLA+ (ReanudacionSinDuplicarNiPerder, ReintentosAcotados, VersionAnteriorConservada, atomicidad) o que protegen un validador; el resto se marca «(recortado)» y no bloquea.
 - **Pasos D del lote final:** 020-C16 y 004-C14 (hito primera novela); después 000-C15, 000-C16 (Playwright MCP en Edge sobre `/view/versions/{id}?token=…`, registrado en `docs/verification.md` §9.3), 020-C10, C11, C12, C13 y C14. El resto de pasos D queda sin marcar.
 
+**Relevo (2026-09-24 ~18:15, orquestador story-maker-e3; paró por orden del usuario):**
+- **Hecho del recorte:** alcance escrito aquí (reescrito después como «recorte MVP»); regla de cierre con «(recortado)» en `AGENTS.md` y `.claude/agents/verificador.md`; 016 cerrada recortada e integrada (be4c89a, 867 passed); **010 cerrada e integrada** (bc30f38, 954 passed, ruff y mypy limpios; I1 e I2 recortados); 029-cli con spec y plan aprobados (1c7af1c: `docs/architecture.md` §15.8 y §18, `specs/backend/029-cli.md`, fila en `backend/AGENTS.md`).
+- **Ningún agente en marcha.** Nada integrado a medias.
+- **B (`../sm-b`, 008):** 27/38; árbol limpio, rebasada sobre V2 anterior a 010 (18 detrás). Quedan C28–C31, I1, I2, I3, I5; I4 recortado; C32–C33 D. `NOMINAL_ATTRIBUTES` sigue en `store/brief_canon.py`. Siguiente: implementador nuevo (sonnet) → verificador → integrar.
+- **A (`../sm-a`, 011, opus):** 17/43, agente cortado al cerrarse la sesión. **Sin commitear:** `api/runs.py`, `pipeline/queue.py`, `tests/api/test_runs.py`, `tests/pipeline/test_queue.py` (nuevo): paso a medias de C02–C04 (cola); el implementador nuevo los usa si están bien o los descarta. 17 detrás de V2: con árbol limpio, `git rebase V2` (ya tiene 010 y 016) y seguir con C05/C07/C08/C23. Recortados en su bloque: I1, I5, I7, I9, I10, I11.
+- **G (010) y H (016):** cerrados; sus worktrees ya no tienen trabajo.
+
 **Siguiente (orden N1):**
-1. En paralelo: cerrar 010 (G) y 008 (B). *(016/H: hecho, cerrado recortado.)*
+1. En paralelo: cerrar 008 (B). *(016/H y 010/G: hechos, integrados.)*
 2. 011 (A).
 3. 012 (A), sin la etapa visual.
 4. 020-C15 (`example`).
@@ -56,12 +63,12 @@ MVP = lo estrictamente obligatorio del enunciado + la primera novela real. Prior
 | Carril | Specs en orden | Depende de (fuera del carril) | Worktree | Rama | Estado |
 |---|---|---|---|---|---|
 | 0 — scaffolding (integrador) | 000 | — | checkout principal | `V2` | cerrada (D al final) |
-| A — ruta crítica | 001 → 002 → 009 → 011 → 012 → 014 → 029 (015 y 021 fuera) | 003, 004 (010) · 010 (011) · 005, 006 (011) · 007 (012) · 008, 013 (015) | `../sm-a` | `carril-a` | 001, 002 y 009 integradas; 011 espera 010 |
-| B — agentes y entrada | 003 → 008 → 017 | 001 (003) · 002, 004, 005 (008) · 012, 013 (017) | `../sm-b` | `carril-b` | 003 integrada; 008 en curso |
+| A — ruta crítica | 001 → 002 → 009 → 011 → 012 → 014 → 029 (015 y 021 fuera) | 003, 004 (010) · 010 (011) · 005, 006 (011) · 007 (012) · 008, 013 (015) | `../sm-a` | `carril-a` | 001, 002 y 009 integradas; 011 en curso, 17/43 (desbloqueada: 010 y 016 en V2) |
+| B — agentes y entrada | 003 → 008 → 017 | 001 (003) · 002, 004, 005 (008) · 012, 013 (017) | `../sm-b` | `carril-b` | 003 integrada; 008 en curso, 27/38 |
 | C — formal y edición | 005 → 007 → 019 | 001 (005 parcial) · 009 (007 parcial) · 012, 018 (019) | `../sm-c` | `carril-c` | 005 y 007 integradas; 019 espera 012 y 018 |
 | D — formal y lectura | 006 → 004 → 013 → 020 | 001 (004) · 009 (013 parcial) · 012 (020) | `../sm-d` | `carril-d` | 006, 004 y 013 integradas; siguiente, 020 parcial |
 | F — linters de prosa | 018 | 011 (018 parcial: C18–C23) | `../sm-f` | `carril-f` | congelado (recorte): 19 pasos de linters puros hechos; C18–C23 en N2 |
-| G — planificación | 010 | 003, 004 · 009 (010 parcial: aplicar el plan a la story bible) | `../sm-g` | `carril-g` | 010 en curso (lo que no usa la 009) |
+| G — planificación | 010 | 003, 004 · 009 (010 parcial: aplicar el plan a la story bible) | `../sm-g` | `carril-g` | cerrado (010 integrada; I1 e I2 recortados) |
 | H — recuperación | 016 | 009 (016 parcial: tarjetas desde la story bible) | `../sm-h` | `carril-h` | cerrado recortado (016 integrada; I3–I5, I7, I8 recortados) |
 | E — frontend | 022 → 023 → 024 → 025 → 026 → 027 → 028 (`specs/frontend/`) | las de backend de la tabla de specs, cerradas en V2 | `../sm-e` | `carril-e` | congelado (recorte) |
 
