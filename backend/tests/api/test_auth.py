@@ -264,3 +264,27 @@ def test_valid_login_returns_a_jwt_with_exactly_the_specified_claims(
         "aud": "access_token",
         "iss": "story-maker",
     }
+
+
+def test_login_email_is_case_insensitive(client: TestClient) -> None:
+    register = client.post(
+        "/api/auth/register",
+        json={"email": "cliente-a@example.com", "password": "contraseña-1"},
+    )
+    user_id = register.json()["id"]
+
+    response = client.post(
+        "/api/auth/login",
+        json={"email": "CLIENTE-A@EXAMPLE.COM ", "password": "contraseña-1"},
+    )
+
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    payload = jwt.decode(
+        token,
+        JWT_SECRET,
+        algorithms=["HS256"],
+        audience="access_token",
+        issuer="story-maker",
+    )
+    assert payload["sub"] == str(user_id)
