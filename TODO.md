@@ -596,7 +596,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] 012-C1 · La candidata entra al gate con sus 10 capítulos aceptados
 - [x] 012-C2 · Una pasada limpia recorre las cuatro etapas en orden y publica
 - [x] 012-C3 · Un elemento obligatorio sin uso se atribuye a los capítulos que el outline le asignó
-- [ ] 012-C4 · Un nombre no canónico en un capítulo se atribuye a ese capítulo — necesita la regla de variantes de 011 (fuera de alcance de la spec 012, no en V2 todavía)
+- [x] 012-C4 · Un nombre no canónico en un capítulo se atribuye a ese capítulo — necesita la regla de variantes de 011 (fuera de alcance de la spec 012, no en V2 todavía)
 - [x] 012-C5 · Una prohibida en un capítulo se atribuye a ese capítulo
 - [ ] 012-C6 · Una prohibida en la portada o en la ficha hace fallar la ejecución (recortado)
 - [ ] 012-C7 · Una etapa que falla corta la pasada
