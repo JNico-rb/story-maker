@@ -294,6 +294,42 @@ describe("027 cambio del lector", () => {
     expect(screen.queryByRole("button", { name: "Confirmar" })).not.toBeInTheDocument();
   });
 
+  it("027-C14: a server failure while confirming keeps the proposal visible and offers a retry", async () => {
+    const user = userEvent.setup();
+    let attempt = 0;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL) => {
+        if (String(input).includes("/confirm")) {
+          attempt += 1;
+          if (attempt === 1) return new Response(null, { status: 500 });
+          return json(202, { run_id: "run-1" });
+        }
+        return json(201, {
+          id: "req-1",
+          proposal: { fact: "Nombre del perro", old_value: "Toby", new_value: "Nala" },
+          affected_chapters: [2, 5, 7],
+          code: "SECRETO-123",
+          expires_at: "2026-09-25T12:00:00Z",
+        });
+      }),
+    );
+    const onConfirmed = vi.fn();
+    renderPanel(() => undefined, onConfirmed);
+
+    await sendRequest(user);
+    await user.click(screen.getByRole("button", { name: "Confirmar" }));
+
+    expect(await screen.findByText(/no se pudo (confirmar|completar)/i)).toBeInTheDocument();
+    expect(screen.getByText(/Nombre del perro/)).toBeInTheDocument();
+    const affected = screen.getByRole("list", { name: "Capítulos afectados" });
+    expect(within(affected).getAllByRole("listitem")).toHaveLength(3);
+
+    await user.click(screen.getByRole("button", { name: "Confirmar" }));
+
+    await vi.waitFor(() => expect(onConfirmed).toHaveBeenCalledWith("run-1"));
+  });
+
   it("027-C08: sending disables the action while it is in progress", async () => {
     const user = userEvent.setup();
     let resolveResponse: (response: Response) => void = () => undefined;

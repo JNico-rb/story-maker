@@ -16,6 +16,7 @@ type ProposalState = {
   created: ChangeRequestCreated;
   confirming: boolean;
   expired: boolean;
+  confirmError?: string;
 };
 type State = FormState | ProposalState;
 
@@ -59,7 +60,7 @@ export function ChangeRequestPanel({
 
     async function handleConfirm() {
       if (state.step !== "proposal" || state.confirming || state.expired) return;
-      setState({ ...state, confirming: true });
+      setState({ ...state, confirming: true, confirmError: undefined });
       const response = await confirmChange(created.id, created.code);
       // Un 409 al confirmar es siempre la propuesta ya caducada en el servidor
       // (specs/backend/014-cambios-del-lector.md, alcance): misma pantalla que 027-C12.
@@ -67,8 +68,13 @@ export function ChangeRequestPanel({
         setState((s) => (s.step === "proposal" ? { ...s, confirming: false, expired: true } : s));
         return;
       }
-      const { run_id } = (await response.json()) as { run_id: string };
-      onConfirmed(run_id);
+      if (response.status === 202) {
+        const { run_id } = (await response.json()) as { run_id: string };
+        onConfirmed(run_id);
+        return;
+      }
+      const message = await errorMessage(response);
+      setState((s) => (s.step === "proposal" ? { ...s, confirming: false, confirmError: message } : s));
     }
 
     return (
@@ -90,6 +96,7 @@ export function ChangeRequestPanel({
             Confirmar
           </button>
         )}
+        {state.confirmError && <p role="alert">{state.confirmError}</p>}
         <button type="button" disabled={state.confirming} onClick={onDiscard}>
           Descartar
         </button>
