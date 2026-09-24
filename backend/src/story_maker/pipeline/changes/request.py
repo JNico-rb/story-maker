@@ -23,7 +23,7 @@ from story_maker.agents.port import AgentPort, SessionRequest
 from story_maker.config import Config
 from story_maker.observability.port import ObservabilityPort
 from story_maker.pipeline.changes.affected import affected_chapters
-from story_maker.pipeline.changes.policy import judge_text
+from story_maker.pipeline.changes.policy import BANNED_TERMS, judge_text
 from story_maker.pipeline.changes.proposal import ProposeChangeInput, propose_change_tool
 from story_maker.pipeline.changes.selection import (
     FactSelection,
@@ -88,15 +88,20 @@ async def request_change(
 
     trace_key = f"{TRACE_NAME}:{novel_id}:{uuid.uuid4().hex}"
     with telemetry.trace(trace_key, name=TRACE_NAME, session=str(novel_id)) as trace:
-        judge_text(
+        decision = judge_text(
             session_factory,
             telemetry,
             trace,
             user_id=user_id,
             novel_id=novel_id,
-            path="request",
+            location="request",
             text=request,
         )
+        if decision.decision == "deny":
+            _save_rejected(session_factory, novel_id, base.id, selection, request, now)
+            detail = {"reason": BANNED_TERMS, **(decision.detail or [{}])[0]}
+            detail.pop("location", None)
+            return RequestFailure(422, detail)
         session_request = SessionRequest(
             role=ROLE,
             mode=MODE,
@@ -117,7 +122,7 @@ async def request_change(
                 trace,
                 user_id=user_id,
                 novel_id=novel_id,
-                path="changes[].new_value",
+                location="tool_field",
                 text=change.new_value,
             )
         out_proposal = {
@@ -162,6 +167,28 @@ async def request_change(
         )
         request_id = row.id
     return ProposalOut(request_id, out_proposal, affected, code)
+
+
+def _save_rejected(
+    session_factory: sessionmaker[Session],
+    novel_id: int,
+    base_id: int,
+    selection: FactSelection | FragmentSelection,
+    request: str,
+    now: dt.datetime,
+) -> None:
+    with unit_of_work(session_factory) as uow:
+        uow.add(
+            ChangeRequest(
+                novel_id=novel_id,
+                base_version_id=base_id,
+                selection_type=selection.type,
+                selection=selection.model_dump(),
+                request=request,
+                status="rejected",
+                created_at=naive(now),
+            )
+        )
 
 
 def _message(selection: FactSelection | FragmentSelection, request: str, bible: StoryBible) -> str:
