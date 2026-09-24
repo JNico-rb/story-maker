@@ -1,4 +1,4 @@
-"""Registro y acceso (002-C01 a 002-C10)."""
+"""Registro y acceso (002-C01 a 002-C10, 002-I1)."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ import bcrypt
 import jwt
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import text
 from sqlalchemy.orm import Session, sessionmaker
 
 from story_maker.api.app import create_app
@@ -336,3 +337,36 @@ def test_login_with_an_incomplete_body_is_rejected(
     response = client.post("/api/auth/login", json=body)
 
     assert response.status_code == 422
+
+
+def test_the_password_never_appears_in_the_database_or_in_any_response(tmp_path: Path) -> None:
+    db_path = tmp_path / "story-maker.db"
+    engine = make_engine(db_path)
+    create_schema(engine)
+    factory = make_session_factory(engine)
+    app = create_app(session_factory=factory, jwt_secret=JWT_SECRET)
+    local_client = TestClient(app)
+    password = "no-debe-verse-nunca"
+
+    register = local_client.post(
+        "/api/auth/register",
+        json={"email": "cliente-a@example.com", "password": password},
+    )
+    login = local_client.post(
+        "/api/auth/login", json={"email": "cliente-a@example.com", "password": password}
+    )
+    wrong_login = local_client.post(
+        "/api/auth/login", json={"email": "cliente-a@example.com", "password": "otra-cosa"}
+    )
+
+    assert register.status_code == 201
+    assert login.status_code == 200
+    for response in (register, login, wrong_login):
+        assert password not in response.text
+
+    with engine.begin() as connection:
+        connection.execute(text("PRAGMA wal_checkpoint(TRUNCATE)"))
+    engine.dispose()
+
+    raw = db_path.read_bytes()
+    assert password.encode("utf-8") not in raw
