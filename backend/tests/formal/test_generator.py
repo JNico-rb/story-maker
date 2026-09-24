@@ -8,8 +8,15 @@ import re
 from dataclasses import dataclass, replace
 
 import pytest
+from hypothesis import given, settings
+from hypothesis import strategies as st
 
-from story_maker.formal.chronology import Chronology, ChronologyEvent, Presence
+from story_maker.formal.chronology import (
+    Chronology,
+    ChronologyCharacter,
+    ChronologyEvent,
+    Presence,
+)
 from story_maker.formal.generator import generate_chronology_file
 
 # --- Lectura del fichero generado, solo para las pruebas -------------------------------------
@@ -348,3 +355,51 @@ def test_the_29th_of_february_and_the_ages_survive_the_shift(
     assert [
         completed_years((1936, 2, 29), m) for m in ((2026, 2, 28), (2026, 3, 1), (2028, 2, 29))
     ] == [89, 90, 92]
+
+
+# --- Cronologías generadas (007-I3, 007-I4) --------------------------------------------------
+
+LEAP_BIRTHS = st.sampled_from([dt.date(1936, 2, 29), dt.date(2000, 2, 29), dt.date(1904, 2, 29)])
+BIRTHS = st.none() | LEAP_BIRTHS | st.dates(dt.date(1900, 1, 1), dt.date(2026, 12, 31))
+MOMENTS = st.datetimes(dt.datetime(1900, 1, 1), dt.datetime(2030, 12, 31, 23, 59)).map(
+    lambda m: m.replace(second=0, microsecond=0)
+)
+
+
+@st.composite
+def chronologies(draw: st.DrawFn) -> Chronology:
+    character_ids = draw(st.lists(st.integers(1, 500), unique=True, min_size=1, max_size=6))
+    characters = tuple(ChronologyCharacter(c, draw(BIRTHS)) for c in character_ids)
+    events = []
+    for event_id in draw(st.lists(st.integers(1, 5000), unique=True, max_size=10)):
+        present = draw(st.lists(st.sampled_from(character_ids), unique=True, max_size=3))
+        exclusion = draw(st.booleans())
+        chapter = draw(st.none() | st.integers(1, 10))
+        events.append(
+            ChronologyEvent(
+                id=event_id,
+                moment=draw(MOMENTS),
+                place_id=draw(st.integers(1, 300)),
+                presences=tuple(
+                    Presence(c, draw(st.none() | st.integers(0, 120))) for c in present
+                ),
+                type="exclusion" if exclusion else "ordinary",
+                excluded_character_id=draw(st.sampled_from(character_ids)) if exclusion else None,
+                analepsis=draw(st.booleans()),
+                origin=draw(st.sampled_from(["brief", "planned", "recorded"])),
+                chapter=chapter,
+                beat=draw(st.integers(1, 6)) if chapter is not None else None,
+            )
+        )
+    novum = draw(st.dates(dt.date(1950, 1, 1), dt.date(2025, 12, 31)))
+    return Chronology(events=tuple(events), characters=characters, novum_date=novum)
+
+
+@settings(max_examples=200)
+@given(chronology=chronologies(), k=st.none() | st.integers(1, 10))
+def test_the_file_never_carries_personal_data_only_ids_dates_numbers_and_yes_no(
+    chronology: Chronology, k: int | None
+) -> None:
+    source = generate_chronology_file(chronology, k=k)
+
+    assert words(source) <= TEMPLATE_WORDS

@@ -359,7 +359,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [ ] 007-C23 · Cada comprobador decide su invariante para cualquier cronología (necesita CI)
 - [ ] 007-C24 · La auditoría de axiomas no pasa en vacío (necesita CI)
 - [x] 007-I2 · Solo es `passed` lo que compila, pasa la auditoría y cumple los cinco invariantes
-- [ ] 007-I3 · El `FicheroDeCronologia` no lleva datos personales
+- [x] 007-I3 · El `FicheroDeCronologia` no lleva datos personales
 - [ ] 007-I4 · La seudonimización no cambia el resultado de ningún comprobador
 - [ ] 007-I6 · El fichero solo contiene filas de la versión que se verifica
 - [ ] 007-I7 · El verificador solo escribe en `STORY_MAKER_DATA_DIR`
