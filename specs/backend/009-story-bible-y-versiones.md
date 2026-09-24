@@ -11,10 +11,11 @@ Del encargo cubre «story bible en SQLite» (el canon del brief escrito por cód
 ## Alcance
 
 - **Canon del brief** (`architecture.md` §4.1): lo que el código escribe en la candidata de generación a partir del brief confirmado, con el fechado de `domain-knowledge.md` §5.2 y el vocabulario de atributos de los hechos del brief (`definitions.md` §2 Hecho, §11.2): `nombre` (nominal), `rasgo`, `recuerdo` y `relación`. Los identificadores en inglés se fijan en el plan, según `definitions.md` §12.
-- **Copia de versión** (§9.3, §6.4): la candidata de un cambio o de una edición copia en una transacción todas las tablas de ámbito versión de su base (§15.6), con el canal léxico de las CanonCards, y comparte sus vectores.
+- **Copia de versión** (§9.3, §6.4): la candidata de un cambio o de una edición copia en una transacción todas las tablas de ámbito versión de su base (§15.6), con el canal léxico de las CanonCards, y comparte sus vectores. Cada fila copiada nace con un identificador propio, nunca el que tenía en la base (`architecture.md` §18 «Identidad de una entidad de ámbito versión al copiar una versión»): la copia traduce toda referencia interna al identificador nuevo, y entrega la traducción completa para quien deba interpretar en la candidata una selección hecha sobre la base.
 - **Cambio del valor de un hecho** en una candidata. Si el hecho es un hecho de nombre, cambia también el nombre canónico de su personaje (`definitions.md` §2 Personaje).
 - **Estados de la `Version`**: candidata → publicada | descartada. Número al publicar, capítulos cambiados, fecha de publicación y ruta del PDF; la versión vigente; solo una candidata admite escrituras.
 - **Lecturas**: la story bible de una versión, con los capítulos que usan cada hecho, y su cronología registrada (§4.5), que lee 007-validador-lean. `GET /api/novels/{id}/story-bible?version={v}` (§15.7).
+- **Adaptador de persistencia para 007-validador-lean**: la escritura de la fila de `chronology_files` (huella del fichero, resultado y detalle) que registra si una verificación formal pasó, falló o dio error. El comportamiento completo — cuándo se escribe, con qué contenido y que sin veredicto no hay fila — lo fija y lo prueba 007-validador-lean (007-C09 a 007-C12, 007-I12); esta spec solo hace nacer la escritura que 007 usa (`TODO.md`, aviso «009 ofrece… la escritura de `chronology_files`»).
 
 ## Fuera de alcance
 
@@ -25,7 +26,7 @@ Del encargo cubre «story bible en SQLite» (el canon del brief escrito por cód
 - Contenido, texto e incrustación de las CanonCards, recuperación y reconstrucción de las tarjetas de una entidad cuyo hecho cambia → 016-recuperacion-hibrida. Esta spec solo las copia.
 - Validar una propuesta, añadir un hecho nuevo (y decidir su origen) y calcular los capítulos afectados → 014-cambios-del-lector. Los hechos cambiados de una edición manual → 019-edicion-manual. Las dos usan 009-C15 y 009-C16.
 - Cuándo se publica y la transacción que envuelve la publicación (gate superado, PDF generado, solicitud o edición `applied`, scores) → 012-gate-de-publicacion. Cuándo se descarta (la ejecución termina `failed`) → 011-produccion-de-capitulos.
-- `FicheroDeCronologia` y su verificación → 007-validador-lean. Ficha, `VistaDeVersion`, lista de versiones y PDF → 013-lectura-y-pdf. `query_story_bible` → 015-servidor-mcp.
+- `FicheroDeCronologia`, su generación y su verificación (los dos modos del `VerificadorFormal` y cuándo se llama) → 007-validador-lean; de esta spec solo nace la escritura de `chronology_files` que 007 usa. Ficha, `VistaDeVersion`, lista de versiones y PDF → 013-lectura-y-pdf. `query_story_bible` → 015-servidor-mcp.
 - El mecanismo de 401 y de 404 para lo ajeno → 002-autenticacion. Schema, comprobaciones y confirmación del brief, extracción y aceptación de hechos → 008-brief-y-entrevista.
 - Lo que no es story bible: la relación del destinatario con el cliente, la ocasión, el género, el tono, la extensión, la dedicatoria, los deseos de trama y las listas prohibidas. El planner los lee del brief (010).
 
@@ -147,15 +148,16 @@ Todos los casos son **T**: una prueba con estos datos decide sola, sin modelo ni
 
 ### Copia de versión
 
-#### 009-C11 — La copia reproduce la base entera y conserva la identidad (T)
+#### 009-C11 — La copia reproduce la base entera con identificadores nuevos (T)
 - **Dado** N1 con V1
 - **Cuando** se crea una candidata K copiando v1
 - **Entonces**:
   - K es candidata, con v1 como versión base, sin número, sin capítulos cambiados ni PDF;
   - cada tabla de ámbito versión tiene en K las mismas filas que en v1, salvo la versión: mundo, personajes, lugares, hechos, `UsoDeHecho`, eventos de los tres orígenes y sus presentes, capítulos del outline, StyleSheet, capítulos, CanonCards y su canal léxico;
-  - cada personaje, lugar, hecho y evento conserva en K el identificador que tenía en v1;
+  - cada personaje, lugar, hecho y evento de K nace con un identificador propio, distinto del que tenía en v1 (`architecture.md` §18 «Identidad de una entidad de ámbito versión al copiar una versión»);
+  - toda referencia interna de K —el sujeto de un hecho, el hecho de un `UsoDeHecho`, el lugar y los presentes de un evento, la entidad de una CanonCard— apunta a la fila nueva de K: toda referencia de K resuelve dentro de K (009-I2), nunca a un identificador de v1;
+  - la copia entrega, junto con K, la traducción completa de cada identificador de v1 al identificador nuevo que le corresponde en K, para quien deba interpretar en K una selección hecha sobre v1 (014-cambios-del-lector, 019-edicion-manual);
   - cada CanonCard conserva su entidad, su texto, su huella y su `desde_capitulo`;
-  - toda referencia de K resuelve dentro de K (009-I2);
   - una búsqueda léxica de «feria» limitada a K devuelve las tarjetas de K que la contienen, las mismas que limitada a v1.
 
 #### 009-C12 — La copia no vuelve a incrustar: comparte los vectores (T)
@@ -287,7 +289,7 @@ Todos los casos son **T**: una prueba con estos datos decide sola, sin modelo ni
 - **Dado** lo mismo que en 009-C25
 - **Cuando** pide `GET /api/novels/{N1}/story-bible?version=1`
 - **Entonces** responde 200 con la story bible de v1: el personaje y el hecho de nombre de Toby valen «Toby».
-- **Y** ese personaje y ese hecho tienen en v1 los mismos identificadores que en v2.
+- **Y** v1 es autocontenida: el identificador de ese personaje y de ese hecho en v1 es propio de v1 y no coincide con el que tienen en v2, aunque describan al mismo Toby/Nala del brief (009-I2, 009-C11).
 
 #### 009-C27 — La API rechaza lo que no existe, lo mal formado, lo anónimo y lo ajeno (T)
 - **Dado** N1 como en 009-C25, N2 sin versiones publicadas y el cliente B, que no posee N1
@@ -324,8 +326,10 @@ No aplica. La 009 no ejecuta validadores ni abre sesiones de rol. Sus escrituras
 - `architecture.md`:
   - §4.1 (canon del brief), §4.3 (inmutabilidad), §4.5 (cronología registrada);
   - §6.3 (vectores por huella y modelo), §6.4 (índice en la misma transacción al copiar);
-  - §9.1 (quién dispara cada transición), §9.3 (versiones), §9.4 (publicación, como consumidor), §10.1–§10.3 (hechos cambiados y versión base, como consumidores);
-  - §14.3 (propiedad), §15.6 (tablas de ámbito versión), §15.7 (`GET /api/novels/{id}/story-bible`, 401/404/422), §15.9 (contratos entre carriles).
+  - §9.1 (quién dispara cada transición), §9.3 (versiones), §9.4 (publicación, como consumidor, y tabla de atribución de fallos), §10.1–§10.3 (hechos cambiados y versión base, como consumidores);
+  - §14.3 (propiedad), §15.6 (tablas de ámbito versión, `chronology_files`), §15.7 (`GET /api/novels/{id}/story-bible`, 401/404/422), §15.9 (contratos entre carriles);
+  - §18 (filas «(spec 009)» de esta ronda: identidad al copiar, presentes de un recuerdo, hecho por elemento, lugar por nombre, capítulo/analepsis del brief, escritura en descartada, cronología expuesta, story bible sin `version`).
+- `specs/backend/007-validador-lean.md` (007-C09 a 007-C12, 007-I12: comportamiento de la fila de `chronology_files` que esta spec hace nacer) y `specs/backend/008-brief-y-entrevista.md` (modelo del brief confirmado, incluido el excluido de un recuerdo).
 - `definitions.md`:
   - §1 (Destinatario, Allegado, Recuerdo, HechoExtraido, Brief, ElementoPersonal);
   - §2 (StoryBible, Personaje y variante de nombre, Lugar, Hecho y hecho nominal, UsoDeHecho, Evento, Cronologia);
@@ -342,17 +346,17 @@ No aplica. La 009 no ejecuta validadores ni abre sesiones de rol. Sus escrituras
 | ¿Quién decide cuándo? | La ejecución que llama. 010 crea la candidata de generación; 014 y 019 copian tras revalidar; 012 publica tras el gate; 011 descarta al fallar | `architecture.md` §9.1, §9.3 |
 | ¿Publicar es de la 009 o de la 012? | De la 009, el cambio de estado de la versión: número, fecha, capítulos cambiados, ruta del PDF y la guarda de base vigente. De la 012, cuándo se publica y la transacción que lo envuelve | `architecture.md` §9.3, §9.4 |
 | ¿Cómo se fecha un recuerdo? | A las 12:00. Con edad, el día que la cumple. Con año, el 1 de enero, o el día siguiente al nacimiento si es el año en que nació. El 29 de febrero cae el 1 de marzo | `domain-knowledge.md` §5.2 |
-| ¿Quién está presente en un recuerdo? | El destinatario, con la edad que declare el recuerdo, y los allegados presentes. La edad declarada de un presente solo tiene sentido si el destinatario lo está | `definitions.md` §1 Recuerdo, §2 Evento. **Decisión para §18** |
-| ¿Qué hecho representa a cada elemento? | El suyo; un allegado, por su hecho de nombre. El identificador del elemento va en todo hecho que representa un elemento, y la marca de obligatorio solo en el de uno obligatorio | `definitions.md` §1 ElementoPersonal, `architecture.md` §4.1. **Decisión para §18** |
-| ¿Un lugar por recuerdo o por nombre? | Por nombre exacto, sin descripción | `definitions.md` §2 Lugar. **Decisión para §18** |
-| ¿Capítulo y analepsis de un evento del brief? | Sin capítulo ni beat, y analepsis: es pasado de la vida del destinatario. T1 no lo mira | `definitions.md` §2 Evento. **Decisión para §18** |
-| ¿Identificadores nuevos o conservados al copiar? | Conservados. Así una selección hecha sobre la base vale en la candidata, la copia no reescribe referencias y la lectura enlaza el mismo hecho entre versiones | **Decisión para §18**; condiciona el esquema de 001 |
-| ¿Una descartada se puede escribir? | No: es terminal, como una publicada | `definitions.md` §5 Ejecucion. **Decisión para §18** |
+| ¿Quién está presente en un recuerdo? | El destinatario, con la edad que declare el recuerdo, y los allegados presentes. La edad declarada de un presente solo tiene sentido si el destinatario lo está | `definitions.md` §1 Recuerdo, §2 Evento; `architecture.md` §18 «Presentes de un recuerdo con edad declarada» (spec 009) |
+| ¿Qué hecho representa a cada elemento? | El suyo; un allegado, por su hecho de nombre. El identificador del elemento va en todo hecho que representa un elemento, y la marca de obligatorio solo en el de uno obligatorio | `definitions.md` §1 ElementoPersonal, `architecture.md` §4.1, §18 «Hecho que representa a un ElementoPersonal» (spec 009) |
+| ¿Un lugar por recuerdo o por nombre? | Por nombre exacto, sin descripción | `definitions.md` §2 Lugar; `architecture.md` §18 «Un lugar por nombre exacto entre recuerdos» (spec 009) |
+| ¿Capítulo y analepsis de un evento del brief? | Sin capítulo ni beat, y analepsis: es pasado de la vida del destinatario. T1 no lo mira | `definitions.md` §2 Evento; `architecture.md` §18 «Capítulo, beat y analepsis de un evento de origen brief» (spec 009) |
+| ¿Identificadores nuevos o conservados al copiar? | Nuevos: cada fila de K nace con su propio identificador; la copia traduce toda referencia interna y entrega la traducción completa (antiguo → nuevo) a quien la necesite (014, 019). No condiciona el esquema de 001: cada tabla conserva su `id` entero único por tabla (001-C6) | Choque cerrado con el redactor de 001 (aún sin fila «(spec 001)» en §18): aplicada la propuesta del orquestador; `architecture.md` §18 «Identidad de una entidad de ámbito versión al copiar una versión» (spec 009) |
+| ¿Una descartada se puede escribir? | No: es terminal, como una publicada | `definitions.md` §5 Ejecucion; `architecture.md` §18 «Escritura en una versión descartada» (spec 009) |
 | ¿Capítulos cambiados contra la base o contra la anterior publicada? | Contra la base. Coinciden al publicar, porque la historia es lineal y la publicación exige base vigente | `definitions.md` §3 Version, `architecture.md` §9.3, §10.2 |
-| ¿Qué cronología expone la API? | La registrada: lo que dice el texto, como Lean | `architecture.md` §4.5. **Decisión para §18** |
-| ¿Y sin `version`, o sin versión publicada? | La vigente; si no hay ninguna publicada, 404 | `architecture.md` §15.7. **Decisión para §18** |
+| ¿Qué cronología expone la API? | La registrada: lo que dice el texto, como Lean | `architecture.md` §4.5, §18 «Qué cronología expone la lectura y la API» (spec 009) |
+| ¿Y sin `version`, o sin versión publicada? | La vigente; si no hay ninguna publicada, 404 | `architecture.md` §15.7, §18 «Story bible sin `version` o sin versión publicada» (spec 009) |
 | ¿Quién calcula el `UsoDeHecho`? | 011: los declarados ∪ la coincidencia literal. La 009 lo copia y lo lee | `architecture.md` §8.3 |
 | ¿Qué atributos usan los hechos del brief? | `nombre` (nominal), `rasgo`, `recuerdo` y `relación`. Un hecho extraído conserva el suyo | `definitions.md` §2 Hecho, §11.2 |
-| ¿De qué depende de verdad? | Del modelo del brief (008) y de la autenticación (002), que la tabla no lista | **Hueco de `TODO.md`** |
-| ¿Y dos recuerdos con la misma edad o el mismo año y lugares distintos? | §5.2 les da el mismo momento. T3 falla con un testigo solo del brief, y la ejecución acaba `failed` con `unattributable_defect` | **Hueco del doc**: `domain-knowledge.md` §5.2, o una comprobación del brief en 008 |
-| ¿De dónde salen el tipo y el excluido de un recuerdo? | Los pide `architecture.md` §4.1, pero `definitions.md` §1 Recuerdo no los lista | **Hueco del doc** |
+| ¿De qué depende de verdad? | Del modelo del brief (008) y de la autenticación (002); ya declarado en la cabecera de esta spec (línea 3). No es un hueco de la spec: es un aviso administrativo para que el integrador complete la columna «Depende de» de la tabla de Specs en `TODO.md` | `TODO.md` (aviso para el integrador, no tocado por esta spec) |
+| ¿Y dos recuerdos con la misma edad o el mismo año y lugares distintos? | §5.2 les da el mismo momento; si el destinatario está presente en los dos, T3 falla con un testigo solo de eventos de origen brief. No es un hueco: `architecture.md` §9.4 (tabla de atribución de fallos) ya resuelve ese caso como no atribuible, y la ejecución acaba `failed` con `unattributable_defect`; solo el cliente puede corregir el recuerdo que colisiona | `domain-knowledge.md` §5.2, `architecture.md` §9.4 |
+| ¿De dónde salen el tipo y el excluido de un recuerdo? | `architecture.md` §4.1 ya lo resuelve: el evento de un recuerdo lleva tipo, y es excluyente con su excluido nombrado si el recuerdo cuenta una muerte o una partida definitiva. `definitions.md` §1 Recuerdo no repite estos atributos porque son del `Evento` derivado, no del recuerdo que declara el cliente; el dato de entrada (el allegado excluido, opcional) ya lo lleva el modelo del brief confirmado de 008 (008-C01 a 008-C10) | `architecture.md` §4.1; 008-brief-y-entrevista ya señala el hueco textual de `definitions.md` §1 Recuerdo (para el integrador, proceso 1) |

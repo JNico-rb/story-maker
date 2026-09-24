@@ -668,6 +668,8 @@ Cada hook se prueba con cargas JSON simuladas por stdin antes de activarse (`nod
 
 ### 9.7 Aprobaciones delegadas en agentes — I
 
+**Desde el 2026-09-24 (decisión del usuario), sin auditorías:** el integrador escribe spec y plan y marca sus casillas; el `auditor` ya no se lanza. Siguen TDD y el `verificador` al cierre. La tabla de abajo queda como registro del periodo con auditor.
+
 Decisión del usuario del 2026-09-24 (`architecture.md` §18): las casillas de aprobación y la revisión de specs y planes pasan a agentes; es verificación multiagente de clase I aplicada al proceso.
 
 | Momento | Quién | Criterio | Evidencia |

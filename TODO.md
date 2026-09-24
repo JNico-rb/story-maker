@@ -169,6 +169,59 @@ Todas dependen de 000. Arranque en paralelo cuando 000 esté cerrada: A (001), C
 - [ ] Spec updated, or confirmed still true
 - [ ] Docs updated, or confirmed still true
 
+## 003 — puerto-de-agente
+
+- [ ] Spec `specs/backend/003-puerto-de-agente.md` approved
+- [ ] Plan below approved
+
+### Steps
+- [ ] 003-C28 · El doble recorre el camino del SDK y es determinista
+- [ ] 003-I9 · El doble falso es determinista
+- [ ] 003-C29 · Una sesión sin guion hace fallar la prueba
+- [ ] 003-I6 · Ninguna prueba T llega a un modelo
+- [ ] 003-I7 · Solo el puerto de agente usa el Agent SDK
+- [ ] 003-C01 · Cada rol abre con su lista blanca y nada más
+- [ ] 003-C02 · Unas tools que no cuadran con la lista blanca impiden abrir
+- [ ] 003-C03 · La sesión corre aislada en el workspace
+- [ ] 003-C04 · Solo el revisor visual declara el browser MCP
+- [ ] 003-C05 · Con `claude_login`, la sesión usa el login de la máquina y ninguna clave
+- [ ] 003-C06 · Con `anthropic_compatible`, la sesión lleva solo las variables de su endpoint
+- [ ] 003-C07 · El schema que recibe la sesión es el derivado del modelo de la tool
+- [ ] 003-C08 · Una entrada inválida vuelve al modelo como error y se corrige en la misma sesión
+- [ ] 003-C09 · Las entregas quedan en memoria, en orden, y nada se persiste
+- [ ] 003-C10 · Una sesión que termina sin entregar no es un error del puerto
+- [ ] 003-C11 · Toda llamada a tool pasa antes por la política, y su decisión se aplica
+- [ ] 003-C12 · La política recibe como narrativos solo los campos que la tool marca
+- [ ] 003-C13 · Si la política falla, la tool no corre
+- [ ] 003-I3 · Ninguna tool corre sin una decisión `allow` o `flag` de la política
+- [ ] 003-I4 · Las tools entregan, no persisten
+- [ ] 003-C14 · Con defectos bloqueantes, el modelo lee los defectos en lugar del acuse
+- [ ] 003-C15 · Las comprobaciones corren solo sobre entregas permitidas y válidas, y lo no bloqueante no bloquea
+- [ ] 003-C16 · La reserva es la entrada estimada más el crecimiento de los turnos
+- [ ] 003-C17 · Se abre hasta llenar el techo exacto; si no cabe, se espera en orden de llegada
+- [ ] 003-C18 · La API espera como mucho `api_wait_seconds`; la ejecución, sin límite propio
+- [ ] 003-C19 · Una reserva mayor que el techo no espera
+- [ ] 003-C20 · La reserva se libera siempre al cerrar
+- [ ] 003-I1 · La suma de las reservas abiertas nunca supera `token_ceiling`
+- [ ] 003-I2 · Toda reserva se libera exactamente una vez
+- [ ] 003-C21 · Agotar los turnos conserva el uso
+- [ ] 003-C22 · Pasar de `session_timeout_seconds` interrumpe y desconecta
+- [ ] 003-C23 · Un fallo del proveedor es `infrastructure_failure`, no `completed`
+- [ ] 003-C24 · Quien abre la sesión puede cortarla
+- [ ] 003-C25 · El coste es el uso real por el precio de lista del modelo
+- [ ] 003-I5 · El coste de una `SesionDeRol` es su uso × `operation.pricing`, nunca el que declara el SDK
+- [ ] 003-C26 · Toda sesión abierta deja su `SesionDeRol`, y solo ellas
+- [ ] 003-C27 · Cada sesión y cada llamada a tool dejan su span
+- [ ] 003-I8 · Sesiones concurrentes no comparten estado
+- [ ] 003-C30 · El login funciona con tools en proceso, hooks y skill
+- [ ] 003-C31 · La sesión real no hereda nada del entorno de desarrollo
+- [ ] 003-C32 · Los límites reales terminan la sesión sin dejar subprocesos
+
+### Closing
+- [ ] Full suite green, type checks clean
+- [ ] Spec updated, or confirmed still true
+- [ ] Docs updated, or confirmed still true
+
 ## 006 — especificacion-tla
 
 - [x] Spec `specs/backend/006-especificacion-tla.md` approved — auditor 2026-09-24: ronda 2; 10 casos (4 A, 4 I, 2 D) e 11 invariantes (6 A, 4 I, 1 U) trazados contra arq §7.6, §8.3–§8.4, §9.1–§9.4, §10.1–§10.3, §11.1–§11.2, §11.5, §16.18, §18, definitions §5, §6, §9, §12.3, verif §2, §3.6, §4.6, §4.10, §5, §6 U30, §8, constraints §5d y 000; las 4 contradicciones de la ronda 1 cerradas en los docs; sin bloqueantes; menores: I9 e I11 citan 011, 012 y 014 donde verif §4.10 y U30 dicen 010, 011, 012, 014 y 019; C10 omite la columna Efecto de verif §8; C7 dice que el push a V2 lo decide el integrador y 000-C18 que el usuario; «Excepción de la 006» debería decir que son términos de definitions §9; la tabla de C9 junta `Gate` y `Publicar` en una fila
