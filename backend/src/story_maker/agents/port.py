@@ -34,6 +34,7 @@ CallStatus = Literal["accepted", "schema_rejected", "denied", "blocked"]
 
 ACK = "Entrega recibida."
 STOPPED = "La sesión se ha cortado."
+SKILL_FILE = ".claude/skills/personalizacion-natural/SKILL.md"
 
 
 @dataclass(frozen=True)
@@ -373,15 +374,20 @@ class AgentPort:
         self._workspace = workspace
 
     def reservation(self, request: SessionRequest) -> int:
+        """Lo que la sesión reserva en el techo, estimado sobre los textos que envía el código."""
         profile = role_profile(self._config, request.role, request.mode)
-        claude_md = self._workspace / "CLAUDE.md"
         chars = (
             len(request.prompt)
-            + (len(claude_md.read_text(encoding="utf-8")) if claude_md.is_file() else 0)
+            + self._workspace_chars("CLAUDE.md")
+            + (self._workspace_chars(SKILL_FILE) if profile.uses_skill else 0)
             + sum(len(spec.schema_text()) for spec in request.tools)
             + len(request.message)
         )
         return reservation(chars, profile.max_turns, profile.max_output_tokens)
+
+    def _workspace_chars(self, relative: str) -> int:
+        path = self._workspace / relative
+        return len(path.read_text(encoding="utf-8")) if path.is_file() else 0
 
     async def run(self, request: SessionRequest) -> SessionResult:
         profile = role_profile(self._config, request.role, request.mode)
