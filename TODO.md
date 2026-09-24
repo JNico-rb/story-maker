@@ -11,9 +11,9 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 ## Estado (handoff 2026-09-24, corte por cuota)
 
 - **Etapa 1 cortada** por el límite de gasto mensual de la organización (HTTP 429, se reinicia a las 13:00 de Madrid). No queda ningún subagente en marcha.
-- **Specs en disco, sin aprobar:** 000 (ronda 2 hecha, falta auditarla), 001, 002, 003, 006, 007, 008, 009, 010, 011, 012, 014, 015, 016, 017, 018, 019. Completas y con informe: 000, 002, 006, 007, 015. Las demás las cortó la cuota: pueden estar incompletas y sin sus decisiones en §18, así que el auditor lo dirá. **Sin redactar:** 004, 005, 013, 020, 021.
+- **Specs commiteadas como borrador, sin aprobar:** 000 (ronda 2 hecha, falta auditarla), 001, 002, 003, 006, 007, 008, 009, 010, 011, 012, 014, 015, 016, 017, 018, 019. Completas y con informe: 000, 002, 006, 007, 015. Las demás las cortó la cuota: pueden estar incompletas y sin sus decisiones en §18, así que el auditor lo dirá. **Sin redactar:** 004, 005, 013, 020, 021.
 - **Borradores de plan** (no se commitean): `specs/.drafts/plan-000.md` y `plan-006.md`. **Bloques** en este fichero: 000 y 002.
-- **Docs cambiados sin commit:**
+- **Docs cambiados** (en el commit de este checkpoint, sin auditar):
   - §18 de architecture.md: decisiones de 000, 002, 006, 007 y 015.
   - architecture.md: §14.4 (`confirm_change(change_request_id, code)`), §15.3, §15.5, §15.7 y §15.8.
   - verification.md: §9.6, U28 y U29.
