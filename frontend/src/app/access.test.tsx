@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useEffect, useState } from "react";
 import { createMemoryRouter, RouterProvider } from "react-router";
@@ -366,4 +366,36 @@ describe("022 invariantes", () => {
       expect(document.cookie).not.toContain(PASSWORD);
     },
   );
+
+  it("022-I3: a stored session survives reloading the page, and protected requests keep carrying it", async () => {
+    const sent = fakeApi({
+      "POST /api/auth/login": () => ({ status: 200, body: { access_token: TOKEN } }),
+      "GET /api/novels": () => ({ status: 200, body: [] }),
+      "GET /api/banned-terms": () => ({ status: 200, body: [] }),
+    });
+    const user = userEvent.setup();
+    renderAt("/acceso");
+    await logIn(user);
+
+    // Recarga: se desmonta la app y se vuelven a cargar sus módulos, sin memoria del proceso.
+    cleanup();
+    vi.resetModules();
+    const fresh = await import("./router");
+    const freshApi = await import("../shared/api");
+    function FreshProbe() {
+      const [loaded, setLoaded] = useState(false);
+      useEffect(() => {
+        void freshApi.apiFetch("/api/novels").then(() => setLoaded(true));
+      }, []);
+      return <p>{loaded ? "datos cargados" : "cargando"}</p>;
+    }
+    const router = createMemoryRouter(fresh.buildRoutes([{ path: "/sonda", element: <FreshProbe /> }]), {
+      initialEntries: ["/sonda"],
+    });
+    render(<RouterProvider router={router} />);
+
+    expect(await screen.findByText("datos cargados")).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe("/sonda");
+    expect(sent.at(-1)?.headers.get("Authorization")).toBe(`Bearer ${TOKEN}`);
+  }, 15_000);
 });
