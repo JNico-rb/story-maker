@@ -178,4 +178,19 @@ describe("026 lectura", () => {
     expect(links[0]).toHaveAttribute("href", "#capitulo-2");
     expect(links[1]).toHaveAttribute("href", "#capitulo-5");
   });
+
+  it("026-C07: an entity with no chapters appears in the cast sheet without links", async () => {
+    const withoutChapters = detail(1);
+    withoutChapters.view.ficha = [{ name: "Faro Viejo", kind: "lugar", chapters: [] }];
+    fakeApi({
+      [`GET ${BASE}`]: () => json(200, { versions: LIST.versions.slice(0, 1) }),
+      [`GET ${BASE}/1`]: () => json(200, withoutChapters),
+    });
+    renderReading();
+
+    const ficha = await screen.findByRole("region", { name: "Ficha" });
+    const entry = within(ficha).getByText("Faro Viejo").closest("li");
+    if (!entry) throw new Error("no se encontró la entrada de Faro Viejo");
+    expect(within(entry).queryAllByRole("link")).toHaveLength(0);
+  });
 });
