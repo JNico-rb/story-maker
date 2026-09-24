@@ -27,7 +27,7 @@ When touching `backend/` or `frontend/`, read `backend/AGENTS.md` and `frontend/
 
 `docs/*.md` → `specs/` → `TODO.md` (plan) → tests → code. Never skip upward: code no plan asks for, a plan no approved spec asks for, or a spec no doc supports, is drift.
 
-**No code is written before its spec and its plan are approved — scaffolding, tooling, CI and dev hooks included** (they belong to `specs/000-scaffolding.md`). If code slips through, it is not deleted: its spec is written after the fact, audited and approved, and the existing code is verified against it like any other step.
+**No code is written before its spec and its plan are approved — scaffolding, tooling, CI and dev hooks included** (they belong to `specs/000-scaffolding.md`). If code slips through, it is not deleted: its spec is written after the fact, audited and approved, and the existing code is verified against it like any other step. That spec is written from the docs, never from the code: the code is fixed to match the spec, never the spec bent to fit the code.
 
 ### Gates
 
@@ -68,12 +68,13 @@ Required contents: **objective**; **scope** / **out of scope**; **observable beh
 - Behaviour only: no file names, signatures or libraries.
 - Never contradicts `docs/*.md` — change the doc first (process 1).
 - Dependent specs reference each other by name; they never duplicate cases.
-- Written → make sure its `TODO.md` block exists with every box unmarked, then run `auditor` until gap zero.
+- Specs are drafted in parallel, one `redactor-specs` per spec. Writers never edit `TODO.md`: the integrator (main checkout, V2) adds each block, one at a time, with every box unmarked, and then runs `auditor` until gap zero.
+- One commit per approved spec (`NNN: spec aprobada`) and one per approved plan (`NNN: plan aprobado`), both by the integrator.
 - Changing one: self-review again, edit the cases, unmark **both** boxes, re-audit, re-run processes 3 and 4 for what changed. A deleted case means a deleted test.
 
 ### 3. The plan — `TODO.md`
 
-Single file at the repo root: a header with the lane table (owned by the integrator), then one block per spec in numeric order. One step per acceptance case and one per class-T invariant, in implementation order. A step names the behaviour it delivers, not the files it touches — if it can't be phrased as a case of the spec, it belongs in the spec first. Written → run `auditor` on it. Mark a step `[x]` only when its case goes green, never ahead. If implementation proves the plan wrong, stop, change the plan and get it re-audited; never improvise a step.
+Single file at the repo root: a header with the lane table (owned by the integrator), then one block per spec in numeric order. One step per acceptance case and one per class-T invariant, in implementation order. A step names the behaviour it delivers, not the files it touches — if it can't be phrased as a case of the spec, it belongs in the spec first. The writer may draft the plan outside `TODO.md`; the integrator pastes it into the block. Written → run `auditor` on it. Mark a step `[x]` only when its case goes green, never ahead. If implementation proves the plan wrong, stop, change the plan and get it re-audited; never improvise a step.
 
     ## NNN — <feature name>
 

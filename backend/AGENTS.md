@@ -44,7 +44,7 @@ A spec touches only its modules and their `tests/<module>/`. In a shared module 
 | 005 guardarrailes | C | `policy/`, `domain/` (banned-term normalization) |
 | 006 especificacion-tla | D | `tla/` (repo root) |
 | 007 validador-lean | D | `formal/`, `lean/` (repo root) |
-| 008 brief-y-entrevista | C | `interview/`, `domain/` (brief rules, C1–C6), `api/` (novels, interview, free texts, brief, banned terms) |
+| 008 brief-y-entrevista | C | `interview/`, `domain/` (brief rules, C1–C6), `api/` (novels, interview, free texts, brief, banned terms), `harness_workspace/` (interviewer and extractor prompts) |
 | 009 story-bible-y-versiones | B | `store/` (story bible and version-copy repositories), `api/` (story bible) |
 | 010 planificacion | A | `pipeline/` (planning), `validators/` (`outline`), planner prompt |
 | 011 produccion-de-capitulos | A | `pipeline/` (queue, worker, production, resume), `validators/` (chapter), `harness_workspace/` (product `CLAUDE.md`, skill, writer and editor prompts), `api/` (runs), `cli.py` (`resume`) |
