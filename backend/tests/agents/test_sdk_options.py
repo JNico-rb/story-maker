@@ -16,7 +16,7 @@ from claude_agent_sdk import ClaudeAgentOptions
 
 from story_maker.agents.port import SessionRequest
 from story_maker.agents.profiles import role_profile
-from story_maker.agents.sdk import SdkAgent
+from story_maker.agents.sdk import ProviderConfigError, SdkAgent
 from story_maker.config import Config
 from story_maker.settings import Settings
 
@@ -234,3 +234,79 @@ def test_with_claude_login_inherited_anthropic_variables_reach_the_session_empty
     env = session_env(options)
     assert credentials_in(env) == {}
     assert "TU_CLAVE_OPENROUTER_AQUI" not in env.values()
+
+
+BASE = "http://127.0.0.1:9/endpoint-de-prueba"
+
+
+@pytest.mark.parametrize(
+    ("settings", "expected"),
+    [
+        (
+            {"anthropic_base_url": BASE, "anthropic_auth_token": "TU_TOKEN_AQUI"},
+            {"ANTHROPIC_BASE_URL": BASE, "ANTHROPIC_AUTH_TOKEN": "TU_TOKEN_AQUI"},
+        ),
+        (
+            {"openrouter_api_key": "TU_CLAVE_OPENROUTER_AQUI"},
+            {
+                "ANTHROPIC_BASE_URL": "https://openrouter.ai/api",
+                "ANTHROPIC_AUTH_TOKEN": "TU_CLAVE_OPENROUTER_AQUI",
+            },
+        ),
+        (
+            {
+                "anthropic_base_url": BASE,
+                "anthropic_auth_token": "TU_TOKEN_AQUI",
+                "openrouter_api_key": "TU_CLAVE_OPENROUTER_AQUI",
+            },
+            {"ANTHROPIC_BASE_URL": BASE, "ANTHROPIC_AUTH_TOKEN": "TU_TOKEN_AQUI"},
+        ),
+    ],
+)
+def test_with_anthropic_compatible_the_session_carries_only_its_endpoint_variables(
+    settings: dict[str, str],
+    expected: dict[str, str],
+    clean_environ: pytest.MonkeyPatch,
+    build_options: Callable[..., ClaudeAgentOptions],
+) -> None:
+    clean_environ.setenv("ANTHROPIC_API_KEY", "TU_CLAVE_AQUI")
+    clean_environ.setenv("CLAUDE_CODE_OAUTH_TOKEN", "TU_TOKEN_OAUTH_AQUI")
+
+    options = build_options(
+        "interviewer",
+        llm_provider="anthropic_compatible",
+        claude_code_oauth_token="TU_TOKEN_OAUTH_AQUI",
+        **settings,
+    )
+
+    assert_login_basics(options)
+    env = session_env(options)
+    assert credentials_in(env) == expected
+    assert env["ANTHROPIC_API_KEY"] == ""
+
+
+@pytest.mark.parametrize(
+    ("settings", "named"),
+    [
+        ({}, ["ANTHROPIC_AUTH_TOKEN", "OPENROUTER_API_KEY"]),
+        ({"anthropic_base_url": BASE}, ["ANTHROPIC_AUTH_TOKEN", "OPENROUTER_API_KEY"]),
+        ({"anthropic_auth_token": "TU_TOKEN_AQUI"}, ["ANTHROPIC_BASE_URL"]),
+        (
+            {"anthropic_auth_token": "TU_TOKEN_AQUI", "openrouter_api_key": "TU_CLAVE_AQUI"},
+            ["ANTHROPIC_BASE_URL"],
+        ),
+    ],
+)
+def test_anthropic_compatible_without_its_variables_does_not_build_the_adapter(
+    settings: dict[str, str],
+    named: list[str],
+    workspace: Path,
+    make_settings: Callable[..., Settings],
+) -> None:
+    with pytest.raises(ProviderConfigError) as failed:
+        SdkAgent(
+            make_settings(llm_provider="anthropic_compatible", **settings), workspace=workspace
+        )
+
+    for variable in named:
+        assert variable in str(failed.value)

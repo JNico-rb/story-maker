@@ -28,6 +28,7 @@ from story_maker.settings import Settings
 HARNESS = "harness"
 BROWSER = "playwright"
 PLAYWRIGHT_MCP = "@playwright/mcp@0.0.82"
+OPENROUTER_BASE_URL = "https://openrouter.ai/api"
 
 
 # Telemetría no esencial y memoria automática del CLI apagadas (`architecture.md` §12.6).
@@ -35,6 +36,10 @@ CLI_SWITCHES = {
     "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
     "CLAUDE_CODE_DISABLE_AUTO_MEMORY": "1",
 }
+
+
+class ProviderConfigError(ValueError):
+    """Faltan las variables del endpoint de `anthropic_compatible`."""
 
 
 class RealModelInTests(RuntimeError):
@@ -51,12 +56,35 @@ def harness_tools(tools: Sequence[ToolSpec]) -> list[Tool]:
 
 def provider_env(settings: Settings) -> dict[str, str]:
     """Variables de la sesión según `LLM_PROVIDER` (§15.2); nunca redefine `CLAUDE_CONFIG_DIR`."""
-    env = dict(CLI_SWITCHES)
+    if settings.llm_provider == "anthropic_compatible":
+        return CLI_SWITCHES | _endpoint_env(settings) | {"CLAUDE_CODE_OAUTH_TOKEN": ""}
     # Una ANTHROPIC_* heredada del servidor cobraría créditos de API: llega vacía (§18, spec 003).
-    env |= {"ANTHROPIC_API_KEY": "", "ANTHROPIC_AUTH_TOKEN": "", "ANTHROPIC_BASE_URL": ""}
+    env = CLI_SWITCHES | {
+        "ANTHROPIC_API_KEY": "",
+        "ANTHROPIC_AUTH_TOKEN": "",
+        "ANTHROPIC_BASE_URL": "",
+    }
     if settings.claude_code_oauth_token:
         env["CLAUDE_CODE_OAUTH_TOKEN"] = settings.claude_code_oauth_token
     return env
+
+
+def _endpoint_env(settings: Settings) -> dict[str, str]:
+    """El endpoint compatible con Anthropic; `ANTHROPIC_API_KEY` siempre vacía (§18, spec 003)."""
+    if settings.anthropic_auth_token:
+        if not settings.anthropic_base_url:
+            raise ProviderConfigError(
+                "LLM_PROVIDER=anthropic_compatible: ANTHROPIC_AUTH_TOKEN exige ANTHROPIC_BASE_URL"
+            )
+        base_url, token = settings.anthropic_base_url, settings.anthropic_auth_token
+    elif settings.openrouter_api_key:
+        base_url, token = OPENROUTER_BASE_URL, settings.openrouter_api_key
+    else:
+        raise ProviderConfigError(
+            "LLM_PROVIDER=anthropic_compatible exige ANTHROPIC_BASE_URL y ANTHROPIC_AUTH_TOKEN, "
+            "u OPENROUTER_API_KEY"
+        )
+    return {"ANTHROPIC_BASE_URL": base_url, "ANTHROPIC_AUTH_TOKEN": token, "ANTHROPIC_API_KEY": ""}
 
 
 def claude_md_excludes(workspace: Path, user_claude_dir: Path) -> list[str]:
