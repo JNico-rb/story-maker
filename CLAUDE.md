@@ -8,7 +8,7 @@ Este fichero instruye a Claude Code **en el desarrollo**. El `CLAUDE.md` **de pr
 
 @AGENTS.md
 
-Resumen: cinco capas en orden, aprobaciones delegadas (`auditor` aprueba spec y plan sin huecos bloqueantes, `verificador` cierra) y carriles en paralelo. Arranque: `/orquestar` en el checkout principal (V2); `/carril <X>` en cada worktree.
+Resumen: cinco capas en orden, sin auditorías (el integrador escribe y marca spec y plan; `verificador` cierra tras TDD) y carriles en paralelo. Arranque: `/orquestar` en el checkout principal (V2); `/carril <X>` en cada worktree.
 
 ## Mapa del repo
 
@@ -39,7 +39,7 @@ Resumen: cinco capas en orden, aprobaciones delegadas (`auditor` aprueba spec y 
 
 | Pieza | Nombres | Para qué |
 |---|---|---|
-| Subagentes (`.claude/agents/`) | `redactor-specs`, `auditor`, `implementador`, `verificador`, `seguridad` | escribir specs, aprobarlas, implementar con TDD, cerrar, auditar la seguridad |
+| Subagentes (`.claude/agents/`) | `redactor-specs`, `auditor`, `implementador`, `verificador`, `seguridad` | escribir specs, (auditor: ya no se lanza), implementar con TDD, cerrar, auditar la seguridad |
 | Comandos (`.claude/commands/`) | `/orquestar`, `/carril`, `/spec`, `/plan`, `/implementar`, `/integrar`, `/estado` | integrar, llevar un carril, cada capa del flujo, ver el estado |
 | Hooks (`.claude/hooks/`) | `guard-secretos`, `guard-plan` | bloquear claves reales en lo escrito; bloquear código sin plan aprobado con pasos pendientes |
 | MCP (`.mcp.json`) | `playwright`, `langfuse` | inspeccionar la lectura web en Edge; consultar trazas y prompts |

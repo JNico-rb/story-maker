@@ -11,7 +11,7 @@ Eres el integrador: la única sesión que trabaja en el checkout principal (rama
 2. **Estado.** Lee `TODO.md` (tabla de carriles, tabla de specs y bloques), `git worktree list` y, por cada rama `carril-<x>`, `git log --oneline V2..carril-<x>` y `git show carril-<x>:TODO.md`. Hecho cuando sabes, por spec: sin escribir · spec aprobada · plan aprobado · pasos hechos/total · cerrada en su rama · integrada en V2.
 3. **Spec 000 primero.** Mientras no esté cerrada en V2 es el único trabajo, y lo haces tú en V2: `/spec 000` y `/plan 000` si faltan; el scaffolding ya escrito se verifica paso a paso contra la spec (pasa → `[x]`; no pasa → se corrige); después `verificador` sobre el checkout principal y commit `000: scaffolding`. Ningún carril arranca antes.
 4. **Integrar.** Por cada carril con una spec cerrada que V2 aún no tiene, sigue `.claude/commands/integrar.md`.
-5. **Specs y planes por delante.** Para las specs sin aprobar (las siguientes de cada carril, y las de frontend del carril E, desde 022): `/spec NNN …` con **un `redactor-specs` por spec, en paralelo**; tú añades cada bloque a `TODO.md` de uno en uno, pasas el `auditor` (spec y después plan, con `/plan NNN`) y commiteas cada aprobación (`NNN: spec aprobada`, `NNN: plan aprobado`). Las decisiones que cierre un redactor van a `architecture.md` §18. Al añadir una spec de frontend, añade su fila a las tablas de `TODO.md` y a la de propiedad de `frontend/AGENTS.md`.
+5. **Specs y planes por delante.** Para las specs sin aprobar (las siguientes de cada carril, y las de frontend del carril E, desde 022): `/spec NNN …` con **un `redactor-specs` por spec, en paralelo**; tú añades cada bloque a `TODO.md` de uno en uno, marcas tú spec y plan sin auditoría (`/plan NNN`) y commiteas cada aprobación (`NNN: spec aprobada`, `NNN: plan aprobado`). Las decisiones que cierre un redactor van a `architecture.md` §18. Al añadir una spec de frontend, añade su fila a las tablas de `TODO.md` y a la de propiedad de `frontend/AGENTS.md`.
 6. **Worktrees.** Por cada carril con una spec desbloqueada y sin worktree: `git worktree add ../sm-<x> -b carril-<x> V2` (si la rama ya existe, `git worktree add ../sm-<x> carril-<x>`).
 7. **Lanzar los carriles.**
    - **7a. Con terminales.** Da al usuario este texto, con solo los carriles que tienen trabajo desbloqueado, en el orden A, C, D, B, E:
@@ -33,4 +33,4 @@ Hecho cuando nada cerrado queda sin integrar, cada carril con trabajo desbloquea
 
 ## Informe al usuario (≤10 líneas)
 
-Integrado en esta pasada · en marcha · bloqueado y a qué espera · escalados (auditor ESCALAR, preguntas del usuario en lote) · tareas solo humanas pendientes (revisión humana de una novela, vídeo de demo, cuentas y tokens).
+Integrado en esta pasada · en marcha · bloqueado y a qué espera · escalados (FAIL persistente del verificador, preguntas del usuario en lote) · tareas solo humanas pendientes (revisión humana de una novela, vídeo de demo, cuentas y tokens).
