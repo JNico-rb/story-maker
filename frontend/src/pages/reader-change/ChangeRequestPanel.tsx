@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   confirmChange,
@@ -15,6 +15,7 @@ type ProposalState = {
   text: string;
   created: ChangeRequestCreated;
   confirming: boolean;
+  expired: boolean;
 };
 type State = FormState | ProposalState;
 
@@ -40,11 +41,24 @@ export function ChangeRequestPanel({
 }) {
   const [state, setState] = useState<State>({ step: "form", text: "", submitting: false });
 
+  // 027-C12: un temporizador basado en `expires_at` solo marca la propuesta como caducada para
+  // que la pantalla lo muestre; nunca confirma por su cuenta (027-I2).
+  const expiresAt = state.step === "proposal" ? state.created.expires_at : null;
+  const expired = state.step === "proposal" && state.expired;
+  useEffect(() => {
+    if (!expiresAt || expired) return;
+    const ms = Math.max(0, new Date(expiresAt).getTime() - Date.now());
+    const timer = setTimeout(() => {
+      setState((s) => (s.step === "proposal" ? { ...s, expired: true } : s));
+    }, ms);
+    return () => clearTimeout(timer);
+  }, [expiresAt, expired]);
+
   if (state.step === "proposal") {
     const { created } = state;
 
     async function handleConfirm() {
-      if (state.step !== "proposal" || state.confirming) return;
+      if (state.step !== "proposal" || state.confirming || state.expired) return;
       setState({ ...state, confirming: true });
       const response = await confirmChange(created.id, created.code);
       const { run_id } = (await response.json()) as { run_id: string };
@@ -63,9 +77,13 @@ export function ChangeRequestPanel({
             ))}
           </ul>
         )}
-        <button type="button" disabled={state.confirming} onClick={() => void handleConfirm()}>
-          Confirmar
-        </button>
+        {state.expired ? (
+          <p role="alert">La propuesta ha caducado: pide el cambio otra vez.</p>
+        ) : (
+          <button type="button" disabled={state.confirming} onClick={() => void handleConfirm()}>
+            Confirmar
+          </button>
+        )}
         <button type="button" disabled={state.confirming} onClick={onDiscard}>
           Descartar
         </button>
@@ -80,7 +98,7 @@ export function ChangeRequestPanel({
     const response = await requestChange(novelId, selection, state.text);
     if (response.status === 201) {
       const created = (await response.json()) as ChangeRequestCreated;
-      setState({ step: "proposal", text: state.text, created, confirming: false });
+      setState({ step: "proposal", text: state.text, created, confirming: false, expired: false });
       return;
     }
     // Un 409 al pedir el cambio es siempre la versión de la selección ya no vigente

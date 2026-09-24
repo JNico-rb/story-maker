@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -59,6 +59,7 @@ beforeEach(() => {
 afterEach(() => {
   clearSession();
   vi.unstubAllGlobals();
+  vi.useRealTimers();
 });
 
 describe("027 cambio del lector", () => {
@@ -234,6 +235,39 @@ describe("027 cambio del lector", () => {
 
     resolveConfirm(json(202, { run_id: "run-1" }));
     await vi.waitFor(() => expect(onConfirmed).toHaveBeenCalledWith("run-1"));
+  });
+
+  it("027-C12: the proposal expires without confirming, disabling confirm", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-09-25T11:59:00Z"));
+    fakeApi(() =>
+      json(201, {
+        id: "req-1",
+        proposal: { fact: "Nombre del perro", old_value: "Toby", new_value: "Nala" },
+        affected_chapters: [2, 5, 7],
+        code: "SECRETO-123",
+        expires_at: "2026-09-25T12:00:00Z",
+      }),
+    );
+    renderPanel();
+
+    fireEvent.change(screen.getByRole("textbox", { name: "Petición" }), {
+      target: { value: "el perro se llama Nala" },
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Pedir el cambio" }));
+    });
+
+    expect(screen.getByRole("button", { name: "Confirmar" })).toBeInTheDocument();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(61_000);
+    });
+
+    expect(screen.getByText(/la propuesta ha caducado/i)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Confirmar" })).not.toBeInTheDocument();
+
+    vi.useRealTimers();
   });
 
   it("027-C08: sending disables the action while it is in progress", async () => {

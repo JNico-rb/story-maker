@@ -1177,7 +1177,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] 027-C09 · Confirmar encola la ejecución y lo indica en la lectura
 - [x] 027-C10 · Descartar no confirma nada
 - [x] 027-C11 · Confirmar o descartar deshabilita las dos acciones mientras está en curso
-- [ ] 027-C12 · La propuesta caduca sin confirmar
+- [x] 027-C12 · La propuesta caduca sin confirmar
 - [ ] 027-C13 · Confirmar una propuesta que el servidor ya considera caducada
 - [ ] 027-C14 · Fallo del servidor al confirmar
 - [ ] 027-I1 · El código de confirmación nunca se muestra en la pantalla (recortado)
