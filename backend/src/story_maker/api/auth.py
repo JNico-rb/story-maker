@@ -32,6 +32,17 @@ def normalize_email(email: str) -> str:
     return email.strip().lower()
 
 
+def is_valid_email(email: str) -> bool:
+    if not email or len(email) > 254 or " " in email or "\t" in email:
+        return False
+    if email.count("@") != 1:
+        return False
+    local, domain = email.split("@")
+    if not local or "." not in domain:
+        return False
+    return not (domain.startswith(".") or domain.endswith("."))
+
+
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("ascii")
 
@@ -102,6 +113,8 @@ router = APIRouter()
 def register(payload: RegisterRequest, request: Request) -> RegisterResponse:
     state = request.app.state
     email = normalize_email(payload.email)
+    if not is_valid_email(email):
+        raise HTTPException(status_code=422, detail="email inválido")
 
     with unit_of_work(state.session_factory) as uow:
         if get_user_by_email(uow.session, email) is not None:

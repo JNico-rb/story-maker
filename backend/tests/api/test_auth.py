@@ -99,3 +99,61 @@ def test_an_already_registered_email_does_not_create_another_account(
         json={"email": "cliente-a@example.com", "password": "otra-contraseña"},
     )
     assert new_login.status_code == 401
+
+
+@pytest.mark.parametrize(
+    "email",
+    [
+        "cliente-a.example.com",  # sin arroba
+        "cliente-a@@example.com",  # dos arrobas
+        "@example.com",  # parte local vacía
+        "cliente-a@example",  # dominio sin punto
+        "cliente a@example.com",  # espacio interior
+    ],
+)
+def test_an_email_without_email_shape_is_rejected(
+    client: TestClient, session_factory: sessionmaker[Session], email: str
+) -> None:
+    response = client.post("/api/auth/register", json={"email": email, "password": "contraseña-1"})
+
+    assert response.status_code == 422
+    assert _users(session_factory) == []
+
+
+@pytest.mark.parametrize(
+    "email",
+    [
+        "cliente-a@.example.com",
+        "cliente-a@example.com.",
+    ],
+)
+def test_a_domain_starting_or_ending_with_a_dot_is_rejected(
+    client: TestClient, session_factory: sessionmaker[Session], email: str
+) -> None:
+    response = client.post("/api/auth/register", json={"email": email, "password": "contraseña-1"})
+
+    assert response.status_code == 422
+    assert _users(session_factory) == []
+
+
+def test_a_254_character_well_formed_email_is_accepted(
+    client: TestClient, session_factory: sessionmaker[Session]
+) -> None:
+    email = "a" * 242 + "@example.com"
+    assert len(email) == 254
+
+    response = client.post("/api/auth/register", json={"email": email, "password": "contraseña-1"})
+
+    assert response.status_code == 201
+
+
+def test_a_255_character_well_formed_email_is_rejected(
+    client: TestClient, session_factory: sessionmaker[Session]
+) -> None:
+    email = "a" * 243 + "@example.com"
+    assert len(email) == 255
+
+    response = client.post("/api/auth/register", json={"email": email, "password": "contraseña-1"})
+
+    assert response.status_code == 422
+    assert _users(session_factory) == []
