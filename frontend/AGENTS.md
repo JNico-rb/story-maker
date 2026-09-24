@@ -54,4 +54,5 @@ Lane E owns `frontend/`. Frontend specs start at 022 in `specs/frontend/`; the i
 | 023 mis-novelas | E | `src/pages/` (novels list, user-level banned terms) |
 | 024 entrevista | E | `src/pages/` (interview: chat, brief panel, free texts, facts, novel-level banned terms, confirmation) |
 | 025 progreso | E | `src/pages/` (run progress: polling, resume, report) |
-| 026+ | E | rows added as frontend specs are approved |
+| 026 lectura | E | `src/pages/` (reading: cover, index, changed chapters, chapters, cast sheet, versions, PDF) |
+| 027+ | E | rows added as frontend specs are approved |

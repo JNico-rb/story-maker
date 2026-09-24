@@ -1064,3 +1064,33 @@ Todas dependen de 000. Carril B disuelto y C rehecho (decisión del usuario, 202
 - [ ] Full suite green, type checks clean
 - [ ] Spec updated, or confirmed still true
 - [ ] Docs updated, or confirmed still true
+
+## 026 — lectura
+
+- [x] Spec `specs/frontend/026-lectura.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
+
+### Steps
+- [ ] 026-C01 · Sin versión indicada, se muestra la vigente
+- [ ] 026-C02 · Portada con dedicatoria
+- [ ] 026-C03 · Índice navegable a los capítulos
+- [ ] 026-C04 · Página de novedades y marca de cambio
+- [ ] 026-C05 · Sin capítulos cambiados, no hay página de novedades
+- [ ] 026-C06 · Ficha con enlaces a los capítulos donde aparece cada entidad
+- [ ] 026-C07 · Una entidad sin capítulos aparece en la ficha sin enlaces
+- [ ] 026-C08 · El selector lista las versiones publicadas, en el orden que entrega la API
+- [ ] 026-C09 · Cambiar de versión recarga todo el contenido con el de la versión elegida
+- [ ] 026-C10 · Descargar el PDF de la versión que se está viendo
+- [ ] 026-C11 · El PDF aún no está disponible
+- [ ] 026-C12 · Fallo al cargar la lista de versiones
+- [ ] 026-C13 · Fallo al cargar el detalle de una versión
+- [ ] 026-C14 · El recorrido completo se observa en el navegador (D, al final)
+- [ ] 026-I1 · Lo mostrado (portada, novedades, índice, capítulos, ficha) es siempre de una sola versión, la que marca el selector; nunca mezcla datos d…
+- [ ] 026-I3 · Todo enlace interno de la página de novedades, del índice y de la ficha lleva al capítulo correcto dentro de la propia pantalla
+- [ ] 026-I4 · Un error de cualquier llamada de esta pantalla (lista de versiones, detalle, PDF) siempre se muestra; nunca se descarta en silencio ni de…
+- [ ] 026-I5 · Ninguna llamada de esta pantalla a la API real
+
+### Closing
+- [ ] Full suite green, type checks clean
+- [ ] Spec updated, or confirmed still true
+- [ ] Docs updated, or confirmed still true

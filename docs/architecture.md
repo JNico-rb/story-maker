@@ -1492,3 +1492,4 @@ Registro de trade-offs: cada fila da opciones, criterio y elección. Reabrir una
 | Sondeo de la ejecución en la SPA (025) | Intervalo fijo · espera creciente | Lo más fácil | Intervalo fijo mientras la ejecución no es terminal, también en `interrupted` (otra pestaña puede haberla reanudado) |
 | Reanudar rechazada en la SPA (025) | Error genérico · motivo del rechazo | Que la persona sepa qué pasó | Se muestra el motivo y sigue con el último estado sondeado |
 | Informe de una ejecución `failed` en la SPA (025) | Bajo demanda · automático | La persona entró a ver qué pasó | Se pide en cuanto el sondeo ve `failed` |
+| PDF no disponible en la lectura de la SPA (026) | Bloquear la pantalla · aviso local | 013 responde 404 solo para el PDF | Aviso junto a la descarga; el resto de la lectura se muestra |
