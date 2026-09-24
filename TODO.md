@@ -574,7 +574,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [ ] 011-C03 · Una sola ejecución activa en una cola FIFO global
 - [ ] 011-C04 · El progreso se consulta por sondeo
 - [ ] 011-C05 · De la planificación a la escritura
-- [ ] 011-C06 · Fallar descarta la candidata y libera la cola
+- [x] 011-C06 · Fallar descarta la candidata y libera la cola
 - [ ] 011-C07 · Ventana del writer
 - [ ] 011-C08 · Ventana del editor
 - [ ] 011-C09 · Cada sesión reserva en el techo, y una que no cabe nunca hace fallar
