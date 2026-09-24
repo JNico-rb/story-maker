@@ -94,7 +94,7 @@ Las filas son los validadores de `verification.md` §4.2 (a), en ese orden; las 
 `evals run` con el login de Claude Code y `evals table` pegada en `verification.md` §4.2 (a) y (b), con números.
 
 #### 020-C11 — Una iteración de tuning con antes y después (D)
-§4.2 (c): un prompt vN → vN+1 (o un umbral), los cinco briefs antes y después, cada resultado con la versión de prompt de Langfuse que lo produjo.
+§4.2 (c): un prompt vN → vN+1 (o un umbral) sobre los briefs del disparador (mínimo uno): el antes es su resultado de 020-C10, sin regenerar, y el después una ejecución nueva; cada resultado con la versión de prompt de Langfuse que lo produjo.
 
 #### 020-C12 — Juez frente a revisión humana (D)
 §4.2 (d) sobre la versión publicada del brief 1: una persona puntúa con la rúbrica del juez, sin ver antes sus puntuaciones, y se calcula la diferencia y el acuerdo.

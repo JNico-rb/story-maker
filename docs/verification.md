@@ -182,14 +182,14 @@ Sin trazas, el resto de §4 es opinión: no hay evals, ni red-team reproducible,
 | Hipótesis | pendiente |
 | Cambio | prompt `<rol>` vN → vN+1 en Langfuse, o umbral/criterio en `config.json` |
 | Etiqueta de prompts | antes: pendiente · después: pendiente |
-| Control | mismos 5 briefs, misma config y mismos modelos salvo el cambio |
+| Control | solo los briefs del disparador (mínimo uno): el antes es su resultado de (a), sin regenerar; el después, una ejecución nueva con la misma config y los mismos modelos salvo el cambio |
 
 | Métrica | Brief(s) | Antes (vN) | Después (vN+1) | Δ |
 |---|---|---|---|---|
-| Capítulos aceptados al primer intento | 1–5 | pendiente | pendiente | pendiente |
+| Capítulos aceptados al primer intento | pendiente | pendiente | pendiente | pendiente |
 | Detecciones del validador objetivo | pendiente | pendiente | pendiente | pendiente |
 | Score medio del criterio objetivo | pendiente | pendiente | pendiente | pendiente |
-| Ciclos de gate | 1–5 | pendiente | pendiente | pendiente |
+| Ciclos de gate | pendiente | pendiente | pendiente | pendiente |
 | Coste USD por novela | 1–5 | pendiente | pendiente | pendiente |
 
 Cada fila de resultado enlaza la generación de Langfuse que la produjo, y esta, su versión de prompt (`architecture.md` §13).
@@ -241,11 +241,11 @@ Regla: \|Δ\| ≥ 2 en un criterio, o desacuerdo sobre si un bloqueante pasa el 
 | Uso | Generaciones | Nota |
 |---|---|---|
 | Evals: 5 briefs | 5 completas | El brief 1 da además la novela de ejemplo, la revisión humana y la base del cambio |
-| Iteración de tuning: los 5 briefs con vN+1 | 5 completas | Solo después de leer (a)–(d) |
+| Iteración de tuning: los briefs del disparador con vN+1 | 1 completa (máx. 2) | Solo después de leer (a)–(d); el antes sale de las evals, sin regenerar |
 | Cambio del lector propagado (§4.2 f) | 1 parcial | Afectados + gate completo |
 | Edición manual con Lean (O.11, RT16) | 1 parcial | Capítulo editado + gate completo |
 | Red-team D (RT2–RT4) | 0 | Sesiones sueltas de extractor y de planner en modo cambio |
-| **Total** | **≈ 12** | Una generación cortada por el límite se **reanuda** desde su punto de control, no se repite |
+| **Total** | **≈ 8** | Una generación cortada por el límite se **reanuda** desde su punto de control, no se repite |
 
 ### 4.3 Guardarraíles — T
 
