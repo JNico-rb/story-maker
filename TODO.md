@@ -309,21 +309,21 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcado con el cambio de C4
 
 ### Steps
-- [ ] C4 — Las transiciones de `Harness.tla` son las de §9.1
-- [ ] C1 — `Harness.tla` pasa en el modelo pequeño
-- [ ] C5 — Las transiciones de `Regenerations.tla` son las de §10.2
-- [ ] C2 — `Regenerations.tla` pasa con dos cambios
-- [ ] C3 — Ninguna acción queda sin disparar
-- [ ] C6 — Cada config de control da el contraejemplo de su propiedad
-- [ ] C9 — El README dice qué transición implementa cada acción
-- [ ] C10 — Un contraejemplo real queda registrado con su cambio
+- [x] C4 — Las transiciones de `Harness.tla` son las de §9.1 — modelo con el cambio de C10 (en `gate`, solo el ciclo fallido cuenta un intento); fila `Validar` de C4 y §9.2/§9.4 por actualizar (integrador)
+- [x] C1 — `Harness.tla` pasa en el modelo pequeño — TLC: sin error, 862.143 estados distintos, 193 s en el portátil (12 núcleos)
+- [x] C5 — Las transiciones de `Regenerations.tla` son las de §10.2
+- [x] C2 — `Regenerations.tla` pasa con dos cambios — TLC: sin error, 155 estados distintos, 1 s
+- [x] C3 — Ninguna acción queda sin disparar — `tla/verificar.sh`: las 12 acciones de `Harness.tla` y las 6 de `Regenerations.tla`, disparadas; probado el rechazo (acción muerta → la nombra)
+- [x] C6 — Cada config de control da el contraejemplo de su propiedad — TLC: los 6 controles dan el contraejemplo de su propiedad con la traza de la tabla; `TerminaSiempre` por ser la única propiedad temporal de su config (TLC 2.19 no la nombra); probado el rechazo (defecto desactivado → sin contraejemplo; sintaxis → otra causa)
+- [x] C9 — El README dice qué transición implementa cada acción — README raíz (V2 6c09383): 12 filas, una por acción de `Harness.tla`, con transición de C4, quién la dispara y spec del código; `Regenerations.tla` remite a ellas y a §10.2; columna Código pendiente hasta cerrar cada spec
+- [x] C10 — Un contraejemplo real queda registrado con su cambio — `verification.md` §8 fila 3 (TLC, ciclos del gate); primero `architecture.md` §9.2 y §18, después el modelo; tras el cambio `Harness.cfg` pasa (862.143 estados)
 - [ ] C8 — En el portátil, el mismo veredicto (D, al final)
 - [ ] C7 — La CI decide con las configs de la 006 (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-24: `bash tla/verificar.sh` (Temurin portable, tla2tools 1.7.4): 8/8 configs OK — Harness.cfg (862.143 estados, 285s) y sus 5 controles, cada uno con el contraejemplo nombrado; Regenerations.cfg (155 estados) y su control 6; `uv run pytest` backend: 278 passed
+- [x] Spec updated, or confirmed still true — verificador 2026-09-24: sin cambios; C4/C5 contra `tla/Harness.tla` y `tla/Regenerations.tla` coinciden
+- [x] Docs updated, or confirmed still true — verificador 2026-09-24: `architecture.md` §9.2/§9.4/§18 y `verification.md` §8 fila 3 ya reflejan el cambio de C10; README raíz con las 12 filas de C9
 
 ## 007 — validador-lean
 
