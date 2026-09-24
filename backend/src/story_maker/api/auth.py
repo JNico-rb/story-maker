@@ -10,6 +10,7 @@ import jwt
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
+from story_maker.api.errors import field_error
 from story_maker.store.session import unit_of_work
 from story_maker.store.users import create_user, get_user_by_email
 
@@ -118,9 +119,9 @@ def register(payload: RegisterRequest, request: Request) -> RegisterResponse:
     state = request.app.state
     email = normalize_email(payload.email)
     if not is_valid_email(email):
-        raise HTTPException(status_code=422, detail="email inválido")
+        raise HTTPException(status_code=422, detail=field_error("email", "email inválido"))
     if not is_valid_password(payload.password):
-        raise HTTPException(status_code=422, detail="contraseña inválida")
+        raise HTTPException(status_code=422, detail=field_error("password", "contraseña inválida"))
 
     with unit_of_work(state.session_factory) as uow:
         if get_user_by_email(uow.session, email) is not None:

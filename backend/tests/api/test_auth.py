@@ -370,3 +370,57 @@ def test_the_password_never_appears_in_the_database_or_in_any_response(tmp_path:
 
     raw = db_path.read_bytes()
     assert password.encode("utf-8") not in raw
+
+
+def test_no_422_reproduces_the_sent_password(client: TestClient) -> None:
+    """Hallazgo del integrador: un cuerpo incompleto (sin `email`) hacía que el 422 por defecto
+    de FastAPI reprodujese, en `input`, la contraseña que sí llegó en el cuerpo."""
+    password = "ContraseniaSecreta9"
+
+    register_no_email = client.post("/api/auth/register", json={"password": password})
+    login_no_email = client.post("/api/auth/login", json={"password": password})
+
+    for response in (register_no_email, login_no_email):
+        assert response.status_code == 422, response.text
+        assert password not in response.text
+
+
+@pytest.mark.parametrize(
+    ("path", "body", "expected_loc"),
+    [
+        (
+            "/api/auth/register",
+            {"email": "cliente-a.example.com", "password": "contraseña-1"},
+            ["body", "email"],
+        ),
+        (
+            "/api/auth/register",
+            {"email": "cliente-a@example.com", "password": "corta"},
+            ["body", "password"],
+        ),
+        ("/api/auth/register", {"password": "contraseña-1"}, ["body", "email"]),
+        ("/api/auth/register", {"email": "cliente-a@example.com"}, ["body", "password"]),
+        (
+            "/api/auth/register",
+            {"email": 12345678, "password": "contraseña-1"},
+            ["body", "email"],
+        ),
+        ("/api/auth/login", {"password": "contraseña-1"}, ["body", "email"]),
+        ("/api/auth/login", {"email": "cliente-a@example.com"}, ["body", "password"]),
+    ],
+)
+def test_every_422_has_the_unified_shape(
+    client: TestClient, path: str, body: dict[str, object], expected_loc: list[str]
+) -> None:
+    """`{"detail": [{"loc", "msg", "type"}]}`, nunca `input` ni `ctx` (C04-C06, C10)."""
+    response = client.post(path, json=body)
+
+    assert response.status_code == 422
+    payload = response.json()
+    assert set(payload) == {"detail"}
+    assert isinstance(payload["detail"], list)
+    assert len(payload["detail"]) >= 1
+    matching = [entry for entry in payload["detail"] if entry["loc"] == expected_loc]
+    assert matching, payload["detail"]
+    for entry in payload["detail"]:
+        assert set(entry) == {"loc", "msg", "type"}

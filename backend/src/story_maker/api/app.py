@@ -7,12 +7,14 @@ from importlib.metadata import version
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session, sessionmaker
 
 from story_maker.api.auth import Clock, utc_now
 from story_maker.api.auth import router as auth_router
+from story_maker.api.errors import validation_exception_handler
 
 RESERVED_PREFIXES = ("api", "view", "mcp")
 
@@ -30,6 +32,10 @@ def create_app(
     `session_factory` y `jwt_secret` habilitan el registro y el acceso (002); sin ellos, el
     servidor arranca igual, sin esas rutas, igual que sin `frontend_dist`."""
     app = FastAPI(title="story-maker")
+    # `exception_handler`, no `add_exception_handler`: su decorador tipa con un TypeVar genérico,
+    # así que acepta un manejador específico de `RequestValidationError` sin que mypy strict se
+    # queje de la contravarianza de `Callable[[Request, Exception], ...]`.
+    app.exception_handler(RequestValidationError)(validation_exception_handler)
 
     @app.get("/health")
     def health() -> dict[str, str]:
