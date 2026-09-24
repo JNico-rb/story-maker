@@ -56,6 +56,13 @@ class TokenCeiling:
                 return ticket
             self._withdraw(ticket)
             raise NoRoomInTime(f"no hubo sitio para {amount} tokens en {timeout} s") from None
+        except asyncio.CancelledError:
+            # Quien esperaba se fue: su reserva no puede quedar en la cola ni concedida a nadie.
+            if ticket.granted:
+                self.release(ticket)
+            else:
+                self._withdraw(ticket)
+            raise
         return ticket
 
     def _withdraw(self, ticket: Ticket) -> None:
