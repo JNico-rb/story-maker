@@ -215,6 +215,17 @@ class Canon:
                 uow.add(EventCharacter(event_id=event.id, character_id=character))
             return event.id
 
+    def delete_event(self, event_id: int) -> None:
+        """Retira un evento y sus presencias, como al volver a aceptar su capítulo."""
+        with unit_of_work(self.session_factory) as uow:
+            presences = uow.session.query(EventCharacter).filter(
+                EventCharacter.event_id == event_id
+            )
+            for presence in presences:
+                uow.delete(presence)
+            uow.session.flush()
+            uow.delete(uow.session.get(Event, event_id))
+
     def planned_event(
         self, version_id: int, chapter: int, beat: int, statement: str, place: int
     ) -> None:

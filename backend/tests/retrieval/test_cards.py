@@ -253,3 +253,41 @@ def test_an_entity_recorded_before_its_planned_chapter_starts_after_that_chapter
             assert len(current) == 1
             assert early in current[0].text
         assert not [c for c in eligible_cards(session, version, 2) if c.character_id == nia]
+
+
+def test_accepting_a_chapter_again_replaces_what_its_old_version_left_in_later_cards(
+    canon: Any, planned: dict[str, Any]
+) -> None:
+    version = planned["version"]
+    toby, _ = canon.named(version, "Toby")
+    _, fair = canon.named(version, "la feria del pueblo")
+    for number in range(1, 11):
+        canon.chapter(version, number, f"Texto del capítulo {number}.")
+    first_take = canon.event(
+        version, "Toby se escapa en la feria.", fair, origin="recorded", chapter=3, present=[toby]
+    )
+    canon.event(
+        version, "Toby duerme en la feria.", fair, origin="recorded", chapter=5, present=[toby]
+    )
+    canon.sync(version)
+    before = snapshot(canon, version)
+
+    canon.delete_event(first_take)
+    canon.event(
+        version,
+        "Toby gana un premio en la feria.",
+        fair,
+        origin="recorded",
+        chapter=3,
+        present=[toby],
+    )
+    canon.sync(version)
+
+    dog_later = [c for c in canon.cards(version) if c.character_id == toby and c.from_chapter >= 4]
+    assert sorted(c.from_chapter for c in dog_later) == [4, 6]
+    assert all("Toby gana un premio en la feria." in c.text for c in dog_later)
+    assert not any("Toby se escapa en la feria." in c.text for c in dog_later)
+    after = snapshot(canon, version)
+    assert {card: v for card, v in before.items() if v[0] <= 3} == {
+        card: v for card, v in after.items() if v[0] <= 3
+    }
