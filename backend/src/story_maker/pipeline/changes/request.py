@@ -25,7 +25,11 @@ from story_maker.observability.port import ObservabilityPort
 from story_maker.pipeline.changes.affected import affected_chapters
 from story_maker.pipeline.changes.policy import judge_text
 from story_maker.pipeline.changes.proposal import ProposeChangeInput, propose_change_tool
-from story_maker.pipeline.changes.selection import FactSelection, FragmentSelection
+from story_maker.pipeline.changes.selection import (
+    FactSelection,
+    FragmentSelection,
+    selection_obstacle,
+)
 from story_maker.pipeline.runs import naive
 from story_maker.store.models import Attempt, ChangeRequest
 from story_maker.store.session import unit_of_work
@@ -77,6 +81,9 @@ async def request_change(
         base = current_version(session, novel_id)
         if base is None:
             return RequestFailure(409, "la novela no tiene versión publicada")
+        obstacle = selection_obstacle(session, novel_id, base, selection)
+        if obstacle is not None:
+            return RequestFailure(*obstacle)
         bible = read_story_bible(session, base.id)
 
     trace_key = f"{TRACE_NAME}:{novel_id}:{uuid.uuid4().hex}"

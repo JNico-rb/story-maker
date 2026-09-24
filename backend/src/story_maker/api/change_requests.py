@@ -9,6 +9,8 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 
 from story_maker.api.dependencies import get_current_user_id
+from story_maker.api.errors import field_error
+from story_maker.api.interview import MAX_MESSAGE_CHARS
 from story_maker.api.ownership import owned_or_404
 from story_maker.pipeline.changes.request import RequestFailure, request_change
 from story_maker.pipeline.changes.selection import Selection
@@ -40,6 +42,15 @@ async def post_change_request(
     request: Request,
     user_id: Annotated[int, Depends(get_current_user_id)],
 ) -> ChangeRequestOut:
+    if not body.request.strip():
+        raise HTTPException(
+            status_code=422, detail=field_error("request", "la petición no puede estar vacía")
+        )
+    if len(body.request) > MAX_MESSAGE_CHARS:
+        raise HTTPException(
+            status_code=422,
+            detail=field_error("request", f"la petición supera los {MAX_MESSAGE_CHARS} caracteres"),
+        )
     state = request.app.state
     with state.session_factory() as session:
         owned_or_404(session, Novel, novel_id, lambda n: n.user_id == user_id)
