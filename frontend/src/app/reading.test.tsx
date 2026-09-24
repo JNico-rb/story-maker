@@ -119,4 +119,21 @@ describe("026 lectura", () => {
     expect(within(cover).getByText(/Destinataria de prueba/)).toBeInTheDocument();
     expect(within(cover).getByText("Para quien espera la luz.")).toBeInTheDocument();
   });
+
+  it("026-C03: the index lists the 10 chapters and links to each one, with no changed mark", async () => {
+    apiAtV1();
+    renderReading();
+
+    const index = await screen.findByRole("navigation", { name: "Índice" });
+    const links = within(index).getAllByRole("link");
+    expect(links).toHaveLength(10);
+    expect(links[2]).toHaveAccessibleName(/Título 3 v1/);
+    expect(links[2]).toHaveAttribute("href", "#capitulo-3");
+
+    const chapter = screen.getByRole("region", { name: /Capítulo 3/ });
+    expect(within(chapter).getByText("Texto del capítulo 3 en v1.")).toBeInTheDocument();
+    expect(chapter.id).toBe("capitulo-3");
+
+    expect(screen.queryByText(/cambiado en v/i)).not.toBeInTheDocument();
+  });
 });

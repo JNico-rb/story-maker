@@ -36,10 +36,44 @@ function Cover({ view }: { view: VersionDetail["view"] }) {
   );
 }
 
+function Index({ chapters }: { chapters: VersionDetail["view"]["chapters"] }) {
+  return (
+    <nav aria-label="Índice" className="mb-10">
+      <ol className="space-y-1">
+        {chapters.map((chapter) => (
+          <li key={chapter.number}>
+            <a href={`#capitulo-${chapter.number}`}>
+              Capítulo {chapter.number}: {chapter.title}
+            </a>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  );
+}
+
+function Chapter({ chapter }: { chapter: VersionDetail["view"]["chapters"][number] }) {
+  return (
+    <section id={`capitulo-${chapter.number}`} aria-label={`Capítulo ${chapter.number}`} className="mb-10">
+      <h3 className="font-reading text-xl font-semibold text-secondary">{chapter.title}</h3>
+      <p className="mt-2">{chapter.text}</p>
+    </section>
+  );
+}
+
 function VersionContent({ novelId, version }: { novelId: string; version: number }) {
   const load = useJson<VersionDetail>(`/api/novels/${novelId}/versions/${version}`);
   if (load.status === "loading") return <p>Cargando la versión…</p>;
-  return <Cover view={load.data.view} />;
+  const { view } = load.data;
+  return (
+    <>
+      <Cover view={view} />
+      <Index chapters={view.chapters} />
+      {view.chapters.map((chapter) => (
+        <Chapter key={chapter.number} chapter={chapter} />
+      ))}
+    </>
+  );
 }
 
 function Versions({ novelId }: { novelId: string }) {
