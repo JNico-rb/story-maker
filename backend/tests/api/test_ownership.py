@@ -31,7 +31,7 @@ from story_maker.store.models import (
     Run,
     Version,
 )
-from story_maker.store.session import create_schema, make_engine, make_session_factory
+from story_maker.store.session import create_schema, make_engine, make_session_factory, unit_of_work
 
 JWT_SECRET = "x" * 32
 NOW = dt.datetime(2026, 1, 1)
@@ -109,6 +109,19 @@ def _mount_banned_term_route(app: FastAPI) -> FastAPI:
                 lambda t: t.level == "user" and t.user_id == user_id,
             )
             return {"id": term.id}
+
+    @app.delete("/api/_test/banned-terms/{term_id}", status_code=204)
+    def delete_banned_term(
+        term_id: int, request: Request, user_id: int = Depends(get_current_user_id)
+    ) -> None:
+        with unit_of_work(request.app.state.session_factory) as uow:
+            term = owned_or_404(
+                uow.session,
+                BannedTerm,
+                term_id,
+                lambda t: t.level == "user" and t.user_id == user_id,
+            )
+            uow.delete(term)
 
     return app
 
@@ -456,3 +469,29 @@ def test_a_nested_resource_only_exists_within_its_parent(
     assert chapter_response.status_code == 200
     assert chapter_response.json()["id"] == world_b["chapter_id"]
     assert chapter_response.json()["id"] != world_a["chapter_id"]
+
+
+def test_a_global_entry_belongs_to_no_client(
+    client: TestClient, session_factory: sessionmaker[Session]
+) -> None:
+    _a_id, a_token = _register_and_login(client, "cliente-a@example.com")
+    _b_id, b_token = _register_and_login(client, "cliente-b@example.com")
+    global_id = _seed_global_banned_term(session_factory)
+    headers_a = {"Authorization": f"Bearer {a_token}"}
+    headers_b = {"Authorization": f"Bearer {b_token}"}
+
+    get_as_a = client.get(f"/api/_test/banned-terms/{global_id}", headers=headers_a)
+    get_as_b = client.get(f"/api/_test/banned-terms/{global_id}", headers=headers_b)
+    delete_as_a = client.delete(f"/api/_test/banned-terms/{global_id}", headers=headers_a)
+    delete_as_b = client.delete(f"/api/_test/banned-terms/{global_id}", headers=headers_b)
+
+    assert get_as_a.status_code == 404
+    assert get_as_b.status_code == 404
+    assert delete_as_a.status_code == 404
+    assert delete_as_b.status_code == 404
+
+    session = session_factory()
+    try:
+        assert session.get(BannedTerm, global_id) is not None
+    finally:
+        session.close()
