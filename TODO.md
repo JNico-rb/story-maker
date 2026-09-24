@@ -272,7 +272,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
-- [ ] 005-C09 · Sin coincidencia, permite
+- [x] 005-C09 · Sin coincidencia, permite
 - [ ] 005-C01 · Una entrada de nivel global deniega
 - [ ] 005-C02 · Una entrada de nivel user deniega solo para su cliente
 - [ ] 005-C03 · Una entrada de nivel novel deniega solo para su novela
