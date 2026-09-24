@@ -632,10 +632,10 @@ Definidos en `.claude/agents/` y `.claude/commands/` (orquestación en `AGENTS.m
 
 | Nombre | Tipo | Propósito | Permisos | Resultado |
 |---|---|---|---|---|
-| `redactor-specs` | subagente | Escribe una spec desde los docs, con su autorevisión | Lectura + escritura en `specs/` | pendiente |
-| `auditor` | subagente | Audita spec y plan contra docs, encargo (§5) y specs vecinas; sin huecos bloqueantes → marca la aprobación | Solo lectura + Edit sobre `TODO.md` | pendiente |
-| `implementador` | subagente | Implementa el plan aprobado de una spec con TDD en su worktree | Lectura, escritura, `uv`, `pnpm.cmd` | pendiente |
-| `verificador` | subagente | Al cerrar: suite completa y tipos, cada caso T con prueba nombrada, ningún código sin paso del plan; marca el cierre | Solo lectura + Bash | pendiente |
+| `redactor-specs` | subagente | Escribe una spec desde los docs, sin autorrevisión desde el 2026-09-24 | Lectura + escritura en `specs/` | 11 specs redactadas (004, 005, 013, 022–028); decisiones que dejó abiertas, a `architecture.md` §18 |
+| `auditor` | subagente | Audita spec y plan contra docs, encargo (§5) y specs vecinas; sin huecos bloqueantes → marca la aprobación | Solo lectura + Edit sobre `TODO.md` | Aprobó 000 y 006; retirado el 2026-09-24 (decisión del usuario: sin revisiones) |
+| `implementador` | subagente | Implementa el plan aprobado de una spec con TDD en su worktree | Lectura, escritura, `uv`, `pnpm.cmd` | Uno por carril en paralelo (A–D, F); 001, 005 y 006 cerradas; un implementador que delegó en otro no avanzó → se lanza con «no delegues» |
+| `verificador` | subagente | Al cerrar: suite completa y tipos, cada caso T con prueba nombrada, ningún código sin paso del plan; marca el cierre | Solo lectura + Bash | PASS en 000, 001 y 006; FAIL en 005 (plural en -es sin cubrir) → corregido con su prueba y PASS |
 | `seguridad` | subagente | Auditoría de §4.11 → `docs/security-report.md` | Solo lectura + Bash | pendiente |
 | `/orquestar` | comando | Sesión integradora en `V2`: estado, siguiente trabajo desbloqueado, integración de carriles | — | pendiente |
 | `/carril <X>` | comando | Sesión de un carril en su worktree: por spec, espera dependencias, `git rebase V2`, implementa, verifica, commit | — | pendiente |
@@ -649,7 +649,14 @@ Definidos en `.claude/agents/` y `.claude/commands/` (orquestación en `AGENTS.m
 
 | Fecha | Subagente o comando | Para qué | Resultado |
 |---|---|---|---|
-| 2026-09-24 | Subagentes generales en paralelo, uno por doc de `docs/`, sobre un brief de diseño común | Reescribir los docs de referencia al diseño lean | pendiente |
+| 2026-09-24 | Subagentes generales en paralelo, uno por doc de `docs/`, sobre un brief de diseño común | Reescribir los docs de referencia al diseño lean | Docs lean (ADR 0006) |
+| 2026-09-24 | `/orquestar` (integrador en V2) | Proceso sin revisiones; casos D al final; planes rápidos de 000–028 | 29 bloques con spec y plan aprobados en `TODO.md` |
+| 2026-09-24 | `verificador` sobre 000 | Cerrar el scaffolding con los D diferidos | PASS: backend 112, frontend 5, hooks 118 |
+| 2026-09-24 | `redactor-specs` ×11 (004, 005, 013, 020, 022–028) | Completar las specs que faltaban | 11 specs; 020 y 021 las escribió el integrador |
+| 2026-09-24 | `implementador` que delega en otro `implementador` | 001, primer intento | Sin commits: se cortó con la sesión; se relanza con la orden de no delegar |
+| 2026-09-24 | `implementador` 001 (sonnet) + `verificador` | Base | 24/24 pasos no D, 278 pruebas; PASS; integrada (601dfcf) |
+| 2026-09-24 | `implementador` 005 (sonnet) + `verificador` | Guardarraíles | FAIL: el plural en -es de una prohibida pasaba sin marcar (vía de evasión, afín a RT8); prueba que falla → corrección → PASS; integrada (078e9e5) |
+| 2026-09-24 | `implementador` 006 (opus) + `verificador` | TLA+ | 8/8 configs; contraejemplo real de `ReintentosAcotados` (§8 fila 3); PASS; integrada (ab60f80) |
 
 ### 9.5 Memoria
 
