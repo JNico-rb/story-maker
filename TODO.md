@@ -10,7 +10,7 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 
 ## Estado (2026-09-24)
 
-**Integradas en V2:** 000 (D al final), 001, 002, 003, 004, 005, 006, 007, 008, 009, 010, 011, 013, 020 parcial (C06–C09, I2), 016 (cerrada recortada) y 022 (frontend).
+**Integradas en V2:** 000 (D al final), 026 (frontend, lectura), presentación (esqueleto del deck en Marp, `presentacion/deck.md`), 001, 002, 003, 004, 005, 006, 007, 008, 009, 010, 011, 013, 020 parcial (C06–C09, I2), 016 (cerrada recortada) y 022 (frontend).
 
 ### Alcance
 
@@ -37,10 +37,10 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 | 0 — integrador | 000 | — | checkout principal | `V2` | cerrada (D al final) |
 | A | 014 (parte A: C01–C11, I1–I4, I6, I11; parte B tras 012) | 012 | `../sm-a` | `carril-a` | en curso |
 | D | 020 (C01–C05, I1; después C15 tras 012) | — | `../sm-d` | `carril-d` | en curso |
-| E | 026 → 027 (027 tras 014 parte A) | 014 parte A | `../sm-e` | `carril-e` | en curso |
+B6 cerrada e integrada; 027 espera a 014 parte A en V2 |
 | I | 012 (con el WIP de la rama `wip-012-gate`) | 007, 011 | `../sm-i` | `carril-i` | en curso, ruta crítica |
 | K | 029 (C01, C05–C08) | — | `../sm-k` | `carril-k` | en curso |
-| P | presentación (solo `presentacion/`) | — | `../sm-p` | `carril-p` | por crear |
+| P | presentación (solo `presentacion/`) | — | `../sm-p` | `carril-p` | esqueleto integrado; faltan los [PENDIENTE] tras la tanda D |
 
 Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs alternativos están en `ejemplos/briefs-extra/`.
 
