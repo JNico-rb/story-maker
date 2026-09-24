@@ -352,7 +352,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 007-C16 · El input cabe en el límite de 65.535 caracteres o no se envía
 - [x] 007-C17 · Un GitHub inalcanzable o lento interrumpe sin reintentar
 - [x] 007-C18 · El modo github sin sus ajustes no se construye
-- [ ] 007-C19 · El doble del `VerificadorFormal` devuelve lo programado sin red ni Lean
+- [x] 007-C19 · El doble del `VerificadorFormal` devuelve lo programado sin red ni Lean
 - [ ] 007-C20 · El fichero dorado compila y cumple T1–T5
 - [ ] 007-C21 · Un fichero negativo por invariante falla con ese invariante y su primer testigo
 - [ ] 007-C22 · Los límites de cada invariante
