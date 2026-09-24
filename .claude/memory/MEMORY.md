@@ -8,4 +8,4 @@
 - [Reinicio lean de V2](project-v2-reinicio-lean.md) — 2026-09-24: solo rama V2; docs lean (ADR 0006), scaffolding y 21 specs backend aquí; implementación por carriles A–D en otro chat.
 - [Paralelismo inteligente](feedback-paralelismo-inteligente.md) — paralelizar en anchura dentro de una capa, nunca saltar capas; un solo escritor en V2.
 - [Agent SDK sobre OpenRouter](project-agent-sdk-openrouter-hechos.md) — medido 2026-09-23: tools=[] quita Skill, CLAUDE.md de los padres y .mcp.json raíz se cuelan, usage por turno a cero; ya en los docs (§8 filas 11–14), queda el detalle para el design de 001.
-- [Subagentes y cuota](feedback-subagentes-cuota.md) — ≤2 subagentes a la vez; auditor opus, redactor/verificador/implementador sonnet (salvo 006, 007, 012, 014); sin cuota se para, nunca se recorta alcance.
+- [Subagentes y cuota](feedback-subagentes-cuota.md) — ≤3 subagentes (A, C, D); implementador opus en 003, 006, 007, 009, 011, 012, 014, 016, sonnet el resto; integración automática con push; nunca se recorta alcance.
