@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import shutil
 import socket
 import threading
 import time
@@ -283,6 +284,9 @@ def test_serve_listens_on_the_configured_host_and_port_and_flushes_once_on_stop(
     base_env: Path,
 ) -> None:
     runner.invoke(app, ["init-db"])
+    # El montaje de `serve` lee los prompts de los roles del workspace (031-C02).
+    workspace = Path("backend", "harness_workspace", "prompts")
+    shutil.copytree(REAL_ROOT / workspace, base_env / workspace)
     from story_maker.settings import load_settings
 
     settings = load_settings()

@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from contextlib import AbstractAsyncContextManager
 from importlib.metadata import version
 from pathlib import Path
 
@@ -38,14 +40,16 @@ def create_app(
     config: Config | None = None,
     workspace: Path | None = None,
     policy: PolicyEngine | None = None,
+    lifespan: Callable[[FastAPI], AbstractAsyncContextManager[None]] | None = None,
 ) -> FastAPI:
     """`frontend_dist` es el build de la SPA; si no existe, el servidor arranca sin servirla.
 
     `session_factory` y `jwt_secret` habilitan el registro y el acceso (002); sin ellos, el
     servidor arranca igual, sin esas rutas, igual que sin `frontend_dist`. Las rutas de 008
     (novelas, entrevista, textos libres, brief, listas de prohibidas y audit log) se montan solo
-    cuando además llegan `agent_port`, `telemetry`, `config` y `workspace`."""
-    app = FastAPI(title="story-maker")
+    cuando además llegan `agent_port`, `telemetry`, `config` y `workspace`. `lifespan` es lo que
+    vive con el servidor: en `serve`, el worker (031-C02)."""
+    app = FastAPI(title="story-maker", lifespan=lifespan)
     # `exception_handler`, no `add_exception_handler`: su decorador tipa con un TypeVar genérico,
     # así que acepta un manejador específico de `RequestValidationError` sin que mypy strict se
     # queje de la contravarianza de `Callable[[Request, Exception], ...]`.

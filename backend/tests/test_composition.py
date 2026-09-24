@@ -3,6 +3,8 @@ del puerto de agente (003) y de observabilidad (001). Ninguna prueba llama a un 
 
 from __future__ import annotations
 
+import os
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
@@ -13,16 +15,21 @@ import story_maker.settings as settings_module
 from story_maker.agents.fake import FakeAgent
 from story_maker.cli import DB_FILENAME, _build_server
 from story_maker.composition import Adapters
+from story_maker.formal.double import ProgrammedFormalVerifier
+from story_maker.observability.langfuse_adapter import LangfuseObservability
 from story_maker.observability.null import NullObservability
+from story_maker.retrieval.fake import FixedVectors
 from story_maker.settings import Settings, load_settings
 from story_maker.store.session import create_schema, make_engine
 
 JWT_SECRET = "s" * 32
 
 
-def make_settings(data_dir: Path, frontend_dist: Path) -> Settings:
+def make_settings(data_dir: Path, frontend_dist: Path, *, inherit_env: bool = False) -> Settings:
+    """Los ajustes de la prueba, sin `.env`; con `inherit_env`, más el entorno del proceso."""
     return load_settings(
         env={
+            **(os.environ if inherit_env else {}),
             "STORY_MAKER_DATA_DIR": str(data_dir),
             "STORY_MAKER_FRONTEND_DIST": str(frontend_dist),
             "STORY_MAKER_CONFIG": str(settings_module.ROOT / "config.json"),
@@ -34,8 +41,18 @@ def make_settings(data_dir: Path, frontend_dist: Path) -> Settings:
     )
 
 
-def fake_adapters(fake: FakeAgent | None = None) -> Adapters:
-    return Adapters(agent=fake or FakeAgent())
+def fake_adapters(
+    fake: FakeAgent | None = None,
+    *,
+    verifier: ProgrammedFormalVerifier | None = None,
+    render_pdf: Callable[[str], bytes] = lambda html: b"",
+) -> Adapters:
+    return Adapters(
+        agent=fake or FakeAgent(),
+        formal_verifier=verifier or ProgrammedFormalVerifier([]),
+        render_pdf=render_pdf,
+        embedder=FixedVectors(),
+    )
 
 
 def init_database(data_dir: Path) -> None:
@@ -45,9 +62,13 @@ def init_database(data_dir: Path) -> None:
     engine.dispose()
 
 
-def served_app(settings: Settings, adapters: Adapters) -> FastAPI:
+def served_app(
+    settings: Settings,
+    adapters: Adapters,
+    telemetry: NullObservability | LangfuseObservability | None = None,
+) -> FastAPI:
     """La aplicación tal como la construye `serve`."""
-    app = _build_server(settings, NullObservability(), adapters).config.app
+    app = _build_server(settings, telemetry or NullObservability(), adapters).config.app
     assert isinstance(app, FastAPI)
     return app
 
