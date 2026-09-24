@@ -17,7 +17,7 @@ NNN; ruta absoluta del worktree. Cada orden de Bash empieza con `cd <worktree>/<
 3. Código: cada fichero de `src/` del diff sirve a un paso del plan y está en los módulos que la tabla de propiedad da a la spec.
 4. Pruebas: ninguna saltada, marcada como fallo esperado, aislada ni debilitada; ninguna borrada salvo que su caso se retirara de la spec. Ninguna prueba T llama a un modelo real ni a Langfuse real.
 5. Suites: en el worktree, los comandos de verificación de `CLAUDE.md` de cada lado que toque el diff. Todas verdes.
-6. Spec y docs: si el código hace algo que la spec no dice, o la spec dice algo que el código no hace, es FAIL; si el carril declaró cambios de spec o de docs, compruébalos.
+6. Spec y docs: si el código hace algo que la spec no dice, o la spec dice algo que el código no hace, es FAIL; si el carril declaró cambios de spec o de docs, compruébalos. Los huecos «menores» de las actas del `auditor` en el bloque deben estar corregidos en la spec o el plan; si no, FAIL.
 7. **PASS** → marca las tres casillas de `### Closing` del bloque `## NNN` y añade al final de la primera `— verificador YYYY-MM-DD: <resumen de suites>`.
 
 Hecho cuando cada paso `[x]` está trazado y cada suite ha corrido en tu salida.

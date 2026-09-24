@@ -35,11 +35,11 @@ When touching `backend/` or `frontend/`, read `backend/AGENTS.md` and `frontend/
 |---|---|---|
 | Change `docs/*.md` | Self-review round on the task (process 0) | — |
 | Write or change a spec | Supporting docs + a self-review round **on that spec** | — |
-| Write the plan | That spec's approval box `[x]` | `auditor`, at gap zero |
-| Write tests or code | That plan's approval box `[x]` + a failing test | `auditor`, at gap zero |
+| Write the plan | That spec's approval box `[x]` | `auditor`, with no blocking gap |
+| Write tests or code | That plan's approval box `[x]` + a failing test | `auditor`, with no blocking gap |
 | Close a feature | Full suite green, types clean | `verificador` |
 
-**Approvals are delegated to agents; the one who writes a thing never approves it.** `auditor` marks a spec or plan box only at gap zero and ends that same line with its record: `— auditor YYYY-MM-DD: <one line>`. `verificador` marks the three closing boxes. No other agent or session marks a box. Box unmarked → **stop**: run the auditor, never work around it. Three audit rounds without gap zero → escalate to the user with the remaining gaps.
+**Approvals are delegated to agents; the one who writes a thing never approves it.** `auditor` marks a spec or plan box once **no blocking gap** remains and ends that same line with its record: `— auditor YYYY-MM-DD: <one line>`. Blocking: a requirement of `project-constraints.md` left uncovered, a contradiction with `docs/*.md`, a case that cannot be tested, or a broken dependency. Minor gaps do not block: the record lists them (`menores: …`) and they are fixed when the spec is closed, with no new round (the `verificador` checks them). `verificador` marks the three closing boxes. No other agent or session marks a box. Box unmarked → **stop**: run the auditor, never work around it. At most two audit rounds: blocking gaps left after round 2 → escalate to the user.
 
 The user steps in only on escalations and on human-only tasks: the human review of a novel, the demo video, accounts and tokens, the final check.
 
@@ -68,7 +68,7 @@ Required contents: **objective**; **scope** / **out of scope**; **observable beh
 - Behaviour only: no file names, signatures or libraries. The one exception is `specs/000-scaffolding.md`: its observable behaviour is the commands a developer runs and what they produce, so it names commands, paths and tools.
 - Never contradicts `docs/*.md` — change the doc first (process 1).
 - Dependent specs reference each other by name; they never duplicate cases.
-- Specs are drafted in parallel, one `redactor-specs` per spec. Writers never edit `TODO.md`: the integrator (main checkout, V2) adds each block, one at a time, with every box unmarked, and then runs `auditor` until gap zero.
+- Specs are drafted in parallel, one `redactor-specs` per spec. Writers never edit `TODO.md`: the integrator (main checkout, V2) adds each block, one at a time, with every box unmarked, and then runs `auditor` until no blocking gap remains.
 - One commit per approved spec (`NNN: spec aprobada`) and one per approved plan (`NNN: plan aprobado`), both by the integrator.
 - Changing one: self-review again, edit the cases, unmark **both** boxes, re-audit, re-run processes 3 and 4 for what changed. A deleted case means a deleted test.
 
@@ -78,8 +78,8 @@ Single file at the repo root: a header with the lane table (owned by the integra
 
     ## NNN — <feature name>
 
-    - [ ] Spec `specs/<side>/NNN-nombre.md` approved               <- auditor, at gap zero, with its record
-    - [ ] Plan below approved                                      <- auditor, at gap zero, with its record
+    - [ ] Spec `specs/<side>/NNN-nombre.md` approved               <- auditor, no blocking gap, with its record
+    - [ ] Plan below approved                                      <- auditor, no blocking gap, with its record
 
     ### Steps
     - [ ] <case 1, as named in the spec>
@@ -90,7 +90,7 @@ Single file at the repo root: a header with the lane table (owned by the integra
     - [ ] Spec updated, or confirmed still true
     - [ ] Docs updated, or confirmed still true
 
-A marked box reads, for example: `- [x] Plan below approved — auditor 2026-09-24: 9 steps, one per case, gap zero`.
+A marked box reads, for example: `- [x] Plan below approved — auditor 2026-09-24: 9 steps, one per case; menores: C4 step name differs from the case`.
 
 ### 4. Changing code — TDD
 

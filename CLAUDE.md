@@ -8,7 +8,7 @@ Este fichero instruye a Claude Code **en el desarrollo**. El `CLAUDE.md` **de pr
 
 @AGENTS.md
 
-Resumen: cinco capas en orden, aprobaciones delegadas (`auditor` aprueba spec y plan a gap cero, `verificador` cierra) y carriles en paralelo. Arranque: `/orquestar` en el checkout principal (V2); `/carril <X>` en cada worktree.
+Resumen: cinco capas en orden, aprobaciones delegadas (`auditor` aprueba spec y plan sin huecos bloqueantes, `verificador` cierra) y carriles en paralelo. Arranque: `/orquestar` en el checkout principal (V2); `/carril <X>` en cada worktree.
 
 ## Mapa del repo
 
