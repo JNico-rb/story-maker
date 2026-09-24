@@ -13,9 +13,9 @@ from typer.testing import CliRunner
 
 import story_maker.cli as cli_module
 import story_maker.settings as settings_module
-from story_maker.agents.fake import FakeAgent, Say, Script
+from story_maker.agents.fake import Call, Fail, FakeAgent, Say, Script
 from story_maker.cli import app
-from story_maker.store.models import Interview, InterviewMessage, User
+from story_maker.store.models import ExtractedFact, FreeText, Interview, InterviewMessage, User
 from story_maker.store.session import make_engine, make_session_factory
 
 REAL_ROOT = settings_module.ROOT
@@ -113,6 +113,107 @@ def test_interview_creates_a_novel_and_prints_its_id_and_reply(
         assert [m.author for m in messages] == ["user", "interviewer"]
         assert messages[0].text == "Hola"
         assert messages[1].text == "¿Cómo se llama?"
+    finally:
+        session.close()
+        engine.dispose()
+
+
+# --- 029-C05: texto libre desde un fichero -----------------------------------------------------
+
+
+def _script_a_turn_naming_the_recipient(fake_agent: FakeAgent) -> None:
+    """Un hecho solo se verifica con un sujeto válido (`domain.brief.valid_subjects`): un turno
+    que nombra al destinatario, antes del texto libre."""
+    fake_agent.script(
+        "interviewer", None, Script(steps=(Call("update_brief", {"name": "Marta"}), Say("ok")))
+    )
+
+
+def test_free_text_prints_the_id_and_quote_of_each_verified_fact_pending_acceptance(
+    registered_client: Path, fake_agent: FakeAgent, tmp_path: Path
+) -> None:
+    _script_a_turn_naming_the_recipient(fake_agent)
+    letter = tmp_path / "carta.txt"
+    letter.write_text("Marta nació en Bilbao.", encoding="utf-8")
+    fake_agent.script(
+        "extractor",
+        None,
+        Script(
+            steps=(
+                Call(
+                    "submit_facts",
+                    {
+                        "facts": [
+                            {
+                                "subject": "Marta",
+                                "attribute": "lugar de nacimiento",
+                                "value": "Bilbao",
+                                "quote": "Marta nació en Bilbao.",
+                            }
+                        ],
+                        "discarded_instructions": [],
+                    },
+                ),
+            )
+        ),
+    )
+
+    result = runner.invoke(
+        app, ["interview", "--email", EMAIL], input=f"Hola\n/texto {letter}\n/salir\n"
+    )
+
+    assert result.exit_code == 0, result.stdout
+    lines = result.stdout.strip().splitlines()
+    assert "Marta nació en Bilbao." not in lines  # el contenido no llega a la salida (029-C05)
+
+    session, engine = _session(registered_client)
+    try:
+        facts = session.query(ExtractedFact).all()
+        assert len(facts) == 1
+        fact = facts[0]
+        assert fact.accepted is None
+        assert f"{fact.id}: {fact.quote}" in lines
+    finally:
+        session.close()
+        engine.dispose()
+
+
+def test_free_text_from_a_missing_file_prints_the_reason_and_saves_nothing(
+    registered_client: Path, fake_agent: FakeAgent, tmp_path: Path
+) -> None:
+    missing = tmp_path / "no-existe.txt"
+
+    result = runner.invoke(
+        app, ["interview", "--email", EMAIL], input=f"/texto {missing}\n/salir\n"
+    )
+
+    assert result.exit_code == 0, result.stdout
+    assert f"no existe el fichero {missing}" in result.stdout
+
+    session, engine = _session(registered_client)
+    try:
+        assert session.query(FreeText).count() == 0
+    finally:
+        session.close()
+        engine.dispose()
+
+
+def test_free_text_rejected_by_the_extractor_session_prints_the_reason_and_saves_nothing(
+    registered_client: Path, fake_agent: FakeAgent, tmp_path: Path
+) -> None:
+    letter = tmp_path / "carta.txt"
+    letter.write_text("Marta nació en Bilbao.", encoding="utf-8")
+    fake_agent.script("extractor", None, Script(steps=(Fail(result=True),)))
+
+    result = runner.invoke(app, ["interview", "--email", EMAIL], input=f"/texto {letter}\n/salir\n")
+
+    assert result.exit_code == 0, result.stdout
+    assert "infrastructure_failure" in result.stdout
+
+    session, engine = _session(registered_client)
+    try:
+        assert session.query(FreeText).count() == 0
+        assert session.query(ExtractedFact).count() == 0
     finally:
         session.close()
         engine.dispose()

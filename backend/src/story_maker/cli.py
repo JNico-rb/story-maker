@@ -24,6 +24,7 @@ from story_maker.api.app import create_app
 from story_maker.api.auth import normalize_email, utc_now
 from story_maker.config import Config, ConfigError, load_config
 from story_maker.interview.brief import TurnFailure, run_turn
+from story_maker.interview.free_text import FreeTextFailure, run_free_text
 from story_maker.interview.novels import create_interview_novel
 from story_maker.observability.factory import build_langfuse_client, has_langfuse_vars
 from story_maker.observability.langfuse_adapter import LangfuseObservability
@@ -313,11 +314,11 @@ def export_pdf_command(
         engine.dispose()
 
 
-# --- `interview` (029-C01) -----------------------------------------------------------------------
+# --- `interview` (029-C01, C05) --------------------------------------------------------------
 #
 # La orden usa los servicios de la 008 en el mismo proceso: sin servidor, sin rutas HTTP. No
-# tiene reglas propias; cada rama del bucle llama directamente a `interview/` (`run_turn`) y, en
-# pasos posteriores, a `run_free_text`, `brief_of` y `api/brief.py` (`build_brief_out`,
+# tiene reglas propias; cada rama del bucle llama directamente a `interview/` (`run_turn`,
+# `run_free_text`) y, en pasos posteriores, a `brief_of` y `api/brief.py` (`build_brief_out`,
 # `brief_problems`, ya puras, sin `Request`).
 
 
@@ -389,6 +390,36 @@ async def _handle_turn(
     typer.echo(outcome.reply)
 
 
+async def _handle_free_text(
+    services: _InterviewServices, novel_id: int, user_id: int, file_path: str
+) -> None:
+    """`/texto <fichero>`: el contenido va al extractor, nunca al entrevistador ni a la salida
+    (029-C05); solo se imprimen el id y la cita de cada hecho verificado, pendiente de aceptar."""
+    try:
+        content = Path(file_path).read_text(encoding="utf-8")
+    except OSError:
+        typer.echo(f"no existe el fichero {file_path}")
+        return
+
+    prompt = (services.workspace / "prompts" / "extractor.md").read_text(encoding="utf-8")
+    outcome = await run_free_text(
+        agent_port=services.agent_port,
+        telemetry=services.telemetry,
+        policy=services.policy,
+        session_factory=services.session_factory,
+        prompt=prompt,
+        novel_id=novel_id,
+        user_id=user_id,
+        text=content,
+        now=utc_now().replace(tzinfo=None),
+    )
+    if isinstance(outcome, FreeTextFailure):
+        typer.echo(outcome.reason)
+        return
+    for fact in outcome.verified_facts:
+        typer.echo(f"{fact.id}: {fact.quote}")
+
+
 async def _interview_loop(services: _InterviewServices, novel_id: int, user_id: int) -> None:
     while True:
         line = _read_line()
@@ -399,15 +430,19 @@ async def _interview_loop(services: _InterviewServices, novel_id: int, user_id: 
             return
         if not line:
             continue
-        await _handle_turn(services, novel_id, user_id, line)
+        if line.startswith("/texto "):
+            await _handle_free_text(services, novel_id, user_id, line[len("/texto ") :].strip())
+        else:
+            await _handle_turn(services, novel_id, user_id, line)
 
 
 @app.command(name="interview")
 def interview_command(
     email: Annotated[str, typer.Option("--email", help="Email del cliente registrado.")],
 ) -> None:
-    """Entrevista por terminal sobre los servicios de la 008: cada línea es un turno; `/salir` o
-    el fin de la entrada terminan con 0 (029-C01)."""
+    """Entrevista por terminal sobre los servicios de la 008: cada línea es un turno; `/texto
+    <fichero>` manda una carta al extractor; `/salir` o el fin de la entrada terminan con 0
+    (029-C01, C05)."""
     try:
         settings = load_settings()
     except SettingsError as exc:
