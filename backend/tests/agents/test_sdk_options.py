@@ -5,6 +5,7 @@ demuestran 003-C30 a 003-C32 (D)."""
 
 from __future__ import annotations
 
+import json
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -87,3 +88,42 @@ def test_each_role_opens_with_its_whitelist_and_nothing_else(
     assert options.permission_mode == "dontAsk"
     assert options.model == config.roles[role].model
     assert options.max_turns == config.roles[role].max_turns
+
+
+@pytest.mark.parametrize(("role", "mode"), [("interviewer", None), ("writer", "write")])
+def test_the_session_runs_isolated_in_the_workspace(
+    role: str,
+    mode: str | None,
+    tmp_path: Path,
+    config: Config,
+    make_settings: Callable[..., Settings],
+    make_request: Callable[..., SessionRequest],
+) -> None:
+    outer = tmp_path / "repo"
+    inner = outer / "backend"
+    workspace = inner / "harness_workspace"
+    personal = tmp_path / "home" / ".claude"
+    for directory in (workspace, personal):
+        directory.mkdir(parents=True)
+    for directory in (outer, inner, workspace, personal):
+        (directory / "CLAUDE.md").write_text(f"instrucciones de {directory.name}", encoding="utf-8")
+    agent = SdkAgent(make_settings(), workspace=workspace, user_claude_dir=personal)
+
+    options = agent.session_options(
+        make_request(role, mode), role_profile(config, role, mode), NoHooks()
+    )
+
+    assert Path(str(options.cwd)) == workspace
+    assert options.setting_sources == ["project"]
+    excluded = json.loads(str(options.settings))["claudeMdExcludes"]
+    for directory in (outer, inner, personal):
+        assert (directory / "CLAUDE.md").resolve().as_posix() in excluded
+    assert (workspace / "CLAUDE.md").resolve().as_posix() not in excluded
+    assert options.strict_mcp_config is True
+    assert set(options.mcp_servers) == {"harness"}
+    assert options.permission_mode == "dontAsk"
+    assert options.continue_conversation is False
+    assert options.resume is None
+    assert options.session_id is None
+    assert options.env["CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC"] == "1"
+    assert options.env["CLAUDE_CODE_DISABLE_AUTO_MEMORY"] == "1"

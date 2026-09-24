@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 from collections.abc import Sequence
 from pathlib import Path
@@ -27,6 +28,13 @@ HARNESS = "harness"
 BROWSER = "playwright"
 
 
+# Telemetría no esencial y memoria automática del CLI apagadas (`architecture.md` §12.6).
+CLI_SWITCHES = {
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+    "CLAUDE_CODE_DISABLE_AUTO_MEMORY": "1",
+}
+
+
 class RealModelInTests(RuntimeError):
     """Una prueba intentó abrir una sesión real: las pruebas T usan el doble falso (003-I6)."""
 
@@ -37,6 +45,12 @@ def harness_tools(tools: Sequence[ToolSpec]) -> list[Tool]:
         Tool(name=spec.name, description=spec.description, input_schema=spec.schema())
         for spec in tools
     ]
+
+
+def claude_md_excludes(workspace: Path, user_claude_dir: Path) -> list[str]:
+    """Todos los `CLAUDE.md` que no son el del workspace: los de sus padres y el personal."""
+    parents = [directory / "CLAUDE.md" for directory in workspace.resolve().parents]
+    return [path.as_posix() for path in [*parents, (user_claude_dir / "CLAUDE.md").resolve()]]
 
 
 def _harness_server(tools: Sequence[ToolSpec], hooks: ToolHooks) -> McpSdkServerConfig:
@@ -61,9 +75,12 @@ def _harness_server(tools: Sequence[ToolSpec], hooks: ToolHooks) -> McpSdkServer
 
 
 class SdkAgent:
-    def __init__(self, settings: Settings, *, workspace: Path) -> None:
+    def __init__(
+        self, settings: Settings, *, workspace: Path, user_claude_dir: Path | None = None
+    ) -> None:
         self._settings = settings
         self._workspace = workspace
+        self._user_claude_dir = user_claude_dir
 
     def prepare(self, request: SessionRequest) -> None:
         # pytest fija PYTEST_CURRENT_TEST en cada prueba: así ninguna llega al CLI ni al modelo.
@@ -79,14 +96,23 @@ class SdkAgent:
         allowed = [f"mcp__{HARNESS}__{spec.name}" for spec in request.tools] + builtin
         if profile.role == "visual_reviewer":
             allowed += [f"mcp__{BROWSER}__{tool}" for tool in BROWSER_TOOLS]
+        user_claude_dir = self._user_claude_dir or Path(
+            os.environ.get("CLAUDE_CONFIG_DIR") or Path.home() / ".claude"
+        )
+        excludes = claude_md_excludes(self._workspace, user_claude_dir)
         return ClaudeAgentOptions(
             tools=builtin,
             allowed_tools=allowed,
             mcp_servers={HARNESS: _harness_server(request.tools, hooks)},
+            strict_mcp_config=True,
             permission_mode="dontAsk",
             model=profile.model,
             max_turns=profile.max_turns,
             system_prompt=request.prompt,
+            cwd=self._workspace,
+            setting_sources=["project"],
+            settings=json.dumps({"claudeMdExcludes": excludes}),
+            env=dict(CLI_SWITCHES),
         )
 
     def open(
