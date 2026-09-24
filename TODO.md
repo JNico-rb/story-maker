@@ -1157,7 +1157,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 026-C01 · Sin versión indicada, se muestra la vigente
 - [x] 026-C02 · Portada con dedicatoria
 - [x] 026-C03 · Índice navegable a los capítulos
-- [ ] 026-C04 · Página de novedades y marca de cambio
+- [x] 026-C04 · Página de novedades y marca de cambio
 - [ ] 026-C05 · Sin capítulos cambiados, no hay página de novedades
 - [ ] 026-C06 · Ficha con enlaces a los capítulos donde aparece cada entidad
 - [ ] 026-C07 · Una entidad sin capítulos aparece en la ficha sin enlaces
