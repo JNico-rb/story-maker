@@ -315,8 +315,8 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] C2 — `Regenerations.tla` pasa con dos cambios — TLC: sin error, 155 estados distintos, 1 s
 - [x] C3 — Ninguna acción queda sin disparar — `tla/verificar.sh`: las 12 acciones de `Harness.tla` y las 6 de `Regenerations.tla`, disparadas; probado el rechazo (acción muerta → la nombra)
 - [x] C6 — Cada config de control da el contraejemplo de su propiedad — TLC: los 6 controles dan el contraejemplo de su propiedad con la traza de la tabla; `TerminaSiempre` por ser la única propiedad temporal de su config (TLC 2.19 no la nombra); probado el rechazo (defecto desactivado → sin contraejemplo; sintaxis → otra causa)
-- [ ] C9 — El README dice qué transición implementa cada acción
-- [ ] C10 — Un contraejemplo real queda registrado con su cambio
+- [ ] C9 — El README dice qué transición implementa cada acción — contenido listo (commit «006: C9 y C10, contenido para el integrador»); lo escribe el integrador en el README raíz
+- [ ] C10 — Un contraejemplo real queda registrado con su cambio — contraejemplo real de TLC (ciclos del gate) con su cambio en el modelo; registro en `verification.md` §8 y cambio de §9.2/§9.4, del integrador (mismo commit)
 - [ ] C8 — En el portátil, el mismo veredicto (D, al final)
 - [ ] C7 — La CI decide con las configs de la 006 (D, al final)
 
