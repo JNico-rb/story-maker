@@ -30,9 +30,10 @@ def current_version(session: Session, novel_id: int) -> Version | None:
     )
 
 
-def publish(uow: UnitOfWork, version: Version, *, pdf_path: str, now: dt.datetime) -> Version:
+def publish(uow: UnitOfWork, version_id: int, *, pdf_path: str, now: dt.datetime) -> Version:
     """Publica la candidata con el número siguiente al de la vigente. Exige que su base sea la
     vigente; la de generación, que no haya ninguna publicada (historia lineal, 009-I5)."""
+    version = _version(uow.session, version_id)
     if version.status == "published":
         _reject(version, "ya está publicada")
     if version.status == "discarded":
@@ -56,12 +57,20 @@ def publish(uow: UnitOfWork, version: Version, *, pdf_path: str, now: dt.datetim
     return version
 
 
-def discard(uow: UnitOfWork, version: Version) -> Version:
+def discard(uow: UnitOfWork, version_id: int) -> Version:
     """Descarta la candidata: queda sin número y no admite más escrituras."""
+    version = _version(uow.session, version_id)
     if version.status != "candidate":
         _reject(version, f"está {STATE_NAMES[version.status]}")
     version.status = "discarded"
     uow.session.flush()
+    return version
+
+
+def _version(session: Session, version_id: int) -> Version:
+    version = session.get(Version, version_id)
+    if version is None:
+        raise LookupError(f"no existe la versión {version_id}")
     return version
 
 

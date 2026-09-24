@@ -89,10 +89,13 @@ class ConfirmedBrief:
 
 
 def create_generation_candidate(
-    uow: UnitOfWork, novel: Novel, brief: ConfirmedBrief, *, now: dt.datetime
+    uow: UnitOfWork, novel_id: int, brief: ConfirmedBrief, *, now: dt.datetime
 ) -> Version:
-    """Crea la candidata de generación de `novel` con el canon de `brief`, en la transacción de
-    `uow` (009-C10)."""
+    """Crea la candidata de generación de la novela `novel_id` con el canon de `brief`, en la
+    transacción de `uow` (009-C10)."""
+    novel = uow.session.get(Novel, novel_id)
+    if novel is None:
+        raise LookupError(f"no existe la novela {novel_id}")
     version = Version(novel_id=novel.id, status="candidate", changed_chapters=[], created_at=now)
     uow.add(version)
     uow.session.flush()

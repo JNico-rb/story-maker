@@ -64,11 +64,14 @@ class VersionCopy:
     ids: Mapping[str, Mapping[int, int]]
 
 
-def copy_version(uow: UnitOfWork, base: Version, *, now: dt.datetime) -> VersionCopy:
-    """Copia `base` en una candidata nueva dentro de la transacción de `uow`. Cada fila nace con
-    un id propio y toda referencia interna apunta a la fila nueva. Las CanonCards entran en el
-    canal léxico al confirmar la unidad de trabajo; los vectores no se tocan: se comparten por
-    huella y modelo (§6.3)."""
+def copy_version(uow: UnitOfWork, base_id: int, *, now: dt.datetime) -> VersionCopy:
+    """Copia la versión `base_id` en una candidata nueva dentro de la transacción de `uow`. Cada
+    fila nace con un id propio y toda referencia interna apunta a la fila nueva. Las CanonCards
+    entran en el canal léxico al confirmar la unidad de trabajo; los vectores no se tocan: se
+    comparten por huella y modelo (§6.3)."""
+    base = uow.session.get(Version, base_id)
+    if base is None:
+        raise LookupError(f"no existe la versión {base_id}")
     candidate = Version(
         novel_id=base.novel_id,
         status="candidate",

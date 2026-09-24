@@ -204,8 +204,8 @@ def test_copying_is_all_or_nothing(store: Any, faults: Any) -> None:
 
     def copy_failing_at_the_last_table() -> None:
         with unit_of_work(store.session_factory) as uow:
-            base = uow.session.get(models.Version, v1.version_id)
-            copy_version(faults.wrap(uow, models.CanonCard, nth=last_card), base, now=store.now)
+            failing = faults.wrap(uow, models.CanonCard, nth=last_card)
+            copy_version(failing, v1.version_id, now=store.now)
 
     with pytest.raises(faults.error):
         copy_failing_at_the_last_table()
@@ -238,8 +238,8 @@ def test_a_generation_candidate_that_fails_at_any_row_leaves_nothing(
 
     def create() -> None:
         with unit_of_work(store.session_factory) as uow:
-            novel = uow.session.get(models.Novel, novel_id)
-            create_generation_candidate(faults.wrap(uow, model, nth=nth), novel, f1, now=store.now)
+            failing = faults.wrap(uow, model, nth=nth)
+            create_generation_candidate(failing, novel_id, f1, now=store.now)
 
     with pytest.raises(faults.error):
         create()
@@ -274,8 +274,7 @@ def test_a_copy_that_fails_at_any_row_leaves_nothing_and_the_base_intact(
 
     def copy() -> None:
         with unit_of_work(store.session_factory) as uow:
-            base = uow.session.get(models.Version, v1.version_id)
-            copy_version(faults.wrap(uow, model, nth=nth), base, now=store.now)
+            copy_version(faults.wrap(uow, model, nth=nth), v1.version_id, now=store.now)
 
     with pytest.raises(faults.error):
         copy()

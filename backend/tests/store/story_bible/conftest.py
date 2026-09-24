@@ -141,9 +141,7 @@ class Store:
 
     def generation(self, novel_id: int, brief: ConfirmedBrief, now: dt.datetime = NOW) -> int:
         with unit_of_work(self.session_factory) as uow:
-            novel = uow.session.get(Novel, novel_id)
-            assert novel is not None
-            version = create_generation_candidate(uow, novel, brief, now=now)
+            version = create_generation_candidate(uow, novel_id, brief, now=now)
         return version.id
 
     def build_v1(self) -> V1:
@@ -340,9 +338,7 @@ class Store:
     def copy(self, base_id: int, now: dt.datetime = NOW) -> tuple[int, dict[str, dict[int, int]]]:
         """Copia la versión `base_id`: el id de la candidata y la traducción de ids."""
         with unit_of_work(self.session_factory) as uow:
-            base = uow.session.get(models.Version, base_id)
-            assert base is not None
-            copied = copy_version(uow, base, now=now)
+            copied = copy_version(uow, base_id, now=now)
         return copied.version.id, {t: dict(m) for t, m in copied.ids.items()}
 
     def add_chapters(
@@ -377,9 +373,7 @@ class Store:
 
     def publish(self, version_id: int, pdf_path: str = "novel.pdf") -> None:
         with unit_of_work(self.session_factory) as uow:
-            version = uow.session.get(models.Version, version_id)
-            assert version is not None
-            publish(uow, version, pdf_path=pdf_path, now=self.now)
+            publish(uow, version_id, pdf_path=pdf_path, now=self.now)
 
     def version(self, version_id: int) -> models.Version:
         with self.session() as session:
@@ -409,9 +403,7 @@ class Store:
 
     def discard(self, version_id: int) -> None:
         with unit_of_work(self.session_factory) as uow:
-            version = uow.session.get(models.Version, version_id)
-            assert version is not None
-            discard(uow, version)
+            discard(uow, version_id)
 
     def dump(self, version_id: int) -> dict[str, list[dict[str, Any]]]:
         """La fila de la versión y todas sus filas de ámbito versión, tabla a tabla."""

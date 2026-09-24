@@ -317,9 +317,8 @@ def test_creating_the_generation_candidate_is_all_or_nothing(
 
     def create_failing_at_the_last_fact() -> None:
         with unit_of_work(store.session_factory) as uow:
-            novel = uow.session.get(models.Novel, novel_id)
             failing = faults.wrap(uow, models.Fact, nth=13)  # el último hecho de F1
-            create_generation_candidate(failing, novel, f1, now=store.now)
+            create_generation_candidate(failing, novel_id, f1, now=store.now)
 
     with pytest.raises(faults.error):
         create_failing_at_the_last_fact()
