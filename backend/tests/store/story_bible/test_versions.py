@@ -24,3 +24,22 @@ def test_publishing_the_first_version(store: Any, f1: Any) -> None:
         "pdfs/n1-v1.pdf",
     )
     assert store.current(novel_id) == g_id
+
+
+def test_publishing_a_copy_gives_the_next_number_and_the_chapters_changed_by_hash(
+    store: Any,
+) -> None:
+    v1 = store.build_v1()
+    k_id, _ = store.copy(v1.version_id)
+    store.rewrite_chapter(k_id, 3, "Capítulo 3", "Otro texto del capítulo 3.")
+    store.rewrite_chapter(k_id, 7, "Otro título", "Texto del capítulo 7, con Marta.")
+    store.rewrite_chapter(k_id, 5, "Capítulo 5", "Texto del capítulo 5, con Marta.")
+    v1_before = store.fingerprint(v1.version_id)
+
+    store.publish(k_id)
+
+    k = store.version(k_id)
+    assert (k.status, k.number, k.changed_chapters) == ("published", 2, [3, 7])
+    assert store.version(v1.version_id).status == "published"
+    assert store.fingerprint(v1.version_id) == v1_before
+    assert store.current(v1.novel_id) == k_id

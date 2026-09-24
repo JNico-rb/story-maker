@@ -10,7 +10,7 @@ import datetime as dt
 
 from sqlalchemy.orm import Session
 
-from story_maker.store.models import Version
+from story_maker.store.models import Chapter, Version
 from story_maker.store.session import UnitOfWork
 
 
@@ -31,6 +31,20 @@ def publish(uow: UnitOfWork, version: Version, *, pdf_path: str, now: dt.datetim
     version.number = current.number + 1 if current and current.number else 1
     version.published_at = now
     version.pdf_path = pdf_path
-    version.changed_chapters = []
+    version.changed_chapters = changed_chapters(uow.session, version)
     uow.session.flush()
     return version
+
+
+def changed_chapters(session: Session, version: Version) -> list[int]:
+    """Los capítulos cuya huella difiere de la de su versión base; vacía sin base
+    (`definitions.md` §3 Version, capítulo cambiado)."""
+    if version.base_version_id is None:
+        return []
+    base = _hashes(session, version.base_version_id)
+    return sorted(n for n, h in _hashes(session, version.id).items() if base.get(n) != h)
+
+
+def _hashes(session: Session, version_id: int) -> dict[int, str]:
+    chapters = session.query(Chapter).filter(Chapter.version_id == version_id)
+    return {c.number: c.content_hash for c in chapters}
