@@ -487,3 +487,35 @@ def test_check_env_reports_an_unexpected_auth_check_error_instead_of_ok_or_a_cra
     assert result.exit_code == 1
     assert "observabilidad: ok" not in result.stdout
     assert "Langfuse" in result.stdout
+
+
+# --- C06: serve no arranca en las mismas situaciones que check-env -----------------------------
+
+
+def test_serve_refuses_to_start_with_invalid_langfuse_credentials(
+    monkeypatch: pytest.MonkeyPatch, base_env: Path, fake_langfuse_client: FakeLangfuseClient
+) -> None:
+    runner.invoke(app, ["init-db"])
+    _set_langfuse_env(monkeypatch)
+    fake_langfuse_client.auth_ok = False
+    _use_fake_langfuse_client(monkeypatch, fake_langfuse_client)
+
+    result = runner.invoke(app, ["serve"])
+
+    assert result.exit_code == 1
+    assert "Langfuse" in result.stdout
+
+
+def test_serve_refuses_to_start_when_a_role_is_missing_its_current_prompt(
+    monkeypatch: pytest.MonkeyPatch, base_env: Path, fake_langfuse_client: FakeLangfuseClient
+) -> None:
+    runner.invoke(app, ["init-db"])
+    _set_langfuse_env(monkeypatch)
+    _register_all_role_prompts(fake_langfuse_client)
+    del fake_langfuse_client._prompts[("juez", "produccion")]
+    _use_fake_langfuse_client(monkeypatch, fake_langfuse_client)
+
+    result = runner.invoke(app, ["serve"])
+
+    assert result.exit_code == 1
+    assert "judge" in result.stdout
