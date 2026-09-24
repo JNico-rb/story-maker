@@ -37,7 +37,9 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 | 0 — integrador | 000 | — | checkout principal | `V2` | cerrada (D al final) |
 | A | 014 (parte A: C01–C11, I1–I4, I6, I11; parte B tras 012) | 012 | `../sm-a` | `carril-a` | en curso |
 | D | 020 (C01, C02, C05, I1 integrados; C03, C04 y C15 pasan al carril X, tras el arranque) | — | `../sm-d` | `carril-d` | parcial integrada |
-| X | arranque: 011-C33, 011-C34; después 020-C03, C04 y C15 | 012 | `../sm-x` | `carril-x` | en curso |
+| X | 031 (C01–C04, I2); después 020-C03, C04 y C15 | 012 |
+| Y | 031-C05 (adaptador de incrustaciones, solo `retrieval/`) | — | `../sm-y` | `carril-y` | en curso |
+| D2 | 020: C03 con `published` y `evals table` sin depender del título de la novela | — | `../sm-d` | `carril-d` | tras 031 en V2 | `../sm-x` | `carril-x` | en curso |
 | E | 026 → 027 (027 tras 014 parte A) | 014 parte A | `../sm-e` | `carril-e` | 026 cerrada e integrada; 027 espera a 014 parte A en V2 |
 | I | 012 (con el WIP de la rama `wip-012-gate`) | 007, 011 | `../sm-i` | `carril-i` | cerrada e integrada |
 | K | 029 (C01, C05–C08) | — | `../sm-k` | `carril-k` | cerrada e integrada |
@@ -81,6 +83,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 | 028 | edicion-manual (editor con lint en vivo, guardar, versión nueva) | frontend | E | 026, 025, 018, 019 |
 | 029 | cli (`interview` sobre 008 y `change` sobre 014, con confirmación) | backend | A | 008, 011, 014 |
 | 030 | report-metrics (`report metrics`: agregados de SQLite a `docs/metrics.md`) | backend | J | 001, 004 |
+| 031 | arranque (montaje único de `serve`, `example` y `evals run`: API completa, worker, prompts, incrustaciones) | backend | X (C05: Y) | 002, 008, 011, 012, 013, 016 |
 
 ## 000 — scaffolding
 
@@ -532,8 +535,8 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 
 ## 011 — produccion-de-capitulos
 
-- [x] Spec `specs/backend/011-produccion-de-capitulos.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcada con C33–C34 (arranque del worker)
-- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcada con C33–C34
+- [x] Spec `specs/backend/011-produccion-de-capitulos.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; C33–C34 añadidos y movidos a 031-arranque
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; C33–C34 movidos a 031
 
 ### Steps
 - [x] 011-C01 · Lanzar la generación la encola
@@ -567,8 +570,6 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] 011-C29 · Un error imprevisto del worker falla con `internal_error`
 - [x] 011-C30 · El informe de la ejecución se calcula al pedirlo
 - [x] 011-C31 · Trazas, spans y scores de la producción
-- [ ] 011-C33 · Arrancar el servidor pone el worker a tomar la cola, con el agente real y los prompts del workspace (entrega tardía, carril X)
-- [ ] 011-C34 · Parar el servidor apaga el worker sin perder nada (entrega tardía, carril X)
 - [ ] 011-I1 · Hay como mucho una ejecución `running` en el servidor, y las `queued` salen en orden de fecha de creación (recortado)
 - [x] 011-I2 · `ReanudacionSinDuplicarNiPerder`
 - [x] 011-I3 · `ReintentosAcotados`
@@ -1271,6 +1272,25 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [ ] 030-I1 · El informe es determinista
 - [ ] 030-I2 · Ninguna prueba ni la orden llaman a un modelo, a Langfuse ni a la red
 - [ ] 030-I3 · El fichero no contiene texto de capítulos, prompts, briefs ni el detalle JSON de los validadores
+
+### Closing
+- [ ] Full suite green, type checks clean
+- [ ] Spec updated, or confirmed still true
+- [ ] Docs updated, or confirmed still true
+
+## 031 — arranque
+
+- [x] Spec `specs/backend/031-arranque.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
+
+### Steps
+- [ ] 031-C05 · El adaptador de incrustaciones (carril Y)
+- [ ] 031-C01 · `serve` monta la API completa
+- [ ] 031-C04 · Una novela nueva usa el modelo de incrustación real (tras C05 en V2)
+- [ ] 031-C02 · Arrancar el servidor pone el worker a tomar la cola
+- [ ] 031-C03 · Parar el servidor apaga el worker sin perder nada
+- [ ] 031-I2 · Ninguna prueba de esta spec llama a un modelo, a Langfuse ni a GitHub
+- [ ] 031-I1 · El montaje es uno (lo lee el `verificador`)
 
 ### Closing
 - [ ] Full suite green, type checks clean

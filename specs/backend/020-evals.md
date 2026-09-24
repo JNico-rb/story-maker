@@ -1,6 +1,6 @@
 # 020 — Evals
 
-> Carril: D · Depende de: 012-gate-de-publicacion (y, por él, 004, 008, 011) · Estado: aprobada sin revisión (decisión del usuario, 2026-09-24)
+> Carril: D (C03, C04 y C15 en el carril X) · Depende de: 012-gate-de-publicacion (y, por él, 004, 008, 011) y 031-arranque (C03, C04, C15) · Estado: aprobada sin revisión (decisión del usuario, 2026-09-24)
 
 ## Objetivo
 
@@ -38,7 +38,7 @@ Medir el sistema sobre cinco briefs fijos y dejar la evidencia en el repo: `stor
 
 #### 020-C03 — Una novela y una ejecución por brief, del cliente dado (T)
 - **Entrada:** `evals run --email <A>` con el doble falso guionizado para publicar.
-- **Salida:** cinco novelas nuevas de A, cada una con su brief confirmado importado del fichero y una ejecución de generación encolada; los hechos extraídos de sus `TextoLibre` quedan aceptados sin intervención del cliente. Al terminar la cola, las cinco ejecuciones están `completed` y la salida lista cada brief con su novela y su ejecución.
+- **Salida:** cinco novelas nuevas de A, cada una con su brief confirmado importado del fichero y una ejecución de generación encolada; los hechos extraídos de sus `TextoLibre` quedan aceptados sin intervención del cliente. Al terminar la cola, las cinco ejecuciones están `published` y la salida lista cada brief con su novela y su ejecución.
 
 #### 020-C04 — Un brief que no pasa no para a los demás (T)
 - **Entrada:** `evals run` con un directorio de fixture donde uno de los cinco briefs no pasa `schema-brief`.
