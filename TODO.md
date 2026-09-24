@@ -646,9 +646,9 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 013-I5 · Con los mismos datos de versión, la VistaDeVersion y el PDF que produce son iguales
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-24: `uv run pytest` 815 passed; `uv run ruff check .` all checks passed; `uv run ruff format --check .` 155 files already formatted; `uv run mypy src` no issues in 78 source files
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 014 — cambios-del-lector
 
