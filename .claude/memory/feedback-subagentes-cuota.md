@@ -15,6 +15,8 @@ Modelo del `implementador` (decisión del usuario 2026-09-24):
 
 **Integración automática, sin preguntar:** verificador PASS → `merge --no-ff` en V2 → suite completa → `git push origin V2`; después, rebase de los demás carriles sobre V2 antes de su siguiente spec. Rojo → deshacer el merge y devolver el fallo al carril.
 
+**Contexto pequeño** (el usuario, 2026-09-24): cada spec nueva, un implementador nuevo; retomar uno ya lanzado solo para un arreglo corto de su spec. Si el contexto del orquestador crece mucho, avisar al usuario, dejar el estado en la cabecera de `TODO.md` y relevar.
+
 Nunca se recortan alcance, casos ni tests para ahorrar: si falta cuota, se para y se sigue después.
 
 **Why:** el 2026-09-24, 20 subagentes en paralelo agotaron el límite de gasto de la organización (HTTP 429). El usuario prefiere ir más lento a perder calidad, pero quiere el backend cuanto antes.
