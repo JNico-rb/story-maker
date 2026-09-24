@@ -16,6 +16,7 @@ from story_maker.api.auth import Clock, utc_now
 from story_maker.api.auth import router as auth_router
 from story_maker.api.errors import validation_exception_handler
 from story_maker.api.story_bible import router as story_bible_router
+from story_maker.api.view import router as view_router
 
 RESERVED_PREFIXES = ("api", "view", "mcp")
 
@@ -49,6 +50,7 @@ def create_app(
         app.state.clock = clock
         app.include_router(auth_router)
         app.include_router(story_bible_router)
+        app.include_router(view_router)
 
     if frontend_dist is not None and frontend_dist.is_dir():
         assets_dir = frontend_dist / "assets"

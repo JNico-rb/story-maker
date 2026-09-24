@@ -629,8 +629,8 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [ ] 013-C05 · Dos versiones de la misma novela no se mezclan
 - [ ] 013-I3 · La VistaDeVersion y el detalle de la API de una versión no muestran nada de otra versión ni de otra novela
 - [x] 013-C06 · El token de vista se emite firmado y con sus reclamaciones
-- [ ] 013-C07 · Un token de vista inválido responde 401
-- [ ] 013-I2 · El token de vista solo vale para la versión a la que se emitió, nunca como TokenDeAcceso, y caduca con operation.session_timeout_seconds
+- [x] 013-C07 · Un token de vista inválido responde 401
+- [x] 013-I2 · El token de vista solo vale para la versión a la que se emitió, nunca como TokenDeAcceso, y caduca con operation.session_timeout_seconds
 - [ ] 013-C08 · El PDF se genera desde la VistaDeVersion con sus 10 capítulos
 - [ ] 013-C09 · pdf-enlaces valida los enlaces internos
 - [ ] 013-C10 · pdf-enlaces falla ante un enlace que no resuelve
