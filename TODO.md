@@ -435,15 +435,15 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 008-C16 · Confirmación rechazada
 - [x] 008-C17 · Un brief confirmado es inmutable
 - [x] 008-C18 · Extraer hechos de un texto libre
-- [ ] 008-C19 · `citas-verificadas`, regla por regla
-- [ ] 008-C20 · Inyección en el texto libre (RT1)
-- [ ] 008-C21 · Hecho inventado o exfiltrado por el extractor (RT2)
-- [ ] 008-C22 · El texto libre solo llega al extractor
-- [ ] 008-C23 · Texto libre rechazado o con la sesión fallida
-- [ ] 008-C24 · Aceptar, rechazar y marcar obligatorio un hecho extraído
+- [x] 008-C19 · `citas-verificadas`, regla por regla
+- [x] 008-C20 · Inyección en el texto libre (RT1)
+- [x] 008-C21 · Hecho inventado o exfiltrado por el extractor (RT2)
+- [x] 008-C22 · El texto libre solo llega al extractor
+- [x] 008-C23 · Texto libre rechazado o con la sesión fallida
+- [x] 008-C24 · Aceptar, rechazar y marcar obligatorio un hecho extraído
 - [x] 008-C25 · Lista prohibida de nivel `novel`
-- [ ] 008-C26 · Lista prohibida de nivel `user`
-- [ ] 008-C27 · Audit log de la novela
+- [x] 008-C26 · Lista prohibida de nivel `user`
+- [x] 008-C27 · Audit log de la novela
 - [ ] 008-C28 · Importar un brief válido
 - [ ] 008-C29 · Importación rechazada antes de extraer
 - [ ] 008-C30 · Importación con una extracción fallida
@@ -451,7 +451,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [ ] 008-I1 · Importar y confirmar deciden igual
 - [ ] 008-I2 · Las comprobaciones son deterministas y solo dependen del brief, de las tres listas, de la fecha de creación de la novela y de `max_mandat…
 - [ ] 008-I3 · Un hecho sin verificar no sale nunca
-- [ ] 008-I4 · Toda ruta de esta spec exige `TokenDeAcceso` (401) y trata como inexistente (404) la novela, el hecho o la entrada prohibida de otro cliente
+- [ ] 008-I4 · Toda ruta de esta spec exige `TokenDeAcceso` (401) y trata como inexistente (404) la novela, el hecho o la entrada prohibida de otro cliente (recortado)
 - [ ] 008-I5 · Un turno, una extracción, una confirmación y una importación se guardan enteros o no se guardan
 - [ ] 008-C32 · Entrevista real con el login de Claude Code (D, al final)
 - [ ] 008-C33 · Extracción real de una carta con inyección (D, al final)
