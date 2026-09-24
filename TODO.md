@@ -13,7 +13,7 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 - **Decisión del usuario (2026-09-24):** backend completo primero; sin revisiones (el integrador escribe y marca spec y plan); casos D y ejecuciones con modelo real al final, en un lote; como mucho 3 sesiones activas (integrador + 2 carriles); frontend después.
 - **000:** cerrada en V2. Pendientes D para el lote final: C15, C16, C17, C19.
 - **Aprobadas (spec y plan):** 001, 002, 003, 006, 007, 008, 009, 010, 011, 012, 014, 015, 016, 017, 018, 019. **En redacción:** 004, 005. **Sin redactar:** 013, 020, 021.
-- **Ruta crítica:** 000 → 001 → 002 → 009 → 010 → 011 → 012 → 014 → 015 → 021 (carril A). El carril C lleva 005, 008, 018 y 019; el D, el resto.
+- **Ruta crítica:** 000 → 001 → 002 → 009 → 010 → 011 → 012 → 014 → 015 → 021 (carril A). B lleva 003, 007, 016 y 017; C, 005, 008, 018 y 019; D, 006, 004, 013 y 020.
 - **Avisos abiertos:**
   - 009 ofrece la lectura de la `Cronologia` y la escritura de `chronology_files` (lo pide 007).
   - 012 decide qué hace el gate con el `error` de 007; la propuesta es `failed` con `internal_error`.
@@ -25,9 +25,10 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 | Carril | Specs en orden | Depende de (fuera del carril) | Worktree | Rama | Estado |
 |---|---|---|---|---|---|
 | 0 — scaffolding (integrador) | 000 | — | checkout principal | `V2` | cerrada (D al final) |
-| A — ruta crítica | 001 → 002 → 009 → 010 → 011 → 012 → 014 → 015 → 021 | 003, 004 (010) · 005, 006 (011) · 007 (012) · 008, 013 (015) | `../sm-a` | `carril-a` | en curso (terminal del usuario) |
-| C — entrada y prosa | 005 → 008 → 018 → 019 | 001 (005 parcial) · 002 (008) · 003, 004 (008) · 011 (018) · 012 (019) | `../sm-c` | `carril-c` | 005 en curso (subagente del integrador) |
-| D — resto del backend | 006 → 003 → 004 → 007 → 013 → 016 → 017 → 020 | 001 (003, 004) · 009 (007 parcial, 013, 016) · 012 (017, 020) | `../sm-d` | `carril-d` | en curso (terminal del usuario) |
+| A — ruta crítica | 001 → 002 → 009 → 010 → 011 → 012 → 014 → 015 → 021 | 003, 004 (010) · 005, 006 (011) · 007 (012) · 008, 013 (015) | `../sm-a` | `carril-a` | 001 en curso (subagente) |
+| B — agentes y formal | 003 → 007 → 016 → 017 | 001 (003) · 009 (007 parcial, 016) · 012, 013 (017) | `../sm-b` | `carril-b` | 003 espera 001 |
+| C — entrada y prosa | 005 → 008 → 018 → 019 | 001 (005 parcial) · 002, 003, 004 (008) · 011 (018) · 012 (019) | `../sm-c` | `carril-c` | 005: 21/25; el resto espera 001 |
+| D — formal y lectura | 006 → 004 → 013 → 020 | 001 (004) · 009 (013) · 012 (020) | `../sm-d` | `carril-d` | 006 en curso (subagente) |
 | E — frontend | 022 → 023 → 024 → 025 → 026 → 027 → 028 (`specs/frontend/`) | las de backend de la tabla de specs, cerradas en V2 | `../sm-e` | `carril-e` | 022–028 con spec y plan aprobados; implementación cuando se cierren sus dependencias |
 
 **Frontend (022–028, decisión del usuario 2026-09-24).** Las specs se redactan ya, de dos en dos, mientras los carriles programan el backend: spec → plan en `TODO.md` → casillas marcadas por el integrador, sin revisión. **Revisión solo como excepción:** únicamente ante un error claro que impide que funcione o que deja sin cubrir un requisito de `project-constraints.md`; una sola corrección, sin rondas. El carril E (`../sm-e`) empieza cada spec cuando sus dependencias de backend están cerradas en V2, sin adelantarse. El backend manda: si hay que elegir, primero se integran A, C y D.
@@ -39,11 +40,11 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 | 000 | scaffolding (herramientas, estructura, CI, marca del frontend, hooks de desarrollo) | transversal | 0 | — |
 | 001 | base | backend | A | 000 |
 | 002 | autenticacion | backend | A | 001 |
-| 003 | puerto-de-agente | backend | D | 001 |
+| 003 | puerto-de-agente | backend | B | 001 |
 | 004 | observabilidad | backend | D | 001 |
 | 005 | guardarrailes | backend | C | 001 *parcial*: lo puro no la necesita; el audit log sí |
 | 006 | especificacion-tla | backend | D | 000 |
-| 007 | validador-lean | backend | D | 009 *parcial*: solo el adaptador a SQLite |
+| 007 | validador-lean | backend | B | 009 *parcial*: solo el adaptador a SQLite |
 | 008 | brief-y-entrevista | backend | C | 002, 003, 004, 005 |
 | 009 | story-bible-y-versiones | backend | A | 001, 002 |
 | 010 | planificacion | backend | A | 003, 004, 009 |
@@ -52,8 +53,8 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 | 013 | lectura-y-pdf | backend | D | 009 |
 | 014 | cambios-del-lector | backend | A | 012 |
 | 015 | servidor-mcp | backend | A | 002, 008, 013, 014 |
-| 016 | recuperacion-hibrida | backend | D | 009 |
-| 017 | revision-visual | backend | D | 012, 013 |
+| 016 | recuperacion-hibrida | backend | B | 009 |
+| 017 | revision-visual | backend | B | 012, 013 |
 | 018 | linters-de-prosa | backend | C | 011 |
 | 019 | edicion-manual | backend | C | 012, 018 |
 | 020 | evals | backend | D | 012 |
@@ -66,7 +67,7 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 | 027 | cambio-del-lector (seleccionar, pedir, propuesta y afectados, confirmar, ver la versión nueva) | frontend | E | 026, 025, 014 |
 | 028 | edicion-manual (editor con lint en vivo, guardar, versión nueva) | frontend | E | 026, 025, 018, 019 |
 
-Todas dependen de 000. Carril B disuelto y C rehecho (decisión del usuario, 2026-09-24); sus specs pasan a A, C y D sin cambiar su propiedad de módulos.
+Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno por worktree (decisión del usuario, 2026-09-24: más paralelo si no hay peligro); la propiedad de módulos sigue siendo por spec.
 
 ## 000 — scaffolding
 
