@@ -32,7 +32,16 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 | 016 | H `../sm-h` | 18/29 | rebase sobre V2 y las tarjetas desde la story bible de la 009 |
 | 018 | F `../sm-f` | 19/25 | C18–C23 esperan a la 011 (linters en el bucle) |
 
-**Siguiente:** integrar 013 → D con la 020 parcial (tabla de evals, `evals table`). Integrar 010 → A completa la 011. Integrar 008 → avisar a `story-maker-f5` (023 y 024) con sus rutas de /api. 011 → 012 (A, opus) y 018 (F). 012 → 014, 017, 019 y 020. 014 → 015 → 021.
+**Siguiente — lanzar a la vez, cada uno en un worktree nuevo `../sm-<x>` (rama `carril-<x>` desde V2), por su parte que no usa lo que aún no está en V2 (dependencia *parcial*; lo demás queda [ ] hasta el rebase):**
+1. Integrar la 013 si su verificador dio PASS (si no, relanzar su verificador en `../sm-d`).
+2. D (`../sm-d`, sonnet): 020 parcial, `evals table` (C06–C09, I2) sobre las tablas de la 001.
+3. I (nuevo, opus): 014 parcial: propuesta, afectados y confirmación (C01–C11 y sus invariantes) con el planner en modo cambio por el doble de la 003; la ejecución del cambio espera a 011 y 012.
+4. J (nuevo, sonnet): 015 parcial: servidor MCP, identidad y tools de lectura sobre 009 y 013; `list_novels` espera a la 008 y `request_change`/`confirm_change`, a la 014.
+5. K (nuevo, sonnet): 017 parcial: estructura esperada, comparación y veredicto por código con el doble del revisor; la etapa en el gate espera a la 012.
+6. L (nuevo, opus): 012 parcial: rúbrica de novela, veredicto y atribución por código, atribución de Lean con la 007 y orden de etapas con dobles; el gate dentro del worker espera a la 011. Reutiliza el catálogo de tropos de la 010 cuando esté en V2.
+7. Relanzar con agentes nuevos A (011), B (008), G (010) y H (016), si el relevo los cortó.
+8. Al integrar cada una: 010 → A completa la 011; 008 → avisar a `story-maker-f5` (023 y 024) con sus rutas de /api; 011 → A con la 012 (fusionando lo de L) y F con C18–C23 de la 018; 012 → 014, 017, 019 y 020 completas; 014 → 015 → 021.
+Tabla de carriles y fila de backend/AGENTS.md: actualizarlas al lanzar I, J, K y L (propiedad por spec, sin cambios).
 
 **Pendiente para §18 al integrar la 013:** la dedicatoria sale de `Brief.content["dedication"]`; el nombre del destinatario, del personaje `recipient` de la story bible; `changed_chapters` está congelado en una versión publicada y se calcula en vivo en una candidata.
 
