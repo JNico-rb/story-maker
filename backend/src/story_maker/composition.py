@@ -16,6 +16,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from fastapi import FastAPI
+from sqlalchemy import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from story_maker import settings as settings_module
@@ -183,16 +184,26 @@ def build_worker(
     )
 
 
-def build_app(
+@dataclass(frozen=True)
+class Mount:
+    """Las piezas que comparten el servidor, `evals run` y `example` sobre la misma base."""
+
+    engine: Engine
+    session_factory: sessionmaker[Session]
+    policy: RealPolicyEngine
+    agent_port: AgentPort
+    worker: Worker
+
+
+def build_mount(
     settings: Settings,
     config: Config,
     telemetry: ObservabilityPort,
     adapters: Adapters,
     *,
     clock: Clock = utc_now,
-) -> FastAPI:
-    """La API entera sobre la base de `STORY_MAKER_DATA_DIR`, con la SPA si está compilada, y el
-    worker, que vive lo que vive el servidor."""
+) -> Mount:
+    """La base de `STORY_MAKER_DATA_DIR`, el motor de políticas, el puerto de agente y el worker."""
     engine = make_engine(settings.data_dir / DB_FILENAME)
     session_factory = make_session_factory(engine)
     policy = RealPolicyEngine(session_factory, base_url=settings.base_url)
@@ -206,27 +217,41 @@ def build_app(
         workspace=workspace(),
     )
     worker = build_worker(settings, config, telemetry, adapters, agent_port, session_factory, clock)
+    return Mount(engine, session_factory, policy, agent_port, worker)
+
+
+def build_app(
+    settings: Settings,
+    config: Config,
+    telemetry: ObservabilityPort,
+    adapters: Adapters,
+    *,
+    clock: Clock = utc_now,
+) -> FastAPI:
+    """La API entera sobre la base de `STORY_MAKER_DATA_DIR`, con la SPA si está compilada, y el
+    worker, que vive lo que vive el servidor."""
+    mount = build_mount(settings, config, telemetry, adapters, clock=clock)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        task = asyncio.create_task(worker.run_forever())
+        task = asyncio.create_task(mount.worker.run_forever())
         try:
             yield
         finally:
             task.cancel()
             await asyncio.gather(task, return_exceptions=True)
-            engine.dispose()
+            mount.engine.dispose()
 
     return create_app(
         settings.frontend_dist,
-        session_factory=session_factory,
+        session_factory=mount.session_factory,
         jwt_secret=settings.jwt_secret,
         access_token_hours=config.access_token_hours,
         clock=clock,
-        agent_port=agent_port,
+        agent_port=mount.agent_port,
         telemetry=telemetry,
         config=config,
         workspace=workspace(),
-        policy=policy,
+        policy=mount.policy,
         lifespan=lifespan,
     )
