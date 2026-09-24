@@ -60,4 +60,4 @@ A spec touches only its modules and their `tests/<module>/`. In a shared module 
 | 021 auditoria-de-seguridad | A | `docs/security-report.md` via the `seguridad` subagent; fixes go to the owning lane |
 | 029 cli | A | `cli.py` (`interview`, `change`); reuses the services of 008 and 014, no logic of its own |
 | 030 report-metrics | J | `reporting/` (metrics aggregation), `cli.py` (`report metrics`); reads `role_sessions` and `validator_results`, writes nothing to SQLite |
-| 031 arranque | X (C05: Y) | the single composition module (new), `cli.py` (`serve` wiring), `api/app.py` (lifespan, minimal), `retrieval/` (fastembed adapter, lane Y), `agents/port.py` (cancelling an open session on shutdown) |
+| 031 arranque | X (C05: Y) | the single composition module (new), `cli.py` (`serve` wiring), `api/app.py` (lifespan, minimal), `retrieval/` (fastembed adapter, lane Y), `agents/port.py` (cancelling an open session on shutdown), `pipeline/planning_seam.py` (new: confirmed brief → planner input; integrator 2026-09-25, a new file no other lane touches) |
