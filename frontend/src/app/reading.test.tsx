@@ -193,4 +193,18 @@ describe("026 lectura", () => {
     if (!entry) throw new Error("no se encontró la entrada de Faro Viejo");
     expect(within(entry).queryAllByRole("link")).toHaveLength(0);
   });
+
+  it("026-C08: the selector lists the published versions in the order the API gives them", async () => {
+    const reversed: VersionsList = { versions: [...LIST.versions].reverse() };
+    fakeApi({
+      [`GET ${BASE}`]: () => json(200, reversed),
+      [`GET ${BASE}/1`]: () => json(200, detail(1)),
+      [`GET ${BASE}/2`]: () => json(200, detail(2)),
+    });
+    renderReading();
+
+    const select = await screen.findByRole("combobox", { name: "Versión" });
+    const options = within(select).getAllByRole("option");
+    expect(options.map((option) => option.textContent)).toEqual(["v2", "v1"]);
+  });
 });
