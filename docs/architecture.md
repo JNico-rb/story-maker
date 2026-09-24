@@ -1493,3 +1493,6 @@ Registro de trade-offs: cada fila da opciones, criterio y elección. Reabrir una
 | Reanudar rechazada en la SPA (025) | Error genérico · motivo del rechazo | Que la persona sepa qué pasó | Se muestra el motivo y sigue con el último estado sondeado |
 | Informe de una ejecución `failed` en la SPA (025) | Bajo demanda · automático | La persona entró a ver qué pasó | Se pide en cuanto el sondeo ve `failed` |
 | PDF no disponible en la lectura de la SPA (026) | Bloquear la pantalla · aviso local | 013 responde 404 solo para el PDF | Aviso junto a la descarga; el resto de la lectura se muestra |
+| Código de la `Confirmacion` en la SPA (027) | La persona lo teclea · la SPA lo guarda y lo envía | Ningún doc exige teclearlo; lo más fácil | La SPA lo guarda y lo envía al confirmar |
+| Descartar una propuesta en la SPA (027) | Ruta de cancelar · solo local | 014 no expone cancelar; la confirmación caduca sola | Solo local |
+| Propuesta sin capítulos afectados en la SPA (027) | Ocultar confirmar · mostrarla con aviso | 014 la devuelve igual | Se muestra con aviso y se puede confirmar |

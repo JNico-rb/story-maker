@@ -1094,3 +1094,34 @@ Todas dependen de 000. Carril B disuelto y C rehecho (decisión del usuario, 202
 - [ ] Full suite green, type checks clean
 - [ ] Spec updated, or confirmed still true
 - [ ] Docs updated, or confirmed still true
+
+## 027 — cambio-del-lector
+
+- [x] Spec `specs/frontend/027-cambio-del-lector.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
+
+### Steps
+- [ ] 027-C01 · Seleccionar un fragmento o un hecho abre el formulario de petición
+- [ ] 027-C02 · La petición vacía no se puede enviar
+- [ ] 027-C03 · Enviar la petición muestra la propuesta, los afectados y la caducidad
+- [ ] 027-C04 · Una propuesta sin afectados se muestra igual
+- [ ] 027-C05 · Petición rechazada por la policy o por la propuesta
+- [ ] 027-C06 · Petición sobre una selección que ya no vale
+- [ ] 027-C07 · Fallo del servidor al pedir el cambio
+- [ ] 027-C08 · Enviar deshabilita la acción mientras está en curso
+- [ ] 027-C09 · Confirmar encola la ejecución y lleva a seguir su progreso
+- [ ] 027-C10 · Descartar no confirma nada
+- [ ] 027-C11 · Confirmar o descartar deshabilita las dos acciones mientras está en curso
+- [ ] 027-C12 · La propuesta caduca sin confirmar
+- [ ] 027-C13 · Confirmar una propuesta que el servidor ya considera caducada
+- [ ] 027-C14 · Fallo del servidor al confirmar
+- [ ] 027-I1 · El código de confirmación nunca se muestra en la pantalla
+- [ ] 027-I2 · Confirmar nunca se dispara sin que la persona pulse «confirmar»; ningún temporizador ni sondeo la confirma por su cuenta
+- [ ] 027-I3 · Un error de cualquier llamada de esta pantalla (pedir, confirmar) siempre se muestra; nunca se descarta en silencio ni deja la pantalla c…
+- [ ] 027-I5 · La petición nunca se envía sin una selección previa de fragmento o hecho
+- [ ] 027-C15 · Recorrido real: pedir, confirmar y ver la versión nueva (D, al final)
+
+### Closing
+- [ ] Full suite green, type checks clean
+- [ ] Spec updated, or confirmed still true
+- [ ] Docs updated, or confirmed still true
