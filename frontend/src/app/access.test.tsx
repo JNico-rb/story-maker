@@ -254,4 +254,13 @@ describe("022 rutas protegidas", () => {
       expect(request.url).not.toContain(TOKEN);
     }
   });
+
+  it("022-C07: without a stored session, opening a protected screen shows the access screen without asking the API", async () => {
+    const sent = fakeApi(protectedData);
+    const router = renderAt("/sonda");
+
+    expect(await screen.findByRole("heading", { name: "Entrar" })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe("/acceso");
+    expect(sent).toEqual([]);
+  });
 });

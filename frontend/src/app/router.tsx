@@ -3,6 +3,7 @@ import { createBrowserRouter, type RouteObject } from "react-router";
 import { LoginPage } from "../pages/login";
 import { RegisterPage } from "../pages/register";
 import { BrandLayout } from "./BrandLayout";
+import { RequireSession } from "./RequireSession";
 
 // Pantallas que exigen sesión; cada spec de pantalla añade la suya. `extra` sirve a las pruebas.
 const protectedScreens: RouteObject[] = [{ path: "/", element: null }];
@@ -12,8 +13,7 @@ export function buildRoutes(extra: RouteObject[] = []): RouteObject[] {
     {
       element: <BrandLayout />,
       children: [
-        ...protectedScreens,
-        ...extra,
+        { element: <RequireSession />, children: [...protectedScreens, ...extra] },
         { path: "/acceso", element: <LoginPage /> },
         { path: "/registro", element: <RegisterPage /> },
       ],
