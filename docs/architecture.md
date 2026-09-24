@@ -1496,3 +1496,6 @@ Registro de trade-offs: cada fila da opciones, criterio y elección. Reabrir una
 | Código de la `Confirmacion` en la SPA (027) | La persona lo teclea · la SPA lo guarda y lo envía | Ningún doc exige teclearlo; lo más fácil | La SPA lo guarda y lo envía al confirmar |
 | Descartar una propuesta en la SPA (027) | Ruta de cancelar · solo local | 014 no expone cancelar; la confirmación caduca sola | Solo local |
 | Propuesta sin capítulos afectados en la SPA (027) | Ocultar confirmar · mostrarla con aviso | 014 la devuelve igual | Se muestra con aviso y se puede confirmar |
+| Seguimiento tras guardar una edición manual en la SPA (028) | Pantalla propia · la de progreso de 025 | No duplicar sondeo, reanudar e informe | La pantalla de progreso de 025 |
+| Guardar sobre una base obsoleta (409) en la SPA (028) | Solo bloquear · ofrecer recargar el capítulo vigente | Coherencia con 026-C09 | Se ofrece recargar el capítulo vigente |
+| Espera antes del lint en vivo (028) | Valor fijado en la spec · constante de la pantalla | Lo más fácil; se prueba con reloj controlado | Constante de la pantalla, sin valor en la spec |

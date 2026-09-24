@@ -28,7 +28,7 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 | A — ruta crítica | 001 → 002 → 009 → 010 → 011 → 012 → 014 → 015 → 021 | 003, 004 (010) · 005, 006 (011) · 007 (012) · 008, 013 (015) | `../sm-a` | `carril-a` | en curso (terminal del usuario) |
 | C — entrada y prosa | 005 → 008 → 018 → 019 | 001 (005 parcial) · 002 (008) · 003, 004 (008) · 011 (018) · 012 (019) | `../sm-c` | `carril-c` | 005 en curso (subagente del integrador) |
 | D — resto del backend | 006 → 003 → 004 → 007 → 013 → 016 → 017 → 020 | 001 (003, 004) · 009 (007 parcial, 013, 016) · 012 (017, 020) | `../sm-d` | `carril-d` | en curso (terminal del usuario) |
-| E — frontend | 022 → 023 → 024 → 025 → 026 → 027 → 028 (`specs/frontend/`) | las de backend de la tabla de specs, cerradas en V2 | `../sm-e` | `carril-e` | specs en redacción, de dos en dos; implementación cuando se cierren sus dependencias |
+| E — frontend | 022 → 023 → 024 → 025 → 026 → 027 → 028 (`specs/frontend/`) | las de backend de la tabla de specs, cerradas en V2 | `../sm-e` | `carril-e` | 022–028 con spec y plan aprobados; implementación cuando se cierren sus dependencias |
 
 **Frontend (022–028, decisión del usuario 2026-09-24).** Las specs se redactan ya, de dos en dos, mientras los carriles programan el backend: spec → plan en `TODO.md` → casillas marcadas por el integrador, sin revisión. **Revisión solo como excepción:** únicamente ante un error claro que impide que funcione o que deja sin cubrir un requisito de `project-constraints.md`; una sola corrección, sin rondas. El carril E (`../sm-e`) empieza cada spec cuando sus dependencias de backend están cerradas en V2, sin adelantarse. El backend manda: si hay que elegir, primero se integran A, C y D.
 
@@ -1120,6 +1120,38 @@ Todas dependen de 000. Carril B disuelto y C rehecho (decisión del usuario, 202
 - [ ] 027-I3 · Un error de cualquier llamada de esta pantalla (pedir, confirmar) siempre se muestra; nunca se descarta en silencio ni deja la pantalla c…
 - [ ] 027-I5 · La petición nunca se envía sin una selección previa de fragmento o hecho
 - [ ] 027-C15 · Recorrido real: pedir, confirmar y ver la versión nueva (D, al final)
+
+### Closing
+- [ ] Full suite green, type checks clean
+- [ ] Spec updated, or confirmed still true
+- [ ] Docs updated, or confirmed still true
+
+## 028 — edicion-manual
+
+- [x] Spec `specs/frontend/028-edicion-manual.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
+
+### Steps
+- [ ] 028-C01 · Abrir el editor precarga el texto vigente del capítulo
+- [ ] 028-C02 · El editor solo se ofrece en la versión vigente
+- [ ] 028-C03 · Fallo al cargar el capítulo
+- [ ] 028-C04 · Los diagnósticos llegan tras una pausa de escritura, no en cada pulsación
+- [ ] 028-C05 · Los diagnósticos con posición se resaltan en el texto
+- [ ] 028-C06 · Los diagnósticos sin posición se muestran aparte
+- [ ] 028-C07 · Diagnósticos no bloqueantes se distinguen de los que bloquean
+- [ ] 028-C08 · Cada respuesta de lint sustituye a la anterior, aunque lleguen desordenadas
+- [ ] 028-C09 · Un fallo del lint no impide seguir editando
+- [ ] 028-C10 · Ningún diagnóstico bloquea la escritura
+- [ ] 028-C11 · Guardar aceptado lleva al seguimiento de la ejecución
+- [ ] 028-C12 · Guardar rechazado por diagnósticos bloqueantes
+- [ ] 028-C13 · Guardar con la base obsoleta
+- [ ] 028-C14 · Fallo de red al guardar
+- [ ] 028-I1 · El texto que se envía al guardar es exactamente el que hay en el editor en ese momento, sin que la pantalla lo transforme
+- [ ] 028-I2 · Los diagnósticos mostrados corresponden siempre a la última petición de lint enviada, nunca a una respuesta anterior que llega tarde
+- [ ] 028-I3 · Ningún diagnóstico del lint impide escribir en el editor; solo el guardado queda sujeto a lo que la API rechace
+- [ ] 028-I5 · Un error de cualquier llamada de esta pantalla (cargar el capítulo, lint, guardar) siempre se muestra; nunca se descarta en silencio ni d…
+- [ ] 028-I6 · Ninguna llamada de esta pantalla a la API real
+- [ ] 028-C15 · El recorrido completo se observa en el navegador (D, al final)
 
 ### Closing
 - [ ] Full suite green, type checks clean
