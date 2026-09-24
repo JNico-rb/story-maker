@@ -967,6 +967,8 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] Spec `specs/backend/020-evals.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; recibe `example` desde 013 (C15, C16)
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; pasos C15 y C16 añadidos
 
+**Cierre parcial** (C06–C09, I2: `evals table`) — verificador 2026-09-24: PASS; `uv run pytest` 959 passed, ruff y mypy limpios. El resto de la 020 sigue abierto.
+
 ### Steps
 - [ ] 020-C01 · Los cinco briefs del repositorio son válidos
 - [ ] 020-C02 · Sin un cliente registrado no se crea nada
