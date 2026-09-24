@@ -1154,7 +1154,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
-- [ ] 026-C01 · Sin versión indicada, se muestra la vigente
+- [x] 026-C01 · Sin versión indicada, se muestra la vigente
 - [ ] 026-C02 · Portada con dedicatoria
 - [ ] 026-C03 · Índice navegable a los capítulos
 - [ ] 026-C04 · Página de novedades y marca de cambio
