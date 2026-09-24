@@ -19,13 +19,19 @@ from story_maker.observability.langfuse_adapter import LangfuseObservability
 from story_maker.observability.langfuse_adapter import auth_check as langfuse_auth_check
 from story_maker.observability.null import NullObservability
 from story_maker.observability.prompts import push_prompts
+from story_maker.render.pdf import render_pdf
+from story_maker.render.version_view import render_version_view
+from story_maker.render.view_data import load_version_view_data
 from story_maker.settings import Settings, SettingsError, load_settings, resolve_paths
+from story_maker.store.models import Novel
 from story_maker.store.session import (
     create_schema,
     dense_channel_ok,
     make_engine,
+    make_session_factory,
     schema_diff,
 )
+from story_maker.store.versions import published_version
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
 
@@ -210,3 +216,43 @@ def prompts_push_command() -> None:
     prompts_dir = settings_module.ROOT / "backend" / "harness_workspace" / "prompts"
     pushed = push_prompts(prompts_dir, client, label)
     typer.echo("subidos: " + ", ".join(pushed) if pushed else "sin cambios")
+
+
+@app.command(name="export-pdf")
+def export_pdf_command(
+    novel_id: Annotated[int, typer.Argument(help="Id de la novela.")],
+    number: Annotated[int, typer.Argument(help="Número de la versión publicada.")],
+) -> None:
+    """Regenera desde su `VistaDeVersion` el PDF de una versión ya publicada y sustituye al
+    guardado; no repite el gate ni cambia ningún dato de la versión (013-C17). Con una novela
+    inexistente o una versión sin publicar, error con el motivo y ningún fichero se toca
+    (013-C18)."""
+    try:
+        settings = load_settings()
+    except SettingsError as exc:
+        for error in exc.errors:
+            typer.echo(error)
+        raise typer.Exit(1) from None
+
+    engine = make_engine(_db_path(settings.data_dir))
+    try:
+        session_factory = make_session_factory(engine)
+        with session_factory() as session:
+            if session.get(Novel, novel_id) is None:
+                typer.echo(f"no existe la novela {novel_id}")
+                raise typer.Exit(1)
+            version = published_version(session, novel_id, number)
+            if version is None:
+                typer.echo(f"la novela {novel_id} no tiene publicada la versión {number}")
+                raise typer.Exit(1)
+            if version.pdf_path is None:
+                typer.echo(f"la versión {number} de la novela {novel_id} no tiene PDF guardado")
+                raise typer.Exit(1)
+
+            html = render_version_view(load_version_view_data(session, version))
+            pdf_bytes = render_pdf(html)
+            path = Path(version.pdf_path)
+            path.write_bytes(pdf_bytes)
+        typer.echo(str(path))
+    finally:
+        engine.dispose()
