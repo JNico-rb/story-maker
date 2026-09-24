@@ -28,7 +28,7 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 
 **Un chat por tarea.** Termina con una línea `LISTO <rama> <NNN> <hash> [parcial|cerrada]` o `BLOQUEADO <motivo>`.
 
-**Tareas humanas:** `GITHUB_TOKEN` para Lean en CI, vídeo, revisión humana de una novela, email, MyFactory.
+**Tareas humanas:** revisión humana del brief 1 (020-C12, en la tanda D), vídeo, MyFactory, email de entrega (borrador del integrador al final), deck y su PDF. Hechas: `GITHUB_TOKEN` en `.env`, MCP de Langfuse conectado.
 
 ## Carriles
 
@@ -42,7 +42,7 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 | I | 012 (con el WIP de la rama `wip-012-gate`) | 007, 011 | `../sm-i` | `carril-i` | cerrada e integrada |
 | K | 029 (C01, C05–C08) | — | `../sm-k` | `carril-k` | cerrada e integrada |
 | W | workspace de producto: 010-I8, 011-I12–I14 (solo `backend/harness_workspace/`) | — | `../sm-w` | `carril-w` | cerrada e integrada |
-| P | presentación (solo `presentacion/`) | — | `../sm-p` | `carril-p` | modelo de costes integrado; faltan los [PENDIENTE] de la tanda D |
+| P | presentación (solo `presentacion/`) | — | `../sm-p` | `carril-p` | cerrado: el deck y su PDF los rellena el usuario con los datos de la tanda D |
 
 Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs alternativos están en `ejemplos/briefs-extra/`.
 
