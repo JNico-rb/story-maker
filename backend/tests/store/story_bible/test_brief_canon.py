@@ -8,6 +8,8 @@ import datetime as dt
 from dataclasses import replace
 from typing import Any
 
+import pytest
+
 from story_maker.store import models
 from story_maker.store.brief_canon import (
     NAME,
@@ -17,7 +19,9 @@ from story_maker.store.brief_canon import (
     TRAIT,
     BriefRecollection,
     ConfirmedBrief,
+    create_generation_candidate,
 )
+from story_maker.store.session import unit_of_work
 
 from_brief = "brief"
 
@@ -291,3 +295,50 @@ def test_each_personal_element_is_represented_and_the_mandatory_ones_marked(
     relationships = [f for f in facts if f.attribute == RELATIONSHIP]
     assert len(relationships) == 3
     assert {(f.personal_element_id, f.mandatory) for f in relationships} == {(None, False)}
+
+
+def _novel_rows(store: Any, novel_id: int) -> dict[str, int]:
+    """Filas de las versiones de la novela, por tabla (incluidas las que no tienen versión)."""
+    with store.session() as session:
+        versions = [v.id for v in session.query(models.Version).filter_by(novel_id=novel_id)]
+        counts = {"versions": len(versions)}
+        for model in (models.Character, models.Place, models.Fact, models.Event):
+            counts[model.__tablename__] = (
+                session.query(model).filter(model.version_id.in_(versions)).count()
+            )
+        counts["event_characters"] = session.query(models.EventCharacter).count()
+        return counts
+
+
+def test_creating_the_generation_candidate_is_all_or_nothing(
+    store: Any, f1: ConfirmedBrief, faults: Any
+) -> None:
+    novel_id = store.new_novel()
+
+    def create_failing_at_the_last_fact() -> None:
+        with unit_of_work(store.session_factory) as uow:
+            novel = uow.session.get(models.Novel, novel_id)
+            failing = faults.wrap(uow, models.Fact, nth=13)  # el último hecho de F1
+            create_generation_candidate(failing, novel, f1, now=store.now)
+
+    with pytest.raises(faults.error):
+        create_failing_at_the_last_fact()
+
+    assert _novel_rows(store, novel_id) == {
+        "versions": 0,
+        "characters": 0,
+        "places": 0,
+        "facts": 0,
+        "events": 0,
+        "event_characters": 0,
+    }
+
+    store.generation(novel_id, f1)
+    assert _novel_rows(store, novel_id) == {
+        "versions": 1,
+        "characters": 4,
+        "places": 3,
+        "facts": 13,
+        "events": 3,
+        "event_characters": 5,
+    }

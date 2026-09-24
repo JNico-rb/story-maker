@@ -19,7 +19,7 @@ from story_maker.store.brief_canon import (
     create_generation_candidate,
 )
 from story_maker.store.models import Novel, User
-from story_maker.store.session import unit_of_work
+from story_maker.store.session import UnitOfWork, unit_of_work
 
 CREATED_2026 = dt.datetime(2026, 9, 24, 10, 0)
 NOW = dt.datetime(2026, 9, 24, 11, 0)
@@ -151,3 +151,38 @@ def f1() -> ConfirmedBrief:
 @pytest.fixture
 def f2() -> ConfirmedBrief:
     return f2_brief()
+
+
+class InjectedFault(RuntimeError):
+    """Fallo provocado por la prueba en mitad de una escritura."""
+
+
+class FailingUnitOfWork:
+    """Envuelve una unidad de trabajo y falla al añadir la `nth`-ésima fila de tipo `model`."""
+
+    def __init__(self, uow: UnitOfWork, model: type, nth: int = 1) -> None:
+        self.session = uow.session
+        self._uow = uow
+        self._model = model
+        self._left = nth
+
+    def add(self, obj: object) -> None:
+        if isinstance(obj, self._model):
+            self._left -= 1
+            if self._left == 0:
+                raise InjectedFault(f"fallo provocado al escribir {type(obj).__tablename__}")
+        self._uow.add(obj)
+
+    def delete(self, obj: object) -> None:
+        self._uow.delete(obj)
+
+
+@dataclass(frozen=True)
+class Faults:
+    error: type[InjectedFault] = InjectedFault
+    wrap: type[FailingUnitOfWork] = FailingUnitOfWork
+
+
+@pytest.fixture
+def faults() -> Faults:
+    return Faults()
