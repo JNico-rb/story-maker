@@ -136,6 +136,33 @@ def test_a_domain_starting_or_ending_with_a_dot_is_rejected(
     assert _users(session_factory) == []
 
 
+@pytest.mark.parametrize(
+    ("password", "expected_status"),
+    [
+        ("a" * 7, 422),
+        ("a" * 8, 201),
+        ("a" * 72, 201),
+        ("a" * 73, 422),
+        ("€" * 24, 201),  # 24 caracteres, 72 bytes UTF-8
+        ("€" * 25, 422),  # 75 bytes UTF-8
+    ],
+)
+def test_password_limits(
+    client: TestClient,
+    session_factory: sessionmaker[Session],
+    password: str,
+    expected_status: int,
+) -> None:
+    response = client.post(
+        "/api/auth/register", json={"email": "cliente-a@example.com", "password": password}
+    )
+
+    assert response.status_code == expected_status
+    if expected_status == 422:
+        assert _users(session_factory) == []
+        assert password not in response.text
+
+
 def test_a_254_character_well_formed_email_is_accepted(
     client: TestClient, session_factory: sessionmaker[Session]
 ) -> None:

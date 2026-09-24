@@ -43,6 +43,10 @@ def is_valid_email(email: str) -> bool:
     return not (domain.startswith(".") or domain.endswith("."))
 
 
+def is_valid_password(password: str) -> bool:
+    return len(password) >= 8 and len(password.encode("utf-8")) <= 72
+
+
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("ascii")
 
@@ -115,6 +119,8 @@ def register(payload: RegisterRequest, request: Request) -> RegisterResponse:
     email = normalize_email(payload.email)
     if not is_valid_email(email):
         raise HTTPException(status_code=422, detail="email inválido")
+    if not is_valid_password(payload.password):
+        raise HTTPException(status_code=422, detail="contraseña inválida")
 
     with unit_of_work(state.session_factory) as uow:
         if get_user_by_email(uow.session, email) is not None:

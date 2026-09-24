@@ -154,7 +154,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 002-C02 · El email se guarda normalizado
 - [x] 002-C03 · Un email ya registrado no crea otra cuenta
 - [x] 002-C04 · Email sin forma de email
-- [ ] 002-C05 · Contraseña en sus límites
+- [x] 002-C05 · Contraseña en sus límites
 - [ ] 002-C06 · Registro con cuerpo incompleto
 - [ ] 002-C07 · Acceso válido
 - [ ] 002-C08 · Al entrar, el email no distingue mayúsculas
