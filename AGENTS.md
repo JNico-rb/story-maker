@@ -37,11 +37,13 @@ When touching `backend/` or `frontend/`, read `backend/AGENTS.md` and `frontend/
 | Write or change a spec | Supporting docs | — |
 | Write the plan | That spec's approval box `[x]` | integrator, no review |
 | Write tests or code | That plan's approval box `[x]` + a failing test | integrator, no review |
-| Close a feature | Every non-D step green, full suite green, types clean | `verificador` |
+| Close a feature | Every C case and every kept I invariant green (D and «(recortado)» excepted), full suite green, types clean | `verificador` |
 
 **No reviews (user's decision, 2026-09-24; it overrides any older rule here).** No self-review, no `auditor`, no review rounds, no reviews by the user. The integrator writes the spec and the plan straight from `docs/*.md` as they stand and marks both approval boxes itself, ending the line with `— integrador YYYY-MM-DD: sin revisión, decisión del usuario`. What stays: TDD (failing test → code) and `verificador` at the close, with the full suite green; it marks the three closing boxes. No other agent or session marks a box. Plan box unmarked → **stop**: no tests or code (`guard-plan` looks only at that box).
 
 **Class D waits until the end (user's decision, 2026-09-24).** No demonstration and no run with a real model until the backend is complete. A spec closes, and unblocks its dependants, when every step that is not class D is `[x]` and the full suite is green; its D steps stay `[ ]` with `(D, al final)` appended, and run in one batch at the end. Backend first; frontend after.
+
+**Scope cut (user's decision, 2026-09-24; overrides the closing rule above).** A spec closes with its C cases plus the I invariants that map to TLA+ (`ReanudacionSinDuplicarNiPerder`, `ReintentosAcotados`, `VersionAnteriorConservada`, atomicity) or that protect a validator. Every other I invariant is marked `(recortado)` in its step, stays `[ ]` and does not block the close; a spec or step marked `(recortado)` in `TODO.md` is out of the close too. Specs out of scope and deferred ones are listed in `TODO.md` → *Estado* → *Alcance*.
 
 The user steps in only on escalations (a `verificador` FAIL that persists) and on human-only tasks: the human review of a novel, the demo video, accounts and tokens, the final check.
 
@@ -100,7 +102,7 @@ Per step of the approved plan: write the test → run it and watch it fail **for
 - Test names state the behaviour, not the function.
 - Backend via `uv`, frontend via `pnpm` (`pnpm.cmd` on this machine). Never disable, skip or weaken a test for a green run.
 
-**Closing a feature** (all four, in order): every non-D step `[x]`, full suite green and types clean → fix the spec if the code proved it wrong (the integrator re-marks its boxes) → fix the owning doc if the work contradicted `docs/*.md`, or state nothing changed → `verificador` marks the three closing boxes.
+**Closing a feature** (all four, in order): every step that is neither D nor `(recortado)` `[x]`, full suite green and types clean → fix the spec if the code proved it wrong (the integrator re-marks its boxes) → fix the owning doc if the work contradicted `docs/*.md`, or state nothing changed → `verificador` marks the three closing boxes.
 
 ## Parallel lanes
 

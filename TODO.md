@@ -56,9 +56,10 @@ Prioridad: los validadores y su evidencia; lo demás es secundario. La lectura e
 
 - **Dentro, en este orden:** (1) integrar 013; (2) cerrar e integrar 010 (G) y 008 (B); (3) 011 (A) completa en cuanto 010 esté en V2; (4) 012 (A) sin la etapa de revisión visual, «(recortado)»; (5) 020 (D): tabla de evals y `example`; (6) 014 (A); (7) 029-cli, nueva: `interview` sobre 008 y `change` sobre 014, con confirmación.
 - **Diferidas:** 018 C18–C23; después, 017. Solo si sobran tokens tras 029.
-- **Fuera:** 015, 016, 019, 021 y 023–028. No se lanzan sus carriles ni se integra H. Lo que 011 o 012 tomaran de 016 se sustituye por resúmenes por capítulo más todas las CanonCards de la candidata.
+- **016, recortada** (corrección del usuario, 2026-09-24): se integra lo que ya tiene carril-h (tarjetas C1–C5, canales léxico y denso, fusión RRF); cierra con sus pasos `[x]` y el resto se marca «(recortado)». 011 y 012 usan las CanonCards reales más los resúmenes por capítulo.
+- **Fuera:** 015, 019, 021 y 023–028. No se lanzan sus carriles.
 - **Cierre de una spec:** bastan sus casos C y los invariantes I que mapean a TLA+ (ReanudacionSinDuplicarNiPerder, ReintentosAcotados, VersionAnteriorConservada, atomicidad) o que protegen un validador; el resto de invariantes I se marcan «(recortado)» y no bloquean.
-- **Pasos D del lote final, solo:** 020-C10, C11, C12, C13, C14, C16 y 004-C14. El resto de pasos D queda sin marcar.
+- **Pasos D del lote final, solo:** 020-C10, C11, C12, C13, C14, C16, 004-C14 y 000-C16 (Playwright MCP inspecciona en Edge la VistaDeVersion, `/view/versions/{id}?token=…`, en lugar de la SPA; obligatorio por `project-constraints.md` líneas 212–213; se registra en `docs/verification.md` §9.3). El resto de pasos D queda sin marcar.
 - **Modelos:** sonnet por defecto (specs, verificador, arreglos); opus solo con concurrencia, reanudación desde checkpoint o transacciones entre varias tablas, o tras 2 fallos de sonnet en el mismo paso. Cada elección de opus, anotada abajo con su motivo.
 
 **Elecciones de opus:**
@@ -76,7 +77,7 @@ Prioridad: los validadores y su evidencia; lo demás es secundario. La lectura e
 | D — formal y lectura | 006 → 004 → 013 → 020 | 001 (004) · 009 (013 parcial) · 012 (020) | `../sm-d` | `carril-d` | 006, 004 y 013 integradas; siguiente, 020 parcial |
 | F — linters de prosa | 018 | 011 (018 parcial: C18–C23) | `../sm-f` | `carril-f` | 018: los 19 pasos de linters puros hechos; C18–C23 esperan 011 |
 | G — planificación | 010 | 003, 004 · 009 (010 parcial: aplicar el plan a la story bible) | `../sm-g` | `carril-g` | 010 en curso (lo que no usa la 009) |
-| H — recuperación | 016 | 009 (016 parcial: tarjetas desde la story bible) | `../sm-h` | `carril-h` | congelado |
+| H — recuperación | 016 | 009 (016 parcial: tarjetas desde la story bible) | `../sm-h` | `carril-h` | recortado: verificar e integrar lo hecho |
 | E — frontend | 022 → 023 → 024 → 025 → 026 → 027 → 028 (`specs/frontend/`) | las de backend de la tabla de specs, cerradas en V2 | `../sm-e` | `carril-e` | congelado |
 
 **Frontend (022–028, decisión del usuario 2026-09-24).** Las specs se redactan ya, de dos en dos, mientras los carriles programan el backend: spec → plan en `TODO.md` → casillas marcadas por el integrador, sin revisión. **Revisión solo como excepción:** únicamente ante un error claro que impide que funcione o que deja sin cubrir un requisito de `project-constraints.md`; una sola corrección, sin rondas. El carril E (`../sm-e`) empieza cada spec cuando sus dependencias de backend están cerradas en V2, sin adelantarse. El backend manda: si hay que elegir, primero se integran A, C y D.
@@ -782,7 +783,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 
 ## 016 — recuperacion-hibrida
 
-**Fuera de alcance** (usuario, 2026-09-24): no se implementa.
+**Recortada** (usuario, 2026-09-24): cierra con los pasos ya `[x]` en carril-h; el resto, «(recortado)».
 
 - [x] Spec `specs/backend/016-recuperacion-hibrida.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
