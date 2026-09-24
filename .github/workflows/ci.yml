@@ -79,18 +79,7 @@ jobs:
           # -h prints the version and exits 1; grep decides whether TLC started.
           java -cp tla/tla2tools.jar tlc2.TLC -h > tlc-help.txt || true
           grep -m1 Version tlc-help.txt
-          shopt -s nullglob
-          cfgs=(tla/*.cfg)
-          if [ ${#cfgs[@]} -eq 0 ]; then
-            echo "tla/ no tiene especificaciones todavía (llegan con la spec 006)."
-            exit 0
-          fi
-          cd tla
-          for cfg in *.cfg; do
-            echo "::group::TLC $cfg"
-            java -XX:+UseParallelGC -jar tla2tools.jar -config "$cfg" -workers auto "${cfg%%.*}.tla"
-            echo "::endgroup::"
-          done
+          bash tla/verificar.sh
 
   seguridad:
     runs-on: ubuntu-latest
