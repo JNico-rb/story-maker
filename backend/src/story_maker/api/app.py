@@ -12,12 +12,15 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session, sessionmaker
 
+from story_maker.agents.port import AgentPort
 from story_maker.api.auth import Clock, utc_now
 from story_maker.api.auth import router as auth_router
 from story_maker.api.errors import validation_exception_handler
 from story_maker.api.story_bible import router as story_bible_router
 from story_maker.api.versions import router as versions_router
 from story_maker.api.view import router as view_router
+from story_maker.config import Config
+from story_maker.observability.port import ObservabilityPort
 
 RESERVED_PREFIXES = ("api", "view", "mcp")
 
@@ -29,11 +32,17 @@ def create_app(
     jwt_secret: str | None = None,
     access_token_hours: int = 24,
     clock: Clock = utc_now,
+    agent_port: AgentPort | None = None,
+    telemetry: ObservabilityPort | None = None,
+    config: Config | None = None,
+    workspace: Path | None = None,
 ) -> FastAPI:
     """`frontend_dist` es el build de la SPA; si no existe, el servidor arranca sin servirla.
 
     `session_factory` y `jwt_secret` habilitan el registro y el acceso (002); sin ellos, el
-    servidor arranca igual, sin esas rutas, igual que sin `frontend_dist`."""
+    servidor arranca igual, sin esas rutas, igual que sin `frontend_dist`. Las rutas de 008
+    (novelas, entrevista, textos libres, brief, listas de prohibidas y audit log) se montan solo
+    cuando además llegan `agent_port`, `telemetry`, `config` y `workspace`."""
     app = FastAPI(title="story-maker")
     # `exception_handler`, no `add_exception_handler`: su decorador tipa con un TypeVar genérico,
     # así que acepta un manejador específico de `RequestValidationError` sin que mypy strict se
@@ -53,6 +62,13 @@ def create_app(
         app.include_router(story_bible_router)
         app.include_router(versions_router)
         app.include_router(view_router)
+
+        if agent_port is not None and telemetry is not None and config is not None:
+            app.state.agent_port = agent_port
+            app.state.telemetry = telemetry
+            app.state.config = config
+            app.state.workspace = workspace
+            _include_interview_routers(app)
 
     if frontend_dist is not None and frontend_dist.is_dir():
         assets_dir = frontend_dist / "assets"
@@ -79,3 +95,14 @@ def create_app(
             raise HTTPException(status_code=404, detail="Not Found")
 
     return app
+
+
+def _include_interview_routers(app: FastAPI) -> None:
+    """Las rutas de la spec 008 (novelas, entrevista, brief); cada paso añade las suyas."""
+    from story_maker.api.brief import router as brief_router
+    from story_maker.api.interview import router as interview_router
+    from story_maker.api.novels import router as novels_router
+
+    app.include_router(novels_router)
+    app.include_router(interview_router)
+    app.include_router(brief_router)
