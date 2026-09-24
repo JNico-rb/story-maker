@@ -820,9 +820,9 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [ ] 016-C22 · Línea base dorada con el modelo real (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-24: `uv run pytest` 867 passed; `uv run ruff check .` sin hallazgos; `uv run ruff format --check .` 176 ficheros formateados; `uv run mypy src` sin incidencias (88 ficheros).
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 017 — revision-visual
 
