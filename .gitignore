@@ -27,3 +27,8 @@ tla/states/
 tla/*_TTrace_*
 tla2tools.jar
 *.out
+
+# Bases SQLite fuera de backend/data (p. ej. STORY_MAKER_DATA_DIR apuntando a la raíz): nunca al repo
+*.db
+*.db-wal
+*.db-shm
