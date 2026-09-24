@@ -128,7 +128,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 ## 001 — base
 
 - [x] Spec `specs/backend/001-base.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; C6 corregido: uso y coste de `role_sessions` vacíos sin resultado final (§18, hallazgo de 003)
-- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcado 2026-09-25 (integrador: sin revisión, decisión del usuario), sin pasos nuevos
 
 ### Steps
 - [x] 001-C03 · Ajustes: valores por defecto, rutas desde la raíz y precedencia del entorno
@@ -675,7 +675,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 
 ## 014 — cambios-del-lector
 
-- [x] Spec `specs/backend/014-cambios-del-lector.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Spec `specs/backend/014-cambios-del-lector.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcada 2026-09-25 (integrador: sin revisión, decisión del usuario): I18 e I19 con su fila de §6; C19 enlaza la propuesta por su traza
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
@@ -1295,7 +1295,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] 031-C02 · Arrancar el servidor pone el worker a tomar la cola
 - [x] 031-C03 · Parar el servidor apaga el worker sin perder nada
 - [x] 031-I2 · Ninguna prueba de esta spec llama a un modelo, a Langfuse ni a GitHub
-- [ ] 031-I1 · El montaje es uno (lo lee el `verificador`)
+- [ ] 031-I1 · El montaje es uno (lo lee el `verificador`) (recortado)
 
 ### Closing
 - [x] Full suite green, type checks clean — verificador 2026-09-25: `uv run pytest` 1536 passed; `uv run ruff check .` OK; `uv run ruff format --check .` OK (356 files); `uv run mypy src` OK (147 files). 031-I1 (recortado): class I, no mapeado a TLA+ ni protege un validador, no bloquea el cierre; `pipeline/planning_seam.py` cubierto por la propiedad ampliada de 031 (`backend/AGENTS.md`, integrador 2026-09-25, a031009).

@@ -359,7 +359,7 @@ Estado persistido desde el que se reanuda. Solo admite inserciones.
 
 ### SolicitudDeCambio
 Cambio que pide el lector sobre una versión publicada, desde la lectura web o desde un cliente MCP. **Su petición no es confiable** (§7).
-- **Atributos:** selección, petición, propuesta, capítulos afectados, hash del código de confirmación, caducidad, versión base, estado, ejecución.
+- **Atributos:** selección, petición, propuesta, capítulos afectados, hash del código de confirmación, caducidad, versión base, estado, ejecución, traza de la propuesta (la de `propuesta-de-cambio` que la produjo, también si se rechaza; con ella se suman al coste de la revisión las `SesionDeRol` de la propuesta).
 - La **selección** es un fragmento (versión, capítulo y cita) o un hecho. La **propuesta** es la interpretación estructurada de la petición: los hechos que cambian, con su valor antiguo y el nuevo, o un hecho nuevo.
 - **Estado:** propuesta → confirmada → aplicada. Pasa a caducada si caduca su código. Pasa a rechazada si la deniega la policy, si no hay propuesta válida tras `max_retries.change` o si falla su ejecución, también por `stale_base`.
 - **Invariante:** los capítulos afectados los calcula el código, nunca un modelo. Son los que tienen `UsoDeHecho` de los hechos cambiados, más los que contienen literalmente el valor antiguo, más el del fragmento seleccionado, si lo hay. Arq. §10.1.

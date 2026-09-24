@@ -387,8 +387,8 @@ Un hecho de origen brief o free_text está **en la selección** en dos casos: si
 | 014-I15 | El cambio no rompe la continuidad de la novela | D | El gate completo (el criterio `continuidad` del juez) y 014-C20 (`verification.md` §4.2 f, fila 2.8 de §5) |
 | 014-I16 | Un uso parafraseado de un hecho, que no está registrado ni es literal, escapa a los afectados | U | `verification.md` §6 U9 |
 | 014-I17 | Si un cambio de nombre repite el de otro personaje, `nombres-exactos` no lo ve | U | `verification.md` §6 U19 |
-| 014-I18 | El título de la novela y la dedicatoria no se reescriben, aunque contengan el valor antiguo | U | Falta su fila en `verification.md` §6; propuesta al integrador |
-| 014-I19 | Un valor nuevo que no está en el brief, como un nombre nuevo, llega a Langfuse sin máscara | U | Falta ampliar `verification.md` §6 U6, o la máscara de 004 (`architecture.md` §13.5); propuesta al integrador |
+| 014-I18 | El título de la novela y la dedicatoria no se reescriben, aunque contengan el valor antiguo | U | `verification.md` §6 U31 |
+| 014-I19 | Un valor nuevo que no está en el brief, como un nombre nuevo, llega a Langfuse sin máscara | U | `verification.md` §6 U6 |
 
 ## Docs referenciados
 
@@ -456,7 +456,7 @@ Un hecho de origen brief o free_text está **en la selección** en dos casos: si
 | ¿Un código incorrecto consume la solicitud? | No: da 422 y la solicitud sigue `proposed`. La propiedad ya impide que otro cliente pruebe códigos | `architecture.md` §15.7; RT11 |
 | ¿Dónde queda el motivo de un rechazo? | En la respuesta, el audit log, los intentos y el motivo de la ejecución. No hace falta una columna nueva | `architecture.md` §15.6 |
 | ¿Deja `ResultadoDeValidador` la policy de la propuesta? | No, porque no hay ejecución; el score va a la traza. §11.2 solo exime a los validadores de entrada | `definitions.md` §6; **hueco del doc** |
-| ¿Cubre la máscara un nombre nuevo? | No, porque la máscara sale del brief | `architecture.md` §13.5; **hueco** (014-I19) |
-| ¿Quedan el título y la dedicatoria con el valor antiguo? | Sí: la propuesta solo toca hechos | `architecture.md` §10.1; **hueco** (014-I18) |
+| ¿Cubre la máscara un nombre nuevo? | No, porque la máscara sale del brief | `architecture.md` §13.5; riesgo aceptado, `verification.md` §6 U6 (014-I19) |
+| ¿Quedan el título y la dedicatoria con el valor antiguo? | Sí: la propuesta solo toca hechos | `architecture.md` §10.1; riesgo aceptado, `verification.md` §6 U31 (014-I18) |
 | ¿Qué cota tiene la petición? | La que fija 008 en la frontera HTTP | `verification.md` §4.9 RT12 |
 | ¿Hay dependencias fuera de su cadena? | Sí: 002 (propiedad) y 008 (cota). Además, 019 reutiliza la regeneración de esta spec | `TODO.md`; `architecture.md` §10.3 |

@@ -503,7 +503,7 @@ Una fila por viñeta de `project-constraints.md`. **Spec** = numeración de `TOD
 | U3 | **Estética visual** | `revision-visual` comprueba estructura y enlaces en la instantánea de accesibilidad: un CSS que no carga o un solape pasan | Inspección con el browser MCP en desarrollo (§9.3) |
 | U4 | **Seudonimización reversible** | El desplazamiento 400·k años no es secreto: quien conozca la regla recupera las fechas de los logs de Actions | Ids de fila sin nombres; briefs ficticios; con datos reales, repositorio privado |
 | U5 | **Prosa aceptada de una edición manual leída por roles** | Una instrucción escrita en ese texto llega como prosa a writer, editor y juez, que no son su receptor | La escribe el cliente sobre su novela; ningún rol tiene tools con efecto; el gate revalida |
-| U6 | **La máscara solo cubre lo que conoce** | Sustituye nombres y fechas del brief; una forma derivada (diminutivo, apodo) puede llegar a Langfuse | Briefs ficticios |
+| U6 | **La máscara solo cubre lo que conoce** | Sustituye nombres y fechas del brief; una forma derivada (diminutivo, apodo) puede llegar a Langfuse; tampoco cubre un valor nuevo de un cambio del lector que no está en el brief, como un nombre nuevo (014-I19) | Briefs ficticios |
 | U7 | **Datos personales en el proveedor** | Escribir la novela exige enviarlos al modelo (Anthropic, por la suscripción de la organización) | Términos de la suscripción; briefs ficticios; Langfuse con máscara; Lean seudonimizado |
 | U8 | **Hecho omitido por el extractor en un brief importado** | Sin cliente que revise, nadie lo recupera; se descartó la eval dorada (§3.7) | En la entrevista el cliente ve y añade hechos |
 | U9 | **Uso de hecho parafraseado sin registrar** | Los afectados = registro del editor ∪ literal; una paráfrasis no registrada escapa | Juez (`continuidad`) sobre la candidata del cambio |
@@ -528,6 +528,7 @@ Una fila por viñeta de `project-constraints.md`. **Spec** = numeración de `TOD
 | U28 | **Escrituras por Bash sin `guard-secretos`** | El hook mira `Edit`, `Write` y `MultiEdit`; una redirección o un `node -e` en Bash no pasa por él, y cubrir Bash exigiría analizar órdenes arbitrarias | `detect-secrets` bloqueante en la CI (§4.6); `.env` denegado en los permisos (§9.6) |
 | U29 | **Fuerza bruta en el acceso y enumeración de cuentas** | Sin límite de intentos en `login` y con 409 en el registro de un email existente; limitar intentos o verificar emails es gestión de cuentas, fuera de alcance (`architecture.md` §14.3) | bcrypt encarece cada intento; despliegue en producción fuera de alcance |
 | U30 | **Modelo pequeño de TLC** | El encargo pide un modelo pequeño y el espacio de estados crece de forma exponencial: un defecto que solo aparezca con más de 5 capítulos, más reintentos o reanudaciones, o más cambios de los modelados, escapa a TLC | Límites como constantes de la config; pruebas T de 010, 011, 012, 014 y 019 con 10 capítulos; correspondencia revisada por el `verificador` (§4.10) |
+| U31 | **Título y dedicatoria con el valor antiguo tras un cambio** | La propuesta solo toca hechos (`architecture.md` §10.1); reescribir título o dedicatoria sería otra vía de cambio sin validador propio (014-I18) | El lector ve la propuesta antes de confirmar; puede pedir otro cambio |
 
 ---
 
