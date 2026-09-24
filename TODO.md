@@ -115,9 +115,11 @@ Todas dependen de 000. Arranque en paralelo cuando 000 esté cerrada: A (001), C
 - [ ] 000-C19 · La CI se pone en rojo ante defectos sembrados (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
+
+— verificador 2026-09-24: backend (uv sync, pytest 112 passed, ruff check, ruff format --check, mypy src) verdes; frontend (pnpm lint, typecheck, build, test 5 passed en 2 ficheros) verdes; hooks (node --test .claude/hooks/*.test.mjs) 118 passed. C01–C14 y C20 trazados a pruebas; C15–C19 (D, al final) quedan sin marcar por regla del usuario y no bloquean el cierre.
 
 ## 001 — base
 
