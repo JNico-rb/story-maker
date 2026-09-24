@@ -612,7 +612,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] 012-C17 · Dentro de una pasada, lo no atribuible manda sobre la interrupción, y esta sobre lo atribuible
 - [x] 012-C18 · El PDF de la candidata es la última etapa
 - [x] 012-C19 · La reescritura dirigida rehace solo los capítulos atribuidos y repite el gate
-- [ ] 012-C20 · Cada capítulo reescrito tiene sus intentos en cada ciclo
+- [x] 012-C20 · Cada capítulo reescrito tiene sus intentos en cada ciclo
 - [ ] 012-C21 · Agotados los ciclos del gate, la ejecución falla
 - [ ] 012-C22 · Reanudar en `gate` o en `rewriting` repasa el gate sobre la candidata tal como quedó
 - [ ] 012-C23 · La publicación es una transacción
