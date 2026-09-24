@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+from hypothesis import HealthCheck, given, settings
+from hypothesis import strategies as st
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
@@ -53,9 +56,10 @@ async def run_once(
     workspace: Path,
     make_request: Callable[..., SessionRequest],
     policy_factory: Callable[[], Any],
+    script: Script = WRITER_SCRIPT,
 ) -> dict[str, Any]:
     fake = FakeAgent()
-    fake.script("writer", "write", WRITER_SCRIPT)
+    fake.script("writer", "write", script)
     telemetry = NullObservability()
     policy = policy_factory()
     checked: list[BaseModel] = []
@@ -92,6 +96,7 @@ async def run_once(
         "row": row_fields(row),
         "policy_tools": [r.tool for r in policy.requests],
         "checked": checked,
+        "reads": fake.sessions[0].reads,
     }
 
 
@@ -134,3 +139,38 @@ async def test_the_fake_walks_the_sdk_path_and_is_deterministic(
         "tool:submit_chapter",
         "tool:submit_chapter",
     ]
+
+
+SHORT_TEXT = st.text(alphabet="abc ", max_size=4)
+STEPS = st.one_of(
+    st.builds(Say, SHORT_TEXT),
+    st.just(Call("Skill", {"skill": "personalizacion-natural"})),
+    st.builds(lambda title: Call("submit_chapter", {"title": title}), SHORT_TEXT),
+    st.builds(
+        lambda title, text: Call("submit_chapter", {"title": title, "text": text}),
+        SHORT_TEXT,
+        SHORT_TEXT,
+    ),
+)
+
+
+@settings(
+    max_examples=25, deadline=None, suppress_health_check=[HealthCheck.function_scoped_fixture]
+)
+@given(steps=st.lists(STEPS, max_size=5))
+def test_the_same_script_gives_the_same_result(
+    steps: list[Say | Call],
+    config: Config,
+    session_factory: sessionmaker[Session],
+    workspace: Path,
+    make_request: Callable[..., SessionRequest],
+    policy: Any,
+) -> None:
+    script = Script(steps=tuple(steps), usage=WRITER_SCRIPT.usage, sdk_cost_usd=0.1)
+
+    def once() -> dict[str, Any]:
+        return asyncio.run(
+            run_once(config, session_factory, workspace, make_request, type(policy), script)
+        )
+
+    assert once() == once()
