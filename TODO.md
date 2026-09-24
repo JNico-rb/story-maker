@@ -66,7 +66,7 @@ MVP = lo estrictamente obligatorio del enunciado + la primera novela real. Prior
 | A — ruta crítica | 001 → 002 → 009 → 011 → 012 → 014 → 029 (015 y 021 fuera) | 003, 004 (010) · 010 (011) · 005, 006 (011) · 007 (012) · 008, 013 (015) | `../sm-a` | `carril-a` | 001, 002 y 009 integradas; 011 en curso, 17/43 (desbloqueada: 010 y 016 en V2) |
 | B — agentes y entrada | 003 → 008 → 017 | 001 (003) · 002, 004, 005 (008) · 012, 013 (017) | `../sm-b` | `carril-b` | 003 integrada; 008 en curso, 27/38 |
 | C — formal y edición | 005 → 007 → 019 | 001 (005 parcial) · 009 (007 parcial) · 012, 018 (019) | `../sm-c` | `carril-c` | 005 y 007 integradas; 019 espera 012 y 018 |
-| D — formal y lectura | 006 → 004 → 013 → 020 | 001 (004) · 009 (013 parcial) · 012 (020) | `../sm-d` | `carril-d` | 006, 004 y 013 integradas; siguiente, 020 parcial |
+| D — formal y lectura | 006 → 004 → 013 → 020 | 001 (004) · 009 (013 parcial) · 012 (020) | `../sm-d` | `carril-d` | 006, 004 y 013 integradas; 020 parcial (C06–C09, I2) en curso, la lleva la sesión story-maker-ae; integra el orquestador |
 | F — linters de prosa | 018 | 011 (018 parcial: C18–C23) | `../sm-f` | `carril-f` | congelado (recorte): 19 pasos de linters puros hechos; C18–C23 en N2 |
 | G — planificación | 010 | 003, 004 · 009 (010 parcial: aplicar el plan a la story bible) | `../sm-g` | `carril-g` | cerrado (010 integrada; I1 e I2 recortados) |
 | H — recuperación | 016 | 009 (016 parcial: tarjetas desde la story bible) | `../sm-h` | `carril-h` | cerrado recortado (016 integrada; I3–I5, I7, I8 recortados) |
