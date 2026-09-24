@@ -486,6 +486,24 @@ Del encargo cubre: writer y editor/critic separados; el `CLAUDE.md` de producto;
   - los scores del intento 1 del capítulo 2 salen al cerrarse ese intento; los del intento aceptado, solo después del commit de su aceptación;
   - el score `palabras-prohibidas` y los spans `rol:` y `tool:` son de 005, 003 y 004.
 
+### 011-C33 — Arrancar el servidor pone el worker a tomar la cola (T)
+- **Sostiene:** Arq. §1.4 (un proceso), §9.1 (cola y worker), §13.4 (prompts versionados), §15.2 (proveedor).
+- **Dado** una generación `queued` y el servidor parado
+- **Cuando** el servidor arranca (tras 011-C25)
+- **Entonces**:
+  - el worker del mismo proceso toma la ejecución sin ninguna otra orden;
+  - el puerto de agente que recibe es el de `LLM_PROVIDER` con los perfiles de rol de `config.json` (en las pruebas, el doble determinista);
+  - planner, writer, editor y juez reciben el prompt de su fichero del workspace, y cada `SesionDeRol` guarda su versión (la de Langfuse con `LANGFUSE_PROMPT_LABEL`; sin las variables de Langfuse, el fichero sin versión, doble nulo de §13.6).
+
+### 011-C34 — Parar el servidor apaga el worker sin perder nada (T)
+- **Sostiene:** Arq. §9.1, §9.2.
+- **Dado** el servidor con una ejecución `running` y otra `queued`
+- **Cuando** el servidor se detiene
+- **Entonces**:
+  - el worker deja de tomar ejecuciones y el proceso termina sin tareas colgadas;
+  - la `queued` sigue `queued`; la `running` no cambia hasta el siguiente arranque, que aplica 011-C25;
+  - no queda ningún capítulo aceptado a medias (atomicidad de 011).
+
 ### 011-C32 — Una producción real con el login de Claude Code llega al gate y se reanuda (D)
 - **Sostiene:** Arq. §15.2 (`claude_login`), §8.4; `verification.md` §4.1 D, §4.2 (presupuesto de cuota).
 - **Dado** la máquina con sesión de Claude Code, `LLM_PROVIDER=claude_login`, Langfuse real y un brief ficticio confirmado

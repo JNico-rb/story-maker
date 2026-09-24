@@ -10,7 +10,7 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 
 ## Estado (2026-09-24)
 
-**Integradas en V2:** 029 (cli, cerrada recortada), 000 (D al final), 026 (frontend, lectura), presentación (esqueleto del deck en Marp, `presentacion/deck.md`), 001, 002, 003, 004, 005, 006, 007, 008, 009, 010, 011, 013, 020 parcial (C06–C09, I2), 016 (cerrada recortada) y 022 (frontend).
+**Integradas en V2:** 012 (gate), carril W (workspace de producto), 020 parcial (C01, C02, C05, I1), 029 (cli, cerrada recortada), 000 (D al final), 026 (frontend, lectura), presentación (esqueleto del deck en Marp, `presentacion/deck.md`), 001, 002, 003, 004, 005, 006, 007, 008, 009, 010, 011, 013, 020 parcial (C06–C09, I2), 016 (cerrada recortada) y 022 (frontend).
 
 ### Alcance
 
@@ -36,12 +36,13 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 |---|---|---|---|---|---|
 | 0 — integrador | 000 | — | checkout principal | `V2` | cerrada (D al final) |
 | A | 014 (parte A: C01–C11, I1–I4, I6, I11; parte B tras 012) | 012 | `../sm-a` | `carril-a` | en curso |
-| D | 020 (C01–C05, I1; después C15 tras 012) | — | `../sm-d` | `carril-d` | en curso |
+| D | 020 (C01, C02, C05, I1 integrados; C03, C04 y C15 pasan al carril X, tras el arranque) | — | `../sm-d` | `carril-d` | parcial integrada |
+| X | arranque: 011-C33, 011-C34; después 020-C03, C04 y C15 | 012 | `../sm-x` | `carril-x` | en curso |
 | E | 026 → 027 (027 tras 014 parte A) | 014 parte A | `../sm-e` | `carril-e` | 026 cerrada e integrada; 027 espera a 014 parte A en V2 |
-| I | 012 (con el WIP de la rama `wip-012-gate`) | 007, 011 | `../sm-i` | `carril-i` | en curso, ruta crítica |
+| I | 012 (con el WIP de la rama `wip-012-gate`) | 007, 011 | `../sm-i` | `carril-i` | cerrada e integrada |
 | K | 029 (C01, C05–C08) | — | `../sm-k` | `carril-k` | cerrada e integrada |
-| W | workspace de producto: 010-I8, 011-I12–I14 (solo `backend/harness_workspace/`) | — | `../sm-w` | `carril-w` | en curso |
-| P | presentación (solo `presentacion/`) | — | `../sm-p` | `carril-p` | esqueleto integrado; faltan los [PENDIENTE] tras la tanda D |
+| W | workspace de producto: 010-I8, 011-I12–I14 (solo `backend/harness_workspace/`) | — | `../sm-w` | `carril-w` | cerrada e integrada |
+| P | presentación (solo `presentacion/`) | — | `../sm-p` | `carril-p` | modelo de costes integrado; faltan los [PENDIENTE] de la tanda D |
 
 Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs alternativos están en `ejemplos/briefs-extra/`.
 
@@ -531,8 +532,8 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 
 ## 011 — produccion-de-capitulos
 
-- [x] Spec `specs/backend/011-produccion-de-capitulos.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
-- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Spec `specs/backend/011-produccion-de-capitulos.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcada con C33–C34 (arranque del worker)
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcada con C33–C34
 
 ### Steps
 - [x] 011-C01 · Lanzar la generación la encola
@@ -566,6 +567,8 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] 011-C29 · Un error imprevisto del worker falla con `internal_error`
 - [x] 011-C30 · El informe de la ejecución se calcula al pedirlo
 - [x] 011-C31 · Trazas, spans y scores de la producción
+- [ ] 011-C33 · Arrancar el servidor pone el worker a tomar la cola, con el agente real y los prompts del workspace (entrega tardía, carril X)
+- [ ] 011-C34 · Parar el servidor apaga el worker sin perder nada (entrega tardía, carril X)
 - [ ] 011-I1 · Hay como mucho una ejecución `running` en el servidor, y las `queued` salen en orden de fecha de creación (recortado)
 - [x] 011-I2 · `ReanudacionSinDuplicarNiPerder`
 - [x] 011-I3 · `ReintentosAcotados`
