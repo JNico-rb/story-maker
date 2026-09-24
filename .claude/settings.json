@@ -1,0 +1,45 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(uv *)",
+      "Bash(pnpm.cmd *)",
+      "Bash(node *)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git show*)",
+      "Bash(git add*)",
+      "Bash(git commit*)",
+      "Bash(git worktree*)",
+      "Bash(git merge*)",
+      "Bash(git rebase*)",
+      "Bash(git branch*)",
+      "Bash(java *)"
+    ],
+    "deny": [
+      "Read(.env)",
+      "Read(**/.env)",
+      "Read(.claude/settings.local.json)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)"
+    ],
+    "additionalDirectories": ["../sm-a", "../sm-b", "../sm-c", "../sm-d", "../sm-e"]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-secretos.mjs\""
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-plan.mjs\""
+          }
+        ]
+      }
+    ]
+  }
+}

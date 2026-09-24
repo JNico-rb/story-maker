@@ -1,0 +1,8 @@
+name = "chronology"
+defaultTargets = ["Chronology"]
+
+[leanOptions]
+autoImplicit = false
+
+[[lean_lib]]
+name = "Chronology"

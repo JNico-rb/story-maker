@@ -1,0 +1,81 @@
+[project]
+name = "story-maker"
+version = "0.1.0"
+description = "Novelas personalizadas de regalo, generadas por un harness agéntico"
+requires-python = ">=3.12,<3.13"
+# Todo el stack se declara en el scaffolding para que los carriles no choquen en uv.lock.
+# Los pines exactos son versiones ya medidas en esta máquina (Agent SDK por OpenRouter, Playwright
+# contra el Edge instalado, FastMCP montado en FastAPI, Langfuse v4).
+dependencies = [
+    "bcrypt>=5.0.0",
+    "claude-agent-sdk==0.2.158",
+    "fastapi>=0.141.1",
+    "fastembed>=0.8.1",
+    "fastmcp==4.0.5",
+    "httpx>=0.28.1",
+    "jinja2>=3.1.6",
+    "langfuse==4.15.4",
+    # Solo Windows: el portátil no tiene el VC++ Redistributable; en Linux el paquete no resuelve.
+    "msvc-runtime>=14.44.35112; sys_platform == 'win32'",
+    "playwright==1.63.0",
+    "pydantic>=2.13.5",
+    "pydantic-settings>=2.15.0",
+    "pyjwt>=2.14.0",
+    "pypdf>=6.19.0",
+    "sqlalchemy>=2.0.54",
+    "sqlite-vec>=0.1.9",
+    "typer>=0.27.2",
+    "uvicorn>=0.53.0",
+]
+
+[project.scripts]
+story-maker = "story_maker.cli:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/story_maker"]
+
+[dependency-groups]
+dev = [
+    "detect-secrets>=1.5.0",
+    "hypothesis>=6.168.1",
+    "mypy>=2.3.1",
+    "pip-audit>=2.10.1",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "ruff>=0.16.8",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+# importlib: tests/<modulo>/test_x.py puede repetir nombre entre módulos sin __init__.py.
+addopts = "--import-mode=importlib --strict-markers"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "C4", "SIM", "PT", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+# Las pruebas afirman con assert y construyen secretos y subprocesos desechables a propósito.
+"tests/**" = ["S101", "S105", "S106", "S603", "S607"]
+
+[tool.mypy]
+strict = true
+python_version = "3.12"
+mypy_path = "src"
+explicit_package_bases = true
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+# Librerías sin información de tipos.
+module = ["sqlite_vec", "sqlite_vec.*", "fastembed", "fastembed.*", "detect_secrets.*"]
+ignore_missing_imports = true

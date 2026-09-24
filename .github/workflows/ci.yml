@@ -1,0 +1,89 @@
+# CI: backend, frontend, Lean y TLC en cada push y pull request.
+name: ci
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          python-version: "3.12"
+      - run: uv sync --frozen
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy src
+      - run: uv run pytest
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v5
+      # La versión exacta de pnpm sale de packageManager en frontend/package.json.
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: frontend/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm build
+      - run: pnpm test
+
+  lean:
+    # Lean no corre en el portátil de desarrollo (Smart App Control): solo aquí.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: leanprover/lean-action@v1
+        with:
+          lake-package-directory: lean
+          auto-config: false
+          build: true
+
+  tla:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: TLC sobre cada tla/*.tla con su .cfg
+        run: |
+          shopt -s nullglob
+          specs=()
+          for spec in tla/*.tla; do
+            if [ -f "${spec%.tla}.cfg" ]; then specs+=("$(basename "$spec" .tla)"); fi
+          done
+          if [ ${#specs[@]} -eq 0 ]; then
+            echo "Ninguna especificación con .cfg todavía."
+            exit 0
+          fi
+          curl -fsSL -o tla2tools.jar \
+            https://github.com/tlaplus/tlaplus/releases/latest/download/tla2tools.jar
+          cd tla
+          for name in "${specs[@]}"; do
+            echo "::group::TLC $name"
+            java -XX:+UseParallelGC -jar ../tla2tools.jar -config "$name.cfg" -workers auto "$name.tla"
+            echo "::endgroup::"
+          done

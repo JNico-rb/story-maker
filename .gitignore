@@ -8,3 +8,20 @@ settings.local.json
 
 # Clon de trabajo que usa la skill react-expert
 .claude/react/
+
+# Dependencias, builds y cachés: se regeneran, nunca se versionan
+node_modules/
+dist/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+.playwright-mcp/
+lean/.lake/
+tla/states/
+tla/*_TTrace_*
+tla2tools.jar
+*.out

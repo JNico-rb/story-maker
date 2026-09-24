@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+/* Tokens de marca Qaracter. Primario y secundario están muestreados del PNG de
+   images/qaracter-logo.png; el resto se deriva de ellos. Cada token es a la vez variable CSS
+   (var(--color-primary)) y utilidad de Tailwind (bg-primary, text-ink, font-serif...). */
+@theme {
+  --color-primary: #ff7932; /* naranja del símbolo */
+  --color-primary-strong: #b84a12; /* naranja oscurecido: texto naranja sobre fondo claro (AA) */
+  --color-secondary: #233441; /* azul pizarra del logotipo */
+  --color-background: #faf8f5; /* papel cálido de la lectura */
+  --color-surface: #ffffff;
+  --color-ink: #233441; /* texto: el mismo pizarra */
+  --color-muted: #5e6b76;
+  --color-accent: #ffe8da; /* tinte del naranja: resaltados, «cambiado en vN» */
+  --color-line: #e3ded7;
+
+  --font-sans: "Inter Tight", ui-sans-serif, system-ui, sans-serif; /* interfaz, cercana al logotipo */
+  --font-serif: "Literata", ui-serif, Georgia, serif; /* lectura de la novela */
+}
+
+@layer base {
+  body {
+    @apply bg-background font-sans text-ink antialiased;
+  }
+
+  a {
+    @apply text-primary-strong;
+  }
+}
