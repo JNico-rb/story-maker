@@ -637,7 +637,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 013-I1 · Todo enlace interno del PDF y de la VistaDeVersion resuelve a un ancla que existe en el mismo documento
 - [x] 013-C11 · El PDF se guarda por versión y se sirve tal cual
 - [x] 013-C12 · Sin PDF guardado, la ruta responde 404
-- [ ] 013-I4 · El backend solo escribe el PDF de una versión en STORY_MAKER_DATA_DIR, salvo example
+- [x] 013-I4 · El backend solo escribe el PDF de una versión en STORY_MAKER_DATA_DIR, salvo example
 - [x] 013-C13 · Listado de versiones publicadas
 - [x] 013-C14 · Detalle de una versión publicada
 - [x] 013-C15 · Lo que no existe, lo ajeno y lo mal formado

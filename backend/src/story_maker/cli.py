@@ -226,7 +226,7 @@ def export_pdf_command(
     """Regenera desde su `VistaDeVersion` el PDF de una versión ya publicada y sustituye al
     guardado; no repite el gate ni cambia ningún dato de la versión (013-C17). Con una novela
     inexistente o una versión sin publicar, error con el motivo y ningún fichero se toca
-    (013-C18)."""
+    (013-C18). El backend solo escribe dentro de `STORY_MAKER_DATA_DIR` (013-I4)."""
     try:
         settings = load_settings()
     except SettingsError as exc:
@@ -249,9 +249,14 @@ def export_pdf_command(
                 typer.echo(f"la versión {number} de la novela {novel_id} no tiene PDF guardado")
                 raise typer.Exit(1)
 
+            path = Path(version.pdf_path).resolve()
+            data_dir = settings.data_dir.resolve()
+            if not path.is_relative_to(data_dir):
+                typer.echo(f"{path} está fuera de STORY_MAKER_DATA_DIR ({data_dir}): no se escribe")
+                raise typer.Exit(1)
+
             html = render_version_view(load_version_view_data(session, version))
             pdf_bytes = render_pdf(html)
-            path = Path(version.pdf_path)
             path.write_bytes(pdf_bytes)
         typer.echo(str(path))
     finally:

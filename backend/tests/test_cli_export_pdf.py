@@ -1,4 +1,4 @@
-"""`story-maker export-pdf <novela> <v>` (013-C17, 013-C18)."""
+"""`story-maker export-pdf <novela> <v>` (013-C17, 013-C18, 013-I4)."""
 
 from __future__ import annotations
 
@@ -48,8 +48,12 @@ def base_env(monkeypatch: pytest.MonkeyPatch, isolated_root: Path) -> Path:
     return isolated_root
 
 
+def _data_dir(base_env: Path) -> Path:
+    return base_env / "backend" / "data"
+
+
 def _db_path(base_env: Path) -> Path:
-    return base_env / "backend" / "data" / "story-maker.db"
+    return _data_dir(base_env) / "story-maker.db"
 
 
 def _chapter_hash(title: str, text: str) -> str:
@@ -115,7 +119,8 @@ def _version_row(db_path: Path, version_id: int) -> models.Version:
 
 def test_export_pdf_regenerates_the_pdf_from_the_version_view(base_env: Path) -> None:
     db_path = _db_path(base_env)
-    pdf_path = base_env / "novela.pdf"
+    pdf_path = _data_dir(base_env) / "novela.pdf"  # como la guardaría el gate (013-I4)
+    pdf_path.parent.mkdir(parents=True, exist_ok=True)
     pdf_path.write_bytes(b"%PDF-1.4 version vieja")
     novel_id, version_id = _seed_published_novel(db_path, pdf_path=pdf_path)
     before = _version_row(db_path, version_id)
@@ -124,6 +129,7 @@ def test_export_pdf_regenerates_the_pdf_from_the_version_view(base_env: Path) ->
 
     assert result.exit_code == 0, result.stdout
     assert result.stdout.strip() == str(pdf_path)
+    assert pdf_path.is_relative_to(_data_dir(base_env))  # 013-I4: solo dentro de la data dir
     new_bytes = pdf_path.read_bytes()
     assert new_bytes != b"%PDF-1.4 version vieja"
 
@@ -186,3 +192,21 @@ def test_export_pdf_on_an_unpublished_version_writes_no_file(
     assert result.exit_code != 0
     assert "2" in result.stdout
     assert pdf_path.read_bytes() == original_bytes
+
+
+# --- 013-I4: el backend solo escribe el PDF de una versión en STORY_MAKER_DATA_DIR -------------
+
+
+def test_export_pdf_refuses_to_write_outside_story_maker_data_dir(base_env: Path) -> None:
+    """Un `pdf_path` fuera de `STORY_MAKER_DATA_DIR` (dato corrupto, o de otro origen) no se
+    sobrescribe: sin la comprobación, `export-pdf` escribiría ahí sin más (013-I4)."""
+    db_path = _db_path(base_env)
+    outside_path = base_env / "fuera-de-la-data-dir.pdf"  # hermano de backend/, no dentro
+    outside_path.write_bytes(b"%PDF-1.4 no debe cambiar")
+    novel_id, _version_id = _seed_published_novel(db_path, pdf_path=outside_path)
+
+    result = runner.invoke(app, ["export-pdf", str(novel_id), "1"])
+
+    assert result.exit_code != 0
+    assert str(outside_path) in result.stdout
+    assert outside_path.read_bytes() == b"%PDF-1.4 no debe cambiar"
