@@ -635,12 +635,12 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 013-C09 · pdf-enlaces valida los enlaces internos
 - [x] 013-C10 · pdf-enlaces falla ante un enlace que no resuelve
 - [x] 013-I1 · Todo enlace interno del PDF y de la VistaDeVersion resuelve a un ancla que existe en el mismo documento
-- [ ] 013-C11 · El PDF se guarda por versión y se sirve tal cual
-- [ ] 013-C12 · Sin PDF guardado, la ruta responde 404
+- [x] 013-C11 · El PDF se guarda por versión y se sirve tal cual
+- [x] 013-C12 · Sin PDF guardado, la ruta responde 404
 - [ ] 013-I4 · El backend solo escribe el PDF de una versión en STORY_MAKER_DATA_DIR, salvo example
-- [ ] 013-C13 · Listado de versiones publicadas
-- [ ] 013-C14 · Detalle de una versión publicada
-- [ ] 013-C15 · Lo que no existe, lo ajeno y lo mal formado
+- [x] 013-C13 · Listado de versiones publicadas
+- [x] 013-C14 · Detalle de una versión publicada
+- [x] 013-C15 · Lo que no existe, lo ajeno y lo mal formado
 - [ ] 013-C16 · example produce la novela y su PDF
 - [ ] 013-C17 · export-pdf regenera el PDF de una versión publicada
 - [ ] 013-C18 · export-pdf sobre lo que no existe o no está publicado

@@ -16,7 +16,12 @@ from story_maker.store.session import create_schema, make_engine, make_session_f
 JWT_SECRET = "x" * 32
 PUBLIC_ROUTES = {("/api/auth/register", "POST"), ("/api/auth/login", "POST")}
 # Crece con cada spec de rutas: una ruta nueva sin su fila aquí hace fallar la prueba.
-PROTECTED_ROUTES = {("/api/novels/{novel_id}/story-bible", "GET")}  # 009
+PROTECTED_ROUTES = {
+    ("/api/novels/{novel_id}/story-bible", "GET"),  # 009
+    ("/api/novels/{novel_id}/versions", "GET"),  # 013
+    ("/api/novels/{novel_id}/versions/{number}", "GET"),  # 013
+    ("/api/novels/{novel_id}/versions/{number}/pdf", "GET"),  # 013
+}
 
 
 @pytest.fixture
