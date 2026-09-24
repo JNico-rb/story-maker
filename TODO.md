@@ -231,9 +231,9 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [ ] 003-C32 · Los límites reales terminan la sesión sin dejar subprocesos (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-24: uv sync; uv run pytest (520 passed); uv run ruff check . (All checks passed!); uv run ruff format --check . (97 files already formatted); uv run mypy src (no issues found in 52 source files)
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 004 — observabilidad
 
