@@ -759,3 +759,55 @@ Todas dependen de 000. Arranque en paralelo cuando 000 esté cerrada: A (001), C
 - [ ] Full suite green, type checks clean
 - [ ] Spec updated, or confirmed still true
 - [ ] Docs updated, or confirmed still true
+
+## 019 — edicion-manual
+
+- [x] Spec `specs/backend/019-edicion-manual.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
+
+### Steps
+- [ ] 019-C01 · Texto sin nada que avisar
+- [ ] 019-C02 · Forma no canónica de un personaje
+- [ ] 019-C03 · Personaje desconocido
+- [ ] 019-C04 · Hecho nominal que el capítulo usaba y ya no aparece
+- [ ] 019-C05 · Prohibidas de los tres niveles
+- [ ] 019-C06 · Avisos de los linters de prosa
+- [ ] 019-C07 · Reaparición tras un evento excluyente
+- [ ] 019-C08 · Edad escrita que no cuadra con la fecha de nacimiento
+- [ ] 019-C09 · Rechazos del lint
+- [ ] 019-C10 · Un guardado que pasa encola la edición
+- [ ] 019-C11 · Una base que ya no es la vigente da 409
+- [ ] 019-C12 · Una prohibida da 422
+- [ ] 019-C13 · Una longitud fuera de rango da 422
+- [ ] 019-C14 · Una forma no canónica da 422, también al renombrar a una variante
+- [ ] 019-C15 · Varios bloqueantes a la vez
+- [ ] 019-C16 · Una inyección en el texto se marca y no bloquea
+- [ ] 019-C17 · Rechazos de acceso y de forma
+- [ ] 019-C18 · Edición sin hechos cambiados
+- [ ] 019-C19 · Una edición que cambia un hecho nominal se propaga
+- [ ] 019-C20 · Las puntuaciones del editor no bloquean en el capítulo editado
+- [ ] 019-C21 · Los hechos cambiados inválidos vuelven al editor
+- [ ] 019-C22 · Un validador determinista bloquea en la ejecución
+- [ ] 019-C23 · Un fallo del gate atribuido al capítulo editado rechaza la edición
+- [ ] 019-C24 · Un fallo del gate atribuido solo a otros capítulos
+- [ ] 019-C25 · Un fallo de datos de la ficha en el capítulo editado se vuelve a registrar
+- [ ] 019-C26 · Una base obsoleta al arrancar
+- [ ] 019-C27 · Reanudar una edición
+- [ ] 019-C28 · Una inyección en el texto editado que el editor obedece (RT16)
+- [ ] 019-I1 · El capítulo editado se publica como lo dejó la persona
+- [ ] 019-I2 · El lint en vivo no escribe nada y es determinista
+- [ ] 019-I3 · Lo que el lint marca como bloqueante es lo que bloquea el guardado
+- [ ] 019-I4 · Un guardado rechazado no crea nada
+- [ ] 019-I5 · Toda decisión sobre el texto de una edición queda en el audit log con origen `manual_edit`
+- [ ] 019-I6 · Ninguna edición se publica sin el gate completo con `cronologia-lean`
+- [ ] 019-I7 · En el capítulo editado bloquean los validadores deterministas y el gate, nunca el editor
+- [ ] 019-I8 · El texto editado solo lo interpreta el editor
+- [ ] 019-I10 · Solo cambian el capítulo editado y los afectados
+- [ ] 019-I11 · La `EdicionManual` sigue a su ejecución
+- [ ] 019-I12 · La historia de versiones es lineal
+- [ ] 019-C29 · Edición manual real con Lean (D, al final)
+
+### Closing
+- [ ] Full suite green, type checks clean
+- [ ] Spec updated, or confirmed still true
+- [ ] Docs updated, or confirmed still true
