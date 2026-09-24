@@ -16,15 +16,21 @@ from typing import Any, Protocol, cast
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from story_maker.retrieval.queries import prospective_query
+from story_maker.retrieval.queries import prospective_query, retrospective_query
 from story_maker.store.models import (
     Brief,
     Chapter,
     Character,
     Fact,
     OutlineChapter,
+    Place,
     StyleSheet,
     Version,
+)
+from story_maker.validators.chapter_rubric import (
+    BLOCKING_CRITERIA,
+    CHAPTER_CRITERIA,
+    CRITERION_MEANING,
 )
 
 _TOKEN = re.compile(r"\S+")
@@ -126,42 +132,30 @@ class CandidateWindows:
         self._top_k = top_k
 
     def writer(self, session: Session, version_id: int, chapter: int) -> WriterWindow:
+        """StyleSheet, proyección del outline (del resto de capítulos, solo los temas de sus
+        revelaciones), resúmenes y final literal de los anteriores, obligatorios asignados, y
+        los hechos y personajes de los beats; recupera con la consulta prospectiva."""
         outline = _outline(session, version_id)
         current = outline[chapter - 1]
-        beats = cast(list[dict[str, Any]], current.beats)
         previous = _accepted(session, version_id, chapter)
-        names = {name for beat in beats for name in beat.get("characters", [])}
-        characters = [
-            c
-            for c in session.scalars(
-                select(Character).where(Character.version_id == version_id).order_by(Character.id)
-            )
-            if c.canonical_name in names
-        ]
-        character_ids = {c.id for c in characters}
-        used = {str(ref) for beat in beats for ref in beat.get("facts_used", [])}
-        facts = list(
-            session.scalars(select(Fact).where(Fact.version_id == version_id).order_by(Fact.id))
-        )
+        canon = _beat_canon(session, version_id, current)
         residents = {
             "style_sheet": _style_sheet(session, version_id),
             "outline": {
                 "titles": [o.title for o in outline],
-                "chapter": {"number": current.number, "title": current.title, "beats": beats},
+                "chapter": _chapter(current),
                 "future_revelations": [
                     {"chapter": o.number, "theme": beat["revelation"]["theme"]}
                     for o in outline[chapter:]
-                    for beat in cast(list[dict[str, Any]], o.beats)
+                    for beat in _beats(o)
                     if beat.get("revelation")
                 ],
             },
-            "summaries": [{"chapter": c.number, "summary": c.summary} for c in previous],
+            "summaries": _summaries(previous),
             "literal_ending": literal_ending(previous[-1].text) if previous else None,
-            "mandatory_elements": _mandatory(facts, current),
-            "facts": [
-                _fact(f) for f in facts if f.character_id in character_ids or str(f.id) in used
-            ],
-            "characters": [{"id": c.id, "name": c.canonical_name} for c in characters],
+            "mandatory_elements": canon["mandatory_elements"],
+            "facts": canon["facts"],
+            "characters": canon["characters"],
         }
         fragments = prospective_query(session, version_id, chapter)
         retrieved = self._retriever(session, version_id, chapter, fragments, self._top_k["writer"])
@@ -170,6 +164,88 @@ class CandidateWindows:
             retrieved=tuple(retrieved),
             target_words=_target_words(session, version_id),
         )
+
+    def editor(
+        self, session: Session, version_id: int, chapter: int, title: str, text: str
+    ) -> EditorWindow:
+        """StyleSheet, resúmenes anteriores, el capítulo del outline con sus hechos, personajes y
+        lugares, los obligatorios asignados, el índice de entidades y la rúbrica; recupera con la
+        consulta retrospectiva. Nada de la sesión del writer ni del final literal."""
+        current = _outline(session, version_id)[chapter - 1]
+        residents = {
+            "style_sheet": _style_sheet(session, version_id),
+            "summaries": _summaries(_accepted(session, version_id, chapter)),
+            "chapter": _chapter(current),
+            **_beat_canon(session, version_id, current),
+            "entities": {
+                "characters": [_entity(c) for c in _characters(session, version_id)],
+                "places": [_entity(p) for p in _places(session, version_id)],
+            },
+            "rubric": [
+                {
+                    "criterion": criterion,
+                    "judges": CRITERION_MEANING[criterion],
+                    "blocking": criterion in BLOCKING_CRITERIA,
+                }
+                for criterion in CHAPTER_CRITERIA
+            ],
+        }
+        fragments = retrospective_query(text)
+        retrieved = self._retriever(session, version_id, chapter, fragments, self._top_k["editor"])
+        return EditorWindow(residents=residents, retrieved=tuple(retrieved))
+
+
+def _beats(chapter: OutlineChapter) -> list[dict[str, Any]]:
+    return cast(list[dict[str, Any]], chapter.beats)
+
+
+def _chapter(chapter: OutlineChapter) -> dict[str, Any]:
+    return {"number": chapter.number, "title": chapter.title, "beats": _beats(chapter)}
+
+
+def _summaries(previous: Sequence[Chapter]) -> list[dict[str, Any]]:
+    return [{"chapter": c.number, "summary": c.summary} for c in previous]
+
+
+def _entity(entity: Character | Place) -> dict[str, Any]:
+    return {"id": entity.id, "name": entity.canonical_name}
+
+
+def _characters(session: Session, version_id: int) -> list[Character]:
+    query = select(Character).where(Character.version_id == version_id)
+    return list(session.scalars(query.order_by(Character.id)))
+
+
+def _places(session: Session, version_id: int) -> list[Place]:
+    query = select(Place).where(Place.version_id == version_id)
+    return list(session.scalars(query.order_by(Place.id)))
+
+
+def _beat_canon(session: Session, version_id: int, chapter: OutlineChapter) -> dict[str, Any]:
+    """Los personajes, los lugares y los hechos (con sus valores vigentes) que citan los beats
+    del capítulo, y los hechos de los elementos obligatorios que tiene asignados."""
+    beats = _beats(chapter)
+    names = {name for beat in beats for name in beat.get("characters", [])}
+    place_names = {e["place"] for beat in beats for e in beat.get("events", [])}
+    used = {str(ref) for beat in beats for ref in beat.get("facts_used", [])}
+    characters = [c for c in _characters(session, version_id) if c.canonical_name in names]
+    places = [p for p in _places(session, version_id) if p.canonical_name in place_names]
+    character_ids = {c.id for c in characters}
+    place_ids = {p.id for p in places}
+    facts = list(
+        session.scalars(select(Fact).where(Fact.version_id == version_id).order_by(Fact.id))
+    )
+    cited = [
+        f
+        for f in facts
+        if f.character_id in character_ids or f.place_id in place_ids or str(f.id) in used
+    ]
+    return {
+        "mandatory_elements": _mandatory(facts, chapter),
+        "facts": [_fact(f) for f in cited],
+        "characters": [_entity(c) for c in characters],
+        "places": [_entity(p) for p in places],
+    }
 
 
 def _outline(session: Session, version_id: int) -> list[OutlineChapter]:

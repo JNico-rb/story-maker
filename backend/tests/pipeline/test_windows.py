@@ -145,3 +145,68 @@ def test_the_writer_window_of_chapter_1_has_no_summaries_nor_literal_ending(
 
     assert window.residents["summaries"] == []
     assert window.residents["literal_ending"] is None
+
+
+DELIVERED = "Marta subió al Faro de Cabo Mayor.\n\nToby ladró dos veces."
+
+
+def test_the_editor_window_has_the_chapter_4_outline_entities_rubric_and_the_delivery(
+    session_factory: sessionmaker[Session], candidate: Seed
+) -> None:
+    retriever = FixedRetriever(tuple(f"R{k}" for k in range(1, 9)))
+    windows = CandidateWindows(retriever=retriever, top_k={"writer": 8, "editor": 6})
+    with session_factory() as session:
+        window = windows.editor(session, candidate.version_id, 4, "La carta", DELIVERED)
+
+    residents = window.residents
+    assert set(residents) == {
+        "style_sheet",
+        "summaries",
+        "chapter",
+        "mandatory_elements",
+        "facts",
+        "characters",
+        "places",
+        "entities",
+        "rubric",
+    }
+    assert residents["style_sheet"] == {"narrator": "third"}
+    assert [s["chapter"] for s in residents["summaries"]] == [1, 2, 3]
+    assert residents["chapter"]["number"] == 4
+    assert residents["chapter"]["beats"] == beats(4, CHAPTER4_SECRET)
+    assert [f["id"] for f in residents["mandatory_elements"]] == [candidate.facts["rasgo"]]
+    assert residents["characters"] == [{"id": candidate.characters["Marta"], "name": "Marta"}]
+    assert {f["id"] for f in residents["facts"]} == {
+        candidate.facts["marta"],
+        candidate.facts["rasgo"],
+    }
+    assert residents["entities"] == {
+        "characters": [
+            {"id": candidate.characters["Marta"], "name": "Marta"},
+            {"id": candidate.characters["Toby"], "name": "Toby"},
+        ],
+        "places": [{"id": candidate.places["Faro de Cabo Mayor"], "name": "Faro de Cabo Mayor"}],
+    }
+    rubric = {c["criterion"]: c for c in residents["rubric"]}
+    assert list(rubric) == [
+        "fidelidad-canon",
+        "cumple-beats",
+        "personalizacion-natural",
+        "prosa",
+        "tono",
+    ]
+    assert {c for c, r in rubric.items() if r["blocking"]} == {"fidelidad-canon", "cumple-beats"}
+    assert all(r["judges"] for r in rubric.values())
+    assert window.retrieved == tuple(f"R{k}" for k in range(1, 9))
+    assert retriever.calls == [
+        (
+            candidate.version_id,
+            4,
+            ("Marta subió al Faro de Cabo Mayor.", "Toby ladró dos veces."),
+            6,
+        )
+    ]
+    dumped = json.dumps(residents, ensure_ascii=False)
+    assert "future_revelations" not in dumped
+    assert "beat 1 del capítulo 5" not in dumped
+    assert "c3p" not in dumped
