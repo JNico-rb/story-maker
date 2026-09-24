@@ -29,7 +29,7 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 | B — agentes y formal | 003 → 016 → 017 | 001 (003) · 009 (016) · 012, 013 (017) | `../sm-b` | `carril-b` | 003: 34/38, cerrando tras rebase |
 | C — entrada y formal | 005 → 007 → 008 → 019 | 001 (005 parcial) · 009 (007 parcial) · 002, 003, 004 (008) · 012, 018 (019) | `../sm-c` | `carril-c` | 005 integrada; 007 en curso (sin el adaptador a SQLite, que espera 009) |
 | D — formal y lectura | 006 → 004 → 013 → 020 | 001 (004) · 009 (013) · 012 (020) | `../sm-d` | `carril-d` | 006 y 004 integradas; 013 espera 009 |
-| F — linters de prosa | 018 | 011 (018 parcial: C18–C23) | `../sm-f` | `carril-f` | 018 en curso: los linters puros (C1–C17, I1, I2) |
+| F — linters de prosa | 018 | 011 (018 parcial: C18–C23) | `../sm-f` | `carril-f` | 018: los 19 pasos de linters puros hechos; C18–C23 esperan 011 |
 | E — frontend | 022 → 023 → 024 → 025 → 026 → 027 → 028 (`specs/frontend/`) | las de backend de la tabla de specs, cerradas en V2 | `../sm-e` | `carril-e` | 022–028 con spec y plan aprobados; implementación cuando se cierren sus dependencias |
 
 **Frontend (022–028, decisión del usuario 2026-09-24).** Las specs se redactan ya, de dos en dos, mientras los carriles programan el backend: spec → plan en `TODO.md` → casillas marcadas por el integrador, sin revisión. **Revisión solo como excepción:** únicamente ante un error claro que impide que funcione o que deja sin cubrir un requisito de `project-constraints.md`; una sola corrección, sin rondas. El carril E (`../sm-e`) empieza cada spec cuando sus dependencias de backend están cerradas en V2, sin adelantarse. El backend manda: si hay que elegir, primero se integran A, C y D.
