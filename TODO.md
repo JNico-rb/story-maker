@@ -71,6 +71,7 @@ MVP = lo estrictamente obligatorio del enunciado + la primera novela real. Prior
 | G — planificación | 010 | 003, 004 · 009 (010 parcial: aplicar el plan a la story bible) | `../sm-g` | `carril-g` | cerrado (010 integrada; I1 e I2 recortados) |
 | H — recuperación | 016 | 009 (016 parcial: tarjetas desde la story bible) | `../sm-h` | `carril-h` | cerrado recortado (016 integrada; I3–I5, I7, I8 recortados) |
 | I — gate (012 parcial) | 012 | 007 · 011 (012 parcial: validadores de novela, juez, rúbrica y catálogo empiezan antes; el bucle del gate, la reescritura y la publicación esperan a 011) | `../sm-i` | `carril-i` | 012 parcial en curso |
+| J — métricas | 030 | 001, 004 | `../sm-j` | `carril-j` | 030 en curso |
 | E — frontend | 022 → 023 → 024 → 025 → 026 → 027 → 028 (`specs/frontend/`) | las de backend de la tabla de specs, cerradas en V2 | `../sm-e` | `carril-e` | congelado (recorte) |
 
 **Congelado (recorte).** **Frontend (022–028, decisión del usuario 2026-09-24).** Las specs se redactan ya, de dos en dos, mientras los carriles programan el backend: spec → plan en `TODO.md` → casillas marcadas por el integrador, sin revisión. **Revisión solo como excepción:** únicamente ante un error claro que impide que funcione o que deja sin cubrir un requisito de `project-constraints.md`; una sola corrección, sin rondas. El carril E (`../sm-e`) empieza cada spec cuando sus dependencias de backend están cerradas en V2, sin adelantarse. El backend manda: si hay que elegir, primero se integran A, C y D.
@@ -109,6 +110,7 @@ MVP = lo estrictamente obligatorio del enunciado + la primera novela real. Prior
 | 027 | cambio-del-lector (seleccionar, pedir, propuesta y afectados, confirmar, ver la versión nueva) | frontend | E | 026, 025, 014 |
 | 028 | edicion-manual (editor con lint en vivo, guardar, versión nueva) | frontend | E | 026, 025, 018, 019 |
 | 029 | cli (`interview` sobre 008 y `change` sobre 014, con confirmación) | backend | A | 008, 011, 014 |
+| 030 | report-metrics (`report metrics`: agregados de SQLite a `docs/metrics.md`) | backend | J | 001, 004 |
 
 Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno por worktree (decisión del usuario, 2026-09-24: más paralelo si no hay peligro); la propiedad de módulos sigue siendo por spec.
 
@@ -1272,6 +1274,29 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [ ] 029-I1 · La CLI decide como la API
 - [ ] 029-I2 · Nada se confirma ni se encola sin una respuesta `s`
 - [ ] 029-I3 · El código de confirmación del cambio no aparece nunca en la salida
+
+### Closing
+- [ ] Full suite green, type checks clean
+- [ ] Spec updated, or confirmed still true
+- [ ] Docs updated, or confirmed still true
+
+## 030 — report-metrics
+
+- [x] Spec `specs/backend/030-report-metrics.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [ ] Plan below approved
+
+### Steps
+- [ ] 030-C07 · Sin ejecuciones, el informe lo dice
+- [ ] 030-C08 · Ruta de salida
+- [ ] 030-C01 · Coste, tokens y latencia por novela
+- [ ] 030-C02 · Por capítulo
+- [ ] 030-C03 · Por rol
+- [ ] 030-C04 · Scores por validador y novela
+- [ ] 030-C05 · Versiones de prompt
+- [ ] 030-C06 · Un dato que falta es un hueco, nunca una estimación
+- [ ] 030-I1 · El informe es determinista
+- [ ] 030-I2 · Ninguna prueba ni la orden llaman a un modelo, a Langfuse ni a la red
+- [ ] 030-I3 · El fichero no contiene texto de capítulos, prompts, briefs ni el detalle JSON de los validadores
 
 ### Closing
 - [ ] Full suite green, type checks clean
