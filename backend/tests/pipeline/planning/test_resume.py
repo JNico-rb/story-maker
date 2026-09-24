@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import json
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
@@ -20,7 +21,7 @@ from story_maker.pipeline.planning.candidate import start_generation_phase
 from story_maker.pipeline.planning.phase import finalize_accepted_plan, run_plan_phase
 from story_maker.pipeline.planning.resume import has_checkpoint_zero, plan_resume_state
 from story_maker.pipeline.planning.session import submit_plan_tool
-from story_maker.store.models import Attempt, Character, Checkpoint, ValidatorResult
+from story_maker.store.models import Attempt, Character, Checkpoint, Run, ValidatorResult
 from story_maker.store.session import unit_of_work
 
 BRIEF = BriefView(recipient=RecipientView(name="Marta", age=40))
@@ -113,6 +114,73 @@ async def test_relaunching_before_checkpoint_zero_resumes_the_next_attempt_with_
             c.canonical_name for c in session.query(Character).filter_by(version_id=version.id)
         )
     assert after_characters == before_characters  # el canon del brief no se reescribe
+
+
+async def test_a_resumed_attempt_never_exceeds_the_plan_retry_ceiling(
+    port: AgentPort,
+    fake: FakeAgent,
+    session_factory: sessionmaker[Session],
+    telemetry: NullObservability,
+    run_id: int,
+    user_id: int,
+    novel_id: int,
+) -> None:
+    """010-I4: con `max_retries.plan` = 1 (presupuesto de 2 intentos), el intento 1 ya se gastó
+    antes de la caída; al reanudar, el intento 2 es el último que cabe. Si `outline` lo rechaza
+    otra vez, el veredicto es `fail`, no `rewrite`: el cortado por la caída no da intentos de
+    más."""
+    version = start_generation_phase(session_factory, run_id, novel_id, reference_brief(), now=NOW)
+    with unit_of_work(session_factory) as uow:
+        uow.add(Attempt(run_id=run_id, evaluable="plan", chapter=None, number=1, outcome="rewrite"))
+
+    nine_chapter_plan = json.loads(reference_plan().model_dump_json())
+    nine_chapter_plan["chapters"] = nine_chapter_plan["chapters"][:9]
+    fake.script(
+        "planner", "plan", Script(steps=(Call("submit_plan", nine_chapter_plan), Say("Va.")))
+    )
+    trace = Trace(key="run:1")
+
+    def build_request(message: str, attempt_number: int) -> SessionRequest:
+        return SessionRequest(
+            role="planner",
+            mode="plan",
+            user_id=user_id,
+            novel_id=novel_id,
+            run_id=run_id,
+            prompt="Prompt del planner",
+            prompt_version="v1",
+            message=message,
+            tools=(submit_plan_tool(),),
+            trace=trace,
+        )
+
+    outcome = await run_plan_phase(
+        port,
+        session_factory,
+        telemetry,
+        trace,
+        run_id=run_id,
+        version_id=version.id,
+        build_request=build_request,
+        brief=BRIEF,
+        story_bible=STORY_BIBLE,
+        catalog=TROPE_CATALOG,
+        present_year=2026,
+        max_retries=1,
+        now=NOW,
+        start_attempt_number=2,
+    )
+
+    assert outcome.verdict == "fail"
+    assert outcome.attempt_number == 2
+    assert len(fake.sessions) == 1  # no abre un tercer intento
+
+    with session_factory() as session:
+        attempts = session.scalars(select(Attempt).order_by(Attempt.number)).all()
+        assert [(a.number, a.outcome) for a in attempts] == [(1, "rewrite"), (2, "fail")]
+        run = session.get(Run, run_id)
+        assert run is not None
+        assert (run.status, run.reason) == ("failed", "retries_exhausted")
 
 
 async def test_relaunching_after_checkpoint_zero_does_not_reopen_the_planner(
