@@ -135,6 +135,49 @@ async def test_passing_the_session_timeout_interrupts_and_disconnects_keeping_a_
     assert fake.sessions[0].disconnected
 
 
+def empty_usage(row: RoleSession | None) -> bool:
+    assert row is not None
+    return (
+        row.input_tokens,
+        row.output_tokens,
+        row.cache_read_tokens,
+        row.cache_write_tokens,
+        row.cost_usd,
+    ) == (None, None, None, None, None)
+
+
+async def test_passing_the_session_timeout_without_a_final_result_leaves_the_usage_empty(
+    config: Config,
+    fake: FakeAgent,
+    policy: Any,
+    ceiling: TokenCeiling,
+    session_factory: sessionmaker[Session],
+    workspace: Path,
+    make_request: Callable[..., SessionRequest],
+) -> None:
+    port = build_port(
+        dataclasses.replace(config, session_timeout_seconds=1),
+        fake,
+        policy,
+        ceiling,
+        session_factory,
+        workspace,
+    )
+    fake.script("editor", None, Script(steps=(Hang(result=False),), usage=FINAL_USAGE))
+
+    result = await port.run(make_request("editor"))
+
+    assert result.outcome == "time_exhausted"
+    assert (result.usage, result.cost_usd) == (None, None)
+    assert fake.sessions[0].interrupted
+    assert fake.sessions[0].disconnected
+    with session_factory() as session:
+        row = session.get(RoleSession, result.role_session_id)
+        assert row is not None
+        assert row.outcome == "time_exhausted"
+        assert empty_usage(row)
+
+
 async def test_waiting_in_the_ceiling_counts_neither_in_the_session_time_nor_in_its_latency(
     config: Config,
     fake: FakeAgent,
