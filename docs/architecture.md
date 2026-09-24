@@ -1155,7 +1155,7 @@ GET    /health                                               -> 200, sin token (
 
 ### 15.8 CLI
 
-`story-maker` (typer): `serve`, `init-db`, `check-env`, `example <brief.json>` (brief → novela → PDF), `resume <run_id>`, `evals run|table`, `prompts push`, `export-pdf <novel> <v>`. Las órdenes que crean novelas (`example`, `evals run`) reciben `--email` de un usuario ya registrado, que es su propietario: así la revisión humana las lee en la web con su cuenta.
+`story-maker` (typer): `serve`, `init-db`, `check-env`, `example <brief.json>` (brief → novela → PDF), `resume <run_id>`, `evals run|table`, `prompts push`, `export-pdf <novel> <v>`, `interview [--novel <id>]` (la entrevista por terminal, §3) y `change <novel> <petición>` (el cambio del lector por terminal, §10.1). `interview` y `change` hacen lo mismo que la API, con los mismos servicios, y piden confirmación explícita antes de confirmar el brief, lanzar la generación o confirmar un cambio. Las órdenes que crean o tocan novelas (`example`, `evals run`, `interview`, `change`) reciben `--email` de un usuario ya registrado, que es su propietario: así la revisión humana las lee en la web con su cuenta.
 
 ### 15.9 Organización del backend
 
@@ -1527,3 +1527,4 @@ Registro de trade-offs: cada fila da opciones, criterio y elección. Reabrir una
 | Dónde va `story-maker example` (013 → 020) | En la lectura (013) · con las evals (020) | `example` recorre el pipeline entero (008, 010, 011, 012); en 013 bloqueaba una spec de la que dependen 015, 017 y 026 | En la 020, junto a `evals run`: 020-C15 (T) y 020-C16 (D) |
 | Datos de la portada y la ficha en la `VistaDeVersion` (013) | Del brief · de la story bible de la versión | Un cambio de nombre debe verse en la versión nueva | El destinatario, del personaje `recipient` de la story bible; la dedicatoria, de `Brief.content["dedication"]` |
 | `changed_chapters` en la `VistaDeVersion` (013) | Siempre en vivo · congelado al publicar | La 013 sirve también una candidata sin número (013-C04) | Congelado en una versión publicada; calculado en vivo en una candidata |
+| Lectura y cambios sin SPA (029) | SPA (023–028) · MCP (015) · CLI | Recorte del usuario (2026-09-24): prioridad a los validadores y su evidencia; el frontend y el MCP quedan fuera | La lectura es PDF + CLI: `interview` sobre la 008 y `change` sobre la 014, en proceso, con los mismos servicios que la API y confirmación explícita; el código de confirmación del cambio no se muestra |

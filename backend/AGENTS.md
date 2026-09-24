@@ -58,3 +58,4 @@ A spec touches only its modules and their `tests/<module>/`. In a shared module 
 | 019 edicion-manual | C | `pipeline/` (manual edit), `api/` (chapter save) |
 | 020 evals | D | `cli.py` (`evals run\|table`, `example`), `ejemplos/briefs/`, `ejemplos/novela-ejemplo.pdf` |
 | 021 auditoria-de-seguridad | A | `docs/security-report.md` via the `seguridad` subagent; fixes go to the owning lane |
+| 029 cli | A | `cli.py` (`interview`, `change`); reuses the services of 008 and 014, no logic of its own |

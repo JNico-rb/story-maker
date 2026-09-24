@@ -71,7 +71,7 @@ Prioridad: los validadores y su evidencia; lo demás es secundario. La lectura e
 | Carril | Specs en orden | Depende de (fuera del carril) | Worktree | Rama | Estado |
 |---|---|---|---|---|---|
 | 0 — scaffolding (integrador) | 000 | — | checkout principal | `V2` | cerrada (D al final) |
-| A — ruta crítica | 001 → 002 → 009 → 011 → 012 → 014 → 015 → 021 | 003, 004 (010) · 010 (011) · 005, 006 (011) · 007 (012) · 008, 013 (015) | `../sm-a` | `carril-a` | 001, 002 y 009 integradas; 011 espera 010 |
+| A — ruta crítica | 001 → 002 → 009 → 011 → 012 → 014 → 029 (015 y 021 fuera) | 003, 004 (010) · 010 (011) · 005, 006 (011) · 007 (012) · 008, 013 (015) | `../sm-a` | `carril-a` | 001, 002 y 009 integradas; 011 espera 010 |
 | B — agentes y entrada | 003 → 008 → 017 | 001 (003) · 002, 004, 005 (008) · 012, 013 (017) | `../sm-b` | `carril-b` | 003 integrada; 008 en curso |
 | C — formal y edición | 005 → 007 → 019 | 001 (005 parcial) · 009 (007 parcial) · 012, 018 (019) | `../sm-c` | `carril-c` | 005 y 007 integradas; 019 espera 012 y 018 |
 | D — formal y lectura | 006 → 004 → 013 → 020 | 001 (004) · 009 (013 parcial) · 012 (020) | `../sm-d` | `carril-d` | 006, 004 y 013 integradas; siguiente, 020 parcial |
@@ -115,6 +115,7 @@ Prioridad: los validadores y su evidencia; lo demás es secundario. La lectura e
 | 026 | lectura (portada y dedicatoria, índice, capítulos cambiados, ficha con enlaces, versiones, PDF) | frontend | E | 022, 013 |
 | 027 | cambio-del-lector (seleccionar, pedir, propuesta y afectados, confirmar, ver la versión nueva) | frontend | E | 026, 025, 014 |
 | 028 | edicion-manual (editor con lint en vivo, guardar, versión nueva) | frontend | E | 026, 025, 018, 019 |
+| 029 | cli (`interview` sobre 008 y `change` sobre 014, con confirmación) | backend | A | 008, 011, 014 |
 
 Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno por worktree (decisión del usuario, 2026-09-24: más paralelo si no hay peligro); la propiedad de módulos sigue siendo por spec.
 
@@ -1227,6 +1228,35 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [ ] 028-I5 · Un error de cualquier llamada de esta pantalla (cargar el capítulo, lint, guardar) siempre se muestra; nunca se descarta en silencio ni d…
 - [ ] 028-I6 · Ninguna llamada de esta pantalla a la API real
 - [ ] 028-C15 · El recorrido completo se observa en el navegador (D, al final)
+
+### Closing
+- [ ] Full suite green, type checks clean
+- [ ] Spec updated, or confirmed still true
+- [ ] Docs updated, or confirmed still true
+
+## 029 — cli
+
+- [x] Spec `specs/backend/029-cli.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
+
+### Steps
+- [ ] 029-C01 · Entrevistar una novela nueva
+- [ ] 029-C02 · Seguir una entrevista guardada
+- [ ] 029-C03 · Cliente o novela ajenos
+- [ ] 029-C04 · Un turno fallido no se guarda
+- [ ] 029-C05 · Texto libre desde un fichero
+- [ ] 029-C06 · Aceptar, rechazar y marcar obligatorio un hecho
+- [ ] 029-C07 · Confirmar el brief pide un sí explícito
+- [ ] 029-C08 · Lanzar la generación pide un sí explícito
+- [ ] 029-C09 · Pedir un cambio sobre un hecho y confirmarlo
+- [ ] 029-C10 · Pedir un cambio sobre un fragmento
+- [ ] 029-C11 · Sin un sí, nada se encola
+- [ ] 029-C12 · Petición denegada o rechazada
+- [ ] 029-C13 · Sin proveedor o sin sitio en el techo
+- [ ] 029-C14 · Novela ajena, inexistente o sin versión publicada
+- [ ] 029-I1 · La CLI decide como la API
+- [ ] 029-I2 · Nada se confirma ni se encola sin una respuesta `s`
+- [ ] 029-I3 · El código de confirmación del cambio no aparece nunca en la salida
 
 ### Closing
 - [ ] Full suite green, type checks clean
