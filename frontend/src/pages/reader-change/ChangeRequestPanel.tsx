@@ -61,6 +61,12 @@ export function ChangeRequestPanel({
       if (state.step !== "proposal" || state.confirming || state.expired) return;
       setState({ ...state, confirming: true });
       const response = await confirmChange(created.id, created.code);
+      // Un 409 al confirmar es siempre la propuesta ya caducada en el servidor
+      // (specs/backend/014-cambios-del-lector.md, alcance): misma pantalla que 027-C12.
+      if (response.status === 409) {
+        setState((s) => (s.step === "proposal" ? { ...s, confirming: false, expired: true } : s));
+        return;
+      }
       const { run_id } = (await response.json()) as { run_id: string };
       onConfirmed(run_id);
     }

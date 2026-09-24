@@ -270,6 +270,30 @@ describe("027 cambio del lector", () => {
     vi.useRealTimers();
   });
 
+  it("027-C13: confirming a proposal the server already considers expired shows the same as C12", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL) => {
+        if (String(input).includes("/confirm")) return json(409, { detail: "expired" });
+        return json(201, {
+          id: "req-1",
+          proposal: { fact: "Nombre del perro", old_value: "Toby", new_value: "Nala" },
+          affected_chapters: [2, 5, 7],
+          code: "SECRETO-123",
+          expires_at: "2026-09-25T12:00:00Z",
+        });
+      }),
+    );
+    renderPanel();
+
+    await sendRequest(user);
+    await user.click(screen.getByRole("button", { name: "Confirmar" }));
+
+    expect(await screen.findByText(/la propuesta ha caducado/i)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Confirmar" })).not.toBeInTheDocument();
+  });
+
   it("027-C08: sending disables the action while it is in progress", async () => {
     const user = userEvent.setup();
     let resolveResponse: (response: Response) => void = () => undefined;
