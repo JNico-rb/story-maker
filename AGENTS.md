@@ -41,7 +41,7 @@ Three user decisions (2026-09-24) still govern closing:
 
 - **No reviews.** No self-review, auditor, or review round, ever. Integrator writes spec + plan from `docs/*.md`, marks both boxes: `— integrador YYYY-MM-DD: sin revisión, decisión del usuario`. TDD still applies; closing is `verificador`'s job (Gates row above). Plan box unmarked → **stop**: no tests, no code (`guard-plan` checks only that box).
 - **Class D waits until the end.** No demo or real-model run before the backend closes. A spec closes once every non-D step is `[x]` and the suite is green — D steps stay `[ ]`, tagged `(D, al final)`, batched at the end: backend first, frontend after.
-- **Scope cut (overrides class D above).** A spec closes on its C cases plus the I invariants mapped to TLA+ (`ReanudacionSinDuplicarNiPerder`, `ReintentosAcotados`, `VersionAnteriorConservada`, atomicity) or protecting a validator; every other I invariant is tagged `(recortado)`, stays `[ ]`, doesn't block the close — same for any `(recortado)`-tagged spec or step. Out-of-scope and deferred specs: `TODO.md` → *Estado* → *Alcance*.
+- **Scope cut (overrides the closing rule).** A spec closes on its C cases plus the I invariants mapped to TLA+ (`ReanudacionSinDuplicarNiPerder`, `ReintentosAcotados`, `VersionAnteriorConservada`, atomicity) or protecting a validator; every other I invariant is tagged `(recortado)`, stays `[ ]`, doesn't block the close — same for any `(recortado)`-tagged spec or step. Out-of-scope and deferred specs: `TODO.md` → *Estado* → *Alcance*.
 
 Escalations only: a persistent `verificador` FAIL, or a human-only task — novel review, demo video, accounts/tokens, final check.
 
