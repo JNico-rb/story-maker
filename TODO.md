@@ -161,10 +161,35 @@ Todas dependen de 000. Arranque en paralelo cuando 000 esté cerrada: A (001), C
 
 ## 002 — autenticacion
 
-- [ ] Spec `specs/backend/002-autenticacion.md` approved
-- [ ] Plan below approved
+- [x] Spec `specs/backend/002-autenticacion.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
+- [ ] 002-C01 · Registro válido
+- [ ] 002-C02 · El email se guarda normalizado
+- [ ] 002-C03 · Un email ya registrado no crea otra cuenta
+- [ ] 002-C04 · Email sin forma de email
+- [ ] 002-C05 · Contraseña en sus límites
+- [ ] 002-C06 · Registro con cuerpo incompleto
+- [ ] 002-C07 · Acceso válido
+- [ ] 002-C08 · Al entrar, el email no distingue mayúsculas
+- [ ] 002-C09 · Credenciales incorrectas
+- [ ] 002-C10 · Acceso con cuerpo incompleto
+- [ ] 002-C11 · Un token válido identifica al cliente
+- [ ] 002-C12 · Sin token, o con el token mal presentado, responde 401
+- [ ] 002-C13 · Un token manipulado o de otro uso responde 401
+- [ ] 002-C14 · La caducidad en su límite
+- [ ] 002-C15 · El token se comprueba antes que la propiedad
+- [ ] 002-C16 · Lo ajeno responde como inexistente
+- [ ] 002-C17 · Un recurso anidado solo existe dentro de su padre
+- [ ] 002-C18 · Una entrada global no es de ningún cliente
+- [ ] 002-C19 · Un listado solo contiene lo del cliente
+- [ ] 002-C20 · Lo ajeno no cambia nada
+- [ ] 002-C21 · El propietario de lo creado es el cliente del token
+- [ ] 002-I1 · La contraseña nunca queda en claro
+- [ ] 002-I2 · Toda ruta de `/api` salvo el registro y el acceso exige un `TokenDeAcceso` válido
+- [ ] 002-I3 · Para B, un recurso de A es indistinguible de uno inexistente y no cambia nada
+- [ ] 002-I4 · El cliente de una petición sale solo del token
 
 ### Closing
 - [ ] Full suite green, type checks clean
