@@ -945,3 +945,60 @@ Todas dependen de 000. Carril B disuelto y C rehecho (decisión del usuario, 202
 - [ ] Full suite green, type checks clean
 - [ ] Spec updated, or confirmed still true
 - [ ] Docs updated, or confirmed still true
+
+## 022 — acceso
+
+- [x] Spec `specs/frontend/022-acceso.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
+
+### Steps
+- [ ] 022-C01 · Registro válido lleva a la pantalla de acceso
+- [ ] 022-C02 · Registro con un email ya usado
+- [ ] 022-C03 · Errores de datos inválidos, campo a campo
+- [ ] 022-C04 · Acceso válido guarda la sesión y entra
+- [ ] 022-C05 · Credenciales incorrectas
+- [ ] 022-C06 · Cada petición a una pantalla protegida envía la sesión guardada
+- [ ] 022-C07 · Sin sesión guardada, una pantalla protegida redirige a acceso
+- [ ] 022-C08 · Una sesión rechazada por el servidor redirige a acceso
+- [ ] 022-C09 · Cerrar sesión borra la sesión guardada sin avisar al servidor
+- [ ] 022-I1 · El token de la sesión solo viaja en la cabecera de autorización de cada petición
+- [ ] 022-I2 · Ninguna contraseña escrita en un formulario queda guardada ni se vuelve a mostrar tras enviarse, la petición salga bien o mal
+- [ ] 022-I3 · Una sesión guardada sobrevive a volver a cargar la pantalla, hasta que se cierra sesión o el servidor la rechaza
+- [ ] 022-I4 · Una pantalla protegida nunca pide datos a la API antes de comprobar que hay una sesión guardada
+- [ ] 022-C10 · El recorrido completo se observa en el navegador (D, al final)
+
+### Closing
+- [ ] Full suite green, type checks clean
+- [ ] Spec updated, or confirmed still true
+- [ ] Docs updated, or confirmed still true
+
+## 023 — mis-novelas
+
+- [x] Spec `specs/frontend/023-mis-novelas.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
+
+### Steps
+- [ ] 023-C01 · Lista vacía
+- [ ] 023-C02 · Cada estado derivado tiene una etiqueta propia
+- [ ] 023-C03 · Versión vigente, con número o vacía
+- [ ] 023-C04 · Novela sin título todavía
+- [ ] 023-C05 · La lista respeta el orden que entrega la API
+- [ ] 023-C06 · Fallo al cargar la lista
+- [ ] 023-C07 · Crear una novela lleva a su entrevista
+- [ ] 023-C08 · Fallo al crear una novela
+- [ ] 023-C09 · El destino depende del estado de la novela
+- [ ] 023-C10 · Ver la lista prohibida de nivel `user`
+- [ ] 023-C11 · Añadir una palabra
+- [ ] 023-C12 · Añadir un tema con sus palabras clave
+- [ ] 023-C13 · Alta rechazada
+- [ ] 023-C14 · Alta de un término repetido
+- [ ] 023-C15 · Borrar una entrada
+- [ ] 023-I1 · Los cuatro estados derivados de `definitions.md` §3 tienen cada uno su etiqueta, y ningún otro valor cae en un caso por defecto silencioso
+- [ ] 023-I3 · Ninguna llamada de esta pantalla a la API real
+- [ ] 023-I4 · Un error de cualquier llamada de esta pantalla (lista, alta o borrado prohibido, crear novela) siempre se muestra; nunca se descarta en s…
+- [ ] 023-C16 · Recorrido real de «mis novelas» (D, al final)
+
+### Closing
+- [ ] Full suite green, type checks clean
+- [ ] Spec updated, or confirmed still true
+- [ ] Docs updated, or confirmed still true

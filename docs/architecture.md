@@ -1481,3 +1481,8 @@ Registro de trade-offs: cada fila da opciones, criterio y elección. Reabrir una
 | Orden del listado de versiones (013) | Ascendente · descendente por número | Historia lineal de 009; lo más simple | Ascendente por número |
 | Detalle de una versión para la SPA (013) | El HTML de la `VistaDeVersion` · JSON propio | La SPA (026) solo necesita datos | JSON con los mismos bloques: portada, índice, capítulos y ficha |
 | `export-pdf` de una versión publicada (013) | Repetir el gate · regenerar desde la `VistaDeVersion` | Una versión publicada no se revalida | Regenera el PDF sin repetir el gate |
+| Dónde guarda la SPA el `TokenDeAcceso` (022) | Solo en memoria · almacenamiento del navegador · cookie | Sobrevivir a una recarga sin volver a entrar; 002 lo espera en la cabecera | Almacenamiento local del navegador, enviado solo en la cabecera `Authorization`; nunca en cookie ni en la URL |
+| Tras registrarse (022) | Entrar solo · volver a la pantalla de acceso | El registro de 002 no devuelve token | Pantalla de acceso con el email ya escrito |
+| Cierre de sesión (022) | Llamada al servidor · solo local | 002 deja fuera el cierre en el servidor | Solo local: se borra el token guardado |
+| Etiquetas y navegación de «mis novelas» (023) | Mostrar el estado interno · etiqueta fija por estado; un destino · destino por estado | Los docs no dan textos de UI; el estado derivado ya lo calcula 008 | Una etiqueta fija por estado derivado y un destino por estado (entrevista, progreso o lectura); crear novela se deshabilita mientras la petición está en curso |
+| Importar un brief desde la SPA (023) | Pantalla propia · solo CLI y API | §14.8 no la lista | Fuera de la SPA |
