@@ -77,19 +77,36 @@ def writer_message(window: WriterWindow, defects: Sequence[Mapping[str, Any]]) -
     )
 
 
+GATE_DEFECTS_NOTE = (
+    "Defectos del gate de publicación sobre este capítulo. Un defecto de cronologia-lean "
+    "prevalece sobre cumple-beats si el beat planificado era el origen de la incoherencia."
+)
+
+
 def editor_message(
-    window: EditorWindow, title: str, text: str, lint_defects: Sequence[Mapping[str, Any]]
+    window: EditorWindow,
+    title: str,
+    text: str,
+    lint_defects: Sequence[Mapping[str, Any]],
+    gate_defects: Sequence[Mapping[str, Any]] = (),
 ) -> str:
     """La ventana del editor y sus entradas: el título y el texto entregados y los defectos de los
-    linters (vacíos hasta 018). Nada de la sesión del writer (011-I8)."""
+    linters (vacíos hasta 018). Nada de la sesión del writer (011-I8). En la reescritura dirigida,
+    también los defectos Lean del gate, con su precedencia (012-C9, §9.4)."""
+    call_inputs: dict[str, Any] = {
+        "title": title,
+        "text": text,
+        "lint_defects": [dict(d) for d in lint_defects],
+    }
+    if gate_defects:
+        call_inputs["gate_defects"] = {
+            "note": GATE_DEFECTS_NOTE,
+            "defects": [dict(d) for d in gate_defects],
+        }
     return _dump(
         {
             "window": {"residents": dict(window.residents), "retrieved": list(window.retrieved)},
-            "call_inputs": {
-                "title": title,
-                "text": text,
-                "lint_defects": [dict(d) for d in lint_defects],
-            },
+            "call_inputs": call_inputs,
         }
     )
 

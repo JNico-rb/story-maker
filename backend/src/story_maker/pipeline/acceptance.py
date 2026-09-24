@@ -110,13 +110,16 @@ def record_closed_attempt(
     outcome: str,
     runs: Sequence[ValidatorRun],
     now: dt.datetime,
+    gate_cycle: int | None = None,
 ) -> None:
-    """Un intento del capítulo cerrado sin aceptar (`rewrite` o `fail`) y lo que corrió en él."""
+    """Un intento del capítulo cerrado sin aceptar (`rewrite` o `fail`) y lo que corrió en él; en
+    la reescritura dirigida, dentro de su ciclo del gate (012-C20)."""
     uow.add(
         Attempt(
             run_id=run_id,
             evaluable=CHAPTER_EVALUABLE,
             chapter=chapter,
+            gate_cycle=gate_cycle,
             number=number,
             outcome=outcome,
         )
@@ -201,6 +204,7 @@ def accept_chapter(
     runs: Sequence[ValidatorRun],
     cards: CardSync,
     now: dt.datetime,
+    gate_cycle: int | None = None,
 ) -> None:
     """Todo o nada en la transacción de `uow`. En fase `writing` escribe además el
     `PuntoDeControl` del capítulo y avanza la ejecución; en `gate` o `rewriting` no (§8.3)."""
@@ -237,6 +241,7 @@ def accept_chapter(
             run_id=run_id,
             evaluable=CHAPTER_EVALUABLE,
             chapter=chapter,
+            gate_cycle=gate_cycle,
             number=attempt,
             outcome="accept",
         )

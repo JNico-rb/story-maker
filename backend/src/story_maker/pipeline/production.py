@@ -8,6 +8,7 @@ de schema del editor ni un error del proveedor, que interrumpe la ejecución (§
 
 from __future__ import annotations
 
+import dataclasses
 import datetime as dt
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -93,6 +94,10 @@ class ChapterJob:
     chapter: int
     canonical_names: tuple[str, ...]
     citable: Citable
+    # En la reescritura dirigida (012-C19, C20): el ciclo del gate en que cuentan sus intentos y
+    # los defectos del gate que recibe el editor (Lean prevalece sobre `cumple-beats`, §9.4).
+    gate_cycle: int | None = None
+    gate_defects: tuple[dict[str, Any], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -283,9 +288,12 @@ class ChapterProducer:
                 citable=citable(session, version_id, chapter),
             )
 
-    def _closed_attempts(self, run_id: int, chapter: int) -> int:
+    def _closed_attempts(self, run_id: int, chapter: int, gate_cycle: int | None) -> int:
         """Los intentos que ya cuentan: los intentos no se reinician al reanudar y el que cortó
-        una caída, sin desenlace, no cuenta (§7.6)."""
+        una caída, sin desenlace, no cuenta (§7.6). En la reescritura, solo los de su ciclo."""
+        cycle = (
+            Attempt.gate_cycle.is_(None) if gate_cycle is None else Attempt.gate_cycle == gate_cycle
+        )
         with self.p.session_factory() as session:
             return (
                 session.query(Attempt)
@@ -293,19 +301,32 @@ class ChapterProducer:
                     Attempt.run_id == run_id,
                     Attempt.evaluable == CHAPTER_EVALUABLE,
                     Attempt.chapter == chapter,
-                    Attempt.gate_cycle.is_(None),
+                    cycle,
                     Attempt.outcome.is_not(None),
                 )
                 .count()
             )
 
-    async def produce_chapter(self, run_id: int, chapter: int, trace: Trace) -> None:
+    async def produce_chapter(
+        self,
+        run_id: int,
+        chapter: int,
+        trace: Trace,
+        *,
+        gate_cycle: int | None = None,
+        defects: tuple[dict[str, Any], ...] = (),
+        editor_defects: tuple[dict[str, Any], ...] = (),
+    ) -> None:
+        """Con `gate_cycle`, es la reescritura dirigida del gate (012-C19): el writer empieza en
+        modo `rewrite` con `defects` y el editor recibe además `editor_defects`."""
         with self.p.telemetry.span(trace, f"capitulo-{chapter}") as span:
-            job = self._job(run_id, chapter)
+            job = dataclasses.replace(
+                self._job(run_id, chapter), gate_cycle=gate_cycle, gate_defects=editor_defects
+            )
             with self.p.session_factory() as session:
                 window = self.p.windows.writer(session, job.version_id, chapter)
-            used = self._closed_attempts(run_id, chapter)
-            mode, defects = "write", tuple[dict[str, Any], ...]()
+            used = self._closed_attempts(run_id, chapter, gate_cycle)
+            mode = "rewrite" if gate_cycle is not None else "write"
             while True:
                 written = await self._write(job, window, mode, defects, used, trace, span)
                 self._close(job, written.closed, trace, span)
@@ -397,7 +418,9 @@ class ChapterProducer:
             mode=None,
             prompt=self.p.prompts.editor,
             prompt_version=self.p.prompts.editor_version,
-            message=editor_message(window, title, text, lint_defects=()),
+            message=editor_message(
+                window, title, text, lint_defects=(), gate_defects=job.gate_defects
+            ),
             tools=(submit_review_tool(job.citable),),
         )
         result = await self.p.port.run(request)
@@ -424,6 +447,7 @@ class ChapterProducer:
                     outcome=attempt.outcome,
                     runs=attempt.runs,
                     now=self._now(),
+                    gate_cycle=job.gate_cycle,
                 )
         for attempt in closed:
             self._emit(trace, span, attempt.runs)
@@ -453,6 +477,7 @@ class ChapterProducer:
                     runs=runs,
                     cards=self.p.cards,
                     now=self._now(),
+                    gate_cycle=job.gate_cycle,
                 )
         except Exception as exc:
             raise RunStop(
