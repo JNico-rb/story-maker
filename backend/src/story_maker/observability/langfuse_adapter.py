@@ -60,6 +60,7 @@ class LangfuseObservability:
         cache_write_tokens: int = 0,
         cost_usd: float = 0.0,
         latency_ms: int = 0,
+        sdk_cost_usd: float | None = None,
     ) -> ModelCall:
         return self._null.model_call(
             span,
@@ -71,6 +72,7 @@ class LangfuseObservability:
             cache_write_tokens=cache_write_tokens,
             cost_usd=cost_usd,
             latency_ms=latency_ms,
+            sdk_cost_usd=sdk_cost_usd,
         )
 
     def score(
@@ -157,7 +159,11 @@ class LangfuseObservability:
                 "cache_write": call.cache_write_tokens,
             },
             cost_details={"total": call.cost_usd},
-            metadata={"prompt_version": call.prompt_version, "latency_ms": call.latency_ms},
+            metadata={
+                "prompt_version": call.prompt_version,
+                "latency_ms": call.latency_ms,
+                "sdk_cost_usd": call.sdk_cost_usd,
+            },
         ):
             pass
 

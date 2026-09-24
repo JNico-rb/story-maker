@@ -60,6 +60,7 @@ class NullObservability:
         cache_write_tokens: int = 0,
         cost_usd: float = 0.0,
         latency_ms: int = 0,
+        sdk_cost_usd: float | None = None,
     ) -> ModelCall:
         call = ModelCall(
             model=model,
@@ -70,6 +71,7 @@ class NullObservability:
             cache_write_tokens=cache_write_tokens,
             cost_usd=cost_usd,
             latency_ms=latency_ms,
+            sdk_cost_usd=sdk_cost_usd,
         )
         span.model_calls.append(call)
         return call

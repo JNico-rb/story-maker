@@ -17,6 +17,8 @@ class ModelCall:
     cache_write_tokens: int
     cost_usd: float
     latency_ms: int
+    # `total_cost_usd` del SDK: solo contraste, nunca el coste (architecture.md §13.2, §18).
+    sdk_cost_usd: float | None = None
 
 
 @dataclass
@@ -76,6 +78,7 @@ class ObservabilityPort(Protocol):
         cache_write_tokens: int = 0,
         cost_usd: float = 0.0,
         latency_ms: int = 0,
+        sdk_cost_usd: float | None = None,
     ) -> ModelCall: ...
 
     def score(

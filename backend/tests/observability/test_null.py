@@ -148,3 +148,12 @@ def test_flushing_has_no_effect_but_is_counted(obs: NullObservability) -> None:
     obs.flush()
 
     assert obs.flush_count == 2
+
+
+def test_a_model_call_keeps_the_sdk_cost_only_as_a_contrast(obs: NullObservability) -> None:
+    with obs.trace("run:1") as trace, obs.span(trace, "rol:writer") as span:
+        declared = obs.model_call(span, model="claude-sonnet-5", cost_usd=0.08, sdk_cost_usd=20.0)
+        undeclared = obs.model_call(span, model="claude-sonnet-5", cost_usd=0.08)
+
+    assert (declared.cost_usd, declared.sdk_cost_usd) == (0.08, 20.0)
+    assert undeclared.sdk_cost_usd is None
