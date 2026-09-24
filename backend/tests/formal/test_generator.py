@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 import pytest
 
@@ -264,3 +264,27 @@ def test_k_is_drawn_at_random_for_each_file_between_1_and_10(chronology: Chronol
     shifted = {year + 400 * k for year in REAL_YEARS for k in by_k}
     masked = {mask_years(source, shifted) for source in by_k.values()}
     assert len(masked) == 1
+
+
+# --- 007-C04 ---------------------------------------------------------------------------------
+
+
+def reordered(chronology: Chronology) -> Chronology:
+    """La misma cronología, leída en otro orden de inserción: todo al revés."""
+    return replace(
+        chronology,
+        events=tuple(
+            replace(e, presences=tuple(reversed(e.presences))) for e in reversed(chronology.events)
+        ),
+        characters=tuple(reversed(chronology.characters)),
+    )
+
+
+def test_the_same_chronology_and_k_give_the_same_file_byte_for_byte(
+    chronology: Chronology,
+) -> None:
+    first = generate_chronology_file(chronology, k=4)
+    second = generate_chronology_file(reordered(chronology), k=4)
+
+    assert first.encode("utf-8") == second.encode("utf-8")
+    assert [e.id for e in parse(second).events] == [31, 32, 41, 42]

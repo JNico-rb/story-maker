@@ -33,7 +33,9 @@ def _event(event: ChronologyEvent, years: int) -> str:
     kind = (
         f".excluyente {event.excluded_character_id}" if event.type == "exclusion" else ".ordinario"
     )
-    presences = ", ".join(_presence(p) for p in event.presences)
+    presences = ", ".join(
+        _presence(p) for p in sorted(event.presences, key=lambda p: p.character_id)
+    )
     return (
         f"{{ id := {event.id}, momento := ⟨{m.year + years}, {m.month}, {m.day}, {m.hour}, "
         f"{m.minute}⟩, capitulo := {_optional(event.chapter)}, beat := {_optional(event.beat)}, "
@@ -57,10 +59,11 @@ def generate_chronology_file(chronology: Chronology, k: int | None = None) -> st
     if k is None:
         k = K_MIN + secrets.randbelow(K_MAX - K_MIN + 1)
     years = 400 * k
-    events = [e for e in chronology.events if e.origin != "planned"]
+    # Por id ascendente: la misma cronología da el mismo fichero, se lea en el orden que se lea.
+    events = sorted((e for e in chronology.events if e.origin != "planned"), key=lambda e: e.id)
     births = [
         f"⟨{c.id}, {_date(c.birth_date, years)}⟩"
-        for c in chronology.characters
+        for c in sorted(chronology.characters, key=lambda c: c.id)
         if c.birth_date is not None
     ]
     theorems = "\n".join(
