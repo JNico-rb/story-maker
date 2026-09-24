@@ -1,0 +1,52 @@
+# Workflow del VerificadorFormal en modo github (spec 007, ADR 0004).
+# Borrador para el integrador: su sitio es .github/workflows/verificar-cronologia.yml, y
+# LEAN_WORKFLOW=verificar-cronologia.yml lo nombra. El backend lo lanza en la rama V2.
+#
+# Seguridad (007-I10): solo workflow_dispatch; el job solo lee el contenido; el input llega a los
+# pasos por variable de entorno, nunca interpolado en una orden; se comprueba que es base64 y
+# gzip antes de descomprimirlo, y un input inválido da error sin compilar nada.
+# Misma verificación que el modo local (007-I9): lake build --wfail de la biblioteca y la misma
+# orden de compilación, con la auditoría de axiomas que el fichero lleva dentro.
+name: verificar-cronologia
+
+on:
+  workflow_dispatch:
+    inputs:
+      fichero:
+        description: FicheroDeCronologia seudonimizado, en gzip y base64
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  lean:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - name: Decodificar el fichero
+        id: decodificar
+        env:
+          FICHERO: ${{ inputs.fichero }}
+          PYTHONPATH: backend/src
+        run: python3 -m story_maker.formal.lean_ci decodificar "$RUNNER_TEMP/Cronologia.lean" resultado.json
+      - uses: leanprover/lean-action@v1
+        if: steps.decodificar.outputs.valido == 'true'
+        with:
+          lake-package-directory: lean
+          auto-config: false
+          build: true
+          build-args: "--wfail"
+      - name: Compilar y auditar
+        if: steps.decodificar.outputs.valido == 'true'
+        env:
+          PYTHONPATH: backend/src
+        run: python3 -m story_maker.formal.lean_ci compilar lean "$RUNNER_TEMP/Cronologia.lean" resultado.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: resultado-cronologia
+          path: resultado.json
+          retention-days: 1

@@ -223,3 +223,17 @@ LEAN_ROWS = (
 def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
     if "lean_row" in metafunc.fixturenames:
         metafunc.parametrize("lean_row", LEAN_ROWS, ids=[row.name for row in LEAN_ROWS])
+
+
+class LeanTexts:
+    """Los constructores de salidas de `lean` de esta conftest, para otros módulos de prueba."""
+
+    report = staticmethod(report)
+    audits = staticmethod(audits)
+    text = staticmethod(lean_text)
+    admitted = ADMITTED
+
+
+@pytest.fixture
+def lean_texts() -> type[LeanTexts]:
+    return LeanTexts

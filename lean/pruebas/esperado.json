@@ -1,0 +1,192 @@
+{
+  "dorado.lean": {
+    "resultado": "passed"
+  },
+  "negativo-T1.lean": {
+    "resultado": "failed",
+    "testigos": {
+      "T1": [
+        61,
+        62
+      ]
+    }
+  },
+  "negativo-T2.lean": {
+    "resultado": "failed",
+    "testigos": {
+      "T2": [
+        11,
+        61,
+        11,
+        10
+      ]
+    }
+  },
+  "negativo-T3.lean": {
+    "resultado": "failed",
+    "testigos": {
+      "T3": [
+        11,
+        61,
+        62
+      ]
+    }
+  },
+  "negativo-T4.lean": {
+    "resultado": "failed",
+    "testigos": {
+      "T4": [
+        13,
+        61,
+        63
+      ]
+    }
+  },
+  "negativo-T5.lean": {
+    "resultado": "failed",
+    "testigos": {
+      "T5": [
+        11,
+        62
+      ]
+    }
+  },
+  "limite-T1-mismo-momento.lean": {
+    "resultado": "passed"
+  },
+  "limite-T1-minuto-anterior.lean": {
+    "resultado": "failed",
+    "testigos": {
+      "T1": [
+        61,
+        62
+      ]
+    }
+  },
+  "limite-T1-analepsis.lean": {
+    "resultado": "passed"
+  },
+  "limite-T1-mismo-beat.lean": {
+    "resultado": "passed"
+  },
+  "limite-T1-brief-anterior.lean": {
+    "resultado": "passed"
+  },
+  "limite-T2-dia-antes-del-cumpleanos.lean": {
+    "resultado": "failed",
+    "testigos": {
+      "T2": [
+        11,
+        61,
+        10,
+        9
+      ]
+    }
+  },
+  "limite-T2-dia-antes-edad-anterior.lean": {
+    "resultado": "passed"
+  },
+  "limite-T2-cumpleanos-a-las-0.lean": {
+    "resultado": "passed"
+  },
+  "limite-T2-29-febrero-el-28.lean": {
+    "resultado": "failed",
+    "testigos": {
+      "T2": [
+        12,
+        61,
+        71,
+        70
+      ]
+    }
+  },
+  "limite-T2-29-febrero-el-1-de-marzo.lean": {
+    "resultado": "passed"
+  },
+  "limite-T2-sin-nacimiento.lean": {
+    "resultado": "passed"
+  },
+  "limite-T3-mismo-lugar.lean": {
+    "resultado": "passed"
+  },
+  "limite-T3-lugares-distintos.lean": {
+    "resultado": "failed",
+    "testigos": {
+      "T3": [
+        11,
+        61,
+        62
+      ]
+    }
+  },
+  "limite-T3-un-minuto-despues.lean": {
+    "resultado": "passed"
+  },
+  "limite-T4-en-su-evento-excluyente.lean": {
+    "resultado": "passed"
+  },
+  "limite-T4-mismo-momento-y-lugar.lean": {
+    "resultado": "passed"
+  },
+  "limite-T4-minuto-posterior.lean": {
+    "resultado": "failed",
+    "testigos": {
+      "T4": [
+        12,
+        32,
+        61
+      ]
+    }
+  },
+  "limite-T4-minuto-posterior-analepsis.lean": {
+    "resultado": "failed",
+    "testigos": {
+      "T4": [
+        12,
+        32,
+        61
+      ]
+    }
+  },
+  "limite-T4-analepsis-anterior.lean": {
+    "resultado": "passed"
+  },
+  "limite-T5-nacimiento-a-las-0.lean": {
+    "resultado": "passed"
+  },
+  "limite-T5-dia-anterior-23-59.lean": {
+    "resultado": "failed",
+    "testigos": {
+      "T5": [
+        11,
+        61
+      ]
+    }
+  },
+  "limite-T5-sin-nacimiento.lean": {
+    "resultado": "passed"
+  },
+  "control-sorry.lean": {
+    "resultado": "error",
+    "compila": false,
+    "motivo": [
+      "sorryAx"
+    ]
+  },
+  "control-axioma.lean": {
+    "resultado": "error",
+    "compila": true,
+    "motivo": [
+      "trampa"
+    ]
+  },
+  "biblioteca.lean": {
+    "auditoria": [
+      "Chronology.compruebaT1_decide",
+      "Chronology.compruebaT2_decide",
+      "Chronology.compruebaT3_decide",
+      "Chronology.compruebaT4_decide",
+      "Chronology.compruebaT5_decide"
+    ]
+  }
+}
