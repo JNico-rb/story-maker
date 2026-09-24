@@ -1,4 +1,4 @@
-"""`linter-consistencia`: narrador, y tratamiento sin excepciones (018-C12 a 018-C14)."""
+"""`linter-consistencia`: narrador, tratamiento sin y con excepciones (018-C12 a 018-C15)."""
 
 from __future__ import annotations
 
@@ -122,4 +122,31 @@ def test_un_tratamiento_de_tu_no_admitido_con_usted_por_defecto_dispara() -> Non
     assert len(result.defects) == 1
     assert result.defects[0].message == (
         'párrafo 1: tratamiento "tú" no admitido por la StyleSheet (usted)'
+    )
+
+
+def test_un_tratamiento_admitido_por_excepcion_no_dispara() -> None:
+    text = "—¿Usted viene?"
+    result = lint_consistency(text, _style_sheet(default_treatment="tu", exceptions=("usted",)))
+
+    assert result.passed is True
+
+
+def test_mezclar_tu_y_usted_en_la_misma_intervencion_dispara() -> None:
+    text = "—Usted sabe que te quiero."
+    result = lint_consistency(text, _style_sheet(default_treatment="tu", exceptions=("usted",)))
+
+    assert result.passed is False
+    assert len(result.defects) == 1
+    assert result.defects[0].message == "párrafo 1: mezcla tú y usted en la misma intervención"
+
+
+def test_sin_excepciones_el_no_admitido_gana_a_la_mezcla() -> None:
+    text = "—Usted sabe que te quiero."
+    result = lint_consistency(text, _style_sheet(default_treatment="tu"))
+
+    assert result.passed is False
+    assert len(result.defects) == 1
+    assert result.defects[0].message == (
+        'párrafo 1: tratamiento "usted" no admitido por la StyleSheet (tú)'
     )

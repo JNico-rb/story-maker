@@ -96,6 +96,9 @@ def _treatment_defect(
             f"por la StyleSheet ({default_display})"
         )
         return Defect(message=message, paragraph=paragraph_number)
+    if len(found) > 1:
+        message = f"párrafo {paragraph_number}: mezcla tú y usted en la misma intervención"
+        return Defect(message=message, paragraph=paragraph_number)
     return None
 
 
