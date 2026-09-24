@@ -292,4 +292,26 @@ describe("026 lectura", () => {
     expect(await screen.findByRole("combobox", { name: "Versión" })).toBeInTheDocument();
     expect(await screen.findByRole("region", { name: "Portada" })).toBeInTheDocument();
   });
+
+  it("026-C13: failing to load a version's detail shows an error with a retry, selector still available", async () => {
+    const user = userEvent.setup();
+    let attempt = 0;
+    fakeApi({
+      [`GET ${BASE}`]: () => json(200, LIST),
+      [`GET ${BASE}/2`]: () => {
+        attempt += 1;
+        return attempt === 1 ? new Response(null, { status: 500 }) : json(200, detail(2));
+      },
+    });
+    renderReading();
+
+    await screen.findByText(/no se pudo cargar esa versión/i);
+    const select = await screen.findByRole("combobox", { name: "Versión" });
+    expect(select).toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Portada" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /reintentar/i }));
+
+    expect(await screen.findByRole("region", { name: "Portada" })).toBeInTheDocument();
+  });
 });

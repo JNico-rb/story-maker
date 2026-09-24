@@ -1136,7 +1136,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] 026-C10 · Descargar el PDF de la versión que se está viendo
 - [x] 026-C11 · El PDF aún no está disponible
 - [x] 026-C12 · Fallo al cargar la lista de versiones
-- [ ] 026-C13 · Fallo al cargar el detalle de una versión
+- [x] 026-C13 · Fallo al cargar el detalle de una versión
 - [ ] 026-I1 · Lo mostrado (portada, novedades, índice, capítulos, ficha) es siempre de una sola versión, la que marca el selector; nunca mezcla datos d… (recortado)
 - [ ] 026-I3 · Todo enlace interno de la página de novedades, del índice y de la ficha lleva al capítulo correcto dentro de la propia pantalla (recortado)
 - [ ] 026-I4 · Un error de cualquier llamada de esta pantalla (lista de versiones, detalle, PDF) siempre se muestra; nunca se descarta en silencio ni de… (recortado)
