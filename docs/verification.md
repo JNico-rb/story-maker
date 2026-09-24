@@ -283,7 +283,7 @@ GitHub Actions en cada push y PR a `V2`:
 | Job | Qué ejecuta |
 |---|---|
 | backend | `uv sync --frozen`, `ruff check`, `ruff format --check`, `mypy src`, `pytest` (unitarias, integración, propiedades, contrato) |
-| frontend | `pnpm install --frozen-lockfile`, `tsc`, ESLint, Vitest, build de producción |
+| frontend | `pnpm install --frozen-lockfile`, `tsc`, ESLint, Vitest, build de producción; además, `node --test` de los hooks de desarrollo (§9.6), que solo necesitan Node |
 | formal | TLC sobre `Harness.tla` y `Regenerations.tla` (config que pasa + config con invariante roto que debe dar contraejemplo); `lake build --wfail` + auditoría de axiomas + ficheros negativos |
 | seguridad | `detect-secrets` (bloqueante); `pip-audit` y `pnpm audit` (informativos; se triagean en la auditoría, §4.11) |
 
@@ -662,9 +662,9 @@ En `.claude/settings.json`, scripts Node en `.claude/hooks/`.
 |---|---|---|---|---|
 | `guard-secretos` | PreToolUse `Edit\|Write\|MultiEdit` | Bloquea contenido con claves: `sk-lf-`, `pk-lf-`, `sk-or-v1-`, `sk-ant-`, `ghp_`, `github_pat_` seguidos de su cuerpo, y `Basic <base64 largo>` | Clave de prueba con cuerpo → deniega; texto limpio → permite; un prefijo citado sin cuerpo en un doc → permite | pendiente |
 | `guard-plan` | PreToolUse `Edit\|Write\|MultiEdit` sobre las rutas de la puerta «Write tests or code» de `AGENTS.md`: `backend/src/**`, `backend/tests/**`, `frontend/src/**`, `frontend/tests/**`, `lean/**`, `tla/**` y `.github/workflows/**`. Manifiestos, `backend/harness_workspace/` y `.claude/` quedan fuera: los escribe solo el integrador y los revisan `/integrar` y el `verificador` | Bloquea si ningún bloque de `TODO.md` tiene el plan aprobado y pasos pendientes | Sin plan aprobado → deniega; con plan aprobado y paso pendiente → permite; desde un subdirectorio → mismo resultado | pendiente |
-| Permisos | `deny`/`allow` | Deniega `Read(.env)`, `Read(**/.env)`, `Read(.claude/settings.local.json)`, `Bash(git push --force*)`; permite `uv`, `pnpm.cmd`, `node`, `java` y git de lectura, commit, worktree, merge y rebase | Intento de leer `.env` → denegado | pendiente |
+| Permisos | `deny`/`allow`/`additionalDirectories` | Deniega `Read(.env)`, `Read(**/.env)`, `Read(.claude/settings.local.json)`, `Bash(git push --force*)` y `Bash(git push -f*)`; permite `uv`, `pnpm.cmd`, `node`, `java` y git de lectura (`status`, `diff`, `log`, `show`), commit (`add`, `commit`), `branch`, `worktree`, `merge` y `rebase`; ningún `allow` cubre `git push`, así que cualquier otra forma de forzar (`+rama`, la opción tras el remoto) pide permiso. `additionalDirectories` da acceso a los worktrees hermanos de los carriles (`../sm-a` … `../sm-e`) | Intento de leer `.env` → denegado; `git push --force` → denegado sin ejecutarse | pendiente |
 
-Cada hook se prueba con cargas JSON simuladas por stdin antes de activarse, y una vez en una sesión real.
+Cada hook se prueba con cargas JSON simuladas por stdin antes de activarse (`node --test`, en local y en el job `frontend` de la CI, §4.6), y una vez en una sesión real.
 
 ### 9.7 Aprobaciones delegadas en agentes — I
 

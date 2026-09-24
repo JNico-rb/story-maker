@@ -130,8 +130,9 @@ Las claves de las pruebas son falsas, llevan un marcador de prueba evidente y se
 - **Dado** `.claude/settings.json` versionado
 - **Cuando** una prueba lo lee
 - **Entonces** registra `guard-secretos` y `guard-plan` en `PreToolUse` con el matcher `Edit|Write|MultiEdit`, cada uno como una orden `node` sobre su script de `.claude/hooks/` con la ruta tomada de `${CLAUDE_PROJECT_DIR}` (no relativa al directorio actual); y, según `verification.md` §9.6:
-  - `permissions.deny` es exactamente `Read(.env)`, `Read(**/.env)`, `Read(.claude/settings.local.json)` y `Bash(git push --force*)`;
-  - `permissions.allow` es exactamente `Bash(uv *)`, `Bash(pnpm.cmd *)`, `Bash(node *)`, `Bash(java *)`; git de lectura: `Bash(git status*)`, `Bash(git diff*)`, `Bash(git log*)`, `Bash(git show*)`; commit: `Bash(git add*)`, `Bash(git commit*)`; `Bash(git worktree*)`, `Bash(git merge*)` y `Bash(git rebase*)`. Ninguna entrada de `allow` cubre `git push`
+  - `permissions.deny` es exactamente `Read(.env)`, `Read(**/.env)`, `Read(.claude/settings.local.json)`, `Bash(git push --force*)` y `Bash(git push -f*)`;
+  - `permissions.allow` es exactamente `Bash(uv *)`, `Bash(pnpm.cmd *)`, `Bash(node *)`, `Bash(java *)`; git de lectura: `Bash(git status*)`, `Bash(git diff*)`, `Bash(git log*)`, `Bash(git show*)`; commit: `Bash(git add*)`, `Bash(git commit*)`; `Bash(git worktree*)`, `Bash(git merge*)`, `Bash(git rebase*)` y `Bash(git branch*)`. Ninguna entrada de `allow` cubre `git push`, así que otras formas de forzar (`+rama`, la opción tras el remoto) piden permiso;
+  - `permissions.additionalDirectories` es exactamente `../sm-a`, `../sm-b`, `../sm-c`, `../sm-d` y `../sm-e`
 
 ### 000-C12 · El espejo de memoria está completo y saneado (T)
 - **Dado** `.claude/memory/`
@@ -175,7 +176,7 @@ Las claves de las pruebas son falsas, llevan un marcador de prueba evidente y se
 ### 000-C18 · La primera CI de `V2` sale en verde, con Lean y TLC (D)
 - **Dado** el repositorio en GitHub (GitHub Free) con el workflow de CI, y un push a `V2` que decide el usuario
 - **Cuando** corre la CI
-- **Entonces** terminan en verde, en Linux, los jobs de `verification.md` §4.6: `backend` (`uv sync --frozen`, `ruff check`, `ruff format --check`, `mypy src`, `pytest`); `frontend` (`pnpm install --frozen-lockfile`, typecheck, lint, test, build); un único job `formal` (`lake build --wfail` de `lean/` con su toolchain fijada; `tla2tools.jar` de una versión fijada, nunca «latest», sobre Temurin: TLC arranca e informa de su versión y, con `tla/` sin especificaciones, lo dice en el registro y no falla); y `seguridad` (`detect-secrets` sin hallazgos, bloqueante; `pip-audit` y `pnpm audit` informan sin cambiar el resultado del job). Ningún job usa secretos del repositorio
+- **Entonces** terminan en verde, en Linux, los jobs de `verification.md` §4.6: `backend` (`uv sync --frozen`, `ruff check`, `ruff format --check`, `mypy src`, `pytest`); `frontend` (`pnpm install --frozen-lockfile`, typecheck, lint, test, build, y además `node --test` de los hooks de desarrollo de 000-C09 y 000-C10, sin paso de instalación aparte); un único job `formal` (`lake build --wfail` de `lean/` con su toolchain fijada; `tla2tools.jar` de una versión fijada, nunca «latest», sobre Temurin: TLC arranca e informa de su versión y, con `tla/` sin especificaciones, lo dice en el registro y no falla); y `seguridad` (`detect-secrets` sin hallazgos, bloqueante; `pip-audit` y `pnpm audit` informan sin cambiar el resultado del job). Ningún job usa secretos del repositorio
 
 ### 000-C19 · La CI se pone en rojo ante defectos sembrados (D)
 - **Dado** una PR a `V2` desde una rama desechable, que decide el usuario, con una prueba de pytest que falla, una de Vitest que falla y un texto que `detect-secrets` marca como secreto (falso, con marcador de prueba)
@@ -232,7 +233,7 @@ No aplica: la 000 no ejecuta validadores del producto ni emite trazas.
 | ¿Con qué se verifica que los hooks no dependen de paquetes? | Con el clon limpio de 000-C14 (D), invariante aparte de la independencia del directorio actual (T) | `verification.md` §2 |
 | ¿Excepción para escribir en `.env`? | No: los secretos los escribe el usuario a mano | `verification.md` §9.6, `CLAUDE.md` (Secretos) |
 | ¿Y si el hook falla? | Claude Code solo bloquea con código 2; otro fallo deja pasar la tool. Por eso, sin `TODO.md`, `guard-plan` deniega | Contrato de los hooks `PreToolUse` |
-| ¿Corren en la CI las pruebas de los hooks? | En la 000, solo en local con `node --test` | **Hueco del doc**: §4.6 no las lista; propuesta: añadirlas al job `frontend`, que ya tiene Node |
+| ¿Corren en la CI las pruebas de los hooks? | Sí: además de en local, `node --test` corre en el job `frontend`, que ya trae Node y no necesita paso de instalación aparte (000-C18) | `verification.md` §4.6, §9.6 |
 | ¿TLA+ sin especificaciones? | La CI trae TLC fijado y lo arranca; especificaciones, `.cfg` y config de control, 006 | `verification.md` §4.10 |
 | ¿Dónde corre TLC? | En el portátil, sobre Temurin portable (000-C20), y en la CI (000-C18), con la misma versión fijada | `verification.md` §4.10 |
 | ¿Uno o dos jobs formales? | Uno: `formal`, con Lean y TLC | `verification.md` §4.6 |
@@ -241,5 +242,5 @@ No aplica: la 000 no ejecuta validadores del producto ni emite trazas.
 | ¿`fastembed` en Windows? | Se importa tras `uv sync`, con `msvc-runtime` y su directorio de DLL; el mecanismo, en el plan | `architecture.md` §15.3 |
 | ¿Dependencias que los docs no nombran (cargador de `.env`, cliente HTTP de pruebas)? | No se inventan; el integrador las añade cuando una spec las pida | `backend/AGENTS.md` |
 | ¿Finales de línea? | LF en el índice; binarios sin conversión | `architecture.md` §15.3 |
-| ¿Cubre `Bash(git push --force*)` también `-f` y `+rama`? | No; la spec sigue §9.6 | **Hueco del doc**: ampliar la regla |
+| ¿Cubre `Bash(git push --force*)` también `-f` y `+rama`? | `-f` sí: `permissions.deny` añade `Bash(git push -f*)`. `+rama` y la opción tras el remoto no tienen patrón de permiso que las cubra, así que piden permiso en la sesión (ni deniegan ni permiten solas) | `verification.md` §9.6 |
 | ¿Escrituras por Bash (`node -e`, redirecciones)? | No pasan por `guard-secretos`: riesgo aceptado; las caza `detect-secrets` en la CI | `verification.md` §6 U28 |
