@@ -600,3 +600,43 @@ Todas dependen de 000. Arranque en paralelo cuando 000 esté cerrada: A (001), C
 - [ ] Full suite green, type checks clean
 - [ ] Spec updated, or confirmed still true
 - [ ] Docs updated, or confirmed still true
+
+## 015 — servidor-mcp
+
+- [x] Spec `specs/backend/015-servidor-mcp.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
+
+### Steps
+- [ ] 015-C01 · El servidor responde en `/mcp` y publica exactamente sus siete tools
+- [ ] 015-C02 · Sin un `TokenDeAcceso` válido, `/mcp` responde 401 y no ejecuta nada
+- [ ] 015-C03 · La identidad es la del token de cada petición
+- [ ] 015-C04 · `list_novels` devuelve las novelas del cliente con su estado y su versión vigente
+- [ ] 015-C05 · `list_versions` da el historial publicado con sus capítulos cambiados
+- [ ] 015-C06 · `get_chapter` devuelve un capítulo de una versión publicada
+- [ ] 015-C07 · `query_story_bible` devuelve la story bible de una versión
+- [ ] 015-C08 · `download_novel` devuelve el PDF guardado como recurso incrustado
+- [ ] 015-C09 · Lo ajeno responde como inexistente en las siete tools
+- [ ] 015-C10 · Una entrada fuera de schema es un error sin efecto
+- [ ] 015-C11 · `request_change` hace la misma interpretación que la web y solo propone
+- [ ] 015-C12 · Una propuesta rechazada llega con el código de la API
+- [ ] 015-C13 · `confirm_change` con el código encola la ejecución de cambio
+- [ ] 015-C14 · Una confirmación inválida se rechaza sin efecto
+- [ ] 015-C15 · Un cambio pedido y confirmado por MCP publica versión y PDF nuevos, y conserva la anterior
+- [ ] 015-C16 · Cada llamada a una tool deja exactamente una traza `mcp:<tool>`
+- [ ] 015-C17 · Las trazas pasan por la máscara y nunca llevan el código de confirmación ni el PDF
+- [ ] 015-I1 · Las cinco tools de lectura no modifican nada
+- [ ] 015-I2 · Las tools de escritura solo proponen o encolan
+- [ ] 015-I3 · La identidad es la del `TokenDeAcceso` de cada petición, verificada en el mismo punto que la API
+- [ ] 015-I4 · Por MCP solo se ven versiones publicadas
+- [ ] 015-I5 · Hay exactamente siete tools
+- [ ] 015-I6 · Para el mismo cliente y los mismos argumentos, cada tool de lectura devuelve lo mismo que su endpoint de la API, y las de escritura recor…
+- [ ] 015-I7 · Cada llamada a una tool deja exactamente una traza `mcp:<tool>` (O.4)
+- [ ] 015-I8 · Cada llamada a una tool de escritura que supera el schema deja exactamente una fila `mcp_write`
+- [ ] 015-I9 · El código de confirmación solo sale en claro en la respuesta de `request_change`
+- [ ] 015-I10 · Nada de un brief llega a Langfuse sin pasar por la máscara
+- [ ] 015-C18 · Siguiendo el README, un cliente real se conecta y pide un cambio (D, al final)
+
+### Closing
+- [ ] Full suite green, type checks clean
+- [ ] Spec updated, or confirmed still true
+- [ ] Docs updated, or confirmed still true
