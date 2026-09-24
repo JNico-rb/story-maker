@@ -1,4 +1,4 @@
-"""`/api/novels/{id}/runs` y `/api/runs/{id}` (011-C01, C02, C04)."""
+"""`/api/novels/{id}/runs`, `/api/runs/{id}` y `/api/runs/{id}/resume` (011-C01, C02, C04, C26)."""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from story_maker.api.app import create_app
 from story_maker.api.auth import create_access_token
+from story_maker.pipeline.worker import Worker
 from story_maker.store.models import Brief, Novel, RoleSession, Run, User, Version
 from story_maker.store.session import create_schema, make_engine, make_session_factory
 
@@ -244,3 +245,71 @@ def test_progress_is_polled_with_type_status_phase_chapter_cost_position_and_rea
     assert stopped["position"] is None
     assert client.get(f"/api/runs/{first}", headers=headers(owner)).status_code == 404
     assert client.get("/api/runs/999", headers=headers(owner)).status_code == 404
+
+
+def run_state(session_factory: sessionmaker[Session], run_id: int) -> tuple[str, int, dt.datetime]:
+    with session_factory() as session:
+        run = session.get_one(Run, run_id)
+        return run.status, run.resumes, run.created_at
+
+
+async def test_resuming_requeues_the_run_in_its_original_place(
+    client: TestClient, session_factory: sessionmaker[Session]
+) -> None:
+    owner = add_user(session_factory, "cliente@example.com")
+    t1, t2, t3 = (NOW + dt.timedelta(minutes=k) for k in (1, 2, 3))
+    a = add_run(
+        session_factory,
+        add_novel(session_factory, owner),
+        "interrupted",
+        t1,
+        reason="crash",
+        reason_detail="el servidor se detuvo",
+    )
+    b = add_run(session_factory, add_novel(session_factory, owner), "running", t2)
+    c = add_run(session_factory, add_novel(session_factory, owner), "queued", t3)
+
+    response = client.post(f"/api/runs/{a}/resume", headers=headers(owner))
+
+    assert response.status_code == 202, response.text
+    assert response.json() == {"run_id": a, "position": 1}
+    assert run_state(session_factory, a) == ("queued", 1, t1)
+    taken: list[int] = []
+
+    async def execute(run_id: int) -> None:
+        taken.append(run_id)
+
+    worker = Worker(session_factory, execute, max_resumes=2, clock=lambda: NOW)
+    assert await worker.run_next() is None
+    with session_factory() as session:
+        session.get_one(Run, b).status = "published"
+        session.commit()
+    assert await worker.run_next() == a
+    assert run_state(session_factory, c)[0] == "queued"
+
+
+@pytest.mark.parametrize("status", ["queued", "running", "published", "failed"])
+def test_resuming_a_run_that_is_not_interrupted_is_409_and_changes_nothing(
+    status: str, client: TestClient, session_factory: sessionmaker[Session]
+) -> None:
+    owner = add_user(session_factory, "cliente@example.com")
+    run_id = add_run(session_factory, add_novel(session_factory, owner), status)
+    before = run_state(session_factory, run_id)
+
+    response = client.post(f"/api/runs/{run_id}/resume", headers=headers(owner))
+
+    assert response.status_code == 409, response.text
+    assert run_state(session_factory, run_id) == before
+
+
+def test_resuming_a_foreign_run_is_404(
+    client: TestClient, session_factory: sessionmaker[Session]
+) -> None:
+    owner = add_user(session_factory, "cliente@example.com")
+    stranger = add_user(session_factory, "otro@example.com")
+    run_id = add_run(session_factory, add_novel(session_factory, owner), "interrupted")
+
+    response = client.post(f"/api/runs/{run_id}/resume", headers=headers(stranger))
+
+    assert response.status_code == 404
+    assert run_state(session_factory, run_id)[0] == "interrupted"

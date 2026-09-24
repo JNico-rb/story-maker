@@ -1,5 +1,5 @@
-"""Ejecuciones: lanzar la generación y consultar su progreso por sondeo (`architecture.md` §15.7;
-011-C01, C02, C04)."""
+"""Ejecuciones: lanzar la generación, consultar su progreso por sondeo y reanudar
+(`architecture.md` §9.2, §15.7; 011-C01, C02, C04, C26)."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 from story_maker.api.dependencies import get_current_user_id, get_session
 from story_maker.api.ownership import owned_or_404
 from story_maker.pipeline.queue import LaunchRejected, enqueue_generation
-from story_maker.pipeline.runs import queue_position
+from story_maker.pipeline.runs import ResumeRejected, queue_position, resume_run
 from story_maker.store.models import Novel, RoleSession, Run
 from story_maker.store.session import unit_of_work
 
@@ -83,3 +83,20 @@ def poll_progress(
         reason=run.reason if stopped else None,
         reason_detail=run.reason_detail if stopped else None,
     )
+
+
+@router.post("/api/runs/{run_id}/resume", status_code=202, response_model=EnqueuedResponse)
+def resume(
+    run_id: int,
+    request: Request,
+    user_id: Annotated[int, Depends(get_current_user_id)],
+    session: Annotated[Session, Depends(get_session)],
+) -> EnqueuedResponse:
+    """Vuelve a encolar una `interrupted` en su puesto original; otra cosa, 409 (011-C26)."""
+    owned_or_404(session, Run, run_id, owns_run(session, user_id))
+    try:
+        with unit_of_work(request.app.state.session_factory) as uow:
+            position = resume_run(uow, run_id)
+    except ResumeRejected as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from None
+    return EnqueuedResponse(run_id=run_id, position=position)

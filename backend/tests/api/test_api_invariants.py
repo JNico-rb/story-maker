@@ -10,6 +10,7 @@ PUBLIC_ROUTES = {("/api/auth/register", "POST"), ("/api/auth/login", "POST")}
 PROTECTED_ROUTES = {
     ("/api/novels/{novel_id}/runs", "POST"),  # 011
     ("/api/runs/{run_id}", "GET"),  # 011
+    ("/api/runs/{run_id}/resume", "POST"),  # 011
     ("/api/novels/{novel_id}/story-bible", "GET"),  # 009
     ("/api/novels/{novel_id}/versions", "GET"),  # 013
     ("/api/novels/{novel_id}/versions/{number}", "GET"),  # 013

@@ -22,6 +22,7 @@ from story_maker.observability.langfuse_adapter import LangfuseObservability
 from story_maker.observability.langfuse_adapter import auth_check as langfuse_auth_check
 from story_maker.observability.null import NullObservability
 from story_maker.observability.prompts import push_prompts
+from story_maker.pipeline.runs import ResumeRejected, resume_run
 from story_maker.render.pdf import render_pdf
 from story_maker.render.version_view import render_version_view
 from story_maker.render.view_data import load_version_view_data
@@ -42,6 +43,7 @@ from story_maker.store.session import (
     make_engine,
     make_session_factory,
     schema_diff,
+    unit_of_work,
 )
 from story_maker.store.versions import published_version
 
@@ -203,6 +205,31 @@ def serve_command() -> None:
     settings = load_settings()
     server = _build_server(settings, observability)
     asyncio.run(_run_server(server, observability))
+
+
+@app.command(name="resume")
+def resume_command(
+    run_id: Annotated[int, typer.Argument(help="Id de la ejecución interrumpida.")],
+) -> None:
+    """Vuelve a encolar una ejecución `interrupted` en su puesto; la ejecuta el worker del servidor
+    en marcha cuando queda libre, sin reiniciarlo (011-C26). Otra cosa: código 1 y nada cambia."""
+    try:
+        settings = load_settings()
+    except SettingsError as exc:
+        for error in exc.errors:
+            typer.echo(error)
+        raise typer.Exit(1) from None
+
+    engine = make_engine(_db_path(settings.data_dir))
+    try:
+        with unit_of_work(make_session_factory(engine)) as uow:
+            position = resume_run(uow, run_id)
+    except (LookupError, ResumeRejected) as exc:
+        typer.echo(str(exc))
+        raise typer.Exit(1) from None
+    finally:
+        engine.dispose()
+    typer.echo(f"ejecución {run_id} en cola, posición {position}")
 
 
 prompts_app = typer.Typer(no_args_is_help=True, add_completion=False)
