@@ -1,5 +1,5 @@
-"""Rutas de las solicitudes de cambio: pedir (`POST /api/novels/{id}/change-requests`)
-(`architecture.md` §10.1, §15.7; spec 014)."""
+"""Rutas de las solicitudes de cambio: pedir (`POST /api/novels/{id}/change-requests`) y
+confirmar (`POST /api/change-requests/{id}/confirm`) (`architecture.md` §10.1, §15.7; spec 014)."""
 
 from __future__ import annotations
 
@@ -13,9 +13,10 @@ from story_maker.api.dependencies import get_current_user_id
 from story_maker.api.errors import field_error
 from story_maker.api.interview import MAX_MESSAGE_CHARS
 from story_maker.api.ownership import owned_or_404
+from story_maker.pipeline.changes.confirm import ConfirmFailure, confirm_change
 from story_maker.pipeline.changes.request import RequestFailure, request_change
 from story_maker.pipeline.changes.selection import Selection
-from story_maker.store.models import Novel
+from story_maker.store.models import ChangeRequest, Novel
 
 router = APIRouter()
 
@@ -33,6 +34,14 @@ class ChangeRequestOut(BaseModel):
     affected_chapters: list[int]
     code: str
     expires_at: dt.datetime
+
+
+class ConfirmIn(BaseModel):
+    code: str
+
+
+class ConfirmOut(BaseModel):
+    run_id: int
 
 
 @router.post(
@@ -78,3 +87,28 @@ async def post_change_request(
         code=outcome.code,
         expires_at=outcome.expires_at,
     )
+
+
+@router.post(
+    "/api/change-requests/{request_id}/confirm", status_code=202, response_model=ConfirmOut
+)
+def post_confirm(
+    request_id: int,
+    body: ConfirmIn,
+    request: Request,
+    user_id: Annotated[int, Depends(get_current_user_id)],
+) -> ConfirmOut:
+    state = request.app.state
+    with state.session_factory() as session:
+        owned_or_404(
+            session,
+            ChangeRequest,
+            request_id,
+            lambda row: session.get_one(Novel, row.novel_id).user_id == user_id,
+        )
+    outcome = confirm_change(
+        state.session_factory, request_id=request_id, code=body.code, now=state.clock()
+    )
+    if isinstance(outcome, ConfirmFailure):
+        raise HTTPException(status_code=outcome.status, detail=outcome.detail)
+    return ConfirmOut(run_id=outcome)
