@@ -425,6 +425,7 @@ class AgentPort:
                         cache_write_tokens=usage.cache_write_tokens,
                         cost_usd=cost,
                         latency_ms=latency_ms,
+                        sdk_cost_usd=sdk_cost,
                     )
             row_id = self._record(
                 request, profile, outcome, usage, cost, sdk_cost, latency_ms, reserved

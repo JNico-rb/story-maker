@@ -82,6 +82,8 @@ async def test_the_cost_is_the_real_usage_times_the_list_price_of_the_model(
     (role_span,) = request.trace.spans
     (model_call,) = role_span.model_calls
     assert model_call.cost_usd == pytest.approx(0.08)
+    # el coste que declara el SDK va en su LlamadaDeModelo, solo como contraste
+    assert model_call.sdk_cost_usd == 20.0
     with session_factory() as session:
         row = session.get(RoleSession, result.role_session_id)
         assert row is not None
