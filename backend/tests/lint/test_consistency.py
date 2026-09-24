@@ -1,4 +1,4 @@
-"""`linter-consistencia`: narrador en tercera y en primera persona (018-C12, 018-C13)."""
+"""`linter-consistencia`: narrador, y tratamiento sin excepciones (018-C12 a 018-C14)."""
 
 from __future__ import annotations
 
@@ -13,6 +13,14 @@ def _third_person() -> StyleSheetInput:
 
 def _first_person() -> StyleSheetInput:
     return StyleSheetInput(narrator="first_person", default_treatment="tu")
+
+
+def _style_sheet(default_treatment: str, exceptions: tuple[str, ...] = ()) -> StyleSheetInput:
+    return StyleSheetInput(
+        narrator="third_person",
+        default_treatment=default_treatment,
+        treatment_exceptions=exceptions,
+    )
 
 
 def test_una_marca_de_primera_persona_en_la_narracion_dispara() -> None:
@@ -79,3 +87,39 @@ def test_marcas_solo_en_el_dialogo_disparan_para_primera_persona() -> None:
         "la StyleSheet pide primera persona"
     )
     assert result.defects[0].paragraph is None
+
+
+def test_un_tratamiento_no_admitido_en_el_dialogo_dispara() -> None:
+    text = "—¿Usted viene? —preguntó Marta."
+    result = lint_consistency(text, _style_sheet(default_treatment="tu"))
+
+    assert result.passed is False
+    assert len(result.defects) == 1
+    assert result.defects[0].message == (
+        'párrafo 1: tratamiento "usted" no admitido por la StyleSheet (tú)'
+    )
+
+
+def test_el_tratamiento_fuera_del_dialogo_no_se_mira() -> None:
+    text = "Marta nunca trataba de usted a nadie."
+    result = lint_consistency(text, _style_sheet(default_treatment="tu"))
+
+    assert result.passed is True
+
+
+def test_te_con_tilde_no_es_una_marca_de_tratamiento() -> None:
+    text = "—¿Quieres un té?"
+    result = lint_consistency(text, _style_sheet(default_treatment="tu"))
+
+    assert result.passed is True
+
+
+def test_un_tratamiento_de_tu_no_admitido_con_usted_por_defecto_dispara() -> None:
+    text = "—Te espero aquí."
+    result = lint_consistency(text, _style_sheet(default_treatment="usted"))
+
+    assert result.passed is False
+    assert len(result.defects) == 1
+    assert result.defects[0].message == (
+        'párrafo 1: tratamiento "tú" no admitido por la StyleSheet (usted)'
+    )

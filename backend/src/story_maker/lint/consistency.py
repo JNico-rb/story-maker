@@ -4,10 +4,17 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from story_maker.domain.prose_lint import FIRST_PERSON_MARKS
-from story_maker.lint.dialogue import narration_text
+from story_maker.domain.prose_lint import (
+    FIRST_PERSON_MARKS,
+    TREATMENT_DISPLAY_NAMES,
+    TU_TREATMENT_MARKS,
+    USTED_TREATMENT_MARKS,
+)
+from story_maker.lint.dialogue import interventions, narration_text
 from story_maker.lint.text import comparison_form, extract_words, split_paragraphs
 from story_maker.lint.types import Defect, LinterResult
+
+_TREATMENT_MARKS = {"tu": TU_TREATMENT_MARKS, "usted": USTED_TREATMENT_MARKS}
 
 _VALIDATOR = "linter-consistencia"
 
@@ -65,13 +72,51 @@ def _missing_first_person_defect(
     )
 
 
+def _found_treatments(intervention: str) -> set[str]:
+    words = {comparison_form(word) for word in extract_words(intervention)}
+    found = set()
+    for treatment, marks in _TREATMENT_MARKS.items():
+        if words & marks:
+            found.add(treatment)
+    return found
+
+
+def _treatment_defect(
+    intervention: str, paragraph_number: int, style_sheet: StyleSheetInput
+) -> Defect | None:
+    admitted = {style_sheet.default_treatment, *style_sheet.treatment_exceptions}
+    found = _found_treatments(intervention)
+    not_admitted = found - admitted
+    if not_admitted:
+        treatment = sorted(not_admitted)[0]
+        display = TREATMENT_DISPLAY_NAMES[treatment]
+        default_display = TREATMENT_DISPLAY_NAMES[style_sheet.default_treatment]
+        message = (
+            f'párrafo {paragraph_number}: tratamiento "{display}" no admitido '
+            f"por la StyleSheet ({default_display})"
+        )
+        return Defect(message=message, paragraph=paragraph_number)
+    return None
+
+
+def _treatment_defects(paragraphs: list[str], style_sheet: StyleSheetInput) -> list[Defect]:
+    defects = []
+    for number, paragraph in enumerate(paragraphs, start=1):
+        for intervention in interventions(paragraph):
+            defect = _treatment_defect(intervention, number, style_sheet)
+            if defect is not None:
+                defects.append(defect)
+    return defects
+
+
 def lint_consistency(text: str, style_sheet: StyleSheetInput) -> LinterResult:
-    """Avisa si la narración no respeta el narrador de la StyleSheet (018-C12, 018-C13)."""
+    """Avisa si la narración o el tratamiento no respetan la StyleSheet (018-C12 a 018-C15)."""
     paragraphs = split_paragraphs(text)
     defects = _narrator_defects(paragraphs, style_sheet)
     missing = _missing_first_person_defect(paragraphs, style_sheet)
     if missing is not None:
         defects.append(missing)
+    defects.extend(_treatment_defects(paragraphs, style_sheet))
     return LinterResult(
         validator=_VALIDATOR, passed=not defects, metric=len(defects), defects=tuple(defects)
     )

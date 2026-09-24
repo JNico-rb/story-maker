@@ -302,3 +302,12 @@ FIRST_PERSON_MARKS: frozenset[str] = frozenset(
         "nuestras",
     }
 )
+
+#: Marcas del tratamiento de tú, para `linter-consistencia` (018-C14, 018-C15).
+TU_TREATMENT_MARKS: frozenset[str] = frozenset({"tú", "tu", "tus", "te", "ti", "contigo"})
+
+#: Marcas del tratamiento de usted, para `linter-consistencia` (018-C14, 018-C15).
+USTED_TREATMENT_MARKS: frozenset[str] = frozenset({"usted"})
+
+#: Nombre de cada tratamiento, para el mensaje de aviso (018-C14, 018-C15).
+TREATMENT_DISPLAY_NAMES: dict[str, str] = {"tu": "tú", "usted": "usted"}
