@@ -6,10 +6,12 @@ import { saveSession } from "../../shared/lib";
 import { TextField } from "../../shared/ui";
 
 type ArrivalState = { registeredEmail?: string } | null;
-type FieldErrors = { email?: string; password?: string };
+type FormErrors = { form?: string; email?: string; password?: string };
 
 // El acceso no revela las reglas del registro (spec 002): sus mensajes no dan límites.
-async function errorsFor(response: Response): Promise<FieldErrors> {
+async function errorsFor(response: Response): Promise<FormErrors> {
+  // Un mismo mensaje para cualquier 401: no dice si el email existe.
+  if (response.status === 401) return { form: "Email o contraseña incorrectos." };
   const fields = await invalidFields(response);
   return {
     email: fields.has("email") ? "Revisa el email." : undefined,
@@ -22,7 +24,7 @@ export function LoginPage() {
   const arrival = useLocation().state as ArrivalState;
   const [email, setEmail] = useState(arrival?.registeredEmail ?? "");
   const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState<FieldErrors>({});
+  const [errors, setErrors] = useState<FormErrors>({});
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -47,6 +49,11 @@ export function LoginPage() {
       {arrival?.registeredEmail && (
         <p role="status" className="mb-4 rounded bg-accent px-3 py-2">
           Cuenta creada. Ya puedes entrar.
+        </p>
+      )}
+      {errors.form && (
+        <p role="alert" className="mb-4 rounded bg-accent px-3 py-2">
+          {errors.form}
         </p>
       )}
       <form noValidate onSubmit={(event) => void submit(event)} className="flex flex-col gap-4">

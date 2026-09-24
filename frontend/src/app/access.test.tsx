@@ -195,4 +195,28 @@ describe("022 acceso", () => {
     expect(readSession()).toBe(TOKEN);
     expect(sent[0]?.body).toEqual({ email: EMAIL, password: PASSWORD });
   });
+
+  it.each([
+    ["an unknown email", "desconocida@example.com"],
+    ["a registered email with a wrong password", EMAIL],
+  ])(
+    "022-C05: wrong credentials (%s) keep the access form with one generic message, clear the password and store no session",
+    async (_case, email) => {
+      fakeApi({
+        "POST /api/auth/login": () => ({ status: 401, body: { detail: "Credenciales incorrectas" } }),
+      });
+      const user = userEvent.setup();
+      const router = renderAt("/acceso");
+
+      await user.type(screen.getByLabelText("Email"), email);
+      await user.type(screen.getByLabelText("Contraseña"), PASSWORD);
+      await user.click(screen.getByRole("button", { name: "Entrar" }));
+
+      expect(await screen.findByRole("alert")).toHaveTextContent("Email o contraseña incorrectos.");
+      expect(router.state.location.pathname).toBe("/acceso");
+      expect(screen.getByLabelText("Email")).toHaveValue(email);
+      expect(screen.getByLabelText("Contraseña")).toHaveValue("");
+      expectNoSession();
+    },
+  );
 });
