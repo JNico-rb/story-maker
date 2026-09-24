@@ -340,8 +340,8 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 007-C04 · La misma cronología y el mismo k dan el mismo fichero
 - [x] 007-C05 · El 29 de febrero y las edades se conservan al desplazar
 - [x] 007-C06 · Solo entra la versión que se verifica
-- [ ] 007-C07 · Un testigo con eventos narrados da un defecto por capítulo (espera 009)
-- [ ] 007-C08 · Un testigo solo con eventos del brief da un defecto sin capítulo (espera 009)
+- [x] 007-C07 · Un testigo con eventos narrados da un defecto por capítulo
+- [x] 007-C08 · Un testigo solo con eventos del brief da un defecto sin capítulo
 - [ ] 007-C09 · Una verificación que pasa deja su fichero y su fila (espera 009)
 - [ ] 007-C10 · Un invariante violado deja la fila `failed` y devuelve los defectos (espera 009)
 - [ ] 007-C11 · Un fichero que no compila por otra causa es `error` y nunca `passed` (espera 009)
