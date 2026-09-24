@@ -1160,7 +1160,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 026-C04 · Página de novedades y marca de cambio
 - [x] 026-C05 · Sin capítulos cambiados, no hay página de novedades
 - [x] 026-C06 · Ficha con enlaces a los capítulos donde aparece cada entidad
-- [ ] 026-C07 · Una entidad sin capítulos aparece en la ficha sin enlaces
+- [x] 026-C07 · Una entidad sin capítulos aparece en la ficha sin enlaces
 - [ ] 026-C08 · El selector lista las versiones publicadas, en el orden que entrega la API
 - [ ] 026-C09 · Cambiar de versión recarga todo el contenido con el de la versión elegida
 - [ ] 026-C10 · Descargar el PDF de la versión que se está viendo
