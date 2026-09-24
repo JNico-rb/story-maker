@@ -16,7 +16,7 @@ Excepción declarada: `config.json`, `.env`, `.env.example`, las órdenes de `st
 - **Ajustes del servidor** (`definitions.md` §11.3, `architecture.md` §15.5): lectura del entorno y del `.env` de la raíz, valores por defecto, ajustes obligatorios y condicionales, y `.env.example`.
 - **Esquema SQLite completo** (`architecture.md` §15.6): las 31 tablas con sus columnas (tabla de C6), referencias, enumerados, unicidades, tablas de solo inserción, el índice FTS5 de las CanonCards y el canal denso (`sqlite-vec`) disponible en cada conexión, y la unidad de trabajo transaccional.
 - **Órdenes** `init-db`, `check-env` y `serve` (`architecture.md` §15.8).
-- **API mínima** bajo `/api`: salud, esquema OpenAPI, forma de los errores y la SPA compilada en el mismo origen (`architecture.md` §14.8, §15.7).
+- **API mínima**: salud en `GET /health` (fuera de `/api`, sin token), esquema OpenAPI de toda la aplicación en `/api/openapi.json`, forma de los errores de `/api` y la SPA compilada en el mismo origen (`architecture.md` §14.8, §15.7).
 - **Puerto de observabilidad y doble nulo** (`architecture.md` §13, §15.9): lo que se puede emitir (trazas, spans, llamadas de modelo, scores, prompts versionados, comprobación y vaciado) y lo que el doble captura.
 - **Constantes del encargo** (`definitions.md` §11.2): 10 capítulos, de 1.000 a 1.500 palabras por capítulo y 100.000 tokens concurrentes. Además, los identificadores que valida la config: los siete roles (`definitions.md` §12.2), los criterios de las dos rúbricas (§6) y las `FranjaDeEdad` (§12.4).
 - **README**: la sección de arranque (`.env`, `config.json`, `init-db`, `check-env`, `serve`). La escribe el integrador con el texto que le entrega el carril.
@@ -82,7 +82,7 @@ Un caso es **T** si una prueba lo decide sola, con ajustes de fixture, la base e
 
 | Entrada | Salida |
 |---|---|
-| Solo `JWT_SECRET` (32 caracteres) y `FORMAL_VERIFIER=local`, con el directorio actual en `<raíz>` | directorio de datos `<raíz>/data`; config `<raíz>/config.json`; URL base `http://127.0.0.1:8000`; compilado del frontend `<raíz>/frontend/dist`; `LLM_PROVIDER` = `claude_login` |
+| Solo `JWT_SECRET` (32 caracteres) y `FORMAL_VERIFIER=local`, con el directorio actual en `<raíz>` | directorio de datos `<raíz>/backend/data`; config `<raíz>/config.json`; URL base `http://127.0.0.1:8000`; compilado del frontend `<raíz>/frontend/dist`; `LLM_PROVIDER` = `claude_login` |
 | Lo mismo con el directorio actual en `<raíz>/backend` | el mismo resultado |
 | `STORY_MAKER_DATA_DIR=tmp/datos` | `<raíz>/tmp/datos`; una ruta absoluta se toma tal cual (igual `STORY_MAKER_CONFIG` y `STORY_MAKER_FRONTEND_DIST`) |
 | Una variable presente pero vacía (`STORY_MAKER_CONFIG=`) | cuenta como ausente: se usa su valor por defecto |
@@ -254,7 +254,7 @@ Partiendo de la entrada válida de C3:
 
 | Entrada | Salida |
 |---|---|
-| Ajustes, config y base válidos, con `STORY_MAKER_BASE_URL=http://127.0.0.1:<puerto libre>` | escucha en ese host y ese puerto; `GET /api/health` responde como en C17 |
+| Ajustes, config y base válidos, con `STORY_MAKER_BASE_URL=http://127.0.0.1:<puerto libre>` | escucha en ese host y ese puerto; `GET /health` responde como en C17 |
 | Se para el servidor | vacía el puerto de observabilidad una sola vez y sale con 0 |
 | `serve --reload` o `serve --workers 2` | error de opción desconocida, sin arrancar: un solo proceso y sin recarga (`architecture.md` §1.4, §15.3) |
 
@@ -262,8 +262,8 @@ Partiendo de la entrada válida de C3:
 
 | Petición | Respuesta |
 |---|---|
-| `GET /api/health`, sin token | 200 `{"status": "ok", "version": "<versión del paquete>"}`, la misma versión que `--version` |
-| `GET /api/openapi.json` | 200 con el esquema OpenAPI de la API, que incluye `/api/health` |
+| `GET /health`, sin token | 200 `{"status": "ok", "version": "<versión del paquete>"}`, la misma versión que `--version`; fuera de `/api`, no exige `TokenDeAcceso` (002-I2 solo alcanza a `/api`) |
+| `GET /api/openapi.json` | 200 con el esquema OpenAPI de toda la aplicación (un único proceso FastAPI), que incluye `/health` aunque esa ruta no lleve el prefijo `/api` |
 | `GET /api/no-existe` | 404 en JSON con `detail`, nunca el `index.html` de la SPA |
 
 Todo error de la API es JSON con un campo `detail`, que es la forma que heredan los códigos 401, 404, 409, 422 y 503 de `architecture.md` §15.7.
@@ -278,7 +278,7 @@ Con `STORY_MAKER_FRONTEND_DIST` apuntando a un compilado de prueba con `index.ht
 | `GET /assets/app.js` | 200 con ese fichero |
 | `GET /novelas/3`, una ruta del cliente que no es un fichero | 200 con `index.html` |
 | `GET /api/x`, `GET /view/x` o `GET /mcp/x`, sin nada montado en esa ruta | 404, nunca `index.html`: `/view` es de 013-lectura-y-pdf y `/mcp`, de 015-servidor-mcp |
-| Cualquier ruta, con `STORY_MAKER_FRONTEND_DIST` apuntando a un directorio que no existe | el servidor arranca; `GET /api/health` da 200; `GET /` da 404 |
+| Cualquier ruta, con `STORY_MAKER_FRONTEND_DIST` apuntando a un directorio que no existe | el servidor arranca; `GET /health` da 200; `GET /` da 404 |
 
 ### Puerto de observabilidad
 
@@ -318,12 +318,12 @@ Todo queda en el orden de emisión y la prueba lo puede leer. El doble no usa la
 #### C22 — Primera generación de los tipos del frontend (D)
 
 - **Entrada:** `serve` escuchando en `http://127.0.0.1:8000` y `pnpm.cmd gen:api` desde `frontend/`.
-- **Salida:** se escriben los tipos de la API con `/api/health`; `pnpm.cmd typecheck` sale con 0. Los commitea el integrador en `/integrar` (`architecture.md` §14.8).
+- **Salida:** se escriben los tipos de la API a partir de `/api/openapi.json`, que a estas alturas documenta únicamente `/health`; `pnpm.cmd typecheck` sale con 0. Los commitea el integrador en `/integrar` (`architecture.md` §14.8).
 
 #### C23 — Un clon limpio arranca siguiendo el README (D)
 
 - **Entrada:** un clon limpio de `V2` en una ruta hermana corta, sin `.env`, y solo los pasos de la sección de arranque del README: copiar `.env.example` a `.env`, rellenar `JWT_SECRET` y `FORMAL_VERIFIER`, `uv sync`, `init-db`, `check-env`, compilar el frontend y `serve`.
-- **Salida:** `check-env` sale con todo en `ok`; `GET /api/health` da 200; `/` muestra la cabecera de marca de la SPA (000-C07); fuera del directorio de datos solo cambia lo que git ignora. Es la parte de 001 de `verification.md` §5 R.2.
+- **Salida:** `check-env` sale con todo en `ok`; `GET /health` da 200; `/` muestra la cabecera de marca de la SPA (000-C07); fuera del directorio de datos solo cambia lo que git ignora. Es la parte de 001 de `verification.md` §5 R.2.
 
 ## Invariantes
 
@@ -354,13 +354,14 @@ Todo queda en el orden de emisión y la prueba lo puede leer. El doble no usa la
 | ¿Hasta dónde llega el detalle del esquema? | Columnas, referencias, enumerados y unicidades aquí: es el contrato entre carriles | `architecture.md` §15.6 («detalle por columna, de la 001»); `definitions.md` §12 |
 | ¿Cómo se garantiza el solo inserción y la sincronía del índice FTS5? | En la propia base, para todos los carriles a la vez | Decisión, para §18 |
 | ¿Qué ajustes son obligatorios? | `JWT_SECRET` (≥ 32), `FORMAL_VERIFIER` (sin valor por defecto; `github` exige sus tres variables), `LLM_PROVIDER` por defecto `claude_login` (`anthropic_compatible` exige credenciales); Langfuse, lo fija 004 | `definitions.md` §11.3; decisión, para §18 |
-| ¿Directorio de datos, rutas relativas y `.env`? | `<raíz>/data`; las rutas relativas, desde la raíz; el `.env` de la raíz, y el entorno prevalece | Hueco de §15.5 → decisión, para §18; 000 ya ignora `data/` |
+| ¿Directorio de datos, rutas relativas y `.env`? | Por defecto `<raíz>/backend/data` (no `<raíz>/data`: así lo fija §15.5, y es lo que 000-C01 ya ignora como `backend/data/`); las demás rutas relativas, desde la raíz, sin depender del directorio actual; el `.env` de la raíz, y el entorno prevalece | `architecture.md` §15.5; `specs/000-scaffolding.md` 000-C01; decisión, para §18. Corregido en esta ronda: un `<raíz>/data` anterior era incorrecto |
 | ¿Umbral por criterio, si `tono` y `personalizacion-natural` están en las dos rúbricas? | Una clave por identificador: diez umbrales | `architecture.md` §15.4 (`quality.thresholds.<criterio>`); decisión, para §18 |
-| ¿Valores que §15.4 no da? | Los `max_turns` y `max_output_tokens` de seis roles, y los objetivos de `teen` y `adult`: C1 remite a §15.4, que debe darlos antes de aprobar | **Hueco del doc** |
-| ¿Salud sin token? | `GET /api/health`, sin token, para comprobar el arranque y para la primera generación de tipos | `backend/AGENTS.md`; **hueco del doc**: §15.7 no la lista y dice «401 salvo registro y acceso» |
+| ¿Valores que §15.4 no da? | Los `max_turns` y `max_output_tokens` de los seis roles sin ejemplo, y los objetivos de `teen` y `adult`, son «provisionales» (`architecture.md` §17.1): se calibran en la iteración de tuning, ninguna spec los fija. C1 solo exige los valores que §15.4 sí da (`token_ceiling`, `interviewer`, `children`, precios, umbrales); C2 exige que los demás sean positivos, sin asertar una cifra | `architecture.md` §15.4, §17.1. Ya no es hueco: resuelto sin tocar el doc |
+| ¿Salud sin token? | `GET /health`, fuera de `/api` y sin token, para comprobar el arranque y para la primera generación de tipos; al no estar bajo `/api`, no contradice 002-I2 (todo `/api` salvo registro y acceso exige token) | `architecture.md` §15.7 (ya la lista, «fuera de /api»); decisión, para §18. Resuelve el aviso al integrador de 002 |
 | ¿`check-env` en la 001? | Las mismas comprobaciones que el arranque; `auth_check()` lo añade 004 | `verification.md` §4.1; `architecture.md` §15.9 |
 | ¿Qué pasa con una base desfasada o existente? | `serve` y `check-env` la detectan y piden recrearla; `init-db` no la pisa sin `--reset` | `architecture.md` §15.6 («la base se recrea»); decisión, para §18 |
 | ¿Dónde escucha `serve`? | En el host y el puerto de `STORY_MAKER_BASE_URL`, que es el mismo origen que navega el revisor visual | `architecture.md` §12.3, §14.2; decisión, para §18 |
 | ¿Continuidad de la traza reanudada sin columna en `runs`? | Abrir la traza del mismo objeto la continúa | `architecture.md` §9.2, §15.6; decisión, para §18 |
 | ¿`LANGFUSE_MCP_AUTH` en `.env.example`? | Solo en un comentario: va en el entorno del usuario y el backend no la lee | `architecture.md` §15.5; README («nunca en el repo») |
 | ¿Vuelve `config.json`? | Sí: los docs lo dan por existente (`TODO.md` lo tenía como hueco) | `architecture.md` §15.4; `definitions.md` §11.1 |
+| ¿Dónde vive `/api/openapi.json` y qué documenta? | Un solo proceso FastAPI (§1.4): la ruta bajo `/api` documenta toda la aplicación, `/health` incluida, aunque esa ruta no lleve el prefijo. Así `gen:api` (C22) tiene siempre una fuente única | `architecture.md` §1.4, §15.7, §15.9; decisión, para §18 |
