@@ -573,7 +573,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 011-C02 · Solo se lanza una generación desde una novela lista
 - [x] 011-C03 · Una sola ejecución activa en una cola FIFO global
 - [x] 011-C04 · El progreso se consulta por sondeo
-- [ ] 011-C05 · De la planificación a la escritura
+- [x] 011-C05 · De la planificación a la escritura
 - [x] 011-C06 · Fallar descarta la candidata y libera la cola
 - [ ] 011-C07 · Ventana del writer
 - [ ] 011-C08 · Ventana del editor
