@@ -220,7 +220,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 003-C21 · Agotar los turnos conserva el uso
 - [ ] 003-C22 · Pasar de `session_timeout_seconds` interrumpe y desconecta
 - [ ] 003-C23 · Un fallo del proveedor es `infrastructure_failure`, no `completed`
-- [ ] 003-C24 · Quien abre la sesión puede cortarla
+- [x] 003-C24 · Quien abre la sesión puede cortarla
 - [ ] 003-C25 · El coste es el uso real por el precio de lista del modelo
 - [ ] 003-I5 · El coste de una `SesionDeRol` es su uso × `operation.pricing`, nunca el que declara el SDK
 - [ ] 003-C26 · Toda sesión abierta deja su `SesionDeRol`, y solo ellas

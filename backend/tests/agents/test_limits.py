@@ -11,12 +11,13 @@ from typing import Any
 
 import pytest
 from claude_agent_sdk import ResultMessage
+from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
 
 from story_maker.agents.ceiling import TokenCeiling
 from story_maker.agents.fake import Call, Fail, FakeAgent, Hang, Say, Script
-from story_maker.agents.port import AgentPort, SessionRequest
+from story_maker.agents.port import AgentPort, Defect, SessionRequest, ToolCall
 from story_maker.agents.sdk import final_from_result
 from story_maker.agents.usage import Usage
 from story_maker.config import Config
@@ -191,3 +192,36 @@ def test_an_sdk_error_result_from_the_provider_is_a_provider_error_with_its_usag
 
     assert final.ending == "provider_error"
     assert final.usage == FINAL_USAGE
+
+
+async def test_whoever_opens_the_session_can_cut_it(
+    port: AgentPort,
+    fake: FakeAgent,
+    make_request: Callable[..., SessionRequest],
+) -> None:
+    checked: list[str] = []
+    seen: list[str] = []
+
+    def checks(value: BaseModel) -> list[Defect]:
+        checked.append(value.model_dump()["text"])
+        return [Defect("nombres-exactos", "falta «Ana»", True)]
+
+    def cut_after_two_blocked(call: ToolCall) -> bool:
+        seen.append(call.status)
+        return seen.count("blocked") == 2
+
+    steps = tuple(Call("submit_chapter", {**CHAPTER, "text": f"v{i}"}) for i in range(3))
+    fake.script("writer", "write", Script(steps=(*steps, Say("fin")), usage=FINAL_USAGE))
+
+    result = await port.run(
+        make_request("writer", "write", chapter_checks=checks, cut_when=cut_after_two_blocked)
+    )
+
+    assert result.outcome == "cut"
+    assert checked == ["v0", "v1"]
+    assert [(c.status, c.input["text"]) for c in result.calls] == [
+        ("blocked", "v0"),
+        ("blocked", "v1"),
+    ]
+    assert fake.sessions[0].interrupted
+    assert fake.sessions[0].disconnected
