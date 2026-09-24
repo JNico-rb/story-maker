@@ -8,6 +8,7 @@ import functools
 import gzip
 import io
 import json
+import logging
 import random
 import string
 import zipfile
@@ -286,3 +287,84 @@ async def test_a_file_whose_input_does_not_fit_is_not_sent_and_is_an_error(
         "error", reason="el fichero no cabe en los inputs del workflow"
     )
     assert github.requests == []
+
+
+# --- 007-C17 ---------------------------------------------------------------------------------
+
+LAUNCH_FAILURES: list[int | type[Exception]] = [
+    httpx.ConnectError,
+    httpx.ReadTimeout,
+    500,
+    503,
+    401,
+    403,
+    404,
+]
+
+
+@pytest.fixture
+def all_logs(caplog: pytest.LogCaptureFixture) -> pytest.LogCaptureFixture:
+    caplog.set_level(logging.DEBUG)
+    return caplog
+
+
+def assert_no_token(*things: object, logs: str = "") -> None:
+    for thing in things:
+        assert TOKEN not in repr(thing)
+    assert TOKEN not in logs
+
+
+@pytest.mark.parametrize("failure", LAUNCH_FAILURES, ids=str)
+async def test_a_failed_launch_gives_unreachable_after_a_single_request(
+    clock: FakeClock, failure: int | type[Exception], all_logs: pytest.LogCaptureFixture
+) -> None:
+    github = FakeGithub(failures={"dispatch": failure})
+
+    result = await make_verifier(github, clock).verify(SOURCE)
+
+    assert isinstance(result, VerifierInterruption)
+    assert result.reason == "verifier_unreachable"
+    assert github.endpoints() == ["dispatch"]
+    assert_no_token(result, logs=all_logs.text)
+
+
+@pytest.mark.parametrize("endpoint", ["run", "artifacts", "download", "blob"])
+@pytest.mark.parametrize("failure", [httpx.ConnectError, 500, 502], ids=str)
+async def test_a_failed_poll_or_download_gives_unreachable_without_retrying(
+    clock: FakeClock,
+    endpoint: str,
+    failure: int | type[Exception],
+    all_logs: pytest.LogCaptureFixture,
+) -> None:
+    github = FakeGithub(failures={endpoint: failure})
+
+    result = await make_verifier(github, clock).verify(SOURCE)
+
+    assert isinstance(result, VerifierInterruption)
+    assert result.reason == "verifier_unreachable"
+    assert github.endpoints().count(endpoint) == 1
+    assert github.endpoints()[-1] == endpoint
+    assert_no_token(result, logs=all_logs.text)
+
+
+async def test_a_launch_without_run_details_gives_unreachable(clock: FakeClock) -> None:
+    github = FakeGithub(failures={"dispatch": 204})
+
+    result = await make_verifier(github, clock).verify(SOURCE)
+
+    assert isinstance(result, VerifierInterruption)
+    assert result.reason == "verifier_unreachable"
+
+
+async def test_a_run_still_unfinished_when_the_timeout_passes_gives_verifier_timeout(
+    clock: FakeClock, all_logs: pytest.LogCaptureFixture
+) -> None:
+    github = FakeGithub(statuses=("in_progress",))
+
+    result = await make_verifier(github, clock, timeout=900).verify(SOURCE)
+
+    assert isinstance(result, VerifierInterruption)
+    assert result.reason == "verifier_timeout"
+    assert 900 <= clock.now - 1000.0 < 900 + 10
+    assert "artifacts" not in github.endpoints()
+    assert_no_token(result, logs=all_logs.text)
