@@ -71,6 +71,8 @@ class TokenCeiling:
         self._grant()
 
     def release(self, ticket: Ticket) -> None:
+        if ticket.released:
+            raise ValueError(f"la reserva de {ticket.amount} tokens ya liberada")
         ticket.released = True
         self.in_use -= ticket.amount
         self._grant()

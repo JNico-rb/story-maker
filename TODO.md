@@ -216,7 +216,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 003-C19 · Una reserva mayor que el techo no espera
 - [x] 003-C20 · La reserva se libera siempre al cerrar
 - [x] 003-I1 · La suma de las reservas abiertas nunca supera `token_ceiling`
-- [ ] 003-I2 · Toda reserva se libera exactamente una vez
+- [x] 003-I2 · Toda reserva se libera exactamente una vez
 - [ ] 003-C21 · Agotar los turnos conserva el uso
 - [ ] 003-C22 · Pasar de `session_timeout_seconds` interrumpe y desconecta
 - [ ] 003-C23 · Un fallo del proveedor es `infrastructure_failure`, no `completed`
