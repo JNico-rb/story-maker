@@ -337,7 +337,7 @@ Una pasada del harness sobre una novela, que termina publicando una versión o f
   - `gate`: el gate de publicación;
   - `rewriting`: la reescritura dirigida.
 - **Atributos:** novela, tipo, estado, fase, capítulo actual, versión base, candidata, reanudaciones, motivo y detalle del fallo o de la interrupción, fecha de creación, fecha de fin. La posición en la cola y el coste acumulado se derivan.
-- **Motivo de fallo:** `retries_exhausted`, `banned_content` (intentos de un capítulo agotados por palabras prohibidas), `render_failure`, `unattributable_defect` (defecto del gate sin capítulo al que atribuirlo, como un testigo Lean con solo eventos del brief), `edit_rejected` (el gate atribuye un fallo al capítulo editado a mano), `infeasible_config`, `internal_error`, `stale_base` (al arrancar, su versión base ya no es la vigente) y `resumes_exhausted` (se interrumpió con `max_resumes` agotado).
+- **Motivo de fallo:** `retries_exhausted`, `banned_content` (intentos de un capítulo agotados por palabras prohibidas), `render_failure`, `unattributable_defect` (defecto del gate sin capítulo al que atribuirlo, como un testigo Lean con solo eventos del brief), `edit_rejected` (el capítulo editado a mano falla sus propios validadores dentro de la ejecución, o el gate le atribuye un fallo), `infeasible_config`, `internal_error`, `stale_base` (al arrancar, su versión base ya no es la vigente) y `resumes_exhausted` (se interrumpió con `max_resumes` agotado).
 - **Motivo de interrupción:** `crash` (caída, o arranque del servidor con la ejecución en curso), `provider_error` (fallo del proveedor o de transporte, también el límite de uso de la suscripción), `verifier_unreachable` y `verifier_timeout`.
 - **Reescritura dirigida:** la de los capítulos a los que un ciclo del gate atribuyó defectos, con el writer reescribiendo y el editor, antes de un ciclo nuevo.
 - **Regeneración:** la de los capítulos afectados por un cambio, en orden, con el writer revisando, los hooks y el editor.
@@ -354,7 +354,7 @@ Un **intento** es una entrega de un evaluable que se juzga. Cuentan también las
 ### PuntoDeControl
 Estado persistido desde el que se reanuda. Solo admite inserciones.
 - **Atributos:** ejecución, capítulo.
-- Hay uno por capítulo aceptado, en la misma transacción que lo acepta. El plan aplicado es el capítulo 0.
+- Hay uno por capítulo aceptado en fase `writing`, en la misma transacción que lo acepta; el plan aplicado es el capítulo 0. Volver a aceptar el capítulo en `gate` o `rewriting` (reescritura dirigida) no escribe uno nuevo.
 - Reanudar sigue en el capítulo siguiente al último punto de control, así que no duplica ni pierde capítulos (TLA+ `ReanudacionSinDuplicarNiPerder`). En el gate repite el ciclo en curso; en un cambio, sigue por el siguiente capítulo afectado. Arq. §8, §9.2.
 
 ### SolicitudDeCambio

@@ -271,7 +271,7 @@ Impiden antes de que el rol actúe; son código determinista y se prueban con en
 | Patrón | En el producto | En el desarrollo |
 |---|---|---|
 | Crítico ≠ autor | `editor` por capítulo y `judge` de novela, separados del `writer` | `auditor` audita la spec que escribió `redactor-specs` |
-| Reflexión | El writer reescribe con los defectos del editor | El redactor corrige los huecos del auditor (≤3 rondas) |
+| Reflexión | El writer reescribe con los defectos del editor | El redactor corrige los huecos bloqueantes del auditor (≤2 rondas) |
 | Separación de privilegios | `extractor` aislado con una sola tool frente al `interviewer` | `verificador` de solo lectura + Bash frente al `implementador` |
 
 Regla que lo sostiene todo: **el crítico nunca es el autor**. Detalle del desarrollo en §9.7.
@@ -284,7 +284,7 @@ GitHub Actions en cada push y PR a `V2`:
 |---|---|
 | backend | `uv sync --frozen`, `ruff check`, `ruff format --check`, `mypy src`, `pytest` (unitarias, integración, propiedades, contrato) |
 | frontend | `pnpm install --frozen-lockfile`, `tsc`, ESLint, Vitest, build de producción; además, `node --test` de los hooks de desarrollo (§9.6), que solo necesitan Node |
-| formal | TLC sobre `Harness.tla` y `Regenerations.tla` (config que pasa + config con invariante roto que debe dar contraejemplo); `lake build --wfail` + auditoría de axiomas + ficheros negativos |
+| formal | TLC sobre `Harness.tla` y `Regenerations.tla` (config que pasa + seis configs de control, una por propiedad, que deben dar contraejemplo nombrando la propiedad violada; cobertura: ninguna acción sin disparar); `lake build --wfail` + auditoría de axiomas + ficheros negativos |
 | seguridad | `detect-secrets` (bloqueante); `pip-audit` y `pnpm audit` (informativos; se triagean en la auditoría, §4.11) |
 
 **Ningún job llama a un modelo ni a Langfuse**: doble falso del puerto de agente y doble nulo de observabilidad siempre (0 € de créditos de API; GitHub Free). Fuera de CI, en la máquina con sesión de Claude Code: evals, novela de ejemplo, demostraciones D y red-team D; además, auditoría de seguridad y revisión humana. El workflow de Lean que usa el `VerificadorFormal` en modo `github` es aparte (`workflow_dispatch`, ADR 0004).
@@ -341,8 +341,8 @@ El orquestador es una máquina de estados pequeña y real (`architecture.md` §9
 | `Harness.tla` | 5 capítulos, 2 reintentos, 2 reanudaciones, 1 cambio; acciones Configurar, Planificar, EscribirCapitulo, Validar, Reintentar, Caer, Reanudar, Gate, Publicar, Fallar, PedirCambio, Regenerar | `NuncaPublicaSinValidar`, `ReanudacionSinDuplicarNiPerder`, `VersionAnteriorConservada`, `ReintentosAcotados` | `TerminaSiempre` bajo equidad débil |
 | `Regenerations.tla` | Dos cambios simultáneos sobre la misma novela, cola FIFO, versión base | `VersionesLineales` (cada versión publicada tiene como base la anterior; ningún cambio se pierde sin `rejected`) | — |
 
-- **Control del comprobador:** una config con un invariante roto a propósito debe dar contraejemplo; si no lo da, TLC no está comprobando lo que creemos.
-- **Correspondencia con el código:** tabla acción ↔ estado o transición del código en el README raíz; el `verificador` la revisa (I) al cerrar 011, 012 y 014.
+- **Control del comprobador:** seis configs de control, una por propiedad, sobre el mismo modelo, cada una con esa propiedad rota a propósito; TLC debe dar contraejemplo y nombrar la propiedad violada, si no, no está comprobando lo que creemos. Además, cobertura: ninguna acción sin disparar (`architecture.md` §18 «Control del comprobador TLC»).
+- **Correspondencia con el código:** tabla acción ↔ estado o transición del código en el README raíz; el `verificador` la revisa (I) al cerrar 010, 011, 012, 014 y 019.
 - **Contraejemplos:** cada uno encontrado durante el desarrollo va a §8 con el cambio que provocó.
 - Herramientas: `tla2tools.jar` con JDK Temurin portable, en el portátil y en CI.
 
@@ -522,12 +522,12 @@ Una fila por viñeta de `project-constraints.md`. **Spec** = numeración de `TOD
 | U22 | **Estimador chars/4 del techo** | Si subestima, los tokens reales concurrentes podrían superar 100.000 | Pico reservado frente a uso real de `ResultMessage` en §4.2 b; ajustar el factor si subestima |
 | U23 | **El coste por novela es una estimación a precio de lista, no una factura** | Con el login de Claude Code no se paga por token; `pricing` copia la lista de la API de Anthropic y puede desfasarse | Contraste con `total_cost_usd` del SDK en una demostración (§4.2); fecha de la lista anotada |
 | U24 | **Plausibilidad especulativa del novum** | Nada la verifica; `outline` solo comprueba que su fecha es anterior al presente | Criterio `no-cliche` del juez |
-| U25 | **Aprobación delegada correlacionada** | `auditor` y redactor comparten familia de modelo y pueden compartir puntos ciegos | Auditoría contra §5 fila a fila; escalado tras 3 rondas; comprobación final del usuario |
+| U25 | **Aprobación delegada correlacionada** | `auditor` y redactor comparten familia de modelo y pueden compartir puntos ciegos | Auditoría contra §5 fila a fila; escalado tras 2 rondas; comprobación final del usuario |
 | U26 | **El límite de uso de la suscripción puede cortar una generación** | Los roles corren con el login de Claude Code de la máquina, sin créditos de API; el límite no es nuestro | `interrupted` + reanudación desde el punto de control (RT19); presupuesto de cuota (§4.2) |
 | U27 | **Las generaciones reales solo corren en una máquina** | Requieren la sesión de Claude Code iniciada: no hay D ni evals en CI | Toda la lógica es T con dobles en CI; lo D se ejecuta y se registra aquí con commit y etiqueta de prompts |
 | U28 | **Escrituras por Bash sin `guard-secretos`** | El hook mira `Edit`, `Write` y `MultiEdit`; una redirección o un `node -e` en Bash no pasa por él, y cubrir Bash exigiría analizar órdenes arbitrarias | `detect-secrets` bloqueante en la CI (§4.6); `.env` denegado en los permisos (§9.6) |
 | U29 | **Fuerza bruta en el acceso y enumeración de cuentas** | Sin límite de intentos en `login` y con 409 en el registro de un email existente; limitar intentos o verificar emails es gestión de cuentas, fuera de alcance (`architecture.md` §14.3) | bcrypt encarece cada intento; despliegue en producción fuera de alcance |
-| U30 | **Modelo pequeño de TLC** | El encargo pide un modelo pequeño y el espacio de estados crece de forma exponencial: un defecto que solo aparezca con más de 5 capítulos, más reintentos o reanudaciones, o más cambios de los modelados, escapa a TLC | Límites como constantes de la config; pruebas T de 011, 012 y 014 con 10 capítulos; correspondencia revisada por el `verificador` (§4.10) |
+| U30 | **Modelo pequeño de TLC** | El encargo pide un modelo pequeño y el espacio de estados crece de forma exponencial: un defecto que solo aparezca con más de 5 capítulos, más reintentos o reanudaciones, o más cambios de los modelados, escapa a TLC | Límites como constantes de la config; pruebas T de 010, 011, 012, 014 y 019 con 10 capítulos; correspondencia revisada por el `verificador` (§4.10) |
 
 ---
 
@@ -632,7 +632,7 @@ Definidos en `.claude/agents/` y `.claude/commands/` (orquestación en `AGENTS.m
 | Nombre | Tipo | Propósito | Permisos | Resultado |
 |---|---|---|---|---|
 | `redactor-specs` | subagente | Escribe una spec desde los docs, con su autorevisión | Lectura + escritura en `specs/` | pendiente |
-| `auditor` | subagente | Audita spec y plan contra docs, encargo (§5) y specs vecinas; gap cero → marca la aprobación | Solo lectura + Edit sobre `TODO.md` | pendiente |
+| `auditor` | subagente | Audita spec y plan contra docs, encargo (§5) y specs vecinas; sin huecos bloqueantes → marca la aprobación | Solo lectura + Edit sobre `TODO.md` | pendiente |
 | `implementador` | subagente | Implementa el plan aprobado de una spec con TDD en su worktree | Lectura, escritura, `uv`, `pnpm.cmd` | pendiente |
 | `verificador` | subagente | Al cerrar: suite completa y tipos, cada caso T con prueba nombrada, ningún código sin paso del plan; marca el cierre | Solo lectura + Bash | pendiente |
 | `seguridad` | subagente | Auditoría de §4.11 → `docs/security-report.md` | Solo lectura + Bash | pendiente |
@@ -675,7 +675,7 @@ Decisión del usuario del 2026-09-24 (`architecture.md` §18): las casillas de a
 | Antes de escribir una spec | redactor (autorevisión con `grill-me`) | Lista sus preguntas abiertas y las resuelve con los docs y la máxima de simplicidad; solo las del usuario (dinero, cuentas externas, alcance) suben, en lote | Decisión en `architecture.md` §18 |
 | Aprobar spec | `auditor` | Contenidos obligatorios, casos entrada → salida con rechazos y límites, invariantes con clase, sin duplicar casos, sin ficheros ni librerías, filas de §5 cubiertas | `[x] … approved — auditor YYYY-MM-DD` + acta de una línea en `TODO.md` |
 | Aprobar plan | `auditor` | Un paso por caso de la spec, en orden de implementación | Igual |
-| Huecos | redactor ↔ `auditor` | ≤3 rondas; si persisten, escala al usuario | Acta con los huecos |
+| Huecos | redactor ↔ `auditor` | Bloqueantes (requisito del encargo sin cubrir, contradicción con los docs, caso no testeable, dependencia rota): ≤2 rondas y, si persisten, escala al usuario. Menores: al acta, se corrigen al cerrar la spec | Acta con los huecos y los menores |
 | Cerrar spec | `verificador` | Suite completa verde, tipos limpios, cada caso T con prueba nombrada por comportamiento, ningún código sin paso | Casillas de cierre marcadas |
 | Solo humano | usuario | Revisión humana de una novela, vídeo de demo, sesión de Claude Code iniciada para las generaciones reales, cuentas y tokens (Langfuse, GitHub), comprobación final | §4.2 d, R.9, R.11 |
 
