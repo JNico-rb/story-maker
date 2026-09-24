@@ -43,7 +43,7 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 | X | 031 (C01–C04, I2) | 012 | `../sm-x` | `carril-x` | C01–C05, I2 hechos; cierre en curso |
 | V | 020-C03 (con el arreglo de D2), C04 y C15, desde `carril-x` | 031 | `../sm-v` | `carril-v` | en curso |
 | Y | 031-C05 (adaptador de incrustaciones, solo `retrieval/`) | — | `../sm-y` | `carril-y` | cerrada e integrada |
-| E | 026 → 027 (027 con la API simulada según 014) | — | `../sm-e` | `carril-e` | 026 cerrada e integrada; 027 C01–C14 hechos, cierre en curso |
+| E | 026 → 027 (027 con la API simulada según 014) | — | `../sm-e` | `carril-e` | 026 y 027 cerradas e integradas (027-C15 D) |
 | I | 012 (con el WIP de la rama `wip-012-gate`) | 007, 011 | `../sm-i` | `carril-i` | cerrada e integrada |
 | K | 029 (C01, C05–C08); 004-C16 (check-env solo exige los roles con fichero de prompt) | — | `../sm-k` | `carril-k` | cerrada e integrada |
 | W | workspace de producto: 010-I8, 011-I12–I14 (solo `backend/harness_workspace/`) | — | `../sm-w` | `carril-w` | cerrada e integrada |
