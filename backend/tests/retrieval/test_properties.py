@@ -128,3 +128,29 @@ def test_queries_that_match_different_cards_lead_with_different_cards(
 
     assert first(key(*x)) == x
     assert first(key(*y)) == y
+
+
+@PROPERTY
+@given(story=stories(), query=queries, chapter=st.integers(1, 10), top_k=st.integers(1, 12))
+def test_retrieval_never_returns_a_future_or_superseded_card_and_misses_no_current_one(
+    canon: Any,
+    session_factory: sessionmaker[Session],
+    story: list[tuple[str, list[tuple[int, str]]]],
+    query: list[str],
+    chapter: int,
+    top_k: int,
+) -> None:
+    vectors = vectors_for(texts_of(story) + query)
+    version = canon.version()
+    places = canon.story(version, story, vectors)
+
+    with session_factory() as session:
+        cards = retrieve(session, version, chapter, query, top_k, vectors)
+        result = [places[card.id] for card in cards]
+
+    expected = expected_eligible(story, chapter)
+    assert set(result) <= expected
+    assert len({index for index, _ in result}) == len(result)
+    assert len(result) == min(top_k, len(expected))
+    if top_k >= len(expected):
+        assert set(result) == expected
