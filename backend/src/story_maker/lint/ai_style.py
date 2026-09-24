@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from story_maker.domain.prose_lint import MENTE_DENSITY_THRESHOLD
+from story_maker.domain.prose_lint import MENTE_DENSITY_THRESHOLD, MENTE_EXCEPTIONS
 from story_maker.lint.text import comparison_form, extract_words
 from story_maker.lint.types import Defect, LinterResult
 
@@ -12,6 +12,8 @@ _MENTE_SUFFIX = "mente"
 
 def _is_mente_adverb(word: str) -> bool:
     form = comparison_form(word)
+    if form in MENTE_EXCEPTIONS:
+        return False
     return form.endswith(_MENTE_SUFFIX) and len(form) > len(_MENTE_SUFFIX)
 
 

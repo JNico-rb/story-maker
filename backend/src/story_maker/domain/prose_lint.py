@@ -262,3 +262,17 @@ FILLER_REPETITION_THRESHOLD = 2
 
 #: Densidad de adverbios en -mente por 1.000 palabras que dispara `linter-estilo-ia` (018-C9).
 MENTE_DENSITY_THRESHOLD = 6.0
+
+#: Palabras en -mente que no son adverbios: sustantivos, adjetivos y formas de verbos en
+#: -mentar (018-C10). Lista cerrada del dominio.
+MENTE_EXCEPTIONS: frozenset[str] = frozenset(
+    {
+        "mente",
+        "demente",
+        "clemente",
+        "vehemente",
+        "comente",
+        "aumente",
+        "lamente",
+    }
+)
