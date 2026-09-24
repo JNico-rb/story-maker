@@ -8,6 +8,8 @@ from typing import Any
 
 from sqlalchemy import text
 
+from story_maker.store import models
+
 TABLES = (
     "worlds",
     "characters",
@@ -94,3 +96,24 @@ def test_the_copy_reproduces_the_whole_base_with_new_ids(store: Any) -> None:
     in_v1 = _cards_matching(store, "feria", v1.version_id)
     assert in_v1
     assert _cards_matching(store, "feria", k_id) == {ids["canon_cards"][c] for c in in_v1}
+
+
+def test_the_copy_does_not_embed_again_it_shares_the_vectors(store: Any) -> None:
+    v1 = store.build_v1()
+    with store.session() as session:
+        vectors_before = session.query(models.Embedding).count()
+
+    k_id, _ = store.copy(v1.version_id)
+
+    with store.session() as session:
+        assert session.query(models.Embedding).count() == vectors_before
+        novel = session.get(models.Novel, v1.novel_id)
+        cards = session.query(models.CanonCard).filter_by(version_id=k_id).all()
+        assert cards
+        for card in cards:
+            vector = (
+                session.query(models.Embedding)
+                .filter_by(content_hash=card.content_hash, model=novel.embedding_model)
+                .one_or_none()
+            )
+            assert vector is not None, card.text
