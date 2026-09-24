@@ -23,6 +23,7 @@ from tests.pipeline.conftest import (
     chapter_call,
     editor_script,
     review,
+    seed_run,
     text_of,
     writer_script,
 )
@@ -43,14 +44,18 @@ from story_maker.pipeline.gate.phase import Gate, PdfOutcome, VisualReviewOutcom
 from story_maker.pipeline.production import Production
 from story_maker.store.models import (
     Attempt,
+    ChangeRequest,
     Chapter,
     Checkpoint,
     Fact,
     OutlineChapter,
     Run,
     ValidatorResult,
+    Version,
     World,
 )
+from story_maker.store.session import unit_of_work
+from story_maker.store.version_copy import copy_version
 
 RUBRIC = (
     "continuidad",
@@ -338,3 +343,73 @@ def seed_unused_element(
             chapter.assigned_elements = [str(FAIR_ELEMENT)]
         session.commit()
         return fact.id
+
+
+@dataclass(frozen=True)
+class Change:
+    """La candidata de un cambio sobre la v3 de la novela de la fixture."""
+
+    run_id: int
+    base_id: int
+    candidate_id: int
+    request_id: int
+
+
+def publish_as(session: Session, version_id: int, number: int) -> None:
+    version = session.get_one(Version, version_id)
+    version.status, version.number, version.published_at = "published", number, NOW
+
+
+def seed_change_over_v3(session_factory: sessionmaker[Session], seed: Seed) -> Change:
+    """La candidata de la fixture pasa a ser la v3 publicada (con v1 y v2 antes); de ella nace la
+    candidata de un cambio con los capítulos 2 y 5 reescritos y su solicitud `confirmed`."""
+    with session_factory() as session:
+        for number in (1, 2):
+            session.add(
+                Version(
+                    novel_id=seed.novel_id,
+                    status="published",
+                    number=number,
+                    changed_chapters=[],
+                    created_at=NOW,
+                    published_at=NOW,
+                )
+            )
+        publish_as(session, seed.version_id, 3)
+        session.get_one(Run, seed.run_id).status = "published"
+        session.commit()
+    with unit_of_work(session_factory) as uow:
+        candidate_id = copy_version(uow, seed.version_id, now=NOW).version.id
+    with session_factory() as session:
+        for chapter in session.query(Chapter).filter(
+            Chapter.version_id == candidate_id, Chapter.number.in_((2, 5))
+        ):
+            chapter.text = f"{chapter.text} cambiado"
+            chapter.content_hash = chapter_hash(chapter.title, chapter.text)
+        run = seed_run(
+            session,
+            seed.novel_id,
+            phase="gate",
+            chapter=None,
+            candidate=candidate_id,
+            checkpoints=(),
+        )
+        run.type, run.base_version_id = "change_request", seed.version_id
+        request = ChangeRequest(
+            novel_id=seed.novel_id,
+            base_version_id=seed.version_id,
+            selection_type="fragment",
+            selection={"chapter": 2},
+            request="que llueva",
+            status="confirmed",
+            run_id=run.id,
+            created_at=NOW,
+        )
+        session.add(request)
+        session.commit()
+        return Change(run.id, seed.version_id, candidate_id, request.id)
+
+
+def version_of(session_factory: sessionmaker[Session], version_id: int) -> Version:
+    with session_factory() as session:
+        return session.get_one(Version, version_id)

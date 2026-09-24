@@ -621,7 +621,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] 012-C26 · El `CatalogoDeTropos` trae los tropos curados del género
 - [x] 012-I1 · Ninguna versión se publica sin que la última pasada sobre esa candidata haya superado las cuatro etapas, y la candidata no cambia entre e…
 - [x] 012-I2 · Las pasadas contadas de una ejecución nunca superan 1 + `max_retries.gate_cycles`, ni los intentos de un capítulo en un ciclo, 1 + `max_r…
-- [ ] 012-I3 · La publicación es atómica
+- [x] 012-I3 · La publicación es atómica
 - [ ] 012-I4 · Publicar no modifica ninguna otra versión (`VersionAnteriorConservada`)
 - [x] 012-I5 · El veredicto y la atribución los calcula el código solo con campos estructurados
 - [ ] 012-C27 · Una sesión real del juez entrega una evaluación válida (D, al final)
