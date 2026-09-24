@@ -46,9 +46,9 @@ A spec touches only its modules and their `tests/<module>/`. In a shared module 
 | 007 validador-lean | C | `formal/`, `lean/` (repo root) |
 | 008 brief-y-entrevista | B | `interview/`, `domain/` (brief rules, C1–C6), `api/` (novels, interview, free texts, brief, banned terms, audit log), `harness_workspace/` (interviewer and extractor prompts) |
 | 009 story-bible-y-versiones | A | `store/` (story bible and version-copy repositories), `api/` (story bible) |
-| 010 planificacion | G | `pipeline/` (planning), `validators/` (`outline`), planner prompt |
+| 010 planificacion | G | `pipeline/` (planning), `validators/` (`outline`), `domain/` (trope catalog, plan and outline constants), planner prompt |
 | 011 produccion-de-capitulos | A | `pipeline/` (queue, worker, production, resume), `validators/` (chapter), `harness_workspace/` (product `CLAUDE.md`, skill, writer and editor prompts), `api/` (runs), `cli.py` (`resume`) |
-| 012 gate-de-publicacion | A | `pipeline/` (gate, publication), `validators/` (novel, judge), `domain/` (novel rubric, trope catalog), judge prompt |
+| 012 gate-de-publicacion | A | `pipeline/` (gate, publication), `validators/` (novel, judge), `domain/` (novel rubric; uses the trope catalog of 010), judge prompt |
 | 013 lectura-y-pdf | D | `render/`, `api/` (versions, PDF, `/view`), `cli.py` (`example`, `export-pdf`), `ejemplos/novela-ejemplo.pdf` |
 | 014 cambios-del-lector | A | `pipeline/` (changes), `api/` (change requests), planner change-mode prompt |
 | 015 servidor-mcp | A | `api/` (MCP server) |
