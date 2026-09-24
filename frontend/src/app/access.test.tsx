@@ -335,4 +335,35 @@ describe("022 invariantes", () => {
     expect(router.state.location.pathname + router.state.location.search).not.toContain(TOKEN);
     expect(document.cookie).not.toContain(TOKEN);
   });
+
+  const register = { path: "/registro", button: "Crear cuenta", route: "POST /api/auth/register" };
+  const login = { path: "/acceso", button: "Entrar", route: "POST /api/auth/login" };
+
+  it.each([
+    { form: register, status: 201, body: { id: "c1", email: EMAIL } },
+    { form: register, status: 409, body: { detail: "conflicto" } },
+    { form: register, status: 422, body: invalid("password") },
+    { form: login, status: 200, body: { access_token: TOKEN } },
+    { form: login, status: 401, body: { detail: "Credenciales incorrectas" } },
+    { form: login, status: 422, body: invalid("email") },
+  ])(
+    "022-I2: after $form.path answers $status, the password is neither stored nor shown anywhere",
+    async ({ form, status, body }) => {
+      fakeApi({ [form.route]: () => ({ status, body }) });
+      const user = userEvent.setup();
+      renderAt(form.path);
+
+      await user.type(screen.getByLabelText("Email"), EMAIL);
+      await user.type(screen.getByLabelText("Contraseña"), PASSWORD);
+      await user.click(screen.getByRole("button", { name: form.button }));
+
+      await vi.waitFor(() => {
+        const fieldValues = [...document.querySelectorAll("input")].map((input) => input.value);
+        expect(fieldValues).not.toContain(PASSWORD);
+      });
+      expect(document.body.innerHTML).not.toContain(PASSWORD);
+      expect(storedValues()).not.toContain(PASSWORD);
+      expect(document.cookie).not.toContain(PASSWORD);
+    },
+  );
 });
