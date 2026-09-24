@@ -88,3 +88,32 @@ def test_the_bearer_scheme_is_accepted_in_any_case(client: TestClient, scheme: s
 
     assert response.status_code == 200
     assert response.json() == {"user_id": a_id}
+
+
+def test_missing_or_malformed_token_answers_401(client: TestClient) -> None:
+    _a_id, a_token = _register_and_login(client, "cliente-a@example.com")
+
+    no_header = client.get("/api/_test/whoami")
+    basic_scheme = client.get("/api/_test/whoami", headers={"Authorization": "Basic dXNlcjpwYXNz"})
+    bearer_without_token = client.get("/api/_test/whoami", headers={"Authorization": "Bearer"})
+    token_in_query = client.get(f"/api/_test/whoami?token={a_token}")
+    client.cookies.set("token", a_token)
+    token_in_cookie = client.get("/api/_test/whoami")
+    client.cookies.clear()
+    not_a_jwt = client.get(
+        "/api/_test/whoami", headers={"Authorization": "Bearer esto-no-es-un-jwt"}
+    )
+
+    responses = [
+        no_header,
+        basic_scheme,
+        bearer_without_token,
+        token_in_query,
+        token_in_cookie,
+        not_a_jwt,
+    ]
+    for response in responses:
+        assert response.status_code == 401, response.text
+        assert response.headers["WWW-Authenticate"] == "Bearer"
+    bodies = {response.text for response in responses}
+    assert len(bodies) == 1
