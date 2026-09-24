@@ -33,6 +33,7 @@ from story_maker.observability.langfuse_adapter import auth_check as langfuse_au
 from story_maker.observability.null import NullObservability
 from story_maker.observability.port import ObservabilityPort
 from story_maker.observability.prompts import push_prompts
+from story_maker.pipeline.queue import enqueue_generation
 from story_maker.pipeline.runs import ResumeRejected, resume_run
 from story_maker.policy.real_engine import RealPolicyEngine
 from story_maker.render.pdf import render_pdf
@@ -315,12 +316,13 @@ def export_pdf_command(
         engine.dispose()
 
 
-# --- `interview` (029-C01, C05, C06, C07) --------------------------------------------------------
+# --- `interview` (029-C01, C05, C06, C07, C08) -----------------------------------------------
 #
-# La orden usa los servicios de la 008 en el mismo proceso: sin servidor, sin rutas HTTP. No
-# tiene reglas propias; cada rama del bucle llama directamente a `interview/` (`run_turn`,
-# `run_free_text`, `load_verified_facts`, `brief_of`, `confirm_brief_status`) y a `api/brief.py`
-# (`build_brief_out`, `brief_problems`, ya puras, sin `Request`).
+# La orden usa los servicios de la 008 y de la 011 en el mismo proceso: sin servidor, sin rutas
+# HTTP. No tiene reglas propias; cada rama del bucle llama directamente a `interview/` (`run_turn`,
+# `run_free_text`, `load_verified_facts`, `brief_of`, `confirm_brief_status`), a `api/brief.py`
+# (`build_brief_out`, `brief_problems`, ya puras, sin `Request`) y a `pipeline/queue.py`
+# (`enqueue_generation`).
 
 
 @dataclass
@@ -494,7 +496,8 @@ def _handle_fact_decision(
 
 def _handle_confirm(services: _InterviewServices, novel_id: int) -> None:
     """`/confirmar` (029-C07): con algo bloqueante, lo lista y no confirma (008-C09..C13); si no,
-    pregunta y solo `s` confirma (008-C15)."""
+    pregunta y solo `s` confirma (008-C15). Tras confirmar, pregunta si lanzar la generación
+    (029-C08); solo `s` la encola (011-C01)."""
     with services.session_factory() as session:
         novel = session.get(Novel, novel_id)
         if novel is None:  # pragma: no cover - la creó este mismo comando (029-C01)
@@ -516,6 +519,15 @@ def _handle_confirm(services: _InterviewServices, novel_id: int) -> None:
 
     confirm_brief_status(services.session_factory, novel_id)
     typer.echo(f"novela {novel_id}: lista")
+
+    typer.echo("¿Lanzar la generación? [s/N]")
+    launch_answer = _read_line()
+    if launch_answer is None or launch_answer.strip() != "s":
+        return
+
+    with unit_of_work(services.session_factory) as uow:
+        run_id, position = enqueue_generation(uow, novel_id, now=utc_now())
+    typer.echo(f"ejecución {run_id} en cola, posición {position}; la toma `story-maker serve`")
 
 
 async def _interview_loop(services: _InterviewServices, novel_id: int, user_id: int) -> None:
@@ -556,8 +568,9 @@ def interview_command(
 ) -> None:
     """Entrevista por terminal sobre los servicios de la 008: cada línea es un turno; `/texto
     <fichero>` manda una carta al extractor; `/hechos`, `/aceptar`, `/rechazar` y `/obligatorio`
-    gobiernan los hechos extraídos; `/confirmar` cierra el brief con un `s` explícito; `/salir` o
-    el fin de la entrada terminan con 0 (029-C01, C05, C06, C07)."""
+    gobiernan los hechos extraídos; `/confirmar` cierra el brief con un `s` explícito y, tras
+    confirmarlo, lanza la generación con otro `s` explícito; `/salir` o el fin de la entrada
+    terminan con 0 (029-C01, C05, C06, C07, C08)."""
     try:
         settings = load_settings()
     except SettingsError as exc:

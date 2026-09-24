@@ -21,6 +21,7 @@ from story_maker.store.models import (
     FreeText,
     Interview,
     InterviewMessage,
+    Run,
     User,
 )
 from story_maker.store.session import make_engine, make_session_factory
@@ -403,3 +404,58 @@ def test_confirm_without_an_explicit_yes_confirms_nothing(
     assert "el brief no se ha confirmado" in result.stdout
     novel_id = int(result.stdout.strip().splitlines()[0])
     assert _brief_status(registered_client, novel_id) == "draft"
+
+
+# --- 029-C08: lanzar la generación pide un sí explícito ------------------------------------------
+
+
+def _run_status(db_path: Path, novel_id: int) -> str | None:
+    engine = make_engine(db_path)
+    session = make_session_factory(engine)()
+    try:
+        run = session.query(Run).filter(Run.novel_id == novel_id).one_or_none()
+        return None if run is None else str(run.status)
+    finally:
+        session.close()
+        engine.dispose()
+
+
+def test_launch_generation_with_an_explicit_yes(
+    registered_client: Path, fake_agent: FakeAgent
+) -> None:
+    fake_agent.script(
+        "interviewer",
+        None,
+        Script(steps=(Call("update_brief", _VALID_BRIEF_PATCH), Say("Ya está."))),
+    )
+
+    result = runner.invoke(
+        app, ["interview", "--email", EMAIL], input="Hola\n/confirmar\ns\ns\n/salir\n"
+    )
+
+    assert result.exit_code == 0, result.stdout
+    assert "¿Lanzar la generación? [s/N]" in result.stdout
+    assert "story-maker serve" in result.stdout
+    novel_id = int(result.stdout.strip().splitlines()[0])
+    assert _run_status(registered_client, novel_id) == "queued"
+
+
+@pytest.mark.parametrize("answer", ["n\n", "\n", ""])
+def test_launch_generation_without_an_explicit_yes_queues_nothing(
+    registered_client: Path, fake_agent: FakeAgent, answer: str
+) -> None:
+    fake_agent.script(
+        "interviewer",
+        None,
+        Script(steps=(Call("update_brief", _VALID_BRIEF_PATCH), Say("Ya está."))),
+    )
+
+    result = runner.invoke(
+        app, ["interview", "--email", EMAIL], input=f"Hola\n/confirmar\ns\n{answer}"
+    )
+
+    assert result.exit_code == 0, result.stdout
+    novel_id = int(result.stdout.strip().splitlines()[0])
+    assert f"novela {novel_id}: lista" in result.stdout
+    assert _run_status(registered_client, novel_id) is None
+    assert _brief_status(registered_client, novel_id) == "confirmed"
