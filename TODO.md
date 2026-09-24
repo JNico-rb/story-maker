@@ -861,3 +861,48 @@ Todas dependen de 000. Carriles B y C disueltos (decisión del usuario, 2026-09-
 - [ ] Full suite green, type checks clean
 - [ ] Spec updated, or confirmed still true
 - [ ] Docs updated, or confirmed still true
+
+## 020 — evals
+
+- [x] Spec `specs/backend/020-evals.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
+
+### Steps
+- [ ] 020-C01 · Los cinco briefs del repositorio son válidos
+- [ ] 020-C02 · Sin un cliente registrado no se crea nada
+- [ ] 020-C03 · Una novela y una ejecución por brief, del cliente dado
+- [ ] 020-C04 · Un brief que no pasa no para a los demás
+- [ ] 020-C05 · `evals run` no corre en la CI
+- [ ] 020-C06 · Celdas de la tabla brief × validador
+- [ ] 020-C07 · Resumen por brief
+- [ ] 020-C08 · La tabla sale solo de SQLite
+- [ ] 020-C09 · Sin ejecuciones de evals, la tabla lo dice
+- [ ] 020-I1 · Ninguna prueba de esta spec llama a un modelo ni a Langfuse
+- [ ] 020-I2 · `evals table` es determinista
+- [ ] 020-C10 · Cinco briefs reales llenan (a) y (b) (D, al final)
+- [ ] 020-C11 · Una iteración de tuning con antes y después (D, al final)
+- [ ] 020-C12 · Juez frente a revisión humana (D, al final)
+- [ ] 020-C13 · El caso que solo detecta Lean (D, al final)
+- [ ] 020-C14 · Un cambio del lector propagado y su coste (D, al final)
+
+### Closing
+- [ ] Full suite green, type checks clean
+- [ ] Spec updated, or confirmed still true
+- [ ] Docs updated, or confirmed still true
+
+## 021 — auditoria-de-seguridad
+
+- [x] Spec `specs/backend/021-auditoria-de-seguridad.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
+
+### Steps
+- [ ] 021-C05 · El informe dice qué se hizo con cada hallazgo (I, al final)
+- [ ] 021-C01 · Inyección de prompts por cada vía de texto no confiable (D, al final)
+- [ ] 021-C02 · Exfiltración entre clientes y novelas (D, al final)
+- [ ] 021-C03 · Dependencias con vulnerabilidades conocidas (D, al final)
+- [ ] 021-C04 · Secretos en todo el historial (D, al final)
+
+### Closing
+- [ ] Full suite green, type checks clean
+- [ ] Spec updated, or confirmed still true
+- [ ] Docs updated, or confirmed still true
