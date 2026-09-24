@@ -21,7 +21,7 @@ from contextlib import asynccontextmanager
 import httpx
 
 from story_maker.formal.lean_output import LeanOutput, interpret
-from story_maker.formal.result import VerificationOutcome
+from story_maker.formal.result import VerificationOutcome, VerifierInterruption
 
 API = "https://api.github.com"
 API_VERSION = "2022-11-28"
@@ -30,6 +30,30 @@ ARTIFACT = "resultado-cronologia"
 RESULT_FILE = "resultado.json"
 # La biblioteca Lean y el workflow viven en V2.
 REF = "V2"
+
+
+class Unreachable(Exception):
+    """La verificación no llegó a darse; el mensaje nunca lleva el token."""
+
+
+def read_result(content: bytes) -> LeanOutput:
+    """La salida de la compilación desde el zip del artefacto, si cumple el schema del resultado:
+    un objeto con `exit_code` (entero) y `output` (texto), sin más claves."""
+    try:
+        with zipfile.ZipFile(io.BytesIO(content)) as archive:
+            payload = json.loads(archive.read(RESULT_FILE))
+    except (zipfile.BadZipFile, KeyError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise Unreachable(f"artefacto ilegible ({type(exc).__name__})") from None
+    valid = (
+        isinstance(payload, dict)
+        and set(payload) == {"exit_code", "output"}
+        and isinstance(payload["exit_code"], int)
+        and not isinstance(payload["exit_code"], bool)
+        and isinstance(payload["output"], str)
+    )
+    if not valid:
+        raise Unreachable("el artefacto no cumple el schema del resultado")
+    return LeanOutput(payload["exit_code"], payload["output"])
 
 
 def encode_input(source: str) -> str:
@@ -79,7 +103,10 @@ class GithubFormalVerifier:
     async def verify(self, source: str) -> VerificationOutcome:
         inputs = {INPUT: encode_input(source)}
         async with self._session() as client:
-            return await self._verify(client, inputs)
+            try:
+                return await self._verify(client, inputs)
+            except Unreachable as exc:
+                return VerifierInterruption("verifier_unreachable", str(exc))
 
     async def _verify(
         self, client: httpx.AsyncClient, inputs: dict[str, str]
@@ -99,10 +126,10 @@ class GithubFormalVerifier:
         listing = await client.get(
             f"{repo}/actions/runs/{run_id}/artifacts", headers=self._headers()
         )
-        artifact_id = next(a["id"] for a in listing.json()["artifacts"] if a["name"] == ARTIFACT)
+        ids = [a["id"] for a in listing.json()["artifacts"] if a["name"] == ARTIFACT]
+        if not ids:
+            raise Unreachable("la ejecución terminó sin artefacto de resultado")
         download = await client.get(
-            f"{repo}/actions/artifacts/{artifact_id}/zip", headers=self._headers()
+            f"{repo}/actions/artifacts/{ids[0]}/zip", headers=self._headers()
         )
-        with zipfile.ZipFile(io.BytesIO(download.content)) as archive:
-            payload = json.loads(archive.read(RESULT_FILE))
-        return interpret(LeanOutput(payload["exit_code"], payload["output"]))
+        return interpret(read_result(download.content))

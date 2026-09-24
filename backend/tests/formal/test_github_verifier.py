@@ -15,7 +15,7 @@ import httpx
 import pytest
 
 from story_maker.formal.github import GithubFormalVerifier
-from story_maker.formal.result import ChronologyResult
+from story_maker.formal.result import ChronologyResult, VerifierInterruption
 
 REPOSITORY = "cliente/story-maker"
 WORKFLOW = "verificar-cronologia.yml"
@@ -47,11 +47,13 @@ class FakeGithub:
         statuses: tuple[str, ...] = ("queued", "in_progress", "completed"),
         artifact: bytes | None = None,
         failures: dict[str, int | type[Exception]] | None = None,
+        listed: bool = True,
     ) -> None:
         self.statuses: Iterator[str] = iter(statuses)
         self.last_status = statuses[-1]
         self.artifact = artifact_zip(PASSED_OUTPUT) if artifact is None else artifact
         self.failures = failures or {}
+        self.listed = listed
         self.requests: list[httpx.Request] = []
 
     def _endpoint(self, request: httpx.Request) -> str:
@@ -92,13 +94,8 @@ class FakeGithub:
                 200, json={"id": RUN_ID, "status": status, "conclusion": conclusion}
             )
         if endpoint == "artifacts":
-            return httpx.Response(
-                200,
-                json={
-                    "total_count": 1,
-                    "artifacts": [{"id": ARTIFACT_ID, "name": "resultado-cronologia"}],
-                },
-            )
+            listed = [{"id": ARTIFACT_ID, "name": "resultado-cronologia"}] if self.listed else []
+            return httpx.Response(200, json={"total_count": len(listed), "artifacts": listed})
         if endpoint == "download":
             return httpx.Response(302, headers={"Location": "https://blob.example.net/a.zip"})
         if endpoint == "blob":
@@ -169,3 +166,65 @@ async def test_the_github_mode_sends_the_compressed_file_by_workflow_dispatch(
             assert request.headers["Authorization"] == f"Bearer {TOKEN}"
         else:  # la descarga redirigida al almacén de artefactos no se lleva el token
             assert "Authorization" not in request.headers
+
+
+# --- 007-C15 ---------------------------------------------------------------------------------
+
+
+async def test_the_github_mode_polls_the_run_and_reads_the_result_from_the_artifact(
+    clock: FakeClock, lean_row: Any
+) -> None:
+    output = {"exit_code": lean_row.output.exit_code, "output": lean_row.output.output}
+    github = FakeGithub(
+        statuses=("queued", "in_progress", "in_progress", "in_progress", "completed"),
+        artifact=artifact_zip(output),
+    )
+
+    result = await make_verifier(github, clock).verify(SOURCE)
+
+    assert isinstance(result, ChronologyResult)
+    lean_row.check(result)
+    assert github.endpoints() == [
+        "dispatch",
+        *["run"] * 5,
+        "artifacts",
+        "download",
+        "blob",
+    ]
+    assert clock.now == 1000.0 + 4 * 10
+
+
+def zip_with(name: str, content: bytes) -> bytes:
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as archive:
+        archive.writestr(name, content)
+    return buffer.getvalue()
+
+
+@pytest.mark.parametrize(
+    ("label", "github"),
+    [
+        ("sin artefacto", FakeGithub(listed=False)),
+        ("no es un zip", FakeGithub(artifact=b"esto no es un zip")),
+        ("zip sin resultado", FakeGithub(artifact=zip_with("otro.json", b"{}"))),
+        ("resultado sin JSON", FakeGithub(artifact=zip_with("resultado.json", b"no json"))),
+        ("falta la salida", FakeGithub(artifact=artifact_zip({"exit_code": 0}))),
+        (
+            "salida que no es texto",
+            FakeGithub(artifact=artifact_zip({"exit_code": 0, "output": 7})),
+        ),
+        (
+            "código que no es entero",
+            FakeGithub(artifact=artifact_zip({"exit_code": "0", "output": ""})),
+        ),
+        ("claves de más", FakeGithub(artifact=artifact_zip({**PASSED_OUTPUT, "passed": True}))),
+        ("no es un objeto", FakeGithub(artifact=artifact_zip([0, ""]))),
+    ],
+)
+async def test_a_finished_run_without_a_valid_result_artifact_gives_no_verdict(
+    clock: FakeClock, label: str, github: FakeGithub
+) -> None:
+    result = await make_verifier(github, clock).verify(SOURCE)
+
+    assert isinstance(result, VerifierInterruption), label
+    assert result.reason == "verifier_unreachable"
