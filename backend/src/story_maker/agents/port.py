@@ -197,7 +197,7 @@ class LiveSession:
 
     def before_tool(self, call_id: str, tool: str, tool_input: dict[str, Any]) -> str | None:
         """Hook de policy (`PreToolUse`): None deja correr la tool; un texto la deniega."""
-        self.policy.decide(
+        decision = self.policy.decide(
             PolicyRequest(
                 origin="policy_hook",
                 user_id=self.request.user_id,
@@ -208,6 +208,14 @@ class LiveSession:
                 fields=_fields(tool_input),
             )
         )
+        if decision.decision == "deny":
+            reason = decision.reason or "denegada por la política"
+            with self._tool_span(tool, "WARNING", reason):
+                pass
+            self.calls.append(
+                ToolCall(tool, tool_input, "denied", reason=reason, own=tool in self._specs)
+            )
+            return reason
         pending = _Pending(tool=tool, input=tool_input)
         if tool not in self._specs:
             pending.span = ExitStack()

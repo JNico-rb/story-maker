@@ -6,12 +6,13 @@ from collections.abc import Callable
 from typing import Any, Literal
 
 import pytest
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, sessionmaker
 
 from story_maker.agents.ceiling import TokenCeiling
 from story_maker.agents.fake import Call, FakeAgent, Say, Script
+from story_maker.agents.policy_port import PolicyDecision, PolicyRequest
 from story_maker.agents.port import ACK, AgentPort, SessionRequest
 from story_maker.agents.profiles import ToolsMismatch
 from story_maker.agents.tools import ToolSpec
@@ -155,3 +156,89 @@ async def test_a_session_that_ends_without_delivering_is_not_a_port_error(
     assert result.calls == []
     assert result.deliveries == []
     assert result.text == "No puedo evaluar."
+
+
+def logged_chapter_tool(events: list[str]) -> ToolSpec:
+    """`submit_chapter` cuyo manejador deja huella al validar: así se ve si corrió."""
+
+    class LoggedChapter(BaseModel):
+        title: str
+        text: str
+
+        @model_validator(mode="before")
+        @classmethod
+        def log(cls, data: Any) -> Any:
+            events.append(f"corre submit_chapter {data.get('text')}")
+            return data
+
+    return ToolSpec(name="submit_chapter", model=LoggedChapter, narrative=("title", "text"))
+
+
+def writer_rule(events: list[str]) -> Callable[[PolicyRequest], PolicyDecision]:
+    def rule(request: PolicyRequest) -> PolicyDecision:
+        values = {f.path: f.value for f in request.fields}
+        events.append(f"decide {request.tool} {values}")
+        if request.tool == "Skill":
+            if values.get("skill") == "personalizacion-natural":
+                return PolicyDecision("allow")
+            return PolicyDecision("deny", "skill no admitida")
+        if request.tool == "submit_chapter":
+            if "prohibido" in values.get("text", ""):
+                return PolicyDecision("deny", "término prohibido")
+            return PolicyDecision("flag")
+        return PolicyDecision("deny", "tool fuera de la lista blanca del rol")
+
+    return rule
+
+
+async def test_every_tool_call_goes_through_the_policy_first_and_its_decision_applies(
+    port: AgentPort,
+    fake: FakeAgent,
+    policy: Any,
+    user_id: int,
+    novel_id: int,
+    run_id: int,
+    make_request: Callable[..., SessionRequest],
+) -> None:
+    events: list[str] = []
+    policy.rule = writer_rule(events)
+    calls = (
+        Call("Skill", {"skill": "personalizacion-natural"}),
+        Call("Skill", {"skill": "otra-skill"}),
+        Call("submit_chapter", {"title": "Uno", "text": "limpio"}),
+        Call("submit_chapter", {"title": "Dos", "text": "prohibido"}),
+        Call("Bash", {"command": "dir"}),
+    )
+    fake.script("writer", "write", Script(steps=(*calls, Say("Fin.")), usage=USAGE))
+
+    result = await port.run(
+        make_request("writer", "write", run_id=run_id, tools=(logged_chapter_tool(events),))
+    )
+
+    assert [(r.origin, r.user_id, r.novel_id, r.run_id, r.role) for r in policy.requests] == [
+        ("policy_hook", user_id, novel_id, run_id, "writer")
+    ] * 5
+    assert [r.tool for r in policy.requests] == [c.tool for c in calls]
+    assert [{f.path: f.value for f in r.fields} for r in policy.requests] == [
+        c.input for c in calls
+    ]
+    # cada decisión, antes de que corra su tool; lo denegado no corre
+    assert events == [
+        "decide Skill {'skill': 'personalizacion-natural'}",
+        "decide Skill {'skill': 'otra-skill'}",
+        "decide submit_chapter {'title': 'Uno', 'text': 'limpio'}",
+        "corre submit_chapter limpio",
+        "decide submit_chapter {'title': 'Dos', 'text': 'prohibido'}",
+        "decide Bash {'command': 'dir'}",
+    ]
+    assert [(c.tool, c.status, c.reason) for c in result.calls] == [
+        ("Skill", "accepted", None),
+        ("Skill", "denied", "skill no admitida"),
+        ("submit_chapter", "accepted", None),
+        ("submit_chapter", "denied", "término prohibido"),
+        ("Bash", "denied", "tool fuera de la lista blanca del rol"),
+    ]
+    reads = fake.sessions[0].reads
+    assert reads[1] == "skill no admitida"
+    assert reads[3] == "término prohibido"
+    assert reads[4] == "tool fuera de la lista blanca del rol"

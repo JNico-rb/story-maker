@@ -22,7 +22,7 @@ from story_maker.config import Config, load_config
 from story_maker.observability.null import NullObservability
 from story_maker.observability.port import Trace
 from story_maker.settings import ROOT, Settings
-from story_maker.store.models import Novel, User
+from story_maker.store.models import Novel, Run, User
 from story_maker.store.session import create_schema, make_engine, make_session_factory
 
 
@@ -89,6 +89,21 @@ def novel_id(session_factory: sessionmaker[Session]) -> int:
         session.add(novel)
         session.commit()
         return novel.id
+
+
+@pytest.fixture
+def run_id(session_factory: sessionmaker[Session], novel_id: int) -> int:
+    with session_factory() as session:
+        run = Run(
+            novel_id=novel_id,
+            type="generation",
+            status="running",
+            resumes=0,
+            created_at=dt.datetime(2026, 9, 24, 12, 0),
+        )
+        session.add(run)
+        session.commit()
+        return run.id
 
 
 @pytest.fixture
