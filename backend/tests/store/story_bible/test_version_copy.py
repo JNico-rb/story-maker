@@ -4,11 +4,13 @@
 
 from __future__ import annotations
 
+import datetime as dt
 from typing import Any
 
 from sqlalchemy import text
 
 from story_maker.store import models
+from story_maker.store.session import unit_of_work
 
 TABLES = (
     "worlds",
@@ -117,3 +119,59 @@ def test_the_copy_does_not_embed_again_it_shares_the_vectors(store: Any) -> None
                 .one_or_none()
             )
             assert vector is not None, card.text
+
+
+def test_the_base_does_not_change_when_copied_nor_while_the_candidate_is_worked(
+    store: Any,
+) -> None:
+    v1 = store.build_v1()
+    before = store.fingerprint(v1.version_id)
+
+    k_id, ids = store.copy(v1.version_id)
+    assert store.fingerprint(v1.version_id) == before
+
+    def in_k(change: Any) -> None:
+        with unit_of_work(store.session_factory) as uow:
+            change(uow.session, uow)
+        assert store.fingerprint(v1.version_id) == before
+
+    def change_a_fact(session: Any, _uow: Any) -> None:
+        session.get(models.Fact, ids["facts"][v1.facts["la paella"]]).value = "el cocido"
+
+    def rewrite_chapter_3(session: Any, _uow: Any) -> None:
+        chapter = session.query(models.Chapter).filter_by(version_id=k_id, number=3).one()
+        chapter.text = "Otro texto del capítulo 3."
+        chapter.content_hash = "otra-huella"
+
+    def delete_a_fact_usage(session: Any, uow: Any) -> None:
+        fact_id = ids["facts"][v1.facts["Toby"]]
+        uow.delete(session.query(models.FactUsage).filter_by(fact_id=fact_id, chapter=7).one())
+
+    def add_a_recorded_event(session: Any, uow: Any) -> None:
+        uow.add(
+            models.Event(
+                version_id=k_id,
+                statement="E6: nuevo",
+                moment=dt.datetime(2026, 5, 13, 9, 0),
+                place_id=ids["places"][v1.places["la estación"]],
+                type="ordinary",
+                analepsis=False,
+                origin="recorded",
+                chapter=3,
+                beat=2,
+            )
+        )
+
+    def publish_as_v2(session: Any, _uow: Any) -> None:
+        k = session.get(models.Version, k_id)
+        k.status, k.number, k.published_at = "published", 2, store.now
+
+    for change in (
+        change_a_fact,
+        rewrite_chapter_3,
+        delete_a_fact_usage,
+        add_a_recorded_event,
+        publish_as_v2,
+    ):
+        in_k(change)
+    assert store.fingerprint(k_id) != before
