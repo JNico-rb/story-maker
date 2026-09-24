@@ -20,6 +20,7 @@ from typing import Any, cast
 
 from sqlalchemy.orm import Session, sessionmaker
 
+from story_maker.agents.ceiling import NeverFits, NoRoomInTime
 from story_maker.agents.port import AgentPort, SessionRequest, ToolCall
 from story_maker.config import Config
 from story_maker.observability.port import ObservabilityPort
@@ -133,6 +134,8 @@ async def request_change(
                 ),
             ),
         )
+        if isinstance(found, RequestFailure):
+            return found
         proposal = found.proposal
         if proposal is None:
             _save_rejected(
@@ -192,18 +195,27 @@ async def _interpret(
     max_attempts: int,
     message: Callable[[list[str]], str],
     validate: Callable[[ProposeChangeInput], list[str]],
-) -> _Interpretation:
+) -> _Interpretation | RequestFailure:
     """Sesiones del planner hasta una entrega válida o hasta `max_attempts` intentos. Cada
     entrega es un `Intento`: un error de schema vuelve en la misma sesión; un defecto de
-    validación abre una sesión nueva con él. La sesión en curso se corta al último intento."""
+    validación abre una sesión nueva con él. La sesión en curso se corta al último intento.
+
+    Sin techo, sin proveedor o con la sesión agotada antes de gastar los intentos, no hay
+    interpretación: 503 (422 si la reserva no cabría nunca) y no queda solicitud (014-C09)."""
     outcomes: list[str] = []
     defects: list[str] = []
     session_request = first
     while True:
         used = len(outcomes)
         request = dataclasses.replace(session_request, cut_when=_cut_at(used, max_attempts))
-        result = await agent_port.run(request)
-        for call in [c for c in result.calls if _is_attempt(c)][: max_attempts - used]:
+        try:
+            result = await agent_port.run(request)
+        except NoRoomInTime:
+            return RequestFailure(503, "no_room_in_time")
+        except NeverFits:
+            return RequestFailure(422, "never_fits")
+        attempts = [c for c in result.calls if _is_attempt(c)][: max_attempts - used]
+        for call in attempts:
             if call.status == "schema_rejected":
                 defects = list(call.errors)
             else:
@@ -214,6 +226,8 @@ async def _interpret(
             outcomes.append("rewrite" if len(outcomes) + 1 < max_attempts else "fail")
         if len(outcomes) >= max_attempts:
             return _Interpretation(None, outcomes, defects)
+        if result.outcome != "completed" or not attempts:
+            return RequestFailure(503, result.outcome)
         session_request = dataclasses.replace(first, message=message(defects))
 
 
