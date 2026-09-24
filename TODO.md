@@ -160,7 +160,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 002-C08 · Al entrar, el email no distingue mayúsculas
 - [x] 002-C09 · Credenciales incorrectas
 - [x] 002-C10 · Acceso con cuerpo incompleto
-- [ ] 002-C11 · Un token válido identifica al cliente
+- [x] 002-C11 · Un token válido identifica al cliente
 - [ ] 002-C12 · Sin token, o con el token mal presentado, responde 401
 - [ ] 002-C13 · Un token manipulado o de otro uso responde 401
 - [ ] 002-C14 · La caducidad en su límite
