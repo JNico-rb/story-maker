@@ -8,6 +8,10 @@ from fastapi.testclient import TestClient
 PUBLIC_ROUTES = {("/api/auth/register", "POST"), ("/api/auth/login", "POST")}
 # Crece con cada spec de rutas: una ruta nueva sin su fila aquí hace fallar la prueba.
 PROTECTED_ROUTES = {
+    ("/api/novels/{novel_id}/runs", "POST"),  # 011
+    ("/api/runs/{run_id}", "GET"),  # 011
+    ("/api/runs/{run_id}/resume", "POST"),  # 011
+    ("/api/runs/{run_id}/report", "GET"),  # 011
     ("/api/novels/{novel_id}/story-bible", "GET"),  # 009
     ("/api/novels/{novel_id}/versions", "GET"),  # 013
     ("/api/novels/{novel_id}/versions/{number}", "GET"),  # 013

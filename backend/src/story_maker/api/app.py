@@ -16,6 +16,7 @@ from story_maker.agents.port import AgentPort, PolicyEngine
 from story_maker.api.auth import Clock, utc_now
 from story_maker.api.auth import router as auth_router
 from story_maker.api.errors import validation_exception_handler
+from story_maker.api.runs import router as runs_router
 from story_maker.api.story_bible import router as story_bible_router
 from story_maker.api.versions import router as versions_router
 from story_maker.api.view import router as view_router
@@ -60,6 +61,7 @@ def create_app(
         app.state.access_token_hours = access_token_hours
         app.state.clock = clock
         app.include_router(auth_router)
+        app.include_router(runs_router)
         app.include_router(story_bible_router)
         app.include_router(versions_router)
         app.include_router(view_router)
