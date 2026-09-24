@@ -26,9 +26,9 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 |---|---|---|---|---|---|
 | 0 — scaffolding (integrador) | 000 | — | checkout principal | `V2` | cerrada (D al final) |
 | A — ruta crítica | 001 → 002 → 009 → 010 → 011 → 012 → 014 → 015 → 021 | 003, 004 (010) · 005, 006 (011) · 007 (012) · 008, 013 (015) | `../sm-a` | `carril-a` | 001 y 002 integradas; 009 en curso |
-| B — agentes y formal | 003 → 016 → 017 | 001 (003) · 009 (016) · 012, 013 (017) | `../sm-b` | `carril-b` | 003 en curso |
+| B — agentes y formal | 003 → 016 → 017 | 001 (003) · 009 (016) · 012, 013 (017) | `../sm-b` | `carril-b` | 003: 34/38, cerrando tras rebase |
 | C — entrada y formal | 005 → 007 → 008 → 019 | 001 (005 parcial) · 009 (007 parcial) · 002, 003, 004 (008) · 012, 018 (019) | `../sm-c` | `carril-c` | 005 integrada; 007 en curso (sin el adaptador a SQLite, que espera 009) |
-| D — formal y lectura | 006 → 004 → 013 → 020 | 001 (004) · 009 (013) · 012 (020) | `../sm-d` | `carril-d` | 006 integrada; 004 en verificación |
+| D — formal y lectura | 006 → 004 → 013 → 020 | 001 (004) · 009 (013) · 012 (020) | `../sm-d` | `carril-d` | 006 y 004 integradas; 013 espera 009 |
 | F — linters de prosa | 018 | 011 (018 parcial: C18–C23) | `../sm-f` | `carril-f` | 018 en curso: los linters puros (C1–C17, I1, I2) |
 | E — frontend | 022 → 023 → 024 → 025 → 026 → 027 → 028 (`specs/frontend/`) | las de backend de la tabla de specs, cerradas en V2 | `../sm-e` | `carril-e` | 022–028 con spec y plan aprobados; implementación cuando se cierren sus dependencias |
 
