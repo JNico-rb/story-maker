@@ -279,7 +279,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] 004-C16 · check-env no exige prompt a un rol sin fichero en el workspace
 
 ### Closing
-- [x] Full suite green, type checks clean — verificador 2026-09-24: `uv run pytest` 339 passed; `uv run ruff check .` all checks passed; `uv run ruff format --check .` 66 files already formatted; `uv run mypy src` no issues found in 40 source files
+- [x] Full suite green, type checks clean — verificador 2026-09-25: `uv run pytest` 1528 passed; `uv run ruff check .` all checks passed; `uv run ruff format --check .` 352 files already formatted; `uv run mypy src` no issues found in 145 source files
 - [x] Spec updated, or confirmed still true
 - [x] Docs updated, or confirmed still true
 
