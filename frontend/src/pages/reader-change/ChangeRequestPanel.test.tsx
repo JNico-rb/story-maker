@@ -203,6 +203,39 @@ describe("027 cambio del lector", () => {
     expect(calls).toHaveLength(1);
   });
 
+  it("027-C11: confirming disables both confirm and discard while it is in progress", async () => {
+    const user = userEvent.setup();
+    let resolveConfirm: (response: Response) => void = () => undefined;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL) => {
+        if (String(input).includes("/confirm")) {
+          return new Promise<Response>((resolve) => (resolveConfirm = resolve));
+        }
+        return json(201, {
+          id: "req-1",
+          proposal: { fact: "Nombre del perro", old_value: "Toby", new_value: "Nala" },
+          affected_chapters: [2, 5, 7],
+          code: "SECRETO-123",
+          expires_at: "2026-09-25T12:00:00Z",
+        });
+      }),
+    );
+    const onConfirmed = vi.fn();
+    renderPanel(() => undefined, onConfirmed);
+
+    await sendRequest(user);
+    const confirm = screen.getByRole("button", { name: "Confirmar" });
+    const discard = screen.getByRole("button", { name: "Descartar" });
+    await user.click(confirm);
+
+    expect(confirm).toBeDisabled();
+    expect(discard).toBeDisabled();
+
+    resolveConfirm(json(202, { run_id: "run-1" }));
+    await vi.waitFor(() => expect(onConfirmed).toHaveBeenCalledWith("run-1"));
+  });
+
   it("027-C08: sending disables the action while it is in progress", async () => {
     const user = userEvent.setup();
     let resolveResponse: (response: Response) => void = () => undefined;
