@@ -246,3 +246,18 @@ def test_there_is_one_brief_place_per_exact_place_name(store: Any, f1: Confirmed
     r1_place = events["se perdió en la feria de su pueblo"]["row"].place_id
     assert events["ganó un concurso de dibujo"]["row"].place_id == r1_place
     assert events["montó en la noria"]["row"].place_id != r1_place
+
+
+def test_the_dating_respects_the_calendar_limits(store: Any, f2: ConfirmedBrief) -> None:
+    version_id, characters, _ = _canon(store, f2)
+    moments = {s: e["row"].moment for s, e in _events(store, version_id).items()}
+
+    birth = dt.datetime.combine(characters["Leo"].birth_date, dt.time(0, 0))
+    assert moments == {
+        "recuerdo a los 0": dt.datetime(2000, 2, 29, 12, 0),
+        "recuerdo a los 4": dt.datetime(2004, 2, 29, 12, 0),
+        "recuerdo a los 5": dt.datetime(2005, 3, 1, 12, 0),
+        "recuerdo en 2000": dt.datetime(2000, 3, 1, 12, 0),
+        "recuerdo en 2010": dt.datetime(2010, 1, 1, 12, 0),
+    }
+    assert moments["recuerdo a los 0"] > birth
