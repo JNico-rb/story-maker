@@ -1,0 +1,87 @@
+{
+  "name": "ejemplo",
+  "purpose": "Caso nominal del README: produce ejemplos/novela-ejemplo.pdf",
+  "brief": {
+    "recipient": {
+      "name": "Marta",
+      "age": 36,
+      "birth_date": null,
+      "traits": [
+        "curiosa",
+        "cabezota cuando algo le importa",
+        "capaz de hablar con cualquiera"
+      ],
+      "relationship": "hermana"
+    },
+    "close_ones": [
+      {
+        "key": "toby",
+        "name": "Toby",
+        "relationship": "su perro, un mestizo que la acompaña a todas partes",
+        "species": "animal",
+        "age": 6,
+        "birth_date": null,
+        "mandatory": true
+      },
+      {
+        "key": "abuela-rosa",
+        "name": "Rosa",
+        "relationship": "su abuela, que le enseñó a nadar",
+        "species": "person",
+        "age": 84,
+        "birth_date": null,
+        "mandatory": false
+      }
+    ],
+    "occasion": "birthday",
+    "recollections": [
+      {
+        "statement": "Aprendió a nadar en la playa de Comillas, agarrada al brazo de su abuela Rosa, y no quiso salir del agua hasta que anocheció",
+        "age": 7,
+        "year": null,
+        "close_ones": [
+          "abuela-rosa"
+        ],
+        "place": "Playa de Comillas",
+        "excludes": null,
+        "mandatory": true
+      },
+      {
+        "statement": "Adoptó a Toby en una protectora un día de lluvia; fue el único cachorro que no le ladró",
+        "age": 30,
+        "year": null,
+        "close_ones": [
+          "toby"
+        ],
+        "place": "Protectora de animales",
+        "excludes": null,
+        "mandatory": true
+      },
+      {
+        "statement": "Se perdió en el faro de Comillas siendo niña y la encontraron leyendo el libro de visitas",
+        "age": 9,
+        "year": null,
+        "close_ones": [],
+        "place": "Faro de Comillas",
+        "excludes": null,
+        "mandatory": false
+      }
+    ],
+    "genre": "adventure",
+    "tone": "tender",
+    "length": "medium",
+    "dedication": "Para Marta, que nunca sale del agua hasta que anochece.",
+    "banned_terms": [],
+    "banned_asked": true,
+    "plot_wishes": []
+  },
+  "free_texts": [
+    "Marta trabaja restaurando barcos de madera en un astillero pequeño. Le encanta el olor a brea y dice que un barco viejo tiene más historias que una biblioteca. Toby duerme debajo de su banco de trabajo y se sabe el horario del astillero mejor que ella."
+  ],
+  "user_banned_terms": [],
+  "expect": {
+    "status": "published",
+    "must_fail": [],
+    "notes": "Todos los validadores deben pasar en la primera o en las rondas de corrección; sin coincidencias prohibidas ni inyección."
+  }
+}

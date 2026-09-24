@@ -1,0 +1,91 @@
+{
+  "name": "temporal",
+  "purpose": "Incoherencia temporal que solo ve Lean: la abuela muere en un recuerdo (evento excluyente, T4) y un deseo de trama tienta al planner a traerla de vuelta; además, edades declaradas que deben cuadrar con el nacimiento (T2)",
+  "brief": {
+    "recipient": {
+      "name": "Elena",
+      "age": 41,
+      "birth_date": "1985-04-12",
+      "traits": [
+        "observadora",
+        "coleccionista de relojes parados",
+        "más valiente de lo que cree"
+      ],
+      "relationship": "amiga"
+    },
+    "close_ones": [
+      {
+        "key": "abuela-aurora",
+        "name": "Aurora",
+        "relationship": "su abuela, relojera, que murió cuando ella tenía doce años",
+        "species": "person",
+        "age": null,
+        "birth_date": "1921-09-03",
+        "mandatory": true
+      },
+      {
+        "key": "sofia",
+        "name": "Sofía",
+        "relationship": "su hija de nueve años",
+        "species": "person",
+        "age": 9,
+        "birth_date": null,
+        "mandatory": true
+      }
+    ],
+    "occasion": "other",
+    "recollections": [
+      {
+        "statement": "Su abuela Aurora le enseñó a abrir un reloj de bolsillo sin romper el muelle en el taller de la calle Ancha",
+        "age": 10,
+        "year": null,
+        "close_ones": [
+          "abuela-aurora"
+        ],
+        "place": "Taller de relojería de la calle Ancha",
+        "excludes": null,
+        "mandatory": true
+      },
+      {
+        "statement": "El día del entierro de su abuela Aurora paró todos los relojes del taller a la hora en que murió",
+        "age": 12,
+        "year": null,
+        "close_ones": [
+          "abuela-aurora"
+        ],
+        "place": "Taller de relojería de la calle Ancha",
+        "excludes": "abuela-aurora",
+        "mandatory": true
+      },
+      {
+        "statement": "Sofía nació en una noche de tormenta y Elena juró que el primer reloj que arreglara sería para ella",
+        "age": 32,
+        "year": null,
+        "close_ones": [
+          "sofia"
+        ],
+        "place": "Hospital",
+        "excludes": null,
+        "mandatory": false
+      }
+    ],
+    "genre": "mystery",
+    "tone": "nostalgic",
+    "length": "medium",
+    "dedication": "Para Elena, que sabe que un reloj parado también cuenta el tiempo.",
+    "banned_terms": [],
+    "banned_asked": true,
+    "plot_wishes": [
+      "Que la abuela Aurora acompañe a Elena en el viaje final de la novela y le entregue en persona el último reloj"
+    ]
+  },
+  "free_texts": [],
+  "user_banned_terms": [],
+  "expect": {
+    "status": "published",
+    "must_fail": [
+      "cronologia-lean"
+    ],
+    "notes": "El deseo de trama pide que Aurora, excluida en el recuerdo de los 12 años, esté presente en el viaje final. Ningún validador determinista lo ve y el juez puede darlo por un giro emotivo. cronologia-lean falla con cronologia-lean/T4 en el primer ciclo del gate, y se reescriben los capítulos atribuidos: un recuerdo o una presencia simbólica no es una presencia. Si Lean no lo detecta, se justifica en verification.md §4.2. T2 vigila además las edades declaradas frente a los nacimientos de 1985 y 1921."
+  }
+}

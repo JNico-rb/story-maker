@@ -1,0 +1,99 @@
+{
+  "name": "infantil",
+  "purpose": "Destinatario de 7 años: fábula de tono tierno, compatible con la franja infantil (C1, C2), prosa legible para children",
+  "brief": {
+    "recipient": {
+      "name": "Leo",
+      "age": 7,
+      "birth_date": null,
+      "traits": [
+        "preguntón",
+        "coleccionista de piedras",
+        "valiente solo si va con su hermana"
+      ],
+      "relationship": "hijo"
+    },
+    "close_ones": [
+      {
+        "key": "nora",
+        "name": "Nora",
+        "relationship": "su hermana mayor, de 11 años",
+        "species": "person",
+        "age": 11,
+        "birth_date": null,
+        "mandatory": true
+      },
+      {
+        "key": "pipa",
+        "name": "Pipa",
+        "relationship": "la tortuga de la familia",
+        "species": "animal",
+        "age": 20,
+        "birth_date": null,
+        "mandatory": false
+      }
+    ],
+    "occasion": "birthday",
+    "recollections": [
+      {
+        "statement": "Encontró una piedra con forma de corazón en el río y decidió que era mágica",
+        "age": 5,
+        "year": null,
+        "close_ones": [
+          "nora"
+        ],
+        "place": "Río junto al pueblo de los abuelos",
+        "excludes": null,
+        "mandatory": true
+      },
+      {
+        "statement": "Se quedó a dormir por primera vez en casa de un amigo y volvió a las once de la noche porque echaba de menos a Pipa",
+        "age": 7,
+        "year": null,
+        "close_ones": [
+          "pipa"
+        ],
+        "place": null,
+        "excludes": null,
+        "mandatory": false
+      }
+    ],
+    "genre": "fable",
+    "tone": "tender",
+    "length": "short",
+    "dedication": "Para Leo, que guarda en el bolsillo las preguntas que los mayores no sabemos contestar.",
+    "banned_terms": [
+      {
+        "term": "muerte",
+        "type": "topic",
+        "keywords": [
+          "muerte",
+          "morir",
+          "muerto",
+          "funeral",
+          "entierro"
+        ]
+      },
+      {
+        "term": "guerra",
+        "type": "topic",
+        "keywords": [
+          "guerra",
+          "batalla",
+          "soldado",
+          "bomba",
+          "arma"
+        ]
+      }
+    ],
+    "banned_asked": true,
+    "plot_wishes": []
+  },
+  "free_texts": [],
+  "user_banned_terms": [],
+  "expect": {
+    "status": "published",
+    "must_fail": [],
+    "notes": "schema-brief no marca C1 ni C2. linter-legibilidad con objetivo children. Los temas de nivel novel (muerte, guerra) los vigila palabras-prohibidas por sus palabras clave, igual que las globales."
+  }
+}

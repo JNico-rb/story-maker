@@ -1,0 +1,116 @@
+{
+  "name": "boda",
+  "purpose": "Boda: varios allegados y obligatorios, una expareja prohibida de nivel novel y términos de nivel user, con variantes de acento y de plural",
+  "brief": {
+    "recipient": {
+      "name": "Bruno",
+      "age": 29,
+      "birth_date": null,
+      "traits": [
+        "programador arrepentido",
+        "corredor de montaña",
+        "alérgico a las reuniones"
+      ],
+      "relationship": "hermano"
+    },
+    "close_ones": [
+      {
+        "key": "lucia",
+        "name": "Lucía",
+        "relationship": "su novia, con la que se casa en octubre",
+        "species": "person",
+        "age": 31,
+        "birth_date": null,
+        "mandatory": true
+      },
+      {
+        "key": "clara",
+        "name": "Clara",
+        "relationship": "su hermana pequeña, estudiante de veterinaria",
+        "species": "person",
+        "age": 22,
+        "birth_date": null,
+        "mandatory": true
+      },
+      {
+        "key": "kiwi",
+        "name": "Kiwi",
+        "relationship": "el gato que adoptó en el confinamiento",
+        "species": "animal",
+        "age": 6,
+        "birth_date": null,
+        "mandatory": false
+      }
+    ],
+    "occasion": "wedding",
+    "recollections": [
+      {
+        "statement": "Terminó su primera carrera de montaña andando, de la mano de Clara, y llegó el último entre aplausos",
+        "age": 24,
+        "year": null,
+        "close_ones": [
+          "clara"
+        ],
+        "place": "Sierra de Gredos",
+        "excludes": null,
+        "mandatory": true
+      },
+      {
+        "statement": "Dejó su trabajo en una gran empresa tecnológica el día que un asistente le corrigió una broma en un correo",
+        "age": 27,
+        "year": null,
+        "close_ones": [],
+        "place": null,
+        "excludes": null,
+        "mandatory": true
+      },
+      {
+        "statement": "Le pidió matrimonio a Lucía en la cima del Almanzor, sin anillo y con una galleta de chocolate partida en dos",
+        "age": 28,
+        "year": null,
+        "close_ones": [
+          "lucia"
+        ],
+        "place": "Pico Almanzor",
+        "excludes": null,
+        "mandatory": true
+      }
+    ],
+    "genre": "romance",
+    "tone": "funny",
+    "length": "medium",
+    "dedication": "Para Bruno y Lucía, que llegaron a la cima sin mapa y sin prisa.",
+    "banned_terms": [
+      {
+        "term": "Carla",
+        "type": "word"
+      },
+      {
+        "term": "robot",
+        "type": "word"
+      },
+      {
+        "term": "móviles",
+        "type": "word"
+      }
+    ],
+    "banned_asked": true,
+    "plot_wishes": []
+  },
+  "free_texts": [],
+  "user_banned_terms": [
+    {
+      "term": "pantalla",
+      "type": "word"
+    },
+    {
+      "term": "dron",
+      "type": "word"
+    }
+  ],
+  "expect": {
+    "status": "published",
+    "must_fail": [],
+    "notes": "Actúan elementos-obligatorios y nombres-exactos (Bruno, Lucía, Clara, Kiwi) y palabras-prohibidas con variantes. Nivel novel: «Carla», la expareja; «robot» (debe cazar «robots»); «móviles», dado en plural con acento (debe cazar «móvil», «movil» y «moviles»). Nivel user: «pantalla» («pantallas») y «dron» («drones»). Cada coincidencia queda en el audit log y en Langfuse con su nivel, y el writer reescribe dentro del límite; si lo agota, la ejecución falla con retries_exhausted y el informe."
+  }
+}
