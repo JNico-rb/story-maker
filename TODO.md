@@ -294,9 +294,9 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 005-I5 · El detector de inyección nunca deniega por sí solo
 - [x] 005-I6 · Cada coincidencia lleva término, nivel y variante en su detalle
 - [x] 005-C18 · Sembrar la lista global no duplica entradas
-- [ ] 005-C19 · Toda decisión deja una fila en el audit log
-- [ ] 005-C20 · El origen de cada decisión es uno de los seis declarados
-- [ ] 005-I2 · Toda petición decidida deja exactamente una fila en audit_log
+- [x] 005-C19 · Toda decisión deja una fila en el audit log
+- [x] 005-C20 · El origen de cada decisión es uno de los seis declarados
+- [x] 005-I2 · Toda petición decidida deja exactamente una fila en audit_log
 
 ### Closing
 - [ ] Full suite green, type checks clean
