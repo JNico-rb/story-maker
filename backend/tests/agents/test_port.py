@@ -142,3 +142,16 @@ async def test_deliveries_stay_in_memory_in_order_and_nothing_is_persisted(
     assert fake.sessions[0].reads == [ACK] * 3
     after = fingerprint(session_factory)
     assert {t: n - before[t] for t, n in after.items() if n != before[t]} == {"role_sessions": 1}
+
+
+async def test_a_session_that_ends_without_delivering_is_not_a_port_error(
+    port: AgentPort, fake: FakeAgent, make_request: Callable[..., SessionRequest]
+) -> None:
+    fake.script("judge", None, Script(steps=(Say("No puedo evaluar."),), usage=USAGE))
+
+    result = await port.run(make_request("judge"))
+
+    assert result.outcome == "completed"
+    assert result.calls == []
+    assert result.deliveries == []
+    assert result.text == "No puedo evaluar."

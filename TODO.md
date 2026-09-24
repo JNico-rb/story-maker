@@ -202,7 +202,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 003-C07 · El schema que recibe la sesión es el derivado del modelo de la tool
 - [x] 003-C08 · Una entrada inválida vuelve al modelo como error y se corrige en la misma sesión
 - [x] 003-C09 · Las entregas quedan en memoria, en orden, y nada se persiste
-- [ ] 003-C10 · Una sesión que termina sin entregar no es un error del puerto
+- [x] 003-C10 · Una sesión que termina sin entregar no es un error del puerto
 - [ ] 003-C11 · Toda llamada a tool pasa antes por la política, y su decisión se aplica
 - [ ] 003-C12 · La política recibe como narrativos solo los campos que la tool marca
 - [ ] 003-C13 · Si la política falla, la tool no corre
