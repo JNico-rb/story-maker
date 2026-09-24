@@ -12,59 +12,44 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 
 **Reglas vigentes (decisiones del usuario, 2026-09-24):**
 - Backend primero. Sin revisiones: el integrador escribe y marca spec y plan. TDD y `verificador` al cierre.
-- Los pasos D y las ejecuciones con modelo real van al final, en un lote. Frontend después (el carril E lo lleva otra sesión, `story-maker-f5`).
-- Paralelizar todo lo seguro: un implementador por carril, nunca dos specs a la vez en el mismo worktree. Una spec puede empezar por lo que no usa una dependencia en curso: lo marca *parcial* en la tabla de specs.
-- Modelo del implementador: opus en 003, 006, 007, 009, 011, 012, 014 y 016, y en cualquier fallo que se repita tras 2 intentos; sonnet en el resto. Verificador y redactor: sonnet.
-- Integración automática: verificador PASS → commit `NNN: <nombre>` en el carril → `git merge --no-ff` en V2 → suite completa → `git push origin V2` → rebase de los carriles libres. Rojo → deshacer con `git reset --merge ORIG_HEAD` (no `--hard`: en el checkout puede haber ficheros de otros, p. ej. `COMO-FUNCIONA.md`, que no es nuestro) y devolver el fallo.
-- Contexto: cada spec nueva, un implementador nuevo. Retomar uno ya lanzado (SendMessage) solo para arreglos cortos de esa misma spec. En cada prompt: «HAZ EL TRABAJO TÚ MISMO: no lances subagentes» (uno que delegó no hizo nada) y la ruta absoluta del worktree.
-- Lean no corre en el portátil. La CI corre también en `carril-*`: para ver el Lean de un carril, `git push --force-with-lease origin carril-<x>` (solo en ramas de carril, nunca en V2) y leer la CI con la API pública de GitHub (`curl .../actions/runs?branch=carril-<x>`). `gh` no está instalado.
+- Los pasos D y las ejecuciones con modelo real van al final, en un lote. Frontend después. *(Obsoleto (recorte): el carril E lo llevaba otra sesión, `story-maker-f5`.)*
+- Paralelizar lo seguro: como mucho 2 implementadores y 1 verificador a la vez; nunca dos specs a la vez en el mismo worktree.
+- **Modelos:** sonnet por defecto en implementadores, verificadores y arreglos. Opus solo en 011 o 012 si hay concurrencia, reanudación o transacciones entre varias tablas, o si sonnet falla 2 veces en el mismo paso. Cada opus, anotado abajo con su motivo.
+- Integración automática: verificador PASS → commit `NNN: <nombre>` en el carril → `git merge --no-ff` en V2 → suite completa → `git push origin V2` → rebase de los carriles activos. Rojo → `git reset --merge ORIG_HEAD` (no `--hard`: en el checkout puede haber ficheros de otros, p. ej. `COMO-FUNCIONA.md`) y devolver el fallo.
+- Contexto: cada spec nueva, un implementador nuevo; SendMessage solo para arreglos cortos de esa misma spec. Prompt ≤15 líneas con la ruta absoluta del worktree y «HAZ EL TRABAJO TÚ MISMO: no lances subagentes». Verificador: suite, tipos y «cada paso [x] tiene su prueba»; informe ≤5 líneas.
+- Parada: una spec que falla 2 veces con opus para su carril y se avisa al usuario.
+- Lean no corre en el portátil. La CI corre también en `carril-*`: `git push --force-with-lease origin carril-<x>` (nunca en V2) y leer la CI con la API pública de GitHub. `gh` no está instalado.
 
-**Integradas en V2:** 000 (D al final: C15, C16, C17, C19), 001, 002, 003, 004, 005, 006, 007, 009, 013, 016 (recortada) y 022 (frontend).
-
-**En curso (a las 2026-09-24 ~16:00; los pasos, en el bloque de cada spec de su rama):**
-
-| Spec | Carril | Pasos | Qué falta |
-|---|---|---|---|
-| 008 | B `../sm-b` | 11/38 | todo lo demás; cablea el adaptador del motor de políticas real (aviso abajo) |
-| 010 | G `../sm-g` | 22/36 | rebase sobre V2 (tiene la 009) y los pasos que aplican el plan a la story bible; comprobación de fallo de C09–C16 (se escribieron antes que su prueba) |
-| 011 | A `../sm-a` | 4/43 | parcial: todo lo que no usa 010, 008 ni 016; las costuras con ellas, según su código en sus carriles |
-| 016 | H `../sm-h` | 18/29 | rebase sobre V2 y las tarjetas desde la story bible de la 009 |
-| 018 | F `../sm-f` | 19/25 | C18–C23 esperan a la 011 (linters en el bucle) |
-
-**Siguiente — lanzar a la vez, cada uno en un worktree nuevo `../sm-<x>` (rama `carril-<x>` desde V2), por su parte que no usa lo que aún no está en V2 (dependencia *parcial*; lo demás queda [ ] hasta el rebase):**
-1. (Hecho: la 013 está integrada, afb5764.)
-2. D (`../sm-d`, sonnet): 020 parcial, `evals table` (C06–C09, I2) sobre las tablas de la 001.
-3. I (nuevo, opus): 014 parcial: propuesta, afectados y confirmación (C01–C11 y sus invariantes) con el planner en modo cambio por el doble de la 003; la ejecución del cambio espera a 011 y 012.
-4. J (nuevo, sonnet): 015 parcial: servidor MCP, identidad y tools de lectura sobre 009 y 013; `list_novels` espera a la 008 y `request_change`/`confirm_change`, a la 014.
-5. K (nuevo, sonnet): 017 parcial: estructura esperada, comparación y veredicto por código con el doble del revisor; la etapa en el gate espera a la 012.
-6. L (nuevo, opus): 012 parcial: rúbrica de novela, veredicto y atribución por código, atribución de Lean con la 007 y orden de etapas con dobles; el gate dentro del worker espera a la 011. Reutiliza el catálogo de tropos de la 010 cuando esté en V2.
-7. Relanzar con agentes nuevos A (011), B (008), G (010) y H (016), si el relevo los cortó.
-8. Al integrar cada una: 010 → A completa la 011; 008 → avisar a `story-maker-f5` (023 y 024) con sus rutas de /api; 011 → A con la 012 (fusionando lo de L) y F con C18–C23 de la 018; 012 → 014, 017, 019 y 020 completas; 014 → 015 → 021.
-Tabla de carriles y fila de backend/AGENTS.md: actualizarlas al lanzar I, J, K y L (propiedad por spec, sin cambios).
-
-
-- **Avisos abiertos:**
-  - La 008 cablea el adaptador del motor de políticas real para el puerto de agente (carga de las prohibidas por cliente y novela, `base_url` del revisor visual, `record_decision` en el audit log), y la 011 lo reutiliza. El patrón es `RealEngine` en `tests/agents/test_port.py`.
-  - 012 decide qué hace el gate con el `error` de 007; la propuesta es `failed` con `internal_error`. Tipo de defecto común: el de la 007 lleva capítulo y criterio y el de la 003 no; lo decide la 012.
-  - 014: la propuesta pedida por MCP cuelga de `mcp:request_change` (lo pide 015).
-  - El vocabulario de atributos del canon (`NOMINAL_ATTRIBUTES`) está en `store/brief_canon.py`; debe pasar a `domain/` con la 008.
-- **Tareas humanas:** `GITHUB_TOKEN` de grano fino para 007-C25; decidir si V2 pasa a ser la rama por defecto (`workflow_dispatch` de `verificar-cronologia.yml`).
+**Integradas en V2:** 000 (D al final), 001, 002, 003, 004, 005, 006, 007, 009, 013, 016 (cerrada recortada) y 022 (frontend).
 
 ### Alcance (usuario, 2026-09-24)
 
-Prioridad: los validadores y su evidencia; lo demás es secundario. La lectura es PDF + CLI.
+MVP = lo estrictamente obligatorio del enunciado + la primera novela real. Prioridad: los validadores. Plan completo anterior en el tag `plan-completo`.
 
-- **Dentro, en este orden:** (1) integrar 013; (2) cerrar e integrar 010 (G) y 008 (B); (3) 011 (A) completa en cuanto 010 esté en V2; (4) 012 (A) sin la etapa de revisión visual, «(recortado)»; (5) 020 (D): tabla de evals y `example`; (6) 014 (A); (7) 029-cli, nueva: `interview` sobre 008 y `change` sobre 014, con confirmación.
-- **Diferidas:** 018 C18–C23; después, 017. Solo si sobran tokens tras 029.
-- **016, recortada** (corrección del usuario, 2026-09-24): se integra lo que ya tiene carril-h (tarjetas C1–C5, canales léxico y denso, fusión RRF); cierra con sus pasos `[x]` y el resto se marca «(recortado)». 011 y 012 usan las CanonCards reales más los resúmenes por capítulo.
-- **Fuera:** 015, 019, 021 y 023–028. No se lanzan sus carriles.
-- **Cierre de una spec:** bastan sus casos C y los invariantes I que mapean a TLA+ (ReanudacionSinDuplicarNiPerder, ReintentosAcotados, VersionAnteriorConservada, atomicidad) o que protegen un validador; el resto de invariantes I se marcan «(recortado)» y no bloquean.
-- **Pasos D del lote final, solo:** 020-C10, C11, C12, C13, C14, C16, 004-C14 y 000-C16 (Playwright MCP inspecciona en Edge la VistaDeVersion, `/view/versions/{id}?token=…`, en lugar de la SPA; obligatorio por `project-constraints.md` líneas 212–213; se registra en `docs/verification.md` §9.3). El resto de pasos D queda sin marcar.
-- **Modelos:** sonnet por defecto (specs, verificador, arreglos); opus solo con concurrencia, reanudación desde checkpoint o transacciones entre varias tablas, o tras 2 fallos de sonnet en el mismo paso. Cada elección de opus, anotada abajo con su motivo.
+- **N1 · MVP:** 008, 010, 016 (cerrada recortada), 011, 012 (sin la etapa de revisión visual, «(recortado)»), 020, 014 y 029-cli.
+- **N2 (tras el MVP):** 018 C18–C23, después 017.
+- **N3 (tras el MVP):** 019, 015, 021, el resto de 016 y 023–028.
+- **Cierre de una spec:** bastan sus casos C y los invariantes I que mapean a TLA+ (ReanudacionSinDuplicarNiPerder, ReintentosAcotados, VersionAnteriorConservada, atomicidad) o que protegen un validador; el resto se marca «(recortado)» y no bloquea.
+- **Pasos D del lote final:** 020-C16 y 004-C14 (hito primera novela); después 000-C15, 000-C16 (Playwright MCP en Edge sobre `/view/versions/{id}?token=…`, registrado en `docs/verification.md` §9.3), 020-C10, C11, C12, C13 y C14. El resto de pasos D queda sin marcar.
+
+**Siguiente (orden N1):**
+1. En paralelo: cerrar 010 (G) y 008 (B). *(016/H: hecho, cerrado recortado.)*
+2. 011 (A).
+3. 012 (A), sin la etapa visual.
+4. 020-C15 (`example`).
+5. **Hito · primera novela:** pasos D 020-C16 y 004-C14 con el brief de ejemplo importado. Una sola ejecución real; si falla, se arregla y se reanuda desde el checkpoint. Después se para y se avisa al usuario (PDF, coste en Langfuse, scores de los validadores).
+6. Con el OK del usuario: 014 y 029-cli.
+7. 020 (tabla de evals) y el resto de pasos D. Después se para y se avisa.
 
 **Elecciones de opus:**
-
 - 011 (A): cola FIFO con una sola ejecución activa, reanudación desde punto de control y aceptación atómica entre varias tablas.
+
+- **Avisos abiertos:**
+  - La 008 cablea el adaptador del motor de políticas real para el puerto de agente (prohibidas por cliente y novela, `record_decision` en el audit log), y la 011 lo reutiliza. El patrón es `RealEngine` en `tests/agents/test_port.py`.
+  - 012 decide qué hace el gate con el `error` de 007; la propuesta es `failed` con `internal_error`. Tipo de defecto común: el de la 007 lleva capítulo y criterio y el de la 003 no; lo decide la 012.
+  - *Obsoleto (recorte):* 014: la propuesta pedida por MCP cuelga de `mcp:request_change` (lo pedía 015, N3).
+  - El vocabulario de atributos del canon (`NOMINAL_ATTRIBUTES`) está en `store/brief_canon.py`; debe pasar a `domain/` con la 008.
+- **Tareas humanas:** `GITHUB_TOKEN` de grano fino para 007-C25 (Lean no corre en el portátil); decidir si V2 pasa a ser la rama por defecto (`workflow_dispatch` de `verificar-cronologia.yml`).
 
 ## Carriles
 
@@ -75,12 +60,12 @@ Prioridad: los validadores y su evidencia; lo demás es secundario. La lectura e
 | B — agentes y entrada | 003 → 008 → 017 | 001 (003) · 002, 004, 005 (008) · 012, 013 (017) | `../sm-b` | `carril-b` | 003 integrada; 008 en curso |
 | C — formal y edición | 005 → 007 → 019 | 001 (005 parcial) · 009 (007 parcial) · 012, 018 (019) | `../sm-c` | `carril-c` | 005 y 007 integradas; 019 espera 012 y 018 |
 | D — formal y lectura | 006 → 004 → 013 → 020 | 001 (004) · 009 (013 parcial) · 012 (020) | `../sm-d` | `carril-d` | 006, 004 y 013 integradas; siguiente, 020 parcial |
-| F — linters de prosa | 018 | 011 (018 parcial: C18–C23) | `../sm-f` | `carril-f` | 018: los 19 pasos de linters puros hechos; C18–C23 esperan 011 |
+| F — linters de prosa | 018 | 011 (018 parcial: C18–C23) | `../sm-f` | `carril-f` | congelado (recorte): 19 pasos de linters puros hechos; C18–C23 en N2 |
 | G — planificación | 010 | 003, 004 · 009 (010 parcial: aplicar el plan a la story bible) | `../sm-g` | `carril-g` | 010 en curso (lo que no usa la 009) |
 | H — recuperación | 016 | 009 (016 parcial: tarjetas desde la story bible) | `../sm-h` | `carril-h` | cerrado recortado (016 integrada; I3–I5, I7, I8 recortados) |
-| E — frontend | 022 → 023 → 024 → 025 → 026 → 027 → 028 (`specs/frontend/`) | las de backend de la tabla de specs, cerradas en V2 | `../sm-e` | `carril-e` | congelado |
+| E — frontend | 022 → 023 → 024 → 025 → 026 → 027 → 028 (`specs/frontend/`) | las de backend de la tabla de specs, cerradas en V2 | `../sm-e` | `carril-e` | congelado (recorte) |
 
-**Frontend (022–028, decisión del usuario 2026-09-24).** Las specs se redactan ya, de dos en dos, mientras los carriles programan el backend: spec → plan en `TODO.md` → casillas marcadas por el integrador, sin revisión. **Revisión solo como excepción:** únicamente ante un error claro que impide que funcione o que deja sin cubrir un requisito de `project-constraints.md`; una sola corrección, sin rondas. El carril E (`../sm-e`) empieza cada spec cuando sus dependencias de backend están cerradas en V2, sin adelantarse. El backend manda: si hay que elegir, primero se integran A, C y D.
+**Congelado (recorte).** **Frontend (022–028, decisión del usuario 2026-09-24).** Las specs se redactan ya, de dos en dos, mientras los carriles programan el backend: spec → plan en `TODO.md` → casillas marcadas por el integrador, sin revisión. **Revisión solo como excepción:** únicamente ante un error claro que impide que funcione o que deja sin cubrir un requisito de `project-constraints.md`; una sola corrección, sin rondas. El carril E (`../sm-e`) empieza cada spec cuando sus dependencias de backend están cerradas en V2, sin adelantarse. El backend manda: si hay que elegir, primero se integran A, C y D.
 
 ## Specs
 
@@ -742,6 +727,8 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 
 ## 015 — servidor-mcp
 
+**N3** (usuario, 2026-09-24): tras el MVP.
+
 **Fuera de alcance** (usuario, 2026-09-24): no se implementa.
 
 - [x] Spec `specs/backend/015-servidor-mcp.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
@@ -827,6 +814,8 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 
 ## 017 — revision-visual
 
+**N2** (usuario, 2026-09-24): tras el MVP.
+
 **Diferida** (usuario, 2026-09-24): solo si sobran tokens tras 029.
 
 - [x] Spec `specs/backend/017-revision-visual.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
@@ -870,6 +859,8 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 
 ## 018 — linters-de-prosa
 
+**N2** (usuario, 2026-09-24): tras el MVP.
+
 **Diferida** (usuario, 2026-09-24): C18–C23, solo si sobran tokens tras 029.
 
 - [x] Spec `specs/backend/018-linters-de-prosa.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
@@ -908,6 +899,8 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [ ] Docs updated, or confirmed still true
 
 ## 019 — edicion-manual
+
+**N3** (usuario, 2026-09-24): tras el MVP.
 
 **Fuera de alcance** (usuario, 2026-09-24): no se implementa.
 
@@ -993,6 +986,8 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 
 ## 021 — auditoria-de-seguridad
 
+**N3** (usuario, 2026-09-24): tras el MVP.
+
 **Fuera de alcance** (usuario, 2026-09-24): no se implementa.
 
 - [x] Spec `specs/backend/021-auditoria-de-seguridad.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
@@ -1038,6 +1033,8 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 
 ## 023 — mis-novelas
 
+**N3** (usuario, 2026-09-24): tras el MVP.
+
 **Fuera de alcance** (usuario, 2026-09-24): no se implementa.
 
 - [x] Spec `specs/frontend/023-mis-novelas.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
@@ -1070,6 +1067,8 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [ ] Docs updated, or confirmed still true
 
 ## 024 — entrevista
+
+**N3** (usuario, 2026-09-24): tras el MVP.
 
 **Fuera de alcance** (usuario, 2026-09-24): no se implementa.
 
@@ -1108,6 +1107,8 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 
 ## 025 — progreso
 
+**N3** (usuario, 2026-09-24): tras el MVP.
+
 **Fuera de alcance** (usuario, 2026-09-24): no se implementa.
 
 - [x] Spec `specs/frontend/025-progreso.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
@@ -1136,6 +1137,8 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [ ] Docs updated, or confirmed still true
 
 ## 026 — lectura
+
+**N3** (usuario, 2026-09-24): tras el MVP.
 
 **Fuera de alcance** (usuario, 2026-09-24): no se implementa.
 
@@ -1169,6 +1172,8 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 
 ## 027 — cambio-del-lector
 
+**N3** (usuario, 2026-09-24): tras el MVP.
+
 **Fuera de alcance** (usuario, 2026-09-24): no se implementa.
 
 - [x] Spec `specs/frontend/027-cambio-del-lector.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
@@ -1201,6 +1206,8 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [ ] Docs updated, or confirmed still true
 
 ## 028 — edicion-manual
+
+**N3** (usuario, 2026-09-24): tras el MVP.
 
 **Fuera de alcance** (usuario, 2026-09-24): no se implementa.
 
