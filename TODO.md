@@ -129,8 +129,8 @@ Todas dependen de 000. Carril B disuelto y C rehecho (decisión del usuario, 202
 - [ ] 001-C15 · `serve` no arranca con config, ajustes o base inválidos
 - [ ] 001-C16 · `serve` escucha en `STORY_MAKER_BASE_URL`, en un solo proceso
 - [ ] 001-I2 · `init-db`, `check-env` y `serve` solo crean o cambian ficheros dentro del directorio de datos
-- [ ] 001-C17 · Salud, esquema OpenAPI y errores de la API
-- [ ] 001-C18 · La SPA compilada se sirve en el mismo origen sin tapar la API
+- [x] 001-C17 · Salud, esquema OpenAPI y errores de la API
+- [x] 001-C18 · La SPA compilada se sirve en el mismo origen sin tapar la API
 - [x] 001-C19 · El doble nulo captura lo emitido, sin red
 - [x] 001-C20 · Niveles y excepciones de los spans
 - [x] 001-C21 · Prompts, comprobación y vaciado con el doble nulo
