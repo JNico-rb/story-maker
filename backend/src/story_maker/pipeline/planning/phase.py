@@ -7,6 +7,7 @@ Aplicar el plan aceptado a la story bible (010-C20), el punto de control 0 y el 
 
 from __future__ import annotations
 
+import datetime as dt
 from collections.abc import Callable
 
 from sqlalchemy.orm import Session, sessionmaker
@@ -26,6 +27,7 @@ from story_maker.pipeline.planning.story_bible_view import StoryBibleView
 from story_maker.pipeline.planning.window import build_planner_window
 from story_maker.store.models import Run
 from story_maker.store.session import unit_of_work
+from story_maker.store.versions import discard
 from story_maker.validators.outline import OutlineDefect, OutlineResult
 
 
@@ -48,6 +50,7 @@ async def run_plan_phase(
     catalog: tuple[Trope, ...],
     present_year: int,
     max_retries: int,
+    now: dt.datetime,
 ) -> PlanAttemptOutcome:
     """Una sesión del planner por intento, con la ventana de 010-C06 más los defectos del
     intento anterior, nunca el plan que rechazó (010-C17)."""
@@ -73,6 +76,11 @@ async def run_plan_phase(
             if outcome.plan is not None:
                 outline_result = OutlineResult(passed=not outcome.defects, defects=outcome.defects)
                 record_outline_result(uow, telemetry, trace, run, version_id, outline_result)
+            if outcome.verdict == "fail":
+                run.status = "failed"
+                run.reason = "retries_exhausted"
+                run.finished_at = now
+                discard(uow, version_id)
         if outcome.verdict != "rewrite":
             return outcome
         defects = outcome.defects

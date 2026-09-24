@@ -1,20 +1,22 @@
 """Intentos del evaluable `plan`: interpreta el resultado de una sesión del planner y lo deja
-en `attempts`, y el juicio de `outline` en `validator_results` (010-C18, 010-C26, 010-C29).
+en `attempts`, y el juicio de `outline` en `validator_results` (010-C18, 010-C19, 010-C26,
+010-C29).
 
-Abrir la sesión siguiente con los defectos, aplicar el plan aceptado y descartar la candidata
-tras agotar los intentos son las partes de la 010 que esperan a la story bible de 009 (canon
-del brief, `discard()` de la versión) — ver `TODO.md` bloque 010. Aquí solo se interpreta el
-`SessionResult` que ya da el puerto de agente (003) y se registra el intento."""
+Aplicar el plan aceptado a la story bible es 010-C20 (`pipeline/planning/phase.py`), aparte.
+Aquí solo se interpreta el `SessionResult` que ya da el puerto de agente (003) y se registra
+cada intento del evaluable `plan`."""
 
 from __future__ import annotations
 
 import datetime as dt
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from typing import Literal, cast
 
-from story_maker.agents.port import SessionResult
+from story_maker.agents.port import SessionResult, ToolCall
 from story_maker.observability.port import ObservabilityPort, Trace
 from story_maker.pipeline.planning.plan import PlanSubmission
+from story_maker.pipeline.planning.session import SUBMIT_PLAN
 from story_maker.pipeline.planning.story_bible_view import StoryBibleView
 from story_maker.store.models import Attempt, Run, ValidatorResult
 from story_maker.store.session import UnitOfWork
@@ -100,6 +102,45 @@ def record_outline_result(
     )
     uow.add(row)
     return row
+
+
+def cut_after_attempts(attempts_used_before: int, max_retries: int) -> Callable[[ToolCall], bool]:
+    """`cut_when` de 003: cuando una entrega de `submit_plan` rechazada por schema o por policy
+    agota los intentos que quedan, corta la sesión ahí mismo — el planner no llega a un intento
+    de más (010-C19, segunda mitad)."""
+    used = attempts_used_before
+
+    def cut_when(call: ToolCall) -> bool:
+        nonlocal used
+        if call.tool != SUBMIT_PLAN or call.status not in ("schema_rejected", "denied"):
+            return False
+        used += 1
+        return used >= 1 + max_retries
+
+    return cut_when
+
+
+def record_in_session_attempts(
+    uow: UnitOfWork,
+    run: Run,
+    calls: Sequence[ToolCall],
+    *,
+    attempts_used_before: int,
+    max_retries: int,
+) -> Verdict | None:
+    """Cada entrega de `submit_plan` que rechaza el schema o la policy dentro de una misma
+    sesión es su propio intento del evaluable `plan` (010-C08, 010-C09, 010-C19): cuenta y se
+    cierra con `rewrite`, o con `fail` si agota lo que quedaba. Da el veredicto del último
+    intento registrado, o `None` si no hubo ninguna entrega rechazada."""
+    verdict: Verdict | None = None
+    count = attempts_used_before
+    for call in calls:
+        if call.tool != SUBMIT_PLAN or call.status not in ("schema_rejected", "denied"):
+            continue
+        count += 1
+        verdict = "rewrite" if count <= max_retries else "fail"
+        record_plan_attempt(uow, run, count, verdict)
+    return verdict
 
 
 def record_provider_failure(run: Run) -> None:

@@ -540,7 +540,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 010-C16 · `outline` no juzga la cronología
 - [x] 010-C17 · Replanificación con los defectos
 - [x] 010-C18 · Una sesión sin entrega cuenta como intento
-- [ ] 010-C19 · Intentos agotados
+- [x] 010-C19 · Intentos agotados
 - [ ] 010-C20 · El plan aceptado se aplica en una transacción
 - [ ] 010-C21 · StyleSheet
 - [ ] 010-C22 · CanonCards iniciales
