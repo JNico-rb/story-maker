@@ -14,9 +14,9 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 
 ### Alcance
 
-- **N1 · MVP:** 008, 010, 016 (cerrada recortada), 011, 012 (sin la etapa de revisión visual, recortado), 020, 014, 029-cli.
-- **Recortes de casos C:** 011 ninguno (todos hechos; I1, I5, I7, I9, I10, I11 recortados). 012: C6, C8, C12 recortados. 029: C02, C03, C04, C10, C12, C13, C14, I1, I2, I3 recortados.
-- **Fuera de N1:** N2 (018 C18–C23, después 017); N3 (019, 015, 021, el resto de 016, 028); congelado 030 (patch en `~/sm-archivo/030-carril-j.patch`).
+- **N1 · MVP:** 008, 010, 016 (cerrada recortada), 011, 012 (sin la etapa de revisión visual, recortado), 020, 014, 029-cli; frontend mínimo: 022 (cerrada), 026 y 027. La configuración va por la CLI (`architecture.md` §18, «Alcance del frontend»).
+- **Recortes de casos C:** 011 ninguno (todos hechos; I1, I5, I7, I9, I10, I11 recortados). 012: C6, C8, C12 recortados. 029: C02, C03, C04, C09, C10, C11, C12, C13, C14, I1, I2, I3 recortados (el cambio va por la web). 026: I1, I3, I4, I5 recortados. 027: I1, I2, I3, I5 recortados.
+- **Fuera de N1:** N2 (018 C18–C23, después 017); N3 (019, 015, 021, el resto de 016, 023, 024, 025, 028); congelado 030 (patch en `~/sm-archivo/030-carril-j.patch`).
 
 **Pasos D del lote final:** 020-C16 y 004-C14 (hito primera novela); después 000-C15, 000-C16 (Playwright MCP en Edge, registrado en `docs/verification.md` §9.3), y 020-C10 a C14. El resto de pasos D queda sin marcar.
 
@@ -37,10 +37,9 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 | 0 — integrador | 000 | — | checkout principal | `V2` | cerrada (D al final) |
 | A | 014 (parte A: C01–C11, I1–I4, I6, I11; parte B tras 012) | 012 | `../sm-a` | `carril-a` | en curso |
 | D | 020 (C01–C05, I1; después C15 tras 012) | — | `../sm-d` | `carril-d` | en curso |
-| E | 026 → 027 (027 tras 014) | — | `../sm-e` | `carril-e` | en curso |
-| E2 | 023 → 024 → 025 | — | `../sm-e2` | `carril-e2` | en curso |
+| E | 026 → 027 (027 tras 014 parte A) | 014 parte A | `../sm-e` | `carril-e` | en curso |
 | I | 012 (con el WIP de la rama `wip-012-gate`) | 007, 011 | `../sm-i` | `carril-i` | en curso, ruta crítica |
-| K | 029 (C07, C08; después C09, C11 tras 014) | — | `../sm-k` | `carril-k` | en curso |
+| K | 029 (C01, C05–C08) | — | `../sm-k` | `carril-k` | en curso |
 | P | presentación (solo `presentacion/`) | — | `../sm-p` | `carril-p` | por crear |
 
 Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs alternativos están en `ejemplos/briefs-extra/`.
@@ -76,7 +75,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 | 024 | entrevista (chat, panel del brief, textos libres, hechos por aceptar, prohibidas de novela, confirmación) | frontend | E | 023, 008 |
 | 025 | progreso (sondeo de la ejecución, reanudar, informe) | frontend | E | 024, 011 |
 | 026 | lectura (portada y dedicatoria, índice, capítulos cambiados, ficha con enlaces, versiones, PDF) | frontend | E | 022, 013 |
-| 027 | cambio-del-lector (seleccionar, pedir, propuesta y afectados, confirmar, ver la versión nueva) | frontend | E | 026, 025, 014 |
+| 027 | cambio-del-lector (seleccionar, pedir, propuesta y afectados, confirmar, ver la versión nueva) | frontend | E | 026, 014 |
 | 028 | edicion-manual (editor con lint en vivo, guardar, versión nueva) | frontend | E | 026, 025, 018, 019 |
 | 029 | cli (`interview` sobre 008 y `change` sobre 014, con confirmación) | backend | A | 008, 011, 014 |
 | 030 | report-metrics (`report metrics`: agregados de SQLite a `docs/metrics.md`) | backend | J | 001, 004 |
@@ -1119,9 +1118,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 
 ## 026 — lectura
 
-**N3** (usuario, 2026-09-24): tras el MVP.
-
-**Fuera de alcance** (usuario, 2026-09-24): no se implementa.
+**N1** (usuario, 2026-09-24): web mínima, lectura y cambio del lector (`architecture.md` §18, «Alcance del frontend»); sus I, recortadas.
 
 - [x] Spec `specs/frontend/026-lectura.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
@@ -1140,10 +1137,10 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [ ] 026-C11 · El PDF aún no está disponible
 - [ ] 026-C12 · Fallo al cargar la lista de versiones
 - [ ] 026-C13 · Fallo al cargar el detalle de una versión
-- [ ] 026-I1 · Lo mostrado (portada, novedades, índice, capítulos, ficha) es siempre de una sola versión, la que marca el selector; nunca mezcla datos d…
-- [ ] 026-I3 · Todo enlace interno de la página de novedades, del índice y de la ficha lleva al capítulo correcto dentro de la propia pantalla
-- [ ] 026-I4 · Un error de cualquier llamada de esta pantalla (lista de versiones, detalle, PDF) siempre se muestra; nunca se descarta en silencio ni de…
-- [ ] 026-I5 · Ninguna llamada de esta pantalla a la API real
+- [ ] 026-I1 · Lo mostrado (portada, novedades, índice, capítulos, ficha) es siempre de una sola versión, la que marca el selector; nunca mezcla datos d… (recortado)
+- [ ] 026-I3 · Todo enlace interno de la página de novedades, del índice y de la ficha lleva al capítulo correcto dentro de la propia pantalla (recortado)
+- [ ] 026-I4 · Un error de cualquier llamada de esta pantalla (lista de versiones, detalle, PDF) siempre se muestra; nunca se descarta en silencio ni de… (recortado)
+- [ ] 026-I5 · Ninguna llamada de esta pantalla a la API real (recortado)
 - [ ] 026-C14 · El recorrido completo se observa en el navegador (D, al final)
 
 ### Closing
@@ -1153,12 +1150,10 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 
 ## 027 — cambio-del-lector
 
-**N3** (usuario, 2026-09-24): tras el MVP.
+**N1** (usuario, 2026-09-24): web mínima, lectura y cambio del lector (`architecture.md` §18, «Alcance del frontend»); sus I, recortadas.
 
-**Fuera de alcance** (usuario, 2026-09-24): no se implementa.
-
-- [x] Spec `specs/frontend/027-cambio-del-lector.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
-- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Spec `specs/frontend/027-cambio-del-lector.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcada sin 025-progreso (C09 reescrito)
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcado con C09 nuevo
 
 ### Steps
 - [ ] 027-C01 · Seleccionar un fragmento o un hecho abre el formulario de petición
@@ -1169,16 +1164,16 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [ ] 027-C06 · Petición sobre una selección que ya no vale
 - [ ] 027-C07 · Fallo del servidor al pedir el cambio
 - [ ] 027-C08 · Enviar deshabilita la acción mientras está en curso
-- [ ] 027-C09 · Confirmar encola la ejecución y lleva a seguir su progreso
+- [ ] 027-C09 · Confirmar encola la ejecución y lo indica en la lectura
 - [ ] 027-C10 · Descartar no confirma nada
 - [ ] 027-C11 · Confirmar o descartar deshabilita las dos acciones mientras está en curso
 - [ ] 027-C12 · La propuesta caduca sin confirmar
 - [ ] 027-C13 · Confirmar una propuesta que el servidor ya considera caducada
 - [ ] 027-C14 · Fallo del servidor al confirmar
-- [ ] 027-I1 · El código de confirmación nunca se muestra en la pantalla
-- [ ] 027-I2 · Confirmar nunca se dispara sin que la persona pulse «confirmar»; ningún temporizador ni sondeo la confirma por su cuenta
-- [ ] 027-I3 · Un error de cualquier llamada de esta pantalla (pedir, confirmar) siempre se muestra; nunca se descarta en silencio ni deja la pantalla c…
-- [ ] 027-I5 · La petición nunca se envía sin una selección previa de fragmento o hecho
+- [ ] 027-I1 · El código de confirmación nunca se muestra en la pantalla (recortado)
+- [ ] 027-I2 · Confirmar nunca se dispara sin que la persona pulse «confirmar»; ningún temporizador ni sondeo la confirma por su cuenta (recortado)
+- [ ] 027-I3 · Un error de cualquier llamada de esta pantalla (pedir, confirmar) siempre se muestra; nunca se descarta en silencio ni deja la pantalla c… (recortado)
+- [ ] 027-I5 · La petición nunca se envía sin una selección previa de fragmento o hecho (recortado)
 - [ ] 027-C15 · Recorrido real: pedir, confirmar y ver la versión nueva (D, al final)
 
 ### Closing
@@ -1236,9 +1231,9 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [ ] 029-C06 · Aceptar, rechazar y marcar obligatorio un hecho
 - [ ] 029-C07 · Confirmar el brief pide un sí explícito
 - [ ] 029-C08 · Lanzar la generación pide un sí explícito
-- [ ] 029-C09 · Pedir un cambio sobre un hecho y confirmarlo
+- [ ] 029-C09 · Pedir un cambio sobre un hecho y confirmarlo (recortado)
 - [ ] 029-C10 · Pedir un cambio sobre un fragmento (recortado)
-- [ ] 029-C11 · Sin un sí, nada se encola
+- [ ] 029-C11 · Sin un sí, nada se encola (recortado)
 - [ ] 029-C12 · Petición denegada o rechazada (recortado)
 - [ ] 029-C13 · Sin proveedor o sin sitio en el techo (recortado)
 - [ ] 029-C14 · Novela ajena, inexistente o sin versión publicada (recortado)

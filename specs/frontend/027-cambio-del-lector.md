@@ -1,10 +1,10 @@
 # 027 — Cambio del lector
 
-> Carril: E · Depende de: 026-lectura, 025-progreso, 014-cambios-del-lector · Estado: aprobada sin revisión (decisión del usuario, 2026-09-24)
+> Carril: E · Depende de: 026-lectura, 014-cambios-del-lector · Estado: aprobada sin revisión (decisión del usuario, 2026-09-24); corregida el mismo día: sin 025-progreso, fuera de alcance (`architecture.md` §18, «Alcance del frontend»)
 
 ## Objetivo
 
-Pedir un cambio desde la lectura de 026: seleccionar un fragmento o un hecho, escribir la petición, ver la propuesta y los capítulos afectados, confirmarla o descartarla, y seguir su ejecución hasta ver la versión nueva.
+Pedir un cambio desde la lectura de 026: seleccionar un fragmento o un hecho, escribir la petición, ver la propuesta y los capítulos afectados, confirmarla o descartarla, y ver en la lectura la versión nueva cuando se publique.
 
 ## Alcance
 
@@ -13,13 +13,13 @@ Pedir un cambio desde la lectura de 026: seleccionar un fragmento o un hecho, es
 - Confirmar la propuesta o descartarla, y lo que hace la pantalla en cada caso.
 - La caducidad de la propuesta sin confirmar.
 - Estados de carga y de error de pedir el cambio y de confirmarlo.
-- Seguir la ejecución encolada al confirmar, remitiendo a 025-progreso, hasta llegar a la versión nueva.
+- Tras confirmar, indicar que la ejecución está en marcha; la versión nueva aparece en el selector de versiones de la lectura de 026 cuando se publica.
 
 ## Fuera de alcance
 
 - Forma exacta de las rutas, códigos, reglas de la policy, del planner en modo cambio, del cálculo de afectados y de la caducidad del código → 014-cambios-del-lector; aquí solo se observa lo que la SPA hace con esa respuesta.
 - Contenido de la lectura (índice, capítulos, ficha, selector de versión, marca «cambiado en vN») y cómo se selecciona un fragmento o un hecho en ella → «la lectura de 026».
-- Sondeo, reanudación e informe de una ejecución, y navegación a la lectura al publicar → 025-progreso.
+- Sondeo detallado, reanudación e informe de una ejecución → CLI (`architecture.md` §15.8); la pantalla de progreso (025) queda fuera de alcance.
 - Sesión, token y acceso sin sesión válida → 022-acceso.
 - El editor manual (§10.3) → 019-edicion-manual y su spec de frontend, si la hay.
 - Marca corporativa (tokens de tema, logotipo) → `specs/000-scaffolding.md`.
@@ -64,9 +64,9 @@ Pedir un cambio desde la lectura de 026: seleccionar un fragmento o un hecho, es
 
 ### Confirmar o descartar
 
-#### 027-C09 — Confirmar encola la ejecución y lleva a seguir su progreso (T)
+#### 027-C09 — Confirmar encola la ejecución y lo indica en la lectura (T)
 - **Entrada:** sobre la propuesta de 027-C03, la persona pulsa «confirmar» antes de la caducidad; la API responde 202 con el id de la ejecución.
-- **Salida:** la pantalla navega a la pantalla de progreso de esa ejecución (025-progreso), para seguir su avance hasta que publique o falle.
+- **Salida:** la propuesta se cierra y la lectura muestra que el cambio está en marcha (con el id de la ejecución), sin mostrar el código; la persona sigue en la lectura de la versión actual. Cuando la versión nueva se publica, aparece en el selector de versiones de la lectura de 026.
 
 #### 027-C10 — Descartar no confirma nada (T)
 - **Entrada:** sobre la propuesta de 027-C03, la persona pulsa «descartar».
@@ -91,8 +91,8 @@ Pedir un cambio desde la lectura de 026: seleccionar un fragmento o un hecho, es
 ### Recorrido visual (D, al final de la spec)
 
 #### 027-C15 — Recorrido real: pedir, confirmar y ver la versión nueva (D)
-- **Entrada:** con el servidor real y la novela publicada del brief de ejemplo, el revisor sigue la lectura con Playwright MCP: selecciona el hecho del nombre del perro, pide «el perro se llama Nala», ve la propuesta y los afectados, confirma, sigue el progreso hasta que publica.
-- **Salida:** la pantalla se ve con la marca corporativa de `specs/000-scaffolding.md` en cada paso, y al terminar navega a la lectura de la versión nueva, con sus capítulos cambiados. El resultado se anota en `docs/verification.md` §9.3, junto con 014-C20.
+- **Entrada:** con el servidor real y la novela publicada del brief de ejemplo, el revisor sigue la lectura con Playwright MCP: selecciona el hecho del nombre del perro, pide «el perro se llama Nala», ve la propuesta y los afectados, confirma y, cuando se publica, abre la versión nueva en el selector.
+- **Salida:** la pantalla se ve con la marca corporativa de `specs/000-scaffolding.md` en cada paso, y la versión nueva se lee con sus capítulos cambiados marcados. El resultado se anota en `docs/verification.md` §9.3, junto con 014-C20.
 
 ## Invariantes
 
@@ -110,12 +110,12 @@ Pedir un cambio desde la lectura de 026: seleccionar un fragmento o un hecho, es
   - §10.1: el flujo completo (selección, petición, policy, planner, propuesta, confirmación, ejecución de cambio);
   - §10.2: la concurrencia entre cambios (una solicitud rechazada por `stale_base` se repite sobre la versión nueva);
   - §14.1: la lectura web, «seleccionar un fragmento o un hecho → pedir un cambio (propuesta, afectados, confirmación)»;
-  - §14.8: páginas de la SPA (lectura, progreso).
+  - §14.8: páginas de la SPA (lectura);
+  - §18: «Alcance del frontend» (configuración y progreso por la CLI).
 - `definitions.md`:
   - §5: `SolicitudDeCambio` (selección, petición, propuesta, capítulos afectados, estado);
   - §10: `Confirmacion` (segundo paso obligatorio, código de un solo uso, caducidad).
 - `specs/backend/014-cambios-del-lector.md` (014-C01 a 014-C11: pedir y confirmar, sus respuestas y códigos; 014-C20 demostración) — referenciada, no duplicada.
-- `specs/frontend/025-progreso.md` (a dónde lleva confirmar: seguir la ejecución hasta que publique o falle).
 - `specs/frontend/022-acceso.md` (sesión, rutas protegidas).
 - «la lectura de 026» (selección de fragmento o hecho, contenido de la pantalla de lectura): spec aún en redacción, referenciada solo por su nombre.
 - `frontend/AGENTS.md` (FSD pages-first, límite de las pruebas al `shared/api`, recorrido visual como D).

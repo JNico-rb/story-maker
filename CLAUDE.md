@@ -46,7 +46,7 @@ Resumen: cinco capas en orden, sin revisiones (ni autorrevisión ni auditor: el 
 | Pieza | Nombres | Para qué |
 |---|---|---|
 | Subagentes (`.claude/agents/`) | `redactor-specs`, `implementador`, `verificador`, `seguridad` | escribir specs, implementar con TDD, cerrar, auditar la seguridad |
-| Comandos (`.claude/commands/`) | `/orquestar`, `/carril`, `/spec`, `/plan`, `/implementar`, `/integrar`, `/estado` | integrar, llevar un carril, cada capa del flujo, ver el estado |
+| Comandos (`.claude/commands/`) | `/orquestar`, `/carril`, `/spec`, `/plan`, `/implementar`, `/integrar`, `/estado`, `/log-decision` | integrar, llevar un carril, cada capa del flujo, ver el estado, registrar una decisión |
 | Hooks (`.claude/hooks/`) | `guard-secretos`, `guard-plan` | bloquear claves reales en lo escrito; bloquear código sin plan aprobado con pasos pendientes |
 | MCP (`.mcp.json`) | `playwright`, `langfuse` | inspeccionar la lectura web en Edge; consultar trazas y prompts |
 | Skills (`.claude/skills/`) | ver su `README.md` | FastAPI, FSD, React, SQLAlchemy, verificación |
