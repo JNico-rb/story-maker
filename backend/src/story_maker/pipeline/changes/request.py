@@ -55,6 +55,7 @@ class ProposalOut:
     proposal: dict[str, Any]
     affected_chapters: list[int]
     code: str
+    expires_at: dt.datetime
 
 
 @dataclass(frozen=True)
@@ -156,6 +157,7 @@ async def request_change(
         }
 
     code = secrets.token_urlsafe(16)
+    expires_at = naive(now) + dt.timedelta(minutes=config.confirmation_minutes)
     with unit_of_work(session_factory) as uow:
         old_values = [(c.fact_id, values[c.fact_id]) for c in proposal.changes]
         fragment_chapter = selection.chapter if isinstance(selection, FragmentSelection) else None
@@ -169,7 +171,7 @@ async def request_change(
             proposal=out_proposal,
             affected_chapters=affected,
             code_hash=hash_code(code),
-            expires_at=naive(now) + dt.timedelta(minutes=config.confirmation_minutes),
+            expires_at=expires_at,
             status="proposed",
             created_at=naive(now),
         )
@@ -177,7 +179,7 @@ async def request_change(
         uow.session.flush()
         _add_attempts(uow, row.id, found.outcomes)
         request_id = row.id
-    return ProposalOut(request_id, out_proposal, affected, code)
+    return ProposalOut(request_id, out_proposal, affected, code, expires_at)
 
 
 @dataclass

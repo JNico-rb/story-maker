@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import datetime as dt
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -31,6 +32,7 @@ class ChangeRequestOut(BaseModel):
     proposal: dict[str, Any]
     affected_chapters: list[int]
     code: str
+    expires_at: dt.datetime
 
 
 @router.post(
@@ -74,4 +76,5 @@ async def post_change_request(
         proposal=outcome.proposal,
         affected_chapters=outcome.affected_chapters,
         code=outcome.code,
+        expires_at=outcome.expires_at,
     )
