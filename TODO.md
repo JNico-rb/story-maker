@@ -969,18 +969,20 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] Spec `specs/backend/020-evals.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; recibe `example` desde 013 (C15, C16)
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; pasos C15 y C16 añadidos
 
+**Cierre parcial** (C06–C09, I2: `evals table`) — verificador 2026-09-24: PASS; `uv run pytest` 959 passed, ruff y mypy limpios. El resto de la 020 sigue abierto.
+
 ### Steps
 - [ ] 020-C01 · Los cinco briefs del repositorio son válidos
 - [ ] 020-C02 · Sin un cliente registrado no se crea nada
 - [ ] 020-C03 · Una novela y una ejecución por brief, del cliente dado
 - [ ] 020-C04 · Un brief que no pasa no para a los demás
 - [ ] 020-C05 · `evals run` no corre en la CI
-- [ ] 020-C06 · Celdas de la tabla brief × validador
-- [ ] 020-C07 · Resumen por brief
-- [ ] 020-C08 · La tabla sale solo de SQLite
-- [ ] 020-C09 · Sin ejecuciones de evals, la tabla lo dice
+- [x] 020-C06 · Celdas de la tabla brief × validador
+- [x] 020-C07 · Resumen por brief
+- [x] 020-C08 · La tabla sale solo de SQLite
+- [x] 020-C09 · Sin ejecuciones de evals, la tabla lo dice
 - [ ] 020-I1 · Ninguna prueba de esta spec llama a un modelo ni a Langfuse
-- [ ] 020-I2 · `evals table` es determinista
+- [x] 020-I2 · `evals table` es determinista
 - [ ] 020-C15 · `example` produce la novela y su PDF (movido desde 013)
 - [ ] 020-C10 · Cinco briefs reales llenan (a) y (b) (D, al final)
 - [ ] 020-C11 · Una iteración de tuning con antes y después (D, al final)
