@@ -42,7 +42,7 @@ MVP = lo estrictamente obligatorio del enunciado + la primera novela real. Prior
 **Siguiente (orden N1):**
 1. En paralelo: cerrar 008 (B). *(016/H y 010/G: hechos, integrados.)*
 2. 011 (A).
-3. 012 (A), sin la etapa visual.
+3. 012 (I), sin la etapa visual; lo que no usa la 011 ya en curso.
 4. 020-C15 (`example`).
 5. **Hito · primera novela:** pasos D 020-C16 y 004-C14 con el brief de ejemplo importado. Una sola ejecución real; si falla, se arregla y se reanuda desde el checkpoint. Después se para y se avisa al usuario (PDF, coste en Langfuse, scores de los validadores).
 6. Con el OK del usuario: 014 y 029-cli.
@@ -70,6 +70,7 @@ MVP = lo estrictamente obligatorio del enunciado + la primera novela real. Prior
 | F — linters de prosa | 018 | 011 (018 parcial: C18–C23) | `../sm-f` | `carril-f` | congelado (recorte): 19 pasos de linters puros hechos; C18–C23 en N2 |
 | G — planificación | 010 | 003, 004 · 009 (010 parcial: aplicar el plan a la story bible) | `../sm-g` | `carril-g` | cerrado (010 integrada; I1 e I2 recortados) |
 | H — recuperación | 016 | 009 (016 parcial: tarjetas desde la story bible) | `../sm-h` | `carril-h` | cerrado recortado (016 integrada; I3–I5, I7, I8 recortados) |
+| I — gate (012 parcial) | 012 | 007 · 011 (012 parcial: validadores de novela, juez, rúbrica y catálogo empiezan antes; el bucle del gate, la reescritura y la publicación esperan a 011) | `../sm-i` | `carril-i` | 012 parcial en curso |
 | E — frontend | 022 → 023 → 024 → 025 → 026 → 027 → 028 (`specs/frontend/`) | las de backend de la tabla de specs, cerradas en V2 | `../sm-e` | `carril-e` | congelado (recorte) |
 
 **Congelado (recorte).** **Frontend (022–028, decisión del usuario 2026-09-24).** Las specs se redactan ya, de dos en dos, mientras los carriles programan el backend: spec → plan en `TODO.md` → casillas marcadas por el integrador, sin revisión. **Revisión solo como excepción:** únicamente ante un error claro que impide que funcione o que deja sin cubrir un requisito de `project-constraints.md`; una sola corrección, sin rondas. El carril E (`../sm-e`) empieza cada spec cuando sus dependencias de backend están cerradas en V2, sin adelantarse. El backend manda: si hay que elegir, primero se integran A, C y D.
@@ -90,7 +91,7 @@ MVP = lo estrictamente obligatorio del enunciado + la primera novela real. Prior
 | 009 | story-bible-y-versiones | backend | A | 001, 002 |
 | 010 | planificacion | backend | G | 003, 004, 009 *parcial*: lo que no usa la 009 empieza antes |
 | 011 | produccion-de-capitulos | backend | A | 002, 005, 006, 010 |
-| 012 | gate-de-publicacion | backend | A | 007, 011 |
+| 012 | gate-de-publicacion | backend | I | 007, 011 |
 | 013 | lectura-y-pdf | backend | D | 009 *parcial*: el token de vista, el PDF y `pdf-enlaces` empiezan antes |
 | 014 | cambios-del-lector | backend | A | 012 |
 | 015 | servidor-mcp | backend | A | 002, 008, 013, 014 |
