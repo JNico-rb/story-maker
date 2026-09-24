@@ -197,7 +197,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 003-C02 · Unas tools que no cuadran con la lista blanca impiden abrir
 - [x] 003-C03 · La sesión corre aislada en el workspace
 - [x] 003-C04 · Solo el revisor visual declara el browser MCP
-- [ ] 003-C05 · Con `claude_login`, la sesión usa el login de la máquina y ninguna clave
+- [x] 003-C05 · Con `claude_login`, la sesión usa el login de la máquina y ninguna clave
 - [ ] 003-C06 · Con `anthropic_compatible`, la sesión lleva solo las variables de su endpoint
 - [ ] 003-C07 · El schema que recibe la sesión es el derivado del modelo de la tool
 - [ ] 003-C08 · Una entrada inválida vuelve al modelo como error y se corrige en la misma sesión

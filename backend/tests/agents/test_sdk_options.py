@@ -6,6 +6,7 @@ demuestran 003-C30 a 003-C32 (D)."""
 from __future__ import annotations
 
 import json
+import os
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -166,3 +167,70 @@ def test_only_the_visual_reviewer_declares_the_browser_mcp(
         ("judge", None),
     ]:
         assert external_servers(build_options(role, mode)) == {}
+
+
+CREDENTIALS = (
+    "ANTHROPIC_API_KEY",
+    "ANTHROPIC_AUTH_TOKEN",
+    "ANTHROPIC_BASE_URL",
+    "CLAUDE_CODE_OAUTH_TOKEN",
+    "OPENROUTER_API_KEY",
+)
+
+
+def session_env(options: ClaudeAgentOptions) -> dict[str, str]:
+    """El entorno del subproceso: el del servidor más `options.env`, como lo mezcla el SDK."""
+    return {**os.environ, **options.env}
+
+
+def credentials_in(env: dict[str, str]) -> dict[str, str]:
+    return {key: env[key] for key in CREDENTIALS if env.get(key)}
+
+
+@pytest.fixture
+def clean_environ(monkeypatch: pytest.MonkeyPatch) -> pytest.MonkeyPatch:
+    for key in (*CREDENTIALS, "CLAUDE_CONFIG_DIR"):
+        monkeypatch.delenv(key, raising=False)
+    return monkeypatch
+
+
+def assert_login_basics(options: ClaudeAgentOptions) -> None:
+    assert "CLAUDE_CONFIG_DIR" not in options.env
+    assert "CLAUDE_CONFIG_DIR" not in session_env(options)
+    assert options.env["CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC"] == "1"
+    assert options.env["CLAUDE_CODE_DISABLE_AUTO_MEMORY"] == "1"
+
+
+def test_with_claude_login_and_no_token_the_session_carries_no_credential(
+    clean_environ: pytest.MonkeyPatch, build_options: Callable[..., ClaudeAgentOptions]
+) -> None:
+    options = build_options("interviewer")
+
+    assert_login_basics(options)
+    assert credentials_in(session_env(options)) == {}
+
+
+def test_with_claude_login_and_a_token_the_session_carries_only_that_token(
+    clean_environ: pytest.MonkeyPatch, build_options: Callable[..., ClaudeAgentOptions]
+) -> None:
+    options = build_options("interviewer", claude_code_oauth_token="TU_TOKEN_OAUTH_AQUI")
+
+    assert_login_basics(options)
+    assert credentials_in(session_env(options)) == {
+        "CLAUDE_CODE_OAUTH_TOKEN": "TU_TOKEN_OAUTH_AQUI"
+    }
+
+
+def test_with_claude_login_inherited_anthropic_variables_reach_the_session_empty(
+    clean_environ: pytest.MonkeyPatch, build_options: Callable[..., ClaudeAgentOptions]
+) -> None:
+    clean_environ.setenv("ANTHROPIC_API_KEY", "TU_CLAVE_AQUI")
+    clean_environ.setenv("ANTHROPIC_AUTH_TOKEN", "TU_TOKEN_AQUI")
+    clean_environ.setenv("ANTHROPIC_BASE_URL", "http://127.0.0.1:9/proxy-de-prueba")
+
+    options = build_options("interviewer", openrouter_api_key="TU_CLAVE_OPENROUTER_AQUI")
+
+    assert_login_basics(options)
+    env = session_env(options)
+    assert credentials_in(env) == {}
+    assert "TU_CLAVE_OPENROUTER_AQUI" not in env.values()

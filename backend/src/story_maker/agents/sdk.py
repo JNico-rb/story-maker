@@ -49,6 +49,16 @@ def harness_tools(tools: Sequence[ToolSpec]) -> list[Tool]:
     ]
 
 
+def provider_env(settings: Settings) -> dict[str, str]:
+    """Variables de la sesión según `LLM_PROVIDER` (§15.2); nunca redefine `CLAUDE_CONFIG_DIR`."""
+    env = dict(CLI_SWITCHES)
+    # Una ANTHROPIC_* heredada del servidor cobraría créditos de API: llega vacía (§18, spec 003).
+    env |= {"ANTHROPIC_API_KEY": "", "ANTHROPIC_AUTH_TOKEN": "", "ANTHROPIC_BASE_URL": ""}
+    if settings.claude_code_oauth_token:
+        env["CLAUDE_CODE_OAUTH_TOKEN"] = settings.claude_code_oauth_token
+    return env
+
+
 def claude_md_excludes(workspace: Path, user_claude_dir: Path) -> list[str]:
     """Todos los `CLAUDE.md` que no son el del workspace: los de sus padres y el personal."""
     parents = [directory / "CLAUDE.md" for directory in workspace.resolve().parents]
@@ -83,6 +93,7 @@ class SdkAgent:
         self._settings = settings
         self._workspace = workspace
         self._user_claude_dir = user_claude_dir
+        self._env = provider_env(settings)
 
     def prepare(self, request: SessionRequest) -> None:
         # pytest fija PYTEST_CURRENT_TEST en cada prueba: así ninguna llega al CLI ni al modelo.
@@ -116,7 +127,7 @@ class SdkAgent:
             cwd=self._workspace,
             setting_sources=["project"],
             settings=json.dumps({"claudeMdExcludes": excludes}),
-            env=dict(CLI_SWITCHES),
+            env=dict(self._env),
         )
 
     def _browser_server(self) -> McpStdioServerConfig:
