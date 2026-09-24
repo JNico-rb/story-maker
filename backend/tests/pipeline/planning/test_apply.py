@@ -11,11 +11,13 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, sessionmaker
 from tests.pipeline.planning.conftest import ban
 from tests.pipeline.planning.test_candidate import reference_brief
-from tests.validators.test_outline import reference_plan
+from tests.validators.test_outline import _replace_chapter, reference_plan
 
 from story_maker.pipeline.planning.apply import apply_accepted_plan
 from story_maker.pipeline.planning.candidate import start_generation_phase
 from story_maker.pipeline.planning.plan import InventedCharacter
+from story_maker.retrieval.canon import EntityKey, load_canon
+from story_maker.retrieval.cards import first_chapter
 from story_maker.store.models import (
     CanonCard,
     Character,
@@ -220,3 +222,37 @@ async def test_initial_canon_cards_get_their_from_chapter(
     assert by_name["Nia"] == 4
     assert by_name["el puerto nuevo"] == 7
     assert by_name["Nadie"] == 1
+
+
+async def test_a_beat_that_only_uses_a_fact_makes_its_subject_appear_there(
+    session_factory: sessionmaker[Session], run_id: int, novel_id: int
+) -> None:
+    """`retrieval/cards.py` (016) considera que una entidad aparece en los beats de un capítulo
+    si es sujeto de un hecho que un beat usa (`specs/backend/016-recuperacion-hibrida.md`, l.51).
+    `facts_used` guarda ids del plan (`Beat.facts_used`), no el nombre del sujeto; `_beat_json`
+    (010) debe traducirlos al guardar el JSON, o `cards.appears_in_beats`/`first_chapter` fallan
+    con datos reales de la 010 (bug entre 010 y 016)."""
+    version_id = _build_candidate(session_factory, run_id, novel_id)
+    plan = reference_plan()
+    fact_id = plan.facts[0].id
+    assert plan.facts[0].subject == "Nia"
+    chapter1 = plan.chapters[0]
+    beat1 = chapter1.beats[0].model_copy(update={"facts_used": (fact_id,)})
+    plan = _replace_chapter(
+        plan, chapter1.model_copy(update={"beats": (beat1, *chapter1.beats[1:])})
+    )
+
+    with unit_of_work(session_factory) as uow:
+        run = uow.session.get(Run, run_id)
+        assert run is not None
+        apply_accepted_plan(uow, run, version_id, plan, now=NOW)
+
+    with session_factory() as session:
+        nia = session.scalars(
+            select(Character).filter_by(version_id=version_id, canonical_name="Nia")
+        ).one()
+        canon = load_canon(session, version_id)
+        entity: EntityKey = ("character", nia.id, None)
+        # Nia también nombra un personaje en el capítulo 4 (reference_plan): el hecho del
+        # capítulo 1 debe adelantar su primer capítulo, no ser ignorado.
+        assert first_chapter(canon, entity, "invented") == 1
