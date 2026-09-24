@@ -9,6 +9,8 @@ from collections.abc import Callable
 from typing import Any
 
 import pytest
+from hypothesis import HealthCheck, given, settings
+from hypothesis import strategies as st
 from sqlalchemy.orm import Session
 
 from story_maker.store import models
@@ -239,3 +241,36 @@ def test_a_candidate_accepts_writes_to_its_tables(store: Any, f1: Any, table: st
 
     with store.session() as session:
         assert session.get(row_type, row_id) is None
+
+
+attempts = st.lists(
+    st.tuples(
+        st.sampled_from(["v1", "K3"]),
+        st.sampled_from(TABLES),
+        st.sampled_from(["insert", "modify", "delete"]),
+    ),
+    min_size=1,
+    max_size=8,
+)
+
+
+@settings(
+    max_examples=15, deadline=None, suppress_health_check=[HealthCheck.function_scoped_fixture]
+)
+@given(sequence=attempts)
+def test_a_published_or_discarded_version_never_changes(store: Any, sequence: Any) -> None:
+    """Secuencias al azar de escrituras sobre v1 y K3, intercaladas con escrituras en una
+    candidata K4: cada una en v1 o K3 se rechaza, y ninguna de las dos cambia nunca."""
+    targets = _terminal_versions(store)
+    _, ids = store.copy(targets["v1"][0])
+    before = {name: store.fingerprint(v) for name, (v, _) in targets.items()}
+    k4_fact = next(iter(ids["facts"].values()))
+
+    for step, (name, table, kind) in enumerate(sequence):
+        version_id, state = targets[name]
+        _assert_rejected(store, _writes(table, version_id)[kind], version_id, state, step)
+        _write(store, lambda uow, n=step: change_fact_value(uow, k4_fact, f"valor {n}"))
+
+    assert {name: store.fingerprint(v) for name, (v, _) in targets.items()} == before
+    with store.session() as session:
+        assert session.get(models.Fact, k4_fact).value == f"valor {len(sequence) - 1}"

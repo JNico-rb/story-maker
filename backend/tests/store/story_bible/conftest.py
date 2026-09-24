@@ -313,11 +313,18 @@ class Store:
                         content_hash=card_hash,
                     )
                 )
-                uow.add(
-                    models.Embedding(
-                        content_hash=card_hash, model=novel.embedding_model, vector=bytes(8)
-                    )
+                shared = (
+                    session.query(models.Embedding)
+                    .filter_by(content_hash=card_hash, model=novel.embedding_model)
+                    .one_or_none()
                 )
+                if shared is None:  # los vectores se comparten por huella y modelo (§6.3)
+                    uow.add(
+                        models.Embedding(
+                            content_hash=card_hash, model=novel.embedding_model, vector=bytes(8)
+                        )
+                    )
+                    session.flush()
 
             version.status = "published"
             version.number = 1
