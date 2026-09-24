@@ -134,7 +134,7 @@ Todas dependen de 000. Carril B disuelto y C rehecho (decisión del usuario, 202
 - [x] 001-C19 · El doble nulo captura lo emitido, sin red
 - [x] 001-C20 · Niveles y excepciones de los spans
 - [x] 001-C21 · Prompts, comprobación y vaciado con el doble nulo
-- [ ] 001-I3 · Ni el doble nulo ni las órdenes de esta spec abren una conexión fuera de la máquina
+- [x] 001-I3 · Ni el doble nulo ni las órdenes de esta spec abren una conexión fuera de la máquina
 - [ ] 001-C22 · Primera generación de los tipos del frontend (D, al final)
 - [ ] 001-C23 · Un clon limpio arranca siguiendo el README (D, al final)
 
