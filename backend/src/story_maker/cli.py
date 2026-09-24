@@ -11,12 +11,14 @@ from urllib.parse import urlparse
 import typer
 import uvicorn
 
+from story_maker import settings as settings_module
 from story_maker.api.app import create_app
 from story_maker.config import ConfigError, load_config
 from story_maker.observability.factory import build_langfuse_client, has_langfuse_vars
 from story_maker.observability.langfuse_adapter import LangfuseObservability
 from story_maker.observability.langfuse_adapter import auth_check as langfuse_auth_check
 from story_maker.observability.null import NullObservability
+from story_maker.observability.prompts import push_prompts
 from story_maker.settings import Settings, SettingsError, load_settings, resolve_paths
 from story_maker.store.session import (
     create_schema,
@@ -183,3 +185,28 @@ def serve_command() -> None:
     settings = load_settings()
     server = _build_server(settings, observability)
     asyncio.run(_run_server(server, observability))
+
+
+prompts_app = typer.Typer(no_args_is_help=True, add_completion=False)
+app.add_typer(prompts_app, name="prompts")
+
+
+@prompts_app.command(name="push")
+def prompts_push_command() -> None:
+    """Sube el prompt de cada rol cuya huella cambió, con la etiqueta LANGFUSE_PROMPT_LABEL."""
+    try:
+        settings = load_settings()
+    except SettingsError as exc:
+        for error in exc.errors:
+            typer.echo(error)
+        raise typer.Exit(1) from None
+
+    if not has_langfuse_vars(settings):
+        typer.echo("prompts push: faltan las cuatro variables de Langfuse")
+        raise typer.Exit(1)
+
+    client = build_langfuse_client(settings)
+    label = cast(str, settings.langfuse_prompt_label)
+    prompts_dir = settings_module.ROOT / "backend" / "harness_workspace" / "prompts"
+    pushed = push_prompts(prompts_dir, client, label)
+    typer.echo("subidos: " + ", ".join(pushed) if pushed else "sin cambios")

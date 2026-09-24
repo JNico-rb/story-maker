@@ -519,3 +519,22 @@ def test_serve_refuses_to_start_when_a_role_is_missing_its_current_prompt(
 
     assert result.exit_code == 1
     assert "judge" in result.stdout
+
+
+# --- C07/C08/I4: `story-maker prompts push` sube por la etiqueta LANGFUSE_PROMPT_LABEL --------
+
+
+def test_prompts_push_uploads_a_changed_role_prompt_from_the_workspace(
+    monkeypatch: pytest.MonkeyPatch, base_env: Path, fake_langfuse_client: FakeLangfuseClient
+) -> None:
+    _set_langfuse_env(monkeypatch)
+    _use_fake_langfuse_client(monkeypatch, fake_langfuse_client)
+    prompts_dir = base_env / "backend" / "harness_workspace" / "prompts"
+    prompts_dir.mkdir(parents=True)
+    (prompts_dir / "writer.md").write_text("Escribe con fidelidad al canon.", encoding="utf-8")
+
+    result = runner.invoke(app, ["prompts", "push"])
+
+    assert result.exit_code == 0
+    assert "writer" in result.stdout
+    assert fake_langfuse_client.get_prompt("writer", label="produccion").version == 1
