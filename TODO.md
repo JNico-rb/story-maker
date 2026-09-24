@@ -692,7 +692,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] 014-C09 · Sin proveedor, sin sitio en el techo o con la sesión agotada, no queda solicitud
 - [x] 014-C10 · Confirmar con el código encola una ejecución de cambio con su versión base
 - [x] 014-C11 · La confirmación exige el código vigente de una solicitud propia en estado `proposed`
-- [ ] 014-C12 · Si al arrancar la versión vigente ya no es su base, la ejecución falla con `stale_base`
+- [x] 014-C12 · Si al arrancar la versión vigente ya no es su base, la ejecución falla con `stale_base`
 - [ ] 014-C13 · La candidata copia la base y aplica el cambio en una sola transacción
 - [ ] 014-C14 · Solo los afectados pasan por el writer, en orden y en modo revisión
 - [ ] 014-C15 · Superado el gate, se publica la versión nueva y la solicitud pasa a `applied`

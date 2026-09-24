@@ -11,7 +11,7 @@ from typing import Literal
 
 from sqlalchemy.orm import Session
 
-from story_maker.store.models import Run, Version
+from story_maker.store.models import ChangeRequest, Run, Version
 from story_maker.store.session import UnitOfWork
 from story_maker.store.versions import discard
 
@@ -70,7 +70,8 @@ def running_run(session: Session) -> Run | None:
 
 
 def fail_run(uow: UnitOfWork, run_id: int, reason: str, detail: str, *, now: dt.datetime) -> Run:
-    """`failed` con motivo, detalle y fecha de fin; su candidata, si existe, queda descartada."""
+    """`failed` con motivo, detalle y fecha de fin; su candidata, si existe, queda descartada, y su
+    solicitud de cambio, si la tiene, `rejected` (§10.1)."""
     run = get_run(uow.session, run_id)
     run.status = "failed"
     run.reason = reason
@@ -80,6 +81,8 @@ def fail_run(uow: UnitOfWork, run_id: int, reason: str, detail: str, *, now: dt.
         candidate = uow.session.get(Version, run.candidate_version_id)
         if candidate is not None and candidate.status == "candidate":
             discard(uow, candidate.id)
+    for request in uow.session.query(ChangeRequest).filter(ChangeRequest.run_id == run_id):
+        request.status = "rejected"
     uow.session.flush()
     return run
 
