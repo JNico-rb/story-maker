@@ -23,6 +23,7 @@ from story_maker.cli import _build_server, _diagnostics, _run_server, app
 from story_maker.observability.langfuse_adapter import LangfuseObservability
 from story_maker.observability.null import NullObservability
 from story_maker.observability.roles import ROLE_LABELS
+from story_maker.settings import Settings
 
 REAL_ROOT = settings_module.ROOT
 REAL_CONFIG = json.loads((REAL_ROOT / "config.json").read_text(encoding="utf-8"))
@@ -376,3 +377,39 @@ def test_check_env_without_the_prompt_label_uses_the_null_double(
     assert isinstance(observability, NullObservability)
     assert not fake_langfuse_client.roots
     assert not fake_langfuse_client.scores
+
+
+# --- I2: con alguna variable ausente, el puerto usa siempre el doble nulo ---------------------
+
+
+@pytest.mark.parametrize(
+    "present",
+    [
+        (),
+        ("LANGFUSE_PROMPT_LABEL",),
+        ("LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY", "LANGFUSE_BASE_URL"),
+    ],
+    ids=["ninguna", "una", "tres"],
+)
+def test_with_zero_one_or_three_of_the_four_vars_the_port_is_always_the_null_double(
+    monkeypatch: pytest.MonkeyPatch,
+    base_env: Path,
+    fake_langfuse_client: FakeLangfuseClient,
+    present: tuple[str, ...],
+) -> None:
+    runner.invoke(app, ["init-db"])
+    for key in LANGFUSE_ENV:
+        monkeypatch.delenv(key, raising=False)
+    for key in present:
+        monkeypatch.setenv(key, LANGFUSE_ENV[key])
+
+    def _build_client_that_must_not_be_called(settings: Settings) -> FakeLangfuseClient:
+        raise AssertionError("con alguna variable ausente nunca se construye el cliente real")
+
+    monkeypatch.setattr(cli_module, "build_langfuse_client", _build_client_that_must_not_be_called)
+
+    lines, observability = _diagnostics()
+
+    assert isinstance(observability, NullObservability)
+    observability_line = next(line for line in lines if line.startswith("observabilidad"))
+    assert "doble nulo" in observability_line
