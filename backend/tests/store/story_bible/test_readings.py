@@ -156,3 +156,33 @@ def test_the_story_bible_of_a_version_by_its_id(store: Any, f1: Any) -> None:
     assert g.world is None
     assert (len(g.characters), len(g.places), len(g.facts)) == (4, 3, 13)
     assert all(f.chapters == () for f in g.facts)
+
+
+def _own_ids(store: Any, model: Any, version_id: int) -> set[int]:
+    with store.session() as session:
+        return {r.id for r in session.query(model).filter(model.version_id == version_id)}
+
+
+def test_a_reading_never_returns_rows_of_another_version_or_novel(store: Any) -> None:
+    a = store.build_v2()  # N1: v1 y v2
+    b = store.build_v1()  # otra novela con los mismos nombres
+    kb, _ = store.copy(b.version_id)
+    versions = [a.v1.version_id, a.version_id, b.version_id, kb]
+
+    for version_id in versions:
+        bible = _story_bible(store, version_id)
+        characters = _own_ids(store, models.Character, version_id)
+        assert {c.id for c in bible.characters} == characters, version_id
+        assert {p.id for p in bible.places} == _own_ids(store, models.Place, version_id)
+        assert {f.id for f in bible.facts} == _own_ids(store, models.Fact, version_id)
+        assert bible.world is not None
+        assert {bible.world.id} == _own_ids(store, models.World, version_id)
+        events = _own_ids(store, models.Event, version_id)
+        assert {e.id for e in bible.chronology.events} <= events
+        for event in bible.chronology.events:
+            assert {p.character_id for p in event.presences} <= characters
+        assert {b.character_id for b in bible.chronology.births} <= characters
+        assert sum(len(f.chapters) for f in bible.facts) == 13, version_id
+
+    assert store.current(a.v1.novel_id) == a.version_id
+    assert store.current(b.novel_id) == b.version_id
