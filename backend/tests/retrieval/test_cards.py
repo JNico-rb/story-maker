@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import datetime as dt
 from typing import Any
 
 import pytest
@@ -18,6 +19,12 @@ from story_maker.store.brief_canon import (
     ConfirmedBrief,
 )
 from story_maker.store.models import CanonCard, Character, Embedding, Fact, Place
+from story_maker.store.session import unit_of_work
+from story_maker.store.story_bible import change_fact_value
+from story_maker.store.version_copy import copy_version
+from story_maker.store.versions import publish
+
+NOW = dt.datetime(2026, 9, 24, 13, 0)
 
 BRIEF = ConfirmedBrief(
     recipient=BriefRecipient(
@@ -69,10 +76,10 @@ def planned(canon: Any) -> dict[str, Any]:
     canon.character(version, "Olvido")
     for number in range(1, 11):
         beats: list[Any] = [
-            {"description": f"Marta vive el capítulo {number}.", "characters": [marta]}
+            {"description": f"Marta vive el capítulo {number}.", "characters": ["Marta"]}
         ]
         if number == 4:
-            beats.append({"description": "Nia se presenta.", "characters": [nia]})
+            beats.append({"description": "Nia se presenta.", "characters": ["Nia"]})
         canon.outline_chapter(version, number, beats)
     canon.event(version, "Marta llega al puerto nuevo.", port, origin="planned", chapter=2, beat=1)
     return {"version": version, "marta": marta, "nia": nia, "port": port}
@@ -291,3 +298,55 @@ def test_accepting_a_chapter_again_replaces_what_its_old_version_left_in_later_c
     assert {card: v for card, v in before.items() if v[0] <= 3} == {
         card: v for card, v in after.items() if v[0] <= 3
     }
+
+
+def texts_by_entity(
+    session_factory: sessionmaker[Session], canon: Any, version: int
+) -> dict[tuple[str, int], str]:
+    with session_factory() as session:
+        return {
+            (entity_name(session, card), card.from_chapter): card.text
+            for card in canon.cards(version)
+        }
+
+
+def test_a_changed_fact_rebuilds_the_cards_of_its_entity_and_nothing_else(
+    canon: Any, session_factory: sessionmaker[Session], planned: dict[str, Any]
+) -> None:
+    base = planned["version"]
+    toby, _ = canon.named(base, "Toby")
+    statement = "El perro corre por el puerto nuevo."
+    canon.chapter(base, 3, "Carreras en el puerto.")
+    canon.event(base, statement, planned["port"], origin="recorded", chapter=3, present=[toby])
+    canon.sync(base)
+    with unit_of_work(session_factory) as uow:
+        publish(uow, base, pdf_path="v1.pdf", now=NOW)
+    base_before = snapshot(canon, base)
+    with unit_of_work(session_factory) as uow:
+        candidate = copy_version(uow, base, now=NOW).version.id
+    before = texts_by_entity(session_factory, canon, candidate)
+    with unit_of_work(session_factory) as uow:
+        dog, _ = canon.named(candidate, "Toby")
+        name = uow.session.scalars(
+            select(Fact).where(Fact.character_id == dog, Fact.attribute == "name")
+        ).one()
+        change_fact_value(uow, name.id, "Nala")
+
+    canon.sync(candidate)
+
+    after = texts_by_entity(session_factory, canon, candidate)
+    dog_cards = [text for (entity, _), text in after.items() if entity == "Nala"]
+    assert dog_cards
+    assert all("Personaje: Nala" in t and "name: Nala" in t and "Toby" not in t for t in dog_cards)
+    port_lines = [
+        line
+        for (entity, _), text in after.items()
+        if entity == "el puerto nuevo"
+        for line in text.splitlines()
+        if statement in line
+    ]
+    assert port_lines
+    assert all("presentes: Nala" in line for line in port_lines)
+    unrelated = {key for key in before if key[0] not in ("Toby", "el puerto nuevo")}
+    assert {key: after[key] for key in unrelated} == {key: before[key] for key in unrelated}
+    assert snapshot(canon, base) == base_before

@@ -60,8 +60,14 @@ class Canon:
     def facts_of(self, entity: EntityKey) -> list[FactEntry]:
         return [fact for fact in self.bible.facts if fact_subject(fact) == entity]
 
-    def fact_subject_of(self, fact_id: int) -> EntityKey | None:
-        return next((fact_subject(f) for f in self.bible.facts if f.id == fact_id), None)
+    def name_of(self, entity: EntityKey) -> str:
+        """El nombre canónico de la entidad; el mundo se nombra `world`, como sujeto de hecho."""
+        _, character_id, place_id = entity
+        if character_id is not None:
+            return self.character_name(character_id)
+        if place_id is not None:
+            return self.place_name(place_id)
+        return "world"
 
 
 def fact_subject(fact: FactEntry) -> EntityKey:

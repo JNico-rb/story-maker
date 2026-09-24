@@ -235,7 +235,8 @@ class Canon:
         self, version_id: int, number: int, beats: Sequence[str | dict[str, Any]]
     ) -> None:
         """El capítulo `number` del outline, con sus beats numerados desde 1. Un beat es su
-        descripción o un objeto con `description`, `characters` (ids) y `facts_used` (ids)."""
+        descripción o un objeto con `description`, `characters` (nombres canónicos) y
+        `facts_used` (objetos con `subject`: el nombre canónico del sujeto o `world`)."""
         stored = []
         for index, beat in enumerate(beats, start=1):
             fields = {"description": beat} if isinstance(beat, str) else beat

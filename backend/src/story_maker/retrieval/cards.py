@@ -20,11 +20,13 @@ LAST_FROM_CHAPTER = CHAPTERS_PER_NOVEL + 1
 
 def appears_in_beats(canon: Canon, entity: EntityKey, chapter: int) -> bool:
     """Está entre los personajes de un beat del capítulo, participa en uno de sus eventos
-    planificados o es sujeto de un hecho que un beat usa."""
+    planificados o es sujeto de un hecho que un beat usa. Los beats nombran a las entidades por
+    su nombre canónico, no por id de fila: se copian tal cual (`architecture.md` §18)."""
+    name = canon.name_of(entity)
     for beat in canon.beats.get(chapter, []):
-        if entity[0] == "character" and entity[1] in beat.get("characters", []):
+        if entity[0] == "character" and name in beat.get("characters", []):
             return True
-        if any(canon.fact_subject_of(f) == entity for f in beat.get("facts_used", [])):
+        if any(used.get("subject") == name for used in beat.get("facts_used", [])):
             return True
     return any(e.chapter == chapter and e.includes(entity) for e in canon.planned)
 

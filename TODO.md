@@ -794,7 +794,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 016-C3 · Aceptar un capítulo crea sucesoras solo donde algo cambia
 - [x] 016-C4 · Una entidad aparece antes de lo planeado
 - [x] 016-C5 · Volver a aceptar un capítulo
-- [ ] 016-C6 · Un hecho cambiado reconstruye las tarjetas de su entidad
+- [x] 016-C6 · Un hecho cambiado reconstruye las tarjetas de su entidad
 - [ ] 016-C7 · Vectores por huella y modelo
 - [x] 016-C8 · El modelo es el de la novela, no el de la config
 - [ ] 016-C9 · Todo o nada con la transacción del llamante
