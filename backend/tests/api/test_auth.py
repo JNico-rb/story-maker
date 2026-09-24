@@ -184,3 +184,21 @@ def test_a_255_character_well_formed_email_is_rejected(
 
     assert response.status_code == 422
     assert _users(session_factory) == []
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        {"password": "contraseña-1"},
+        {"email": "cliente-a@example.com"},
+        {"email": 12345678, "password": "contraseña-1"},
+        {"email": "cliente-a@example.com", "password": True},
+    ],
+)
+def test_registration_with_an_incomplete_body_is_rejected(
+    client: TestClient, session_factory: sessionmaker[Session], body: dict[str, object]
+) -> None:
+    response = client.post("/api/auth/register", json=body)
+
+    assert response.status_code == 422
+    assert _users(session_factory) == []
