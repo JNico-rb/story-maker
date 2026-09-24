@@ -31,6 +31,15 @@ from story_maker.store.session import unit_of_work
 
 Outcome = Literal["completed", "turns_exhausted", "time_exhausted", "cut", "infrastructure_failure"]
 CallStatus = Literal["accepted", "schema_rejected", "denied", "blocked"]
+EndingName = Literal["completed", "turns_exhausted", "provider_error", "interrupted"]
+
+# Cómo termina la sesión según su resultado final; `interrupted` solo llega tras un corte.
+_OUTCOME_OF: dict[EndingName, Outcome] = {
+    "completed": "completed",
+    "turns_exhausted": "turns_exhausted",
+    "provider_error": "infrastructure_failure",
+    "interrupted": "cut",
+}
 
 ACK = "Entrega recibida."
 STOPPED = "La sesión se ha cortado."
@@ -64,6 +73,7 @@ class SessionRequest:
     chapter: int | None = None
     prompt_version: str | None = None
     chapter_checks: ChapterChecks | None = None
+    cut_when: Callable[[ToolCall], bool] | None = None
 
 
 @dataclass
@@ -102,7 +112,7 @@ class SessionResult:
 class Final:
     """El resultado final de la sesión (el `ResultMessage` del SDK)."""
 
-    ending: Literal["completed", "turns_exhausted", "provider_error", "interrupted"]
+    ending: EndingName
     text: str | None
     usage: Usage | None
     sdk_cost_usd: float | None
@@ -243,7 +253,7 @@ class LiveSession:
             reason = decision.reason or "denegada por la política"
             with self._tool_span(tool, "WARNING", reason):
                 pass
-            self.calls.append(
+            self._record_call(
                 ToolCall(tool, tool_input, "denied", reason=reason, own=tool in self._specs)
             )
             return reason
@@ -279,7 +289,7 @@ class LiveSession:
             return None
         if pending.span is not None:
             pending.span.close()
-            self.calls.append(ToolCall(tool, pending.input, "accepted"))
+            self._record_call(ToolCall(tool, pending.input, "accepted"))
         elif pending.value is not None and self.request.chapter_checks is not None:
             defects = tuple(self.request.chapter_checks(pending.value))
             blocking = tuple(d for d in defects if d.blocking)
@@ -321,7 +331,13 @@ class LiveSession:
                 self.request.trace, "schema-salida", 0 if rejected else 1, span=span
             )
         call.own = True
+        self._record_call(call)
+
+    def _record_call(self, call: ToolCall) -> None:
+        """Quien abrió la sesión ve cada llamada en cuanto se resuelve y puede cortarla."""
         self.calls.append(call)
+        if self.request.cut_when is not None and self.request.cut_when(call):
+            self.stop("cut")
 
 
 def _defects_text(defects: Sequence[Defect]) -> str:
@@ -453,8 +469,14 @@ class AgentPort:
         """Conduce la sesión hasta que termina o un hook pide cortarla; siempre desconecta."""
         running = asyncio.create_task(driver.run())
         stop_requested = asyncio.create_task(live.stopped.wait())
-        await asyncio.wait({running, stop_requested}, return_when=asyncio.FIRST_COMPLETED)
+        done, _ = await asyncio.wait(
+            {running, stop_requested},
+            timeout=self._config.session_timeout_seconds,
+            return_when=asyncio.FIRST_COMPLETED,
+        )
         stop_requested.cancel()
+        if not done:
+            live.stop("time_exhausted")
         if live.stop_outcome is not None:
             running.cancel()
             await asyncio.gather(running, return_exceptions=True)
@@ -463,7 +485,7 @@ class AgentPort:
             return live.stop_outcome
         await driver.disconnect()
         running.result()
-        return "completed"
+        return _OUTCOME_OF[driver.final.ending] if driver.final else "infrastructure_failure"
 
     def _record(
         self,

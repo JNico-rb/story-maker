@@ -13,7 +13,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
 
 from story_maker.agents.ceiling import NeverFits, NoRoomInTime, Ticket, TokenCeiling
-from story_maker.agents.fake import FakeAgent, Say, Script
+from story_maker.agents.fake import Call, Fail, FakeAgent, Hang, Say, Script
 from story_maker.agents.port import AgentPort, SessionRequest
 from story_maker.agents.tools import ToolSpec
 from story_maker.agents.usage import Usage
@@ -258,3 +258,66 @@ async def test_a_reservation_larger_than_the_ceiling_does_not_wait(
     assert fake.sessions == []
     with session_factory() as session:
         assert session.scalars(select(RoleSession)).all() == []
+
+
+CHAPTER = {"title": "Uno", "text": "limpio"}
+
+
+def broken_policy(request: Any) -> Any:
+    raise RuntimeError("motor caído")
+
+
+OUTCOMES: dict[str, tuple[Script, dict[str, Any]]] = {
+    "completed": (Script(steps=(Say("fin"),), usage=USAGE), {}),
+    "turns_exhausted": (
+        Script(steps=(Call("submit_chapter", CHAPTER), Say("fin")), usage=USAGE),
+        {"max_turns": 1},
+    ),
+    "time_exhausted": (Script(steps=(Hang(),), usage=USAGE), {"timeout": 1}),
+    "cut": (
+        Script(steps=(Call("submit_chapter", CHAPTER), Say("fin")), usage=USAGE),
+        {"cut_when": lambda call: True},
+    ),
+    "infrastructure_failure": (Script(steps=(Fail(result=True),), usage=USAGE), {}),
+    "policy_failure": (
+        Script(steps=(Call("submit_chapter", CHAPTER), Say("fin")), usage=USAGE),
+        {"policy": broken_policy},
+    ),
+}
+
+
+@pytest.mark.parametrize("outcome", OUTCOMES)
+async def test_the_reservation_is_always_released_on_closing(
+    outcome: str,
+    config: Config,
+    fake: FakeAgent,
+    policy: Any,
+    session_factory: sessionmaker[Session],
+    workspace: Path,
+    run_id: int,
+    make_request: Callable[..., SessionRequest],
+) -> None:
+    script, setup = OUTCOMES[outcome]
+    if "policy" in setup:
+        policy.rule = setup["policy"]
+    tuned = with_role(config, "writer", max_turns=setup.get("max_turns", 4))
+    tuned = dataclasses.replace(tuned, session_timeout_seconds=setup.get("timeout", 60))
+    request = make_request("writer", "write", run_id=run_id, cut_when=setup.get("cut_when"))
+    reserved = build_port(tuned, fake, policy, session_factory, workspace).reservation(request)
+    ceiling = TokenCeiling(reserved)
+    port = build_port(tuned, fake, policy, session_factory, workspace, ceiling)
+    fake.script("writer", "write", script)
+
+    session = asyncio.create_task(port.run(request))
+    await asyncio.sleep(0)
+    behind = asyncio.create_task(ceiling.acquire(reserved, None))
+    await asyncio.sleep(0)
+    assert not behind.done()
+
+    result = await session
+
+    expected = "infrastructure_failure" if outcome == "policy_failure" else outcome
+    assert result.outcome == expected
+    ticket = await asyncio.wait_for(behind, timeout=1)
+    assert ticket.granted
+    assert ceiling.in_use == reserved

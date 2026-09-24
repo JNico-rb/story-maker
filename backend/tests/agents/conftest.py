@@ -62,7 +62,11 @@ class DoublePolicy:
 
 @pytest.fixture
 def config() -> Config:
-    return dataclasses.replace(load_config(ROOT / "config.json"), token_ceiling=50_000)
+    """La del repositorio con techo de prueba y writer de 8 turnos: caben los guiones largos."""
+    base = load_config(ROOT / "config.json")
+    roles = dict(base.roles)
+    roles["writer"] = dataclasses.replace(roles["writer"], max_turns=8)
+    return dataclasses.replace(base, token_ceiling=50_000, roles=roles)
 
 
 @pytest.fixture

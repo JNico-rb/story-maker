@@ -214,7 +214,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 003-C17 · Se abre hasta llenar el techo exacto; si no cabe, se espera en orden de llegada
 - [x] 003-C18 · La API espera como mucho `api_wait_seconds`; la ejecución, sin límite propio
 - [x] 003-C19 · Una reserva mayor que el techo no espera
-- [ ] 003-C20 · La reserva se libera siempre al cerrar
+- [x] 003-C20 · La reserva se libera siempre al cerrar
 - [ ] 003-I1 · La suma de las reservas abiertas nunca supera `token_ceiling`
 - [ ] 003-I2 · Toda reserva se libera exactamente una vez
 - [ ] 003-C21 · Agotar los turnos conserva el uso
