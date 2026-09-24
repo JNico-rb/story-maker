@@ -162,7 +162,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 002-C10 · Acceso con cuerpo incompleto
 - [x] 002-C11 · Un token válido identifica al cliente
 - [x] 002-C12 · Sin token, o con el token mal presentado, responde 401
-- [ ] 002-C13 · Un token manipulado o de otro uso responde 401
+- [x] 002-C13 · Un token manipulado o de otro uso responde 401
 - [ ] 002-C14 · La caducidad en su límite
 - [ ] 002-C15 · El token se comprueba antes que la propiedad
 - [ ] 002-C16 · Lo ajeno responde como inexistente

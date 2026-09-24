@@ -7,9 +7,12 @@ casos se ejercen con una ruta protegida de prueba, montada solo aquí, que expon
 from __future__ import annotations
 
 import datetime as dt
+import json
 from collections.abc import Iterator
 from pathlib import Path
+from typing import Any
 
+import jwt
 import pytest
 from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
@@ -59,6 +62,10 @@ def client(session_factory: sessionmaker[Session], clock: FakeClock) -> TestClie
     app = create_app(session_factory=session_factory, jwt_secret=JWT_SECRET, clock=clock)
     _mount_whoami(app)
     return TestClient(app)
+
+
+def _json(payload: dict[str, Any]) -> bytes:
+    return json.dumps(payload, separators=(",", ":")).encode("utf-8")
 
 
 def _register_and_login(client: TestClient, email: str) -> tuple[int, str]:
@@ -117,3 +124,52 @@ def test_missing_or_malformed_token_answers_401(client: TestClient) -> None:
         assert response.headers["WWW-Authenticate"] == "Bearer"
     bodies = {response.text for response in responses}
     assert len(bodies) == 1
+
+
+def test_a_tampered_or_misused_token_answers_401(client: TestClient, clock: FakeClock) -> None:
+    a_id, a_token = _register_and_login(client, "cliente-a@example.com")
+    b_id, _b_token = _register_and_login(client, "cliente-b@example.com")
+    header_b64, payload_b64, sig_b64 = a_token.split(".")
+    payload = jwt.decode(a_token, options={"verify_signature": False})
+
+    last_char = sig_b64[-1]
+    tampered_sig = sig_b64[:-1] + ("A" if last_char != "A" else "B")
+    changed_signature = f"{header_b64}.{payload_b64}.{tampered_sig}"
+
+    sub_payload = dict(payload, sub=str(b_id))
+    changed_sub = (
+        f"{header_b64}.{jwt.utils.base64url_encode(_json(sub_payload)).decode()}.{sig_b64}"
+    )
+
+    other_secret = jwt.encode(payload, "y" * 32, algorithm="HS256")
+    alg_none = jwt.encode(payload, key=None, algorithm="none")
+    other_algorithm = jwt.encode(payload, JWT_SECRET, algorithm="HS512")
+    no_exp = jwt.encode(
+        {k: v for k, v in payload.items() if k != "exp"}, JWT_SECRET, algorithm="HS256"
+    )
+    view_token_audience = jwt.encode(dict(payload, aud="view_token"), JWT_SECRET, algorithm="HS256")
+    other_issuer = jwt.encode(dict(payload, iss="otro"), JWT_SECRET, algorithm="HS256")
+    no_sub = jwt.encode(
+        {k: v for k, v in payload.items() if k != "sub"}, JWT_SECRET, algorithm="HS256"
+    )
+    unknown_sub = jwt.encode(dict(payload, sub="999999"), JWT_SECRET, algorithm="HS256")
+
+    tokens = [
+        changed_signature,
+        changed_sub,
+        other_secret,
+        alg_none,
+        other_algorithm,
+        no_exp,
+        view_token_audience,
+        other_issuer,
+        no_sub,
+        unknown_sub,
+    ]
+    for token in tokens:
+        response = client.get("/api/_test/whoami", headers={"Authorization": f"Bearer {token}"})
+        assert response.status_code == 401, (token, response.text)
+
+    still_a = client.get("/api/_test/whoami", headers={"Authorization": f"Bearer {a_token}"})
+    assert still_a.status_code == 200
+    assert still_a.json() == {"user_id": a_id}
