@@ -10,6 +10,7 @@ from sqlalchemy import delete
 from sqlalchemy.orm import Session, sessionmaker
 from tests.pipeline.conftest import (
     NOW,
+    FixedWindows,
     PhaseDouble,
     Seed,
     chapter_call,
@@ -228,5 +229,49 @@ async def test_a_provider_error_interrupts_and_does_not_count_as_an_attempt(
     assert counted_attempts(session_factory, seed.run_id, 6) == 0
     assert chapter_rows(session_factory, seed.version_id, 6) == 0
     assert version_status(session_factory, seed.version_id) == "candidate"
+    script_chapter_failure(fake)
+    assert await worker.run_next() == following
+
+
+async def test_falling_with_the_resumes_exhausted_is_failing(
+    orchestrator: Orchestrator,
+    fake: FakeAgent,
+    seed: Seed,
+    session_factory: sessionmaker[Session],
+) -> None:
+    set_checkpoints(session_factory, seed.run_id, 2)
+    set_run(session_factory, seed.run_id, resumes=2)
+    fake.script("writer", "write", Script(steps=(Fail(result=True),)))
+
+    await orchestrator.execute(seed.run_id)
+
+    run = get(session_factory, seed.run_id)
+    assert (run.status, run.reason) == ("failed", "resumes_exhausted")
+    assert run.finished_at == FINISHED
+    assert version_status(session_factory, seed.version_id) == "discarded"
+
+
+async def test_an_unexpected_worker_error_fails_with_internal_error_and_the_worker_goes_on(
+    production: Production,
+    orchestrator: Orchestrator,
+    windows: FixedWindows,
+    fake: FakeAgent,
+    seed: Seed,
+    session_factory: sessionmaker[Session],
+) -> None:
+    set_run(session_factory, seed.run_id, status="queued", phase=None, chapter=None)
+    set_checkpoints(session_factory, seed.run_id, 2)
+    windows.fail_on_chapter = 3
+    (following,) = queue_others(session_factory, 5)
+    worker = make_worker(production, orchestrator)
+
+    assert await worker.run_next() == seed.run_id
+
+    run = get(session_factory, seed.run_id)
+    assert (run.status, run.reason) == ("failed", "internal_error")
+    assert run.reason_detail is not None
+    assert "falta el capítulo 3 del outline" in run.reason_detail
+    assert version_status(session_factory, seed.version_id) == "discarded"
+    windows.fail_on_chapter = None
     script_chapter_failure(fake)
     assert await worker.run_next() == following

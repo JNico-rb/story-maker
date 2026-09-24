@@ -596,8 +596,8 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 011-C25 · Al arrancar el servidor, lo que estaba en curso se interrumpe
 - [x] 011-C26 · Reanudar vuelve a encolar la ejecución en su puesto
 - [x] 011-C27 · Reanudar sigue tras el último punto de control
-- [ ] 011-C28 · Caer con las reanudaciones agotadas es fallar
-- [ ] 011-C29 · Un error imprevisto del worker falla con `internal_error`
+- [x] 011-C28 · Caer con las reanudaciones agotadas es fallar
+- [x] 011-C29 · Un error imprevisto del worker falla con `internal_error`
 - [ ] 011-C30 · El informe de la ejecución se calcula al pedirlo
 - [ ] 011-C31 · Trazas, spans y scores de la producción
 - [ ] 011-I1 · Hay como mucho una ejecución `running` en el servidor, y las `queued` salen en orden de fecha de creación (recortado)
