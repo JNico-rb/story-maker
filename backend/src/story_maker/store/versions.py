@@ -30,6 +30,17 @@ def current_version(session: Session, novel_id: int) -> Version | None:
     )
 
 
+def published_version(session: Session, novel_id: int, number: int) -> Version | None:
+    """La versión publicada `number` de la novela, o ninguna."""
+    return (
+        session.query(Version)
+        .filter(
+            Version.novel_id == novel_id, Version.status == "published", Version.number == number
+        )
+        .one_or_none()
+    )
+
+
 def publish(uow: UnitOfWork, version_id: int, *, pdf_path: str, now: dt.datetime) -> Version:
     """Publica la candidata con el número siguiente al de la vigente. Exige que su base sea la
     vigente; la de generación, que no haya ninguna publicada (historia lineal, 009-I5)."""

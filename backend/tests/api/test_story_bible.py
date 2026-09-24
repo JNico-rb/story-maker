@@ -6,6 +6,7 @@ import datetime as dt
 from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 import pytest
 from fastapi.encoders import jsonable_encoder
@@ -129,3 +130,33 @@ def test_the_api_returns_the_story_bible_of_the_current_version(
     assert "Kira" not in response.text
     with session_factory() as session:
         assert session.get(Version, n1.candidate).status == "candidate"
+
+
+def _toby(story_bible: dict[str, Any]) -> tuple[int, int, str]:
+    """(id del personaje, id de su hecho de nombre, su nombre) del allegado del brief."""
+    character = next(c for c in story_bible["characters"] if c["type"] == "close_one")
+    fact = next(
+        f
+        for f in story_bible["facts"]
+        if f["attribute"] == "name" and f["character_id"] == character["id"]
+    )
+    return character["id"], fact["id"], fact["value"]
+
+
+def test_the_api_returns_the_story_bible_of_an_earlier_version(
+    client: TestClient, session_factory: sessionmaker[Session]
+) -> None:
+    user_id, headers = _client_token(client, "cliente-a@example.com")
+    n1 = _seed_n1(session_factory, user_id)
+
+    earlier = client.get(f"/api/novels/{n1.novel_id}/story-bible?version=1", headers=headers)
+    current = client.get(f"/api/novels/{n1.novel_id}/story-bible", headers=headers)
+
+    assert earlier.status_code == 200, earlier.text
+    assert earlier.json()["version"] == 1
+    assert earlier.json()["story_bible"] == _expected(session_factory, n1.v1)
+    v1_toby, v2_toby = _toby(earlier.json()["story_bible"]), _toby(current.json()["story_bible"])
+    assert v1_toby[2] == "Toby"
+    assert v2_toby[2] == "Nala"
+    assert v1_toby[0] != v2_toby[0]
+    assert v1_toby[1] != v2_toby[1]
