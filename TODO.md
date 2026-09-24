@@ -843,8 +843,8 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [ ] 018-C21 · En una reescritura por otra causa, el writer recibe los avisos
 - [ ] 018-C22 · Con la aceptación: un resultado por linter en SQLite y en el informe
 - [ ] 018-C23 · Tras el commit: un score por linter en Langfuse
-- [ ] 018-I1 · Todo aviso es un `Defecto` no bloqueante, sin criterio de rúbrica, con su capítulo y un mensaje que nombra lo detectado y su párrafo (o e…
-- [ ] 018-I2 · Los linters son deterministas
+- [x] 018-I1 · Todo aviso es un `Defecto` no bloqueante, sin criterio de rúbrica, con su capítulo y un mensaje que nombra lo detectado y su párrafo (o e…
+- [x] 018-I2 · Los linters son deterministas
 
 ### Closing
 - [ ] Full suite green, type checks clean
