@@ -9,6 +9,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from story_maker.domain.banned_terms import find_term_matches
+
 Ocasion = Literal["birthday", "wedding", "anniversary", "retirement", "other"]
 Genero = Literal["adventure", "humor", "romance", "mystery", "drama", "fable"]
 Tono = Literal["tender", "funny", "exciting", "nostalgic", "epic", "unsettling"]
@@ -265,3 +267,89 @@ def contradictions(content: BriefContent, created_at: dt.date) -> list[Contradic
     found += _c4(content, created_at)
     found += _c5(content, created_at)
     return found
+
+
+class BannedEntry(BaseModel):
+    """Una `EntradaProhibida` tal como la necesita C6; `domain` no importa `policy` (regla de
+    dependencias, `architecture.md` §15.9), así que quien llama convierte las filas de
+    `banned_terms` a esta forma."""
+
+    model_config = ConfigDict(extra="forbid")
+    term: str
+    type: Literal["word", "topic"]
+    level: Literal["global", "user", "novel"]
+    keywords: list[str] = Field(default_factory=list)
+
+
+class AcceptedFact(BaseModel):
+    """Un `HechoExtraido` aceptado, lo único que C6 y la cota de obligatorios necesitan de él."""
+
+    model_config = ConfigDict(extra="forbid")
+    id: int
+    subject: str
+    value: str
+    mandatory: bool
+
+
+def _c6_matches(text: str, entries: list[BannedEntry]) -> list[Contradiccion]:
+    found = []
+    for entry in entries:
+        needles = entry.keywords if entry.type == "topic" else [entry.term]
+        for needle in needles:
+            for variant in find_term_matches(text, needle):
+                found.append((entry, variant))
+                break
+    return [
+        Contradiccion(
+            rule="C6",
+            fields=[""],
+            detail={"term": entry.term, "level": entry.level, "variant": variant},
+        )
+        for entry, variant in found
+    ]
+
+
+def _c6_at(text: str, field: str, checked: bool, entries: list[BannedEntry]) -> list[Contradiccion]:
+    if not checked:
+        return []
+    return [c.model_copy(update={"fields": [field]}) for c in _c6_matches(text, entries)]
+
+
+def c6_contradictions(
+    content: BriefContent, banned_entries: list[BannedEntry], accepted_facts: list[AcceptedFact]
+) -> list[Contradiccion]:
+    """C6: una entrada prohibida de cualquier nivel en un elemento obligatorio, en la dedicatoria
+    o en un deseo de trama (`domain-knowledge.md` §4.3, 008-C11). Un elemento no obligatorio no
+    cuenta, salvo la dedicatoria y los deseos de trama, que siempre se comprueban."""
+    found: list[Contradiccion] = []
+    found += _c6_at(content.recipient.name, "recipient.name", True, banned_entries)
+    for i, trait in enumerate(content.recipient.traits):
+        found += _c6_at(trait.statement, f"recipient.traits[{i}]", trait.mandatory, banned_entries)
+    for i, recollection in enumerate(content.recollections):
+        found += _c6_at(
+            recollection.statement,
+            f"recollections[{i}]",
+            recollection.mandatory,
+            banned_entries,
+        )
+    for i, close_one in enumerate(content.close_ones):
+        found += _c6_at(close_one.name, f"close_ones[{i}]", close_one.mandatory, banned_entries)
+    found += _c6_at(content.dedication, "dedication", True, banned_entries)
+    for i, wish in enumerate(content.plot_wishes):
+        found += _c6_at(wish.statement, f"plot_wishes[{i}]", True, banned_entries)
+    for fact in accepted_facts:
+        found += _c6_at(fact.value, f"extracted_facts[{fact.id}]", fact.mandatory, banned_entries)
+    return found
+
+
+def all_contradictions(
+    content: BriefContent,
+    created_at: dt.date,
+    banned_entries: list[BannedEntry],
+    accepted_facts: list[AcceptedFact],
+) -> list[Contradiccion]:
+    """C1-C6 juntas, en un orden estable (008-I2): no depende del orden de `banned_entries`."""
+    found = contradictions(content, created_at) + c6_contradictions(
+        content, banned_entries, accepted_facts
+    )
+    return sorted(found, key=lambda c: (c.rule, tuple(c.fields)))

@@ -2,16 +2,16 @@
 
 from __future__ import annotations
 
-import datetime as dt
 from typing import Any, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 from story_maker.api.dependencies import get_current_user_id
 from story_maker.api.ownership import owned_or_404
-from story_maker.domain.brief import BriefContent, Contradiccion, contradictions, missing_fields
-from story_maker.interview.novels import brief_of
+from story_maker.domain.brief import BriefContent, Contradiccion, all_contradictions, missing_fields
+from story_maker.interview.novels import brief_of, load_accepted_facts, load_banned_entries
 from story_maker.store.models import Brief, Novel
 from story_maker.store.session import unit_of_work
 
@@ -25,13 +25,17 @@ class BriefOut(BaseModel):
     contradictions: list[Contradiccion]
 
 
-def build_brief_out(brief: Brief, novel_created_at: dt.datetime) -> BriefOut:
+def build_brief_out(session: Session, brief: Brief, novel: Novel) -> BriefOut:
     content = BriefContent.model_validate(brief.content) if brief.content else BriefContent()
+    banned_entries = load_banned_entries(session, novel.user_id, novel.id)
+    accepted_facts = load_accepted_facts(session, novel.id)
     return BriefOut(
         status=brief.status,
         content=content,
         missing_fields=missing_fields(content),
-        contradictions=contradictions(content, novel_created_at.date()),
+        contradictions=all_contradictions(
+            content, novel.created_at.date(), banned_entries, accepted_facts
+        ),
     )
 
 
@@ -46,22 +50,22 @@ def _missing_field_problems(content: BriefContent) -> list[dict[str, Any]]:
     ]
 
 
-def _contradiction_problems(
-    content: BriefContent, novel_created_at: dt.datetime
-) -> list[dict[str, Any]]:
+def _contradiction_problems(contradictions: list[Contradiccion]) -> list[dict[str, Any]]:
     return [
         {
             "loc": ["body", "brief", "contradictions", *item.fields],
             "msg": f"contradicción {item.rule}",
             "type": "contradiction",
         }
-        for item in contradictions(content, novel_created_at.date())
+        for item in contradictions
     ]
 
 
-def brief_problems(content: BriefContent, novel_created_at: dt.datetime) -> list[dict[str, Any]]:
+def brief_problems(brief_out: BriefOut) -> list[dict[str, Any]]:
     """Todo lo que bloquea la confirmación (008-C09 a 008-C13); cada paso añade su comprobación."""
-    return _missing_field_problems(content) + _contradiction_problems(content, novel_created_at)
+    return _missing_field_problems(brief_out.content) + _contradiction_problems(
+        brief_out.contradictions
+    )
 
 
 @router.get("/api/novels/{novel_id}/brief", response_model=BriefOut)
@@ -72,7 +76,7 @@ def get_brief(
     try:
         novel = owned_or_404(session, Novel, novel_id, lambda n: n.user_id == user_id)
         brief = brief_of(session, novel_id)
-        return build_brief_out(brief, novel.created_at)
+        return build_brief_out(session, brief, novel)
     finally:
         session.close()
 
@@ -88,11 +92,10 @@ def confirm_brief(
         brief = brief_of(session, novel_id)
         if brief.status == "confirmed":
             raise HTTPException(status_code=409, detail="el brief ya está confirmado")
-        content = BriefContent.model_validate(brief.content) if brief.content else BriefContent()
-        problems = brief_problems(content, novel.created_at)
+        brief_out = build_brief_out(session, brief, novel)
+        problems = brief_problems(brief_out)
         if problems:
             raise HTTPException(status_code=422, detail=problems)
-        created_at = novel.created_at
     finally:
         session.close()
 
@@ -102,6 +105,7 @@ def confirm_brief(
 
     session = state.session_factory()
     try:
-        return build_brief_out(brief_of(session, novel_id), created_at)
+        novel = owned_or_404(session, Novel, novel_id, lambda n: n.user_id == user_id)
+        return build_brief_out(session, brief_of(session, novel_id), novel)
     finally:
         session.close()

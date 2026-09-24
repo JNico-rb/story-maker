@@ -427,7 +427,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 008-C08 · Mensaje rechazado antes de abrir la sesión
 - [x] 008-C09 · Datos faltantes, uno por campo
 - [x] 008-C10 · Contradicciones C1–C5, por tabla
-- [ ] 008-C11 · Contradicción C6, por nivel, lugar y variante
+- [x] 008-C11 · Contradicción C6, por nivel, lugar y variante
 - [ ] 008-C12 · Cota de elementos obligatorios
 - [ ] 008-C13 · Comprobación de schema: forma y referencias internas
 - [ ] 008-C14 · Las comprobaciones se recalculan en cada lectura

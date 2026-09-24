@@ -8,8 +8,17 @@ from typing import Literal
 from pydantic import BaseModel
 from sqlalchemy.orm import Session, sessionmaker
 
-from story_maker.domain.brief import BriefContent
-from story_maker.store.models import Brief, Interview, Novel, Run, Version
+from story_maker.domain.brief import AcceptedFact, BannedEntry, BriefContent
+from story_maker.store.models import (
+    BannedTerm,
+    Brief,
+    ExtractedFact,
+    FreeText,
+    Interview,
+    Novel,
+    Run,
+    Version,
+)
 from story_maker.store.session import unit_of_work
 
 NovelStatus = Literal["interview", "ready", "in_progress", "published"]
@@ -93,3 +102,37 @@ def list_novels(session: Session, user_id: int) -> list[NovelSummary]:
         .all()
     )
     return [novel_summary(session, novel) for novel in novels]
+
+
+def load_banned_entries(session: Session, user_id: int, novel_id: int) -> list[BannedEntry]:
+    """Las tres listas que alcanzan a la novela: `global`, `user` del cliente y `novel` de ella
+    (`architecture.md` §12.1, 008-C11)."""
+    rows = (
+        session.query(BannedTerm)
+        .filter(
+            (BannedTerm.level == "global")
+            | ((BannedTerm.level == "user") & (BannedTerm.user_id == user_id))
+            | ((BannedTerm.level == "novel") & (BannedTerm.novel_id == novel_id))
+        )
+        .all()
+    )
+    return [
+        BannedEntry(
+            term=row.term, type=row.type, level=row.level, keywords=list(row.keywords or [])
+        )
+        for row in rows
+    ]
+
+
+def load_accepted_facts(session: Session, novel_id: int) -> list[AcceptedFact]:
+    rows = (
+        session.query(ExtractedFact)
+        .join(FreeText, ExtractedFact.free_text_id == FreeText.id)
+        .filter(FreeText.novel_id == novel_id, ExtractedFact.accepted.is_(True))
+        .order_by(ExtractedFact.id)
+        .all()
+    )
+    return [
+        AcceptedFact(id=row.id, subject=row.subject, value=row.value, mandatory=row.mandatory)
+        for row in rows
+    ]
