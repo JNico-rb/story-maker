@@ -35,14 +35,14 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 | Carril | Specs en orden | Depende de (fuera del carril) | Worktree | Rama | Estado |
 |---|---|---|---|---|---|
 | 0 — integrador | 000 | — | checkout principal | `V2` | cerrada (D al final) |
-| A | 014 (parte A: C01–C11, I1–I4, I6, I11; parte B tras la parte A en V2) | 012 | `../sm-a` | `carril-a` | en curso: parte A, pasos 1–6 hechos |
+| A | 014 parte A (C01–C11, I1–I4, I6, I11) | 012 | `../sm-a` | `carril-a` | en curso: C01–C09 hechos |
+| B | 014 parte B (C12–C19 y sus I no recortadas), en paralelo a la A desde `carril-a` | — | `../sm-b` | `carril-b` | en curso |
 | D | 020 (C01, C02, C05, I1 integrados; C03, C04 y C15 pasan al carril X, tras el arranque) | — | `../sm-d` | `carril-d` | parcial integrada |
-| X | 031 (C01–C04, I2; C04 tras C05 en V2); después 020-C03, C04 y C15 | 012 | `../sm-x` | `carril-x` | en curso: C01–C03, I2 |
-| Y | 031-C05 (adaptador de incrustaciones, solo `retrieval/`) | — | `../sm-y` | `carril-y` | en curso (lo lleva el usuario en otro chat) |
-| D2 | 020: C03 con `published` y `evals table` sin depender del título de la novela | 031 | `../sm-d` | `carril-d` | tras 031 en V2 |
-| E | 026 → 027 (027 tras 014 parte A) | 014 parte A | `../sm-e` | `carril-e` | 026 cerrada e integrada; 027 espera a 014 parte A en V2 |
+| X | 031 (C01–C04, I2); después 020-C03 (con el arreglo de D2), C04 y C15 | 012 | `../sm-x` | `carril-x` | en curso: C01 hecho |
+| Y | 031-C05 (adaptador de incrustaciones, solo `retrieval/`) | — | `../sm-y` | `carril-y` | cerrada e integrada |
+| E | 026 → 027 (027 con la API simulada según 014) | — | `../sm-e` | `carril-e` | 026 cerrada e integrada; 027 en curso |
 | I | 012 (con el WIP de la rama `wip-012-gate`) | 007, 011 | `../sm-i` | `carril-i` | cerrada e integrada |
-| K | 029 (C01, C05–C08) cerrada e integrada; después 004-C16 (check-env solo exige los roles con fichero de prompt) | — | `../sm-k` | `carril-k` | en curso: 004-C16 |
+| K | 029 (C01, C05–C08); 004-C16 (check-env solo exige los roles con fichero de prompt) | — | `../sm-k` | `carril-k` | cerrada e integrada |
 | W | workspace de producto: 010-I8, 011-I12–I14 (solo `backend/harness_workspace/`) | — | `../sm-w` | `carril-w` | cerrada e integrada |
 | P | presentación (solo `presentacion/`) | — | `../sm-p` | `carril-p` | cerrado: el deck y su PDF los rellena el usuario con los datos de la tanda D |
 
