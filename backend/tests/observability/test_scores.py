@@ -5,7 +5,7 @@ from __future__ import annotations
 from tests.conftest import FakeLangfuseClient
 
 from story_maker.observability.langfuse_adapter import LangfuseObservability
-from story_maker.observability.scores import export_validator_score
+from story_maker.observability.scores import export_validator_score, is_scoreable
 
 # --- C12: cada resultado de validador se exporta como Score con su nombre canónico ------------
 
@@ -44,3 +44,15 @@ def test_a_semantic_chapter_validator_result_is_linked_to_its_chapter_span(
     exported_span = fake_langfuse_client.roots["trace-run:1"].children[0]
     assert exported_span.name == "capitulo-3"
     assert score["observation_id"] == exported_span.id
+
+
+# --- C13: TLC no envía score --------------------------------------------------------------------
+
+
+def test_harness_tla_is_not_scoreable() -> None:
+    assert is_scoreable("harness-tla") is False
+
+
+def test_a_regular_validator_is_scoreable() -> None:
+    assert is_scoreable("cronologia-lean") is True
+    assert is_scoreable("rubrica-capitulo") is True
