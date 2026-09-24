@@ -259,3 +259,6 @@ FILLER_PHRASES: tuple[str, ...] = (
 
 #: Una muletilla repetida dispara `linter-repeticion` a partir de esta cuenta en un párrafo.
 FILLER_REPETITION_THRESHOLD = 2
+
+#: Densidad de adverbios en -mente por 1.000 palabras que dispara `linter-estilo-ia` (018-C9).
+MENTE_DENSITY_THRESHOLD = 6.0
