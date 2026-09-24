@@ -363,7 +363,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 007-I4 · La seudonimización no cambia el resultado de ningún comprobador
 - [ ] 007-I6 · El fichero solo contiene filas de la versión que se verifica
 - [ ] 007-I7 · El verificador solo escribe en `STORY_MAKER_DATA_DIR`
-- [ ] 007-I8 · `GITHUB_TOKEN` nunca aparece en el fichero, el input, el resultado, la fila, un mensaje de error ni un registro
+- [x] 007-I8 · `GITHUB_TOKEN` nunca aparece en el fichero, el input, el resultado, la fila, un mensaje de error ni un registro
 - [ ] 007-I12 · La fila de `chronology_files` solo existe con un resultado (`passed`, `failed` o `error`), y su huella es la del fichero guardado
 - [ ] 007-C25 · Una verificación real por GitHub Actions responde a tiempo (D, al final)
 

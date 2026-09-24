@@ -368,3 +368,34 @@ async def test_a_run_still_unfinished_when_the_timeout_passes_gives_verifier_tim
     assert 900 <= clock.now - 1000.0 < 900 + 10
     assert "artifacts" not in github.endpoints()
     assert_no_token(result, logs=all_logs.text)
+
+
+# --- 007-I8 ----------------------------------------------------------------------------------
+
+SCENARIOS = {
+    "pasa": lambda: FakeGithub(),
+    "no-cabe": lambda: FakeGithub(),
+    "lanzamiento-401": lambda: FakeGithub(failures={"dispatch": 401}),
+    "sin-red": lambda: FakeGithub(failures={"run": httpx.ConnectError}),
+    "descarga-500": lambda: FakeGithub(failures={"blob": 500}),
+    "artefacto-invalido": lambda: FakeGithub(artifact=b"basura"),
+    "agotado": lambda: FakeGithub(statuses=("in_progress",)),
+}
+
+
+@pytest.mark.parametrize("scenario", sorted(SCENARIOS))
+async def test_the_token_appears_only_in_the_authorization_header(
+    clock: FakeClock, scenario: str, all_logs: pytest.LogCaptureFixture
+) -> None:
+    github = SCENARIOS[scenario]()
+    source = source_encoding_to(65_536) if scenario == "no-cabe" else SOURCE
+
+    result = await make_verifier(github, clock).verify(source)
+
+    assert TOKEN not in source
+    assert_no_token(result, make_verifier(github, clock), logs=all_logs.text)
+    for request in github.requests:
+        assert TOKEN not in str(request.url)
+        assert TOKEN.encode() not in request.content
+        others = {k: v for k, v in request.headers.items() if k.lower() != "authorization"}
+        assert TOKEN not in repr(others)
