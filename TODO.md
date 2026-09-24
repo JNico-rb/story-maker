@@ -1285,7 +1285,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
-- [ ] 031-C05 · El adaptador de incrustaciones (carril Y)
+- [x] 031-C05 · El adaptador de incrustaciones (carril Y)
 - [ ] 031-C01 · `serve` monta la API completa
 - [ ] 031-C04 · Una novela nueva usa el modelo de incrustación real (tras C05 en V2)
 - [ ] 031-C02 · Arrancar el servidor pone el worker a tomar la cola
