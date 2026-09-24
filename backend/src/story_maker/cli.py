@@ -21,9 +21,9 @@ from story_maker import settings as settings_module
 from story_maker.agents.ceiling import TokenCeiling
 from story_maker.agents.port import Agent, AgentPort, PolicyEngine
 from story_maker.agents.sdk import SdkAgent
-from story_maker.api.app import create_app
 from story_maker.api.auth import normalize_email, utc_now
 from story_maker.api.brief import brief_problems, build_brief_out
+from story_maker.composition import DB_FILENAME, Adapters, build_app, real_adapters
 from story_maker.config import Config, ConfigError, load_config
 from story_maker.domain.brief import BannedEntry, BriefContent
 from story_maker.interview.brief import TurnFailure, confirm_brief_status, run_turn
@@ -65,8 +65,6 @@ from story_maker.store.users import get_user_by_email
 from story_maker.store.versions import published_version
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
-
-DB_FILENAME = "story-maker.db"
 
 
 def _print_version(value: bool) -> None:
@@ -194,12 +192,18 @@ def check_env_command() -> None:
     raise typer.Exit(1 if _has_failed(lines) else 0)
 
 
-def _build_server(settings: Settings, observability: ObservabilityAdapter) -> uvicorn.Server:
+def _build_server(
+    settings: Settings, observability: ObservabilityAdapter, adapters: Adapters | None = None
+) -> uvicorn.Server:
+    """El servidor con el montaje de 031; `adapters` solo lo pasan las pruebas, con sus dobles."""
     parsed = urlparse(settings.base_url)
     # `settings.base_url` ya pasó la regex de C4 (http://host:puerto): los dos siempre están.
     host = cast(str, parsed.hostname)
     port = cast(int, parsed.port)
-    fastapi_app = create_app(settings.frontend_dist)
+    app_config = load_config(settings.config_path)
+    fastapi_app = build_app(
+        settings, app_config, observability, adapters or real_adapters(settings, app_config)
+    )
     config = uvicorn.Config(fastapi_app, host=host, port=port, workers=1, log_level="warning")
     return uvicorn.Server(config)
 

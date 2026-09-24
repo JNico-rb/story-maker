@@ -1290,14 +1290,14 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 
 ### Steps
 - [x] 031-C05 · El adaptador de incrustaciones (carril Y)
-- [ ] 031-C01 · `serve` monta la API completa
-- [ ] 031-C04 · Una novela nueva usa el modelo de incrustación real (tras C05 en V2)
-- [ ] 031-C02 · Arrancar el servidor pone el worker a tomar la cola
-- [ ] 031-C03 · Parar el servidor apaga el worker sin perder nada
-- [ ] 031-I2 · Ninguna prueba de esta spec llama a un modelo, a Langfuse ni a GitHub
+- [x] 031-C01 · `serve` monta la API completa
+- [x] 031-C04 · Una novela nueva usa el modelo de incrustación real (tras C05 en V2)
+- [x] 031-C02 · Arrancar el servidor pone el worker a tomar la cola
+- [x] 031-C03 · Parar el servidor apaga el worker sin perder nada
+- [x] 031-I2 · Ninguna prueba de esta spec llama a un modelo, a Langfuse ni a GitHub
 - [ ] 031-I1 · El montaje es uno (lo lee el `verificador`)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-25: `uv run pytest` 1536 passed; `uv run ruff check .` OK; `uv run ruff format --check .` OK (356 files); `uv run mypy src` OK (147 files). 031-I1 (recortado): class I, no mapeado a TLA+ ni protege un validador, no bloquea el cierre; `pipeline/planning_seam.py` cubierto por la propiedad ampliada de 031 (`backend/AGENTS.md`, integrador 2026-09-25, a031009).
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
