@@ -42,10 +42,13 @@ function ProbeScreen() {
   return <p>{loaded ? "datos cargados" : "cargando"}</p>;
 }
 
-const probeRoute = { path: "/sonda", element: <ProbeScreen /> };
+const probeRoutes = [
+  { path: "/sonda", element: <ProbeScreen /> },
+  { path: "/otra-sonda", element: <ProbeScreen /> },
+];
 
 function renderAt(path: string) {
-  const router = createMemoryRouter(buildRoutes([probeRoute]), { initialEntries: [path] });
+  const router = createMemoryRouter(buildRoutes(probeRoutes), { initialEntries: [path] });
   render(<RouterProvider router={router} />);
   return router;
 }
@@ -262,5 +265,25 @@ describe("022 rutas protegidas", () => {
     expect(await screen.findByRole("heading", { name: "Entrar" })).toBeInTheDocument();
     expect(router.state.location.pathname).toBe("/acceso");
     expect(sent).toEqual([]);
+  });
+
+  it("022-C08: a session the server rejects is cleared and leads to the access screen; a later protected screen no longer sends that token", async () => {
+    saveSession(TOKEN);
+    const sent = fakeApi({
+      "GET /api/novels": () => ({ status: 401, body: { detail: "No autenticado" } }),
+      "GET /api/banned-terms": () => ({ status: 200, body: [] }),
+    });
+    const router = renderAt("/sonda");
+
+    expect(await screen.findByRole("heading", { name: "Entrar" })).toBeInTheDocument();
+    expectNoSession();
+
+    const before = sent.length;
+    await router.navigate("/otra-sonda");
+
+    await vi.waitFor(() => expect(router.state.location.pathname).toBe("/acceso"));
+    expect(await screen.findByRole("heading", { name: "Entrar" })).toBeInTheDocument();
+    const later = sent.slice(before);
+    expect(later.filter((request) => request.headers.get("Authorization")?.includes(TOKEN))).toEqual([]);
   });
 });
