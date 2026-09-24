@@ -1,11 +1,20 @@
 """Normalización y coincidencia por tokens de términos prohibidos (architecture.md §12.1)."""
 
+from itertools import pairwise
+
 from hypothesis import given
 from hypothesis import strategies as st
 
 from story_maker.domain.banned_terms import find_term_matches, normalize_token
 
 _LOWERCASE_WORDS = st.text(alphabet="abcdefghijklmnopqrstuvwxyzáéíóúñ", min_size=1, max_size=12)
+
+# Radicales que acaban en consonante (nunca -s), sin letras repetidas seguidas, para que la
+# forma normalizada del radical no cambie de longitud antes de comprobar el plural en -es
+# (005-I3, hallazgo del verificador: find_term_matches("los amores", "amor") debía marcar).
+_CONSONANT_STEMS = st.text(alphabet="bcdfghjklmnpqrtvwxyz", min_size=3, max_size=10).filter(
+    lambda w: all(a != b for a, b in pairwise(w))
+)
 
 
 @given(_LOWERCASE_WORDS)
@@ -29,7 +38,14 @@ def test_variantes_de_mayusculas_acento_plural_y_letras_repetidas_coinciden(word
 def test_un_termino_nunca_coincide_dentro_de_otra_palabra(word: str, extra: str) -> None:
     if normalize_token(word) == normalize_token(word + extra):
         return
-    assert find_term_matches(word + extra, word) == []
+    # `word + extra` puede ser, además, el plural en -es legítimo de `word` (005-I3): la única
+    # coincidencia aceptable en ese caso es el token entero, nunca uno parcial o distinto.
+    assert find_term_matches(word + extra, word) in ([], [word + extra])
+
+
+@given(_CONSONANT_STEMS)
+def test_variante_de_plural_en_es_coincide(stem: str) -> None:
+    assert find_term_matches(stem + "es", stem) == [stem + "es"]
 
 
 def test_una_variante_de_acento_coincide() -> None:
@@ -38,6 +54,14 @@ def test_una_variante_de_acento_coincide() -> None:
 
 def test_una_variante_de_plural_coincide() -> None:
     assert find_term_matches("las martas", "marta") == ["martas"]
+
+
+def test_una_variante_de_plural_en_es_coincide() -> None:
+    assert find_term_matches("los amores", "amor") == ["amores"]
+
+
+def test_el_plural_en_es_no_colisiona_con_una_palabra_mas_corta() -> None:
+    assert find_term_matches("los amores", "amo") == []
 
 
 def test_letras_repetidas_y_leetspeak_simple_coinciden() -> None:
