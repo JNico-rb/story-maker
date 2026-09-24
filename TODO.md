@@ -809,11 +809,11 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 016-C20 · Sin modelo no hay recuperación a medias
 - [x] 016-I1 · Determinista
 - [x] 016-I2 · Corte temporal
-- [ ] 016-I3 · Solo la versión pedida (recortado)
-- [ ] 016-I4 · Las CanonCards son función de la story bible (recortado)
-- [ ] 016-I5 · Solo tarjetas de entidades (recortado)
-- [ ] 016-I7 · Un vector por (huella, modelo), solo inserción (recortado)
-- [ ] 016-I8 · No degrada en silencio (`architecture.md` §2, premisa 5) (recortado)
+- [x] 016-I3 · Solo la versión pedida — verificado: test_the_lexical_ranking_and_scores_use_only_the_eligible_cards_of_the_version (test_bm25.py, ya existía) y test_syncing_a_version_never_touches_the_cards_or_vectors_of_another_version (test_cards.py, nueva)
+- [x] 016-I4 · Las CanonCards son función de la story bible — verificado: pruebas de cadena y aceptación en orden de test_cards.py, test_syncing_a_copy_writes_nothing_and_a_known_text_never_calls_the_model_again (test_vectors.py, sincronizar dos veces) y test_the_same_content_loaded_in_another_order_and_with_other_ids_gives_the_same_cards (test_cards.py, nueva)
+- [x] 016-I5 · Solo tarjetas de entidades — verificado: test_a_card_says_what_the_story_bible_knows_before_its_chapter (test_cards.py, ya existía) y test_a_synced_card_never_carries_a_chapters_text_or_summary (test_properties.py, nueva, propiedad con texto y resumen al azar)
+- [x] 016-I7 · Un vector por (huella, modelo), solo inserción — verificado: test_vectors.py (reutiliza sin llamar al modelo, un embed por huella nueva, ningún vector se modifica ni se borra al retirar una tarjeta, secuencia de sincronizaciones con copia y cambio de hecho)
+- [x] 016-I8 · No degrada en silencio (`architecture.md` §2, premisa 5) — verificado: test_model_failure.py (fallo al recuperar y al escribir una tarjeta) y test_syncing_the_story_bible_without_the_model_leaves_no_card_and_no_vector (nueva, fallo dentro de `sync_canon_cards` con la story bible completa)
 - [ ] 016-C21 · El modelo real carga en el portátil (D, al final)
 - [ ] 016-C22 · Línea base dorada con el modelo real (D, al final)
 

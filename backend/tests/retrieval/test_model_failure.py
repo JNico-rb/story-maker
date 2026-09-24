@@ -43,3 +43,19 @@ def test_writing_a_new_card_without_the_model_fails_and_leaves_no_card_nor_vecto
             text("SELECT rowid FROM canon_cards_fts WHERE canon_cards_fts MATCH 'toby'")
         ).all()
         assert matches == []
+
+
+@pytest.mark.parametrize("failure", FAILURES)
+def test_syncing_the_story_bible_without_the_model_leaves_no_card_and_no_vector(
+    canon: Any, session_factory: sessionmaker[Session], planned: dict[str, Any], failure: Failure
+) -> None:
+    """016-I8: no degrada en silencio — un fallo del modelo al sincronizar toda la story bible
+    no deja ninguna tarjeta ni ningún vector a medias."""
+    version = planned["version"]
+
+    with pytest.raises(EmbeddingError, match="modelo-a"):
+        canon.sync(version, FixedVectors(fails=failure))
+
+    with session_factory() as session:
+        assert session.scalar(select(func.count()).select_from(CanonCard)) == 0
+        assert session.scalar(select(func.count()).select_from(Embedding)) == 0

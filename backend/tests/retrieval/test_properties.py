@@ -154,3 +154,32 @@ def test_retrieval_never_returns_a_future_or_superseded_card_and_misses_no_curre
     assert len(result) == min(top_k, len(expected))
     if top_k >= len(expected):
         assert set(result) == expected
+
+
+RANDOM_PROSE = st.text(
+    alphabet=st.characters(whitelist_categories=("Ll",)), min_size=40, max_size=80
+)
+
+
+@PROPERTY
+@given(chapter_text=RANDOM_PROSE, summary=RANDOM_PROSE)
+def test_a_synced_card_never_carries_a_chapters_text_or_summary(
+    canon: Any,
+    session_factory: sessionmaker[Session],
+    chapter_text: str,
+    summary: str,
+) -> None:
+    """016-I5: toda tarjeta sale de la plantilla sobre la story bible; nunca entra el texto ni
+    el resumen de un capítulo, con texto y resumen generados al azar."""
+    assume(chapter_text != summary)
+    version = canon.version()
+    canon.character(version, "Toby")
+    canon.outline_chapter(version, 1, [{"description": "Toby aparece.", "characters": ["Toby"]}])
+    canon.chapter(version, 1, chapter_text, summary)
+
+    canon.sync(version)
+
+    assert canon.cards(version)
+    for card in canon.cards(version):
+        assert chapter_text not in card.text
+        assert summary not in card.text

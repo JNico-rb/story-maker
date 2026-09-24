@@ -213,6 +213,70 @@ def test_accepting_a_chapter_adds_successors_only_where_something_changes(
     assert all("Toby vuelve a la feria." in text for _, text, _ in new.values())
 
 
+def test_syncing_a_version_never_touches_the_cards_or_vectors_of_another_version(
+    canon: Any, session_factory: sessionmaker[Session], planned: dict[str, Any]
+) -> None:
+    """016-I3: sincronizar una versión no toca las demás."""
+    other = canon.version()
+    canon.character(other, "Alguien")
+    canon.outline_chapter(
+        other, 1, [{"description": "Alguien aparece.", "characters": ["Alguien"]}]
+    )
+    canon.sync(other)
+    before = snapshot(canon, other)
+
+    version = planned["version"]
+    canon.sync(version)
+    toby, _ = canon.named(version, "Toby")
+    _, fair = canon.named(version, "la feria del pueblo")
+    canon.chapter(version, 3, "Toby corre por la feria.")
+    canon.event(
+        version, "Toby vuelve a la feria.", fair, origin="recorded", chapter=3, present=[toby]
+    )
+
+    canon.sync(version)
+
+    assert snapshot(canon, other) == before
+
+
+def test_the_same_content_loaded_in_another_order_and_with_other_ids_gives_the_same_cards(
+    canon: Any, session_factory: sessionmaker[Session]
+) -> None:
+    """016-I4: las CanonCards son función de la story bible, no del orden de carga ni de los
+    ids que reciben sus filas."""
+
+    def build(order: tuple[str, str]) -> int:
+        version = canon.version()
+        ids = {name: canon.character(version, name) for name in order}
+        canon.fact(version, "trait", "valiente", character=ids["Marta"])
+        canon.fact(version, "trait", "curioso", character=ids["Toby"])
+        canon.outline_chapter(
+            version,
+            1,
+            [
+                {"description": "Marta llega al puerto.", "characters": ["Marta"]},
+                {"description": "Toby ladra en el puerto.", "characters": ["Toby"]},
+            ],
+        )
+        canon.sync(version)
+        return version
+
+    forward = build(("Marta", "Toby"))
+    backward = build(("Toby", "Marta"))
+
+    def by_name(version: int) -> dict[str, list[tuple[int, str]]]:
+        out: dict[str, list[tuple[int, str]]] = {}
+        with session_factory() as session:
+            for card in canon.cards(version):
+                out.setdefault(entity_name(session, card), []).append(
+                    (card.from_chapter, card.text)
+                )
+        return {name: sorted(entries) for name, entries in out.items()}
+
+    assert forward != backward
+    assert by_name(forward) == by_name(backward)
+
+
 def test_an_entity_recorded_before_its_planned_chapter_starts_after_that_chapter(
     canon: Any, session_factory: sessionmaker[Session], planned: dict[str, Any]
 ) -> None:
