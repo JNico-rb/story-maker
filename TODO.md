@@ -109,7 +109,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 
 ## 001 — base
 
-- [x] Spec `specs/backend/001-base.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Spec `specs/backend/001-base.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; C6 corregido: uso y coste de `role_sessions` vacíos sin resultado final (§18, hallazgo de 003)
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
@@ -184,7 +184,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 
 ## 003 — puerto-de-agente
 
-- [x] Spec `specs/backend/003-puerto-de-agente.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Spec `specs/backend/003-puerto-de-agente.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; C13 corregido: desenlace `infrastructure_failure` (§18)
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps

@@ -121,7 +121,7 @@ En los casos T, lo observable de la configuración es la que el puerto construye
 
 #### 003-C13 — Si la política falla, la tool no corre (T)
 - **Entrada:** el doble de la política lanza un error al decidir sobre una `submit_chapter`.
-- **Salida:** el manejador no se ejecuta; la sesión se corta (desenlace `cut`) y el error llega a quien la abrió; la reserva se libera y la `SesionDeRol` se guarda.
+- **Salida:** el manejador no se ejecuta; la sesión termina con desenlace `infrastructure_failure` (`architecture.md` §18) y el error llega a quien la abrió; la reserva se libera y la `SesionDeRol` se guarda.
 
 ### Hook de validación de capítulo
 
