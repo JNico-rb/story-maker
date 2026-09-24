@@ -328,7 +328,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 
 ## 007 — validador-lean
 
-- [x] Spec `specs/backend/007-validador-lean.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Spec `specs/backend/007-validador-lean.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; C16 corregido (el límite exacto no existe con base64)
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps

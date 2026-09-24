@@ -193,11 +193,12 @@ El **primer testigo** es la tupla menor en orden lexicográfico de ids.
   - una ejecución terminada sin artefacto de resultado, o con un artefacto que no cumple el schema del resultado, da «sin veredicto» con `verifier_unreachable`
 
 #### 007-C16 — El input cabe en el límite de 65.535 caracteres o no se envía (T)
-- **Dado** el doble HTTP y ficheros cuyos inputs codificados suman 65.535 y 65.536 caracteres
+- **Dado** el doble HTTP y ficheros cuyos inputs codificados miden 65.532 y 65.536 caracteres (base64 con relleno solo da longitudes múltiplo de 4, así que 65.532 es el mayor que cabe en 65.535)
 - **Cuando** se verifica cada uno
 - **Entonces**:
-  - el de 65.535 se envía;
-  - el de 65.536 no se envía (ninguna petición) y da `error` con el motivo «el fichero no cabe en los inputs del workflow»
+  - el de 65.532 se envía;
+  - el de 65.536 no se envía (ninguna petición) y da `error` con el motivo «el fichero no cabe en los inputs del workflow»;
+  - la comprobación del límite es exactamente «suma de los inputs ≤ 65.535»
 
 #### 007-C17 — Un GitHub inalcanzable o lento interrumpe sin reintentar (T)
 - **Dado** el doble HTTP con cada fallo de la tabla
