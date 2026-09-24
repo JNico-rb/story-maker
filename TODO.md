@@ -797,7 +797,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 016-C6 · Un hecho cambiado reconstruye las tarjetas de su entidad
 - [x] 016-C7 · Vectores por huella y modelo
 - [x] 016-C8 · El modelo es el de la novela, no el de la config
-- [ ] 016-C9 · Todo o nada con la transacción del llamante
+- [x] 016-C9 · Todo o nada con la transacción del llamante
 - [x] 016-C10 · Corte temporal
 - [x] 016-C11 · El canal léxico compara palabras, sin mayúsculas ni acentos
 - [x] 016-C12 · BM25 con las estadísticas de la versión en el capítulo *n

@@ -1,13 +1,16 @@
-"""016-C1 a 016-C6: plantilla, cadena de cada entidad y sincronización con la story bible."""
+"""016-C1 a 016-C6 y 016-C9: plantilla, cadena de cada entidad y sincronización con la story
+bible en la transacción del llamante."""
 
 from __future__ import annotations
 
 import datetime as dt
 from typing import Any
 
-from sqlalchemy import select
+import pytest
+from sqlalchemy import select, text
 from sqlalchemy.orm import Session, sessionmaker
 
+from story_maker.retrieval.cards import sync_canon_cards
 from story_maker.retrieval.fake import FixedVectors
 from story_maker.retrieval.retriever import eligible_cards
 from story_maker.store.brief_canon import (
@@ -16,8 +19,16 @@ from story_maker.store.brief_canon import (
     BriefRecollection,
     ConfirmedBrief,
 )
-from story_maker.store.models import CanonCard, Character, Embedding, Fact, Place
-from story_maker.store.session import unit_of_work
+from story_maker.store.models import (
+    CanonCard,
+    Character,
+    Embedding,
+    Event,
+    EventCharacter,
+    Fact,
+    Place,
+)
+from story_maker.store.session import UnitOfWork, unit_of_work
 from story_maker.store.story_bible import change_fact_value
 from story_maker.store.version_copy import copy_version
 from story_maker.store.versions import publish
@@ -313,3 +324,65 @@ def test_a_changed_fact_rebuilds_the_cards_of_its_entity_and_nothing_else(
     unrelated = {key for key in before if key[0] not in ("Toby", "el puerto nuevo")}
     assert {key: after[key] for key in unrelated} == {key: before[key] for key in unrelated}
     assert snapshot(canon, base) == base_before
+
+
+def visible_state(session_factory: sessionmaker[Session], word: str) -> dict[str, Any]:
+    """Lo que ve otra conexión: tarjetas, vectores, entradas del canal léxico con `word` y
+    eventos de la story bible con `word`."""
+    with session_factory() as session:
+        return {
+            "cards": sorted(session.execute(select(CanonCard.id, CanonCard.text)).tuples().all()),
+            "vectors": sorted(
+                session.execute(select(Embedding.content_hash, Embedding.model)).tuples().all()
+            ),
+            "lexical": session.execute(
+                text("SELECT rowid FROM canon_cards_fts WHERE canon_cards_fts MATCH :w"),
+                {"w": word},
+            ).all(),
+            "events": session.scalars(select(Event.id).where(Event.statement.contains(word))).all(),
+        }
+
+
+@pytest.mark.parametrize("outcome", ["rollback", "commit"])
+def test_the_sync_is_all_or_nothing_with_the_transaction_of_its_caller(
+    canon: Any, session_factory: sessionmaker[Session], planned: dict[str, Any], outcome: str
+) -> None:
+    version = planned["version"]
+    canon.sync(version)
+    toby, _ = canon.named(version, "Toby")
+    _, fair = canon.named(version, "la feria del pueblo")
+    before = visible_state(session_factory, "zarzamora")
+    session = session_factory()
+    uow = UnitOfWork(session)
+    uow.add(
+        Event(
+            version_id=version,
+            statement="Toby encuentra una zarzamora.",
+            moment=dt.datetime(2026, 5, 3, 12, 0),
+            place_id=fair,
+            type="ordinary",
+            analepsis=False,
+            origin="recorded",
+            chapter=3,
+        )
+    )
+    session.flush()
+    event_id = session.scalars(select(Event.id).where(Event.chapter == 3)).one()
+    uow.add(EventCharacter(event_id=event_id, character_id=toby))
+
+    sync_canon_cards(uow, version, FixedVectors())
+
+    assert visible_state(session_factory, "zarzamora") == before
+    if outcome == "rollback":
+        uow.rollback()
+        assert visible_state(session_factory, "zarzamora") == before
+    else:
+        uow.commit()
+        after = visible_state(session_factory, "zarzamora")
+        new_cards = [card for card in after["cards"] if card not in before["cards"]]
+        assert new_cards
+        assert all("zarzamora" in card_text for _, card_text in new_cards)
+        assert sorted(row[0] for row in after["lexical"]) == sorted(i for i, _ in new_cards)
+        assert len(after["vectors"]) > len(before["vectors"])
+        assert after["events"] == [event_id]
+    session.close()
