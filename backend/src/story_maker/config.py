@@ -7,20 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-ROLES = ("interviewer", "extractor", "planner", "writer", "editor", "judge", "visual_reviewer")
-CRITERIA = (
-    "fidelidad-canon",
-    "cumple-beats",
-    "personalizacion-natural",
-    "prosa",
-    "tono",
-    "continuidad",
-    "coherencia-personajes",
-    "arco-y-final",
-    "ritmo",
-    "no-cliche",
-)
-AGE_BANDS = ("children", "teen", "adult")
+from story_maker.domain.constants import AGE_BANDS, CRITERIA, ROLES, TOKEN_CEILING_MAX
 
 
 class ConfigError(ValueError):
@@ -270,8 +257,8 @@ def parse_config(data: Any) -> Config:
     if not isinstance(token_ceiling, int) or isinstance(token_ceiling, bool) or token_ceiling <= 0:
         errors.append("operation.token_ceiling: debe ser un entero mayor que 0")
         token_ceiling = 0
-    elif token_ceiling > 100000:
-        errors.append("operation.token_ceiling: no puede superar el máximo de 100000")
+    elif token_ceiling > TOKEN_CEILING_MAX:
+        errors.append(f"operation.token_ceiling: no puede superar el máximo de {TOKEN_CEILING_MAX}")
 
     api_wait_seconds = _positive_int(operation, "operation", "api_wait_seconds", errors)
     max_retries = _parse_max_retries(operation, errors)

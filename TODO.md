@@ -118,12 +118,12 @@ Todas dependen de 000. Carril B disuelto y C rehecho (decisión del usuario, 202
 - [x] 001-C05 · `.env.example` lista los ajustes sin valores
 - [ ] 001-C06 · `init-db` crea la base con el esquema completo
 - [ ] 001-C07 · `init-db` no pisa una base existente sin `--reset`
-- [ ] 001-C08 · Toda conexión abre la base igual
-- [ ] 001-C09 · Ámbito y referencias obligatorias
-- [ ] 001-C10 · Enumerados, rangos, unicidades y coherencia
-- [ ] 001-C11 · Solo inserción y CanonCards inmutables
-- [ ] 001-C12 · El índice FTS5 sigue a las CanonCards, sin acentos
-- [ ] 001-C13 · Una unidad de trabajo es todo o nada
+- [x] 001-C08 · Toda conexión abre la base igual
+- [x] 001-C09 · Ámbito y referencias obligatorias
+- [x] 001-C10 · Enumerados, rangos, unicidades y coherencia
+- [x] 001-C11 · Solo inserción y CanonCards inmutables
+- [x] 001-C12 · El índice FTS5 sigue a las CanonCards, sin acentos
+- [x] 001-C13 · Una unidad de trabajo es todo o nada
 - [ ] 001-C14 · `check-env` informa de cada comprobación
 - [ ] 001-I1 · Ninguna salida reproduce el valor de un ajuste secreto
 - [ ] 001-C15 · `serve` no arranca con config, ajustes o base inválidos
