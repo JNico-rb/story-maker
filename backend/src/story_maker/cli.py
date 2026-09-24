@@ -22,10 +22,11 @@ from story_maker.agents.port import Agent, AgentPort, PolicyEngine
 from story_maker.agents.sdk import SdkAgent
 from story_maker.api.app import create_app
 from story_maker.api.auth import normalize_email, utc_now
+from story_maker.api.brief import brief_problems, build_brief_out
 from story_maker.config import Config, ConfigError, load_config
-from story_maker.interview.brief import TurnFailure, run_turn
+from story_maker.interview.brief import TurnFailure, confirm_brief_status, run_turn
 from story_maker.interview.free_text import FreeTextFailure, run_free_text
-from story_maker.interview.novels import create_interview_novel, load_verified_facts
+from story_maker.interview.novels import brief_of, create_interview_novel, load_verified_facts
 from story_maker.observability.factory import build_langfuse_client, has_langfuse_vars
 from story_maker.observability.langfuse_adapter import LangfuseObservability
 from story_maker.observability.langfuse_adapter import auth_check as langfuse_auth_check
@@ -314,11 +315,11 @@ def export_pdf_command(
         engine.dispose()
 
 
-# --- `interview` (029-C01, C05, C06) -----------------------------------------------------------
+# --- `interview` (029-C01, C05, C06, C07) --------------------------------------------------------
 #
 # La orden usa los servicios de la 008 en el mismo proceso: sin servidor, sin rutas HTTP. No
 # tiene reglas propias; cada rama del bucle llama directamente a `interview/` (`run_turn`,
-# `run_free_text`, `load_verified_facts`) y, en un paso posterior, a `brief_of` y `api/brief.py`
+# `run_free_text`, `load_verified_facts`, `brief_of`, `confirm_brief_status`) y a `api/brief.py`
 # (`build_brief_out`, `brief_problems`, ya puras, sin `Request`).
 
 
@@ -491,6 +492,32 @@ def _handle_fact_decision(
                 fresh.mandatory = mandatory
 
 
+def _handle_confirm(services: _InterviewServices, novel_id: int) -> None:
+    """`/confirmar` (029-C07): con algo bloqueante, lo lista y no confirma (008-C09..C13); si no,
+    pregunta y solo `s` confirma (008-C15)."""
+    with services.session_factory() as session:
+        novel = session.get(Novel, novel_id)
+        if novel is None:  # pragma: no cover - la creó este mismo comando (029-C01)
+            raise LookupError(f"novela {novel_id} no encontrada")
+        brief = brief_of(session, novel_id)
+        brief_out = build_brief_out(session, brief, novel, services.config.max_mandatory_elements)
+
+    problems = brief_problems(brief_out)
+    if problems:
+        for problem in problems:
+            typer.echo(str(problem["msg"]))
+        return
+
+    typer.echo("¿Confirmar el brief? [s/N]")
+    answer = _read_line()
+    if answer is None or answer.strip() != "s":
+        typer.echo("el brief no se ha confirmado")
+        return
+
+    confirm_brief_status(services.session_factory, novel_id)
+    typer.echo(f"novela {novel_id}: lista")
+
+
 async def _interview_loop(services: _InterviewServices, novel_id: int, user_id: int) -> None:
     while True:
         line = _read_line()
@@ -517,6 +544,8 @@ async def _interview_loop(services: _InterviewServices, novel_id: int, user_id: 
             _handle_fact_decision(
                 services, novel_id, line[len("/obligatorio ") :].strip(), mandatory=True
             )
+        elif line == "/confirmar":
+            _handle_confirm(services, novel_id)
         else:
             await _handle_turn(services, novel_id, user_id, line)
 
@@ -527,8 +556,8 @@ def interview_command(
 ) -> None:
     """Entrevista por terminal sobre los servicios de la 008: cada línea es un turno; `/texto
     <fichero>` manda una carta al extractor; `/hechos`, `/aceptar`, `/rechazar` y `/obligatorio`
-    gobiernan los hechos extraídos; `/salir` o el fin de la entrada terminan con 0 (029-C01, C05,
-    C06)."""
+    gobiernan los hechos extraídos; `/confirmar` cierra el brief con un `s` explícito; `/salir` o
+    el fin de la entrada terminan con 0 (029-C01, C05, C06, C07)."""
     try:
         settings = load_settings()
     except SettingsError as exc:

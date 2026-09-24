@@ -1229,7 +1229,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [ ] 029-C04 · Un turno fallido no se guarda (recortado)
 - [x] 029-C05 · Texto libre desde un fichero
 - [x] 029-C06 · Aceptar, rechazar y marcar obligatorio un hecho
-- [ ] 029-C07 · Confirmar el brief pide un sí explícito
+- [x] 029-C07 · Confirmar el brief pide un sí explícito
 - [ ] 029-C08 · Lanzar la generación pide un sí explícito
 - [ ] 029-C09 · Pedir un cambio sobre un hecho y confirmarlo (recortado)
 - [ ] 029-C10 · Pedir un cambio sobre un fragmento (recortado)

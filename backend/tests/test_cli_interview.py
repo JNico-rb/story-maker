@@ -15,7 +15,14 @@ import story_maker.cli as cli_module
 import story_maker.settings as settings_module
 from story_maker.agents.fake import Call, Fail, FakeAgent, Say, Script
 from story_maker.cli import app
-from story_maker.store.models import ExtractedFact, FreeText, Interview, InterviewMessage, User
+from story_maker.store.models import (
+    Brief,
+    ExtractedFact,
+    FreeText,
+    Interview,
+    InterviewMessage,
+    User,
+)
 from story_maker.store.session import make_engine, make_session_factory
 
 REAL_ROOT = settings_module.ROOT
@@ -297,3 +304,102 @@ def test_an_unrelated_or_unknown_fact_id_is_not_found(
 
     assert result.exit_code == 0, result.stdout
     assert "hecho no encontrado" in result.stdout
+
+
+# --- 029-C07: confirmar el brief pide un sí explícito -------------------------------------------
+
+_VALID_BRIEF_PATCH: dict[str, object] = {
+    "name": "Marta",
+    "age": 40,
+    "traits": [{"statement": "curiosa", "mandatory": False}],
+    "close_ones": [
+        {
+            "name": "Toby",
+            "relation": "mascota",
+            "species": "animal",
+            "age": None,
+            "birth_date": None,
+            "mandatory": False,
+        }
+    ],
+    "recollections": [
+        {
+            "statement": "se perdió en la feria de su pueblo",
+            "age": 8,
+            "year": None,
+            "place": "la feria de Albarracín",
+            "present": [],
+            "excluded": None,
+            "mandatory": True,
+        }
+    ],
+    "occasion": "birthday",
+    "genre": "adventure",
+    "tone": "tender",
+    "length": "medium",
+    "dedication": "Para Marta, que siempre encuentra el camino",
+    "banned_asked": True,
+}
+
+
+def _brief_status(db_path: Path, novel_id: int) -> str:
+    engine = make_engine(db_path)
+    session = make_session_factory(engine)()
+    try:
+        return str(session.query(Brief).filter(Brief.novel_id == novel_id).one().status)
+    finally:
+        session.close()
+        engine.dispose()
+
+
+def test_confirm_with_something_blocking_lists_the_problems_and_does_not_confirm(
+    registered_client: Path, fake_agent: FakeAgent
+) -> None:
+    result = runner.invoke(app, ["interview", "--email", EMAIL], input="/confirmar\n/salir\n")
+
+    assert result.exit_code == 0, result.stdout
+    assert "falta: name" in result.stdout
+    assert "¿Confirmar el brief?" not in result.stdout
+
+    novel_id = int(result.stdout.strip().splitlines()[0])
+    assert _brief_status(registered_client, novel_id) == "draft"
+
+
+def test_confirm_a_valid_brief_with_an_explicit_yes(
+    registered_client: Path, fake_agent: FakeAgent
+) -> None:
+    fake_agent.script(
+        "interviewer",
+        None,
+        Script(steps=(Call("update_brief", _VALID_BRIEF_PATCH), Say("Ya está."))),
+    )
+
+    result = runner.invoke(
+        app, ["interview", "--email", EMAIL], input="Hola\n/confirmar\ns\n/salir\n"
+    )
+
+    assert result.exit_code == 0, result.stdout
+    assert "¿Confirmar el brief? [s/N]" in result.stdout
+    novel_id = int(result.stdout.strip().splitlines()[0])
+    assert f"novela {novel_id}: lista" in result.stdout
+    assert _brief_status(registered_client, novel_id) == "confirmed"
+
+
+@pytest.mark.parametrize("answer", ["n\n", "\n", ""])
+def test_confirm_without_an_explicit_yes_confirms_nothing(
+    registered_client: Path, fake_agent: FakeAgent, answer: str
+) -> None:
+    fake_agent.script(
+        "interviewer",
+        None,
+        Script(steps=(Call("update_brief", _VALID_BRIEF_PATCH), Say("Ya está."))),
+    )
+
+    result = runner.invoke(
+        app, ["interview", "--email", EMAIL], input=f"Hola\n/confirmar\n{answer}"
+    )
+
+    assert result.exit_code == 0, result.stdout
+    assert "el brief no se ha confirmado" in result.stdout
+    novel_id = int(result.stdout.strip().splitlines()[0])
+    assert _brief_status(registered_client, novel_id) == "draft"
