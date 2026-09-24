@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import asyncio
 import subprocess
+import sys
+from dataclasses import dataclass
 from importlib.metadata import version
 from pathlib import Path
 from typing import Annotated, cast
@@ -12,17 +14,28 @@ from urllib.parse import urlparse
 import typer
 import uvicorn
 from sqlalchemy import func, select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, sessionmaker
 
 from story_maker import settings as settings_module
+from story_maker.agents.ceiling import TokenCeiling
+from story_maker.agents.port import Agent, AgentPort, PolicyEngine
+from story_maker.agents.sdk import SdkAgent
 from story_maker.api.app import create_app
-from story_maker.config import ConfigError, load_config
+from story_maker.api.auth import normalize_email, utc_now
+from story_maker.api.brief import brief_problems, build_brief_out
+from story_maker.config import Config, ConfigError, load_config
+from story_maker.interview.brief import TurnFailure, confirm_brief_status, run_turn
+from story_maker.interview.free_text import FreeTextFailure, run_free_text
+from story_maker.interview.novels import brief_of, create_interview_novel, load_verified_facts
 from story_maker.observability.factory import build_langfuse_client, has_langfuse_vars
 from story_maker.observability.langfuse_adapter import LangfuseObservability
 from story_maker.observability.langfuse_adapter import auth_check as langfuse_auth_check
 from story_maker.observability.null import NullObservability
+from story_maker.observability.port import ObservabilityPort
 from story_maker.observability.prompts import push_prompts
+from story_maker.pipeline.queue import enqueue_generation
 from story_maker.pipeline.runs import ResumeRejected, resume_run
+from story_maker.policy.real_engine import RealPolicyEngine
 from story_maker.render.pdf import render_pdf
 from story_maker.render.version_view import render_version_view
 from story_maker.render.view_data import load_version_view_data
@@ -45,6 +58,7 @@ from story_maker.store.session import (
     schema_diff,
     unit_of_work,
 )
+from story_maker.store.users import get_user_by_email
 from story_maker.store.versions import published_version
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
@@ -298,6 +312,302 @@ def export_pdf_command(
             pdf_bytes = render_pdf(html)
             path.write_bytes(pdf_bytes)
         typer.echo(str(path))
+    finally:
+        engine.dispose()
+
+
+# --- `interview` (029-C01, C05, C06, C07, C08) -----------------------------------------------
+#
+# La orden usa los servicios de la 008 y de la 011 en el mismo proceso: sin servidor, sin rutas
+# HTTP. No tiene reglas propias; cada rama del bucle llama directamente a `interview/` (`run_turn`,
+# `run_free_text`, `load_verified_facts`, `brief_of`, `confirm_brief_status`), a `api/brief.py`
+# (`build_brief_out`, `brief_problems`, ya puras, sin `Request`) y a `pipeline/queue.py`
+# (`enqueue_generation`).
+
+
+@dataclass
+class _InterviewServices:
+    session_factory: sessionmaker[Session]
+    agent_port: AgentPort
+    telemetry: ObservabilityPort
+    policy: PolicyEngine
+    config: Config
+    workspace: Path
+
+
+def _build_agent(settings: Settings, workspace: Path) -> Agent:
+    return SdkAgent(settings, workspace=workspace)
+
+
+def _build_interview_services(
+    settings: Settings,
+    config: Config,
+    session_factory: sessionmaker[Session],
+    telemetry: ObservabilityPort,
+) -> _InterviewServices:
+    workspace = settings_module.ROOT / "backend" / "harness_workspace"
+    policy = RealPolicyEngine(session_factory, base_url=settings.base_url)
+    agent_port = AgentPort(
+        agent=_build_agent(settings, workspace),
+        config=config,
+        ceiling=TokenCeiling(config.token_ceiling),
+        policy=policy,
+        telemetry=telemetry,
+        session_factory=session_factory,
+        workspace=workspace,
+    )
+    return _InterviewServices(
+        session_factory=session_factory,
+        agent_port=agent_port,
+        telemetry=telemetry,
+        policy=policy,
+        config=config,
+        workspace=workspace,
+    )
+
+
+def _read_line() -> str | None:
+    """`None` en EOF; Click sustituye `sys.stdin` en las pruebas, así que se lee de ahí y no del
+    `input()` nativo (distinto en Windows cuando la entrada no es un terminal real)."""
+    line = sys.stdin.readline()
+    return None if line == "" else line.rstrip("\n")
+
+
+async def _handle_turn(
+    services: _InterviewServices, novel_id: int, user_id: int, text: str
+) -> None:
+    prompt = (services.workspace / "prompts" / "interviewer.md").read_text(encoding="utf-8")
+    outcome = await run_turn(
+        agent_port=services.agent_port,
+        telemetry=services.telemetry,
+        session_factory=services.session_factory,
+        prompt=prompt,
+        novel_id=novel_id,
+        user_id=user_id,
+        text=text,
+        now=utc_now().replace(tzinfo=None),
+    )
+    if isinstance(outcome, TurnFailure):
+        typer.echo("el turno no se guardó; repítelo")
+        return
+    typer.echo(outcome.reply)
+
+
+async def _handle_free_text(
+    services: _InterviewServices, novel_id: int, user_id: int, file_path: str
+) -> None:
+    """`/texto <fichero>`: el contenido va al extractor, nunca al entrevistador ni a la salida
+    (029-C05); solo se imprimen el id y la cita de cada hecho verificado, pendiente de aceptar."""
+    try:
+        content = Path(file_path).read_text(encoding="utf-8")
+    except OSError:
+        typer.echo(f"no existe el fichero {file_path}")
+        return
+
+    prompt = (services.workspace / "prompts" / "extractor.md").read_text(encoding="utf-8")
+    outcome = await run_free_text(
+        agent_port=services.agent_port,
+        telemetry=services.telemetry,
+        policy=services.policy,
+        session_factory=services.session_factory,
+        prompt=prompt,
+        novel_id=novel_id,
+        user_id=user_id,
+        text=content,
+        now=utc_now().replace(tzinfo=None),
+    )
+    if isinstance(outcome, FreeTextFailure):
+        typer.echo(outcome.reason)
+        return
+    for fact in outcome.verified_facts:
+        typer.echo(f"{fact.id}: {fact.quote}")
+
+
+def _fact_status(fact: ExtractedFact) -> str:
+    if fact.accepted is None:
+        return "pendiente"
+    return "aceptado" if fact.accepted else "rechazado"
+
+
+def _handle_list_facts(services: _InterviewServices, novel_id: int) -> None:
+    """`/hechos` (029-C06): cada hecho extraído verificado, con su estado."""
+    with services.session_factory() as session:
+        facts = load_verified_facts(session, novel_id)
+    for fact in facts:
+        mark = " obligatorio" if fact.mandatory else ""
+        typer.echo(
+            f"{fact.id}: {_fact_status(fact)}{mark} · {fact.subject} {fact.attribute}={fact.value}"
+        )
+
+
+def _handle_fact_decision(
+    services: _InterviewServices,
+    novel_id: int,
+    fact_id_text: str,
+    *,
+    accepted: bool | None = None,
+    mandatory: bool | None = None,
+) -> None:
+    """`/aceptar`, `/rechazar` y `/obligatorio` (029-C06), como decide `patch_extracted_fact` de
+    la 008 (008-C24): un hecho ajeno o inexistente, o un id que no es un número, no se encuentra;
+    marcar obligatorio uno sin aceptar no se aplica."""
+    try:
+        fact_id = int(fact_id_text)
+    except ValueError:
+        typer.echo("hecho no encontrado")
+        return
+
+    with services.session_factory() as session:
+        fact = (
+            session.query(ExtractedFact)
+            .join(FreeText, ExtractedFact.free_text_id == FreeText.id)
+            .filter(
+                FreeText.novel_id == novel_id,
+                ExtractedFact.id == fact_id,
+                ExtractedFact.verified.is_(True),
+            )
+            .one_or_none()
+        )
+        if fact is None:
+            typer.echo("hecho no encontrado")
+            return
+        new_accepted = accepted if accepted is not None else bool(fact.accepted)
+        if mandatory is not None:
+            new_mandatory = mandatory
+        elif accepted is False:
+            new_mandatory = False
+        else:
+            new_mandatory = fact.mandatory
+
+    if new_mandatory and not new_accepted:
+        typer.echo("un hecho sin aceptar no puede ser obligatorio")
+        return
+
+    with unit_of_work(services.session_factory) as uow:
+        fresh = uow.session.get(ExtractedFact, fact_id)
+        if fresh is not None:
+            if accepted is not None:
+                fresh.accepted = accepted
+                if accepted is False:
+                    fresh.mandatory = False
+            if mandatory is not None:
+                fresh.mandatory = mandatory
+
+
+def _handle_confirm(services: _InterviewServices, novel_id: int) -> None:
+    """`/confirmar` (029-C07): con algo bloqueante, lo lista y no confirma (008-C09..C13); si no,
+    pregunta y solo `s` confirma (008-C15). Tras confirmar, pregunta si lanzar la generación
+    (029-C08); solo `s` la encola (011-C01)."""
+    with services.session_factory() as session:
+        novel = session.get(Novel, novel_id)
+        if novel is None:  # pragma: no cover - la creó este mismo comando (029-C01)
+            raise LookupError(f"novela {novel_id} no encontrada")
+        brief = brief_of(session, novel_id)
+        brief_out = build_brief_out(session, brief, novel, services.config.max_mandatory_elements)
+
+    problems = brief_problems(brief_out)
+    if problems:
+        for problem in problems:
+            typer.echo(str(problem["msg"]))
+        return
+
+    typer.echo("¿Confirmar el brief? [s/N]")
+    answer = _read_line()
+    if answer is None or answer.strip() != "s":
+        typer.echo("el brief no se ha confirmado")
+        return
+
+    confirm_brief_status(services.session_factory, novel_id)
+    typer.echo(f"novela {novel_id}: lista")
+
+    typer.echo("¿Lanzar la generación? [s/N]")
+    launch_answer = _read_line()
+    if launch_answer is None or launch_answer.strip() != "s":
+        return
+
+    with unit_of_work(services.session_factory) as uow:
+        run_id, position = enqueue_generation(uow, novel_id, now=utc_now())
+    typer.echo(f"ejecución {run_id} en cola, posición {position}; la toma `story-maker serve`")
+
+
+async def _interview_loop(services: _InterviewServices, novel_id: int, user_id: int) -> None:
+    while True:
+        line = _read_line()
+        if line is None:
+            return
+        line = line.strip()
+        if line == "/salir":
+            return
+        if not line:
+            continue
+        if line.startswith("/texto "):
+            await _handle_free_text(services, novel_id, user_id, line[len("/texto ") :].strip())
+        elif line == "/hechos":
+            _handle_list_facts(services, novel_id)
+        elif line.startswith("/aceptar "):
+            _handle_fact_decision(
+                services, novel_id, line[len("/aceptar ") :].strip(), accepted=True
+            )
+        elif line.startswith("/rechazar "):
+            _handle_fact_decision(
+                services, novel_id, line[len("/rechazar ") :].strip(), accepted=False
+            )
+        elif line.startswith("/obligatorio "):
+            _handle_fact_decision(
+                services, novel_id, line[len("/obligatorio ") :].strip(), mandatory=True
+            )
+        elif line == "/confirmar":
+            _handle_confirm(services, novel_id)
+        else:
+            await _handle_turn(services, novel_id, user_id, line)
+
+
+@app.command(name="interview")
+def interview_command(
+    email: Annotated[str, typer.Option("--email", help="Email del cliente registrado.")],
+) -> None:
+    """Entrevista por terminal sobre los servicios de la 008: cada línea es un turno; `/texto
+    <fichero>` manda una carta al extractor; `/hechos`, `/aceptar`, `/rechazar` y `/obligatorio`
+    gobiernan los hechos extraídos; `/confirmar` cierra el brief con un `s` explícito y, tras
+    confirmarlo, lanza la generación con otro `s` explícito; `/salir` o el fin de la entrada
+    terminan con 0 (029-C01, C05, C06, C07, C08)."""
+    try:
+        settings = load_settings()
+    except SettingsError as exc:
+        for error in exc.errors:
+            typer.echo(error)
+        raise typer.Exit(1) from None
+
+    try:
+        config = load_config(settings.config_path)
+    except ConfigError as exc:
+        for error in exc.errors:
+            typer.echo(error)
+        raise typer.Exit(1) from None
+
+    observability, observability_line = _check_observability(settings)
+    if observability is None:
+        typer.echo(observability_line)
+        raise typer.Exit(1)
+
+    engine = make_engine(_db_path(settings.data_dir))
+    try:
+        session_factory = make_session_factory(engine)
+        with session_factory() as session:
+            user = get_user_by_email(session, normalize_email(email))
+        if user is None:
+            typer.echo("cliente no registrado")
+            raise typer.Exit(1)
+
+        services = _build_interview_services(settings, config, session_factory, observability)
+        novel_id = create_interview_novel(
+            session_factory,
+            user_id=user.id,
+            embedding_model=config.embedding_model,
+            created_at=utc_now().replace(tzinfo=None),
+        )
+        typer.echo(str(novel_id))
+        asyncio.run(_interview_loop(services, novel_id, user.id))
     finally:
         engine.dispose()
 
