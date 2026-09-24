@@ -262,9 +262,9 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [ ] 004-C15 · Iteración de tuning con antes y después de un prompt cambiado (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-24: `uv run pytest` 339 passed; `uv run ruff check .` all checks passed; `uv run ruff format --check .` 66 files already formatted; `uv run mypy src` no issues found in 40 source files
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 005 — guardarrailes
 
