@@ -173,3 +173,37 @@ def test_a_tampered_or_misused_token_answers_401(client: TestClient, clock: Fake
     still_a = client.get("/api/_test/whoami", headers={"Authorization": f"Bearer {a_token}"})
     assert still_a.status_code == 200
     assert still_a.json() == {"user_id": a_id}
+
+
+@pytest.mark.parametrize(
+    ("access_token_hours", "offset", "expect_ok"),
+    [
+        (24, dt.timedelta(hours=24) - dt.timedelta(seconds=1), True),
+        (24, dt.timedelta(hours=24), False),
+        (24, dt.timedelta(hours=24) + dt.timedelta(seconds=1), False),
+        (1, dt.timedelta(hours=1) - dt.timedelta(seconds=1), True),
+        (1, dt.timedelta(hours=1), False),
+    ],
+)
+def test_expiry_at_its_limit(
+    session_factory: sessionmaker[Session],
+    access_token_hours: int,
+    offset: dt.timedelta,
+    expect_ok: bool,
+) -> None:
+    t0 = dt.datetime(2026, 1, 1, 12, 0, 0, tzinfo=dt.UTC)
+    clock = FakeClock(t0)
+    app = create_app(
+        session_factory=session_factory,
+        jwt_secret=JWT_SECRET,
+        access_token_hours=access_token_hours,
+        clock=clock,
+    )
+    _mount_whoami(app)
+    client = TestClient(app)
+    _a_id, a_token = _register_and_login(client, "cliente-a@example.com")
+
+    clock.set(t0 + offset)
+    response = client.get("/api/_test/whoami", headers={"Authorization": f"Bearer {a_token}"})
+
+    assert response.status_code == (200 if expect_ok else 401)
