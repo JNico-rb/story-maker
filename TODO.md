@@ -198,8 +198,8 @@ Todas dependen de 000. Arranque en paralelo cuando 000 esté cerrada: A (001), C
 
 ## 003 — puerto-de-agente
 
-- [ ] Spec `specs/backend/003-puerto-de-agente.md` approved
-- [ ] Plan below approved
+- [x] Spec `specs/backend/003-puerto-de-agente.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
 - [ ] 003-C28 · El doble recorre el camino del SDK y es determinista
@@ -240,9 +240,9 @@ Todas dependen de 000. Arranque en paralelo cuando 000 esté cerrada: A (001), C
 - [ ] 003-C26 · Toda sesión abierta deja su `SesionDeRol`, y solo ellas
 - [ ] 003-C27 · Cada sesión y cada llamada a tool dejan su span
 - [ ] 003-I8 · Sesiones concurrentes no comparten estado
-- [ ] 003-C30 · El login funciona con tools en proceso, hooks y skill
-- [ ] 003-C31 · La sesión real no hereda nada del entorno de desarrollo
-- [ ] 003-C32 · Los límites reales terminan la sesión sin dejar subprocesos
+- [ ] 003-C30 · El login funciona con tools en proceso, hooks y skill (D, al final)
+- [ ] 003-C31 · La sesión real no hereda nada del entorno de desarrollo (D, al final)
+- [ ] 003-C32 · Los límites reales terminan la sesión sin dejar subprocesos (D, al final)
 
 ### Closing
 - [ ] Full suite green, type checks clean
