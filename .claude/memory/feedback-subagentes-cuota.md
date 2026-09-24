@@ -1,13 +1,13 @@
 ---
 name: feedback-subagentes-cuota
-description: "Como mucho 3 subagentes a la vez (carriles A, C, D) y modelo fijado por spec; integración automática con push; nunca recortar alcance por cuota."
+description: "Paralelizar todo lo que sea seguro (hoy 4 implementadores: A, B, C, D) con modelo fijado por spec; integración automática con push; nunca recortar alcance por cuota."
 metadata:
   node_type: memory
   type: feedback
   modified: 2026-09-24T10:47:50.548Z
 ---
 
-Como mucho **3 subagentes a la vez** (uno por carril A, C y D; decisión del usuario 2026-09-24). Los carriles los lleva el integrador como subagentes `implementador` en `../sm-<x>`, salvo que el usuario diga que abre terminales.
+**Más agentes en paralelo si no hay peligro y ahorra tiempo** (decisión del usuario 2026-09-24, sustituye al límite de 3): un implementador por carril, sin dos specs a la vez en el mismo worktree, y solo specs con sus dependencias cerradas. Hoy cuatro carriles de backend: A, B, C y D. Los carriles los lleva el integrador como subagentes `implementador` en `../sm-<x>`, salvo que el usuario diga que abre terminales.
 
 Modelo del `implementador` (decisión del usuario 2026-09-24):
 - **opus** donde hay riesgo de fallo: 003 (Agent SDK en Windows), 006 (TLA+), 007 (Lean), 009 (versiones), 011 (producción de capítulos), 012 (gate), 014 (cambios del lector), 016 (sqlite-vec y fastembed en Windows), y cualquier fallo que siga igual tras 2 intentos.
