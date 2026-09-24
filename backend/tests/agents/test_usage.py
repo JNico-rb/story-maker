@@ -2,18 +2,21 @@
 
 from __future__ import annotations
 
+import asyncio
 import dataclasses
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
 import pytest
+from hypothesis import HealthCheck, given, settings
+from hypothesis import strategies as st
 from sqlalchemy.orm import Session, sessionmaker
 
 from story_maker.agents.ceiling import TokenCeiling
 from story_maker.agents.fake import FakeAgent, Say, Script
 from story_maker.agents.port import AgentPort, SessionRequest
-from story_maker.agents.usage import Usage
+from story_maker.agents.usage import Usage, cost_usd
 from story_maker.config import Config, PriceConfig
 from story_maker.observability.null import NullObservability
 from story_maker.store.models import RoleSession
@@ -83,3 +86,36 @@ async def test_the_cost_is_the_real_usage_times_the_list_price_of_the_model(
         # el coste del SDK solo queda como contraste
         assert row.sdk_cost_usd == 20.0
     assert result.sdk_cost_usd == 20.0
+
+
+TOKENS = st.integers(min_value=0, max_value=2_000_000)
+
+
+@settings(
+    max_examples=30, deadline=None, suppress_health_check=[HealthCheck.function_scoped_fixture]
+)
+@given(
+    usage=st.builds(Usage, TOKENS, TOKENS, TOKENS, TOKENS),
+    sdk_cost=st.one_of(st.none(), st.floats(min_value=0, max_value=1_000, allow_nan=False)),
+)
+def test_the_role_session_cost_is_usage_times_pricing_never_the_sdk_one(
+    usage: Usage,
+    sdk_cost: float | None,
+    config: Config,
+    policy: Any,
+    session_factory: sessionmaker[Session],
+    workspace: Path,
+    make_request: Callable[..., SessionRequest],
+) -> None:
+    fake = FakeAgent()
+    fake.script("judge", None, Script(steps=(Say("nota"),), usage=usage, sdk_cost_usd=sdk_cost))
+    port = build_port(config, fake, policy, NullObservability(), session_factory, workspace)
+
+    result = asyncio.run(port.run(make_request("judge")))
+
+    price = config.pricing[config.roles["judge"].model]
+    with session_factory() as session:
+        row = session.get(RoleSession, result.role_session_id)
+        assert row is not None
+        assert row.cost_usd == pytest.approx(cost_usd(usage, price))
+        assert row.sdk_cost_usd == sdk_cost
