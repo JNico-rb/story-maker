@@ -76,7 +76,8 @@ jobs:
         run: |
           curl -fsSL -o tla/tla2tools.jar \
             "https://github.com/tlaplus/tlaplus/releases/download/${TLA2TOOLS_VERSION}/tla2tools.jar"
-          java -cp tla/tla2tools.jar tlc2.TLC -h > tlc-help.txt
+          # -h prints the version and exits 1; grep decides whether TLC started.
+          java -cp tla/tla2tools.jar tlc2.TLC -h > tlc-help.txt || true
           grep -m1 Version tlc-help.txt
           shopt -s nullglob
           cfgs=(tla/*.cfg)
