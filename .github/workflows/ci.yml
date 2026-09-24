@@ -76,7 +76,8 @@ jobs:
         run: |
           curl -fsSL -o tla/tla2tools.jar \
             "https://github.com/tlaplus/tlaplus/releases/download/${TLA2TOOLS_VERSION}/tla2tools.jar"
-          java -cp tla/tla2tools.jar tlc2.TLC -h | head -n 3
+          java -cp tla/tla2tools.jar tlc2.TLC -h > tlc-help.txt
+          grep -m1 Version tlc-help.txt
           shopt -s nullglob
           cfgs=(tla/*.cfg)
           if [ ${#cfgs[@]} -eq 0 ]; then
