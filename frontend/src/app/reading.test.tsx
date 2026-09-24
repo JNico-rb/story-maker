@@ -254,4 +254,20 @@ describe("026 lectura", () => {
 
     clickSpy.mockRestore();
   });
+
+  it("026-C11: the PDF is not available yet", async () => {
+    const user = userEvent.setup();
+    apiAtV1({
+      [`GET ${BASE}/1/pdf`]: () => new Response(null, { status: 404 }),
+    });
+    renderReading();
+
+    await screen.findByRole("region", { name: "Portada" });
+    await user.click(screen.getByRole("button", { name: "Descargar PDF" }));
+
+    await screen.findByText(/el pdf.*no está disponible/i);
+    expect(screen.getByRole("region", { name: "Portada" })).toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: "Índice" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Ficha" })).toBeInTheDocument();
+  });
 });
