@@ -426,7 +426,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
-- [ ] 009-C01 · La candidata de generación nace con el canon del brief
+- [x] 009-C01 · La candidata de generación nace con el canon del brief
 - [ ] 009-C02 · El destinatario y los allegados pasan a personajes con su hecho de nombre
 - [ ] 009-C03 · La fecha de nacimiento es la declarada, la derivada de la edad o ninguna
 - [ ] 009-C04 · Los rasgos, las relaciones y los hechos extraídos aceptados pasan a hechos
