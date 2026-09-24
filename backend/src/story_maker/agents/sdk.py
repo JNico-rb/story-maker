@@ -9,18 +9,24 @@ import os
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from claude_agent_sdk import (
     ClaudeAgentOptions,
     ClaudeSDKClient,
     ClaudeSDKError,
+    HookContext,
+    HookInput,
+    HookJSONOutput,
+    HookMatcher,
     McpSdkServerConfig,
     McpServerConfig,
+    PostToolUseHookInput,
+    PreToolUseHookInput,
     ResultError,
     ResultMessage,
 )
-from claude_agent_sdk.types import McpStdioServerConfig
+from claude_agent_sdk.types import HookEvent, McpStdioServerConfig
 from mcp.server import Server, ServerRequestContext
 from mcp.types import (
     CallToolRequestParams,
@@ -50,6 +56,52 @@ CLI_SWITCHES = {
     "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
     "CLAUDE_CODE_DISABLE_AUTO_MEMORY": "1",
 }
+
+
+def bare_tool_name(tool_name: str) -> str:
+    """`mcp__<servidor>__<tool>` es `<tool>`; las integradas del CLI llegan sin prefijo."""
+    return tool_name.rsplit("__", 1)[-1] if tool_name.startswith("mcp__") else tool_name
+
+
+def sdk_hooks(hooks: ToolHooks) -> dict[HookEvent, list[HookMatcher]]:
+    """Los hooks del SDK delegan en los de la sesión, los mismos que llama el doble falso."""
+
+    async def policy_hook(
+        data: HookInput, tool_use_id: str | None, context: HookContext
+    ) -> HookJSONOutput:
+        pre = cast(PreToolUseHookInput, data)
+        reason = hooks.before_tool(
+            pre["tool_use_id"], bare_tool_name(pre["tool_name"]), pre["tool_input"]
+        )
+        if reason is None:
+            # Sin decisión propia: manda la lista blanca de la configuración (§12.3, dos veces).
+            return {}
+        return {
+            "hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "permissionDecision": "deny",
+                "permissionDecisionReason": reason,
+            }
+        }
+
+    async def after_hook(
+        data: HookInput, tool_use_id: str | None, context: HookContext
+    ) -> HookJSONOutput:
+        post = cast(PostToolUseHookInput, data)
+        replacement = hooks.after_tool(post["tool_use_id"], bare_tool_name(post["tool_name"]))
+        if replacement is None:
+            return {}
+        return {
+            "hookSpecificOutput": {
+                "hookEventName": "PostToolUse",
+                "updatedMCPToolOutput": [{"type": "text", "text": replacement}],
+            }
+        }
+
+    return {
+        "PreToolUse": [HookMatcher(hooks=[policy_hook])],
+        "PostToolUse": [HookMatcher(hooks=[after_hook])],
+    }
 
 
 class ProviderConfigError(ValueError):
@@ -233,6 +285,7 @@ class SdkAgent:
             setting_sources=["project"],
             settings=json.dumps({"claudeMdExcludes": excludes}),
             env=dict(self._env),
+            hooks=sdk_hooks(hooks),
         )
 
     def _browser_server(self) -> McpStdioServerConfig:
