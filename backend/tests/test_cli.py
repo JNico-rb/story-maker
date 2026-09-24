@@ -355,3 +355,24 @@ def test_check_env_with_the_four_langfuse_vars_uses_the_real_adapter_to_export(
     observability.flush()
 
     assert fake_langfuse_client.roots  # lo emitido llegó al cliente simulado, no al doble nulo
+
+
+# --- C02: sin alguna variable de Langfuse, se usa el doble nulo -------------------------------
+
+
+def test_check_env_without_the_prompt_label_uses_the_null_double(
+    monkeypatch: pytest.MonkeyPatch, base_env: Path, fake_langfuse_client: FakeLangfuseClient
+) -> None:
+    runner.invoke(app, ["init-db"])
+    _set_langfuse_env(monkeypatch)
+    monkeypatch.delenv("LANGFUSE_PROMPT_LABEL", raising=False)
+    _use_fake_langfuse_client(monkeypatch, fake_langfuse_client)
+
+    lines, observability = _diagnostics()
+
+    observability_line = next(line for line in lines if line.startswith("observabilidad"))
+    assert "doble nulo" in observability_line
+    assert "sin Langfuse" in observability_line
+    assert isinstance(observability, NullObservability)
+    assert not fake_langfuse_client.roots
+    assert not fake_langfuse_client.scores
