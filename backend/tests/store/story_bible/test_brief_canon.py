@@ -261,3 +261,33 @@ def test_the_dating_respects_the_calendar_limits(store: Any, f2: ConfirmedBrief)
         "recuerdo en 2010": dt.datetime(2010, 1, 1, 12, 0),
     }
     assert moments["recuerdo a los 0"] > birth
+
+
+def test_each_personal_element_is_represented_and_the_mandatory_ones_marked(
+    store: Any, f1: ConfirmedBrief
+) -> None:
+    _, characters, facts = _canon(store, f1)
+    names = {c.id: name for name, c in characters.items()}
+    by_element = {
+        f.personal_element_id: (names[f.character_id], f.attribute, f.value)
+        for f in facts
+        if f.personal_element_id is not None
+    }
+
+    assert by_element == {
+        1: ("Marta", NAME, "Marta"),
+        2: ("Marta", TRAIT, "curiosa"),
+        3: ("Marta", TRAIT, "le encanta el mar"),
+        4: ("Toby", NAME, "Toby"),
+        5: ("Luis", NAME, "Luis"),
+        6: ("Rosa", NAME, "Rosa"),
+        7: ("Marta", RECOLLECTION, "se perdió en la feria de su pueblo"),
+        8: ("Marta", RECOLLECTION, "su primer baño en el mar"),
+        9: ("Marta", RECOLLECTION, "la abuela Rosa se marchó para siempre"),
+        10: ("Marta", "comida favorita", "la paella"),
+    }
+    assert len([f for f in facts if f.personal_element_id is not None]) == 10
+    assert sorted(f.personal_element_id for f in facts if f.mandatory) == [1, 3, 4, 7, 10]
+    relationships = [f for f in facts if f.attribute == RELATIONSHIP]
+    assert len(relationships) == 3
+    assert {(f.personal_element_id, f.mandatory) for f in relationships} == {(None, False)}

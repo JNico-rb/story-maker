@@ -125,19 +125,46 @@ def create_generation_candidate(
     uow.session.flush()
 
     me = characters[recipient.name]
-    _fact(uow, version, me, NAME, recipient.name, "brief")
+    # El nombre del destinatario es obligatorio siempre (`definitions.md` §1 ElementoPersonal).
+    _fact(uow, version, me, NAME, recipient.name, "brief", recipient.name_element_id, True)
     for trait in recipient.traits:
-        _fact(uow, version, me, TRAIT, trait.statement, "brief")
+        _fact(uow, version, me, TRAIT, trait.statement, "brief", trait.element_id, trait.mandatory)
     for close_one in brief.close_ones:
         character = characters[close_one.name]
-        _fact(uow, version, character, NAME, close_one.name, "brief")
+        _fact(
+            uow,
+            version,
+            character,
+            NAME,
+            close_one.name,
+            "brief",
+            close_one.element_id,
+            close_one.mandatory,
+        )
         _fact(uow, version, character, RELATIONSHIP, close_one.relationship, "brief")
     for recollection in brief.recollections:
-        _fact(uow, version, me, RECOLLECTION, recollection.statement, "brief")
+        _fact(
+            uow,
+            version,
+            me,
+            RECOLLECTION,
+            recollection.statement,
+            "brief",
+            recollection.element_id,
+            recollection.mandatory,
+        )
     for extracted in brief.extracted_facts:
         if extracted.accepted:
-            subject = characters[extracted.subject]
-            _fact(uow, version, subject, extracted.attribute, extracted.value, "free_text")
+            _fact(
+                uow,
+                version,
+                characters[extracted.subject],
+                extracted.attribute,
+                extracted.value,
+                "free_text",
+                extracted.element_id,
+                extracted.mandatory,
+            )
 
     recipient_birth = recipient.birth_date or dt.date(present_year - recipient.age, 1, 1)
     for recollection in brief.recollections:
@@ -222,8 +249,17 @@ def _place(uow: UnitOfWork, version: Version, name: str) -> Place:
 
 
 def _fact(
-    uow: UnitOfWork, version: Version, subject: Character, attribute: str, value: str, origin: str
+    uow: UnitOfWork,
+    version: Version,
+    subject: Character,
+    attribute: str,
+    value: str,
+    origin: str,
+    element_id: int | None = None,
+    mandatory: bool = False,
 ) -> Fact:
+    """Un hecho que representa un elemento personal lleva su id y es obligatorio si y solo si
+    el elemento lo es (§18, spec 009)."""
     fact = Fact(
         version_id=version.id,
         subject_type="character",
@@ -231,7 +267,8 @@ def _fact(
         attribute=attribute,
         value=value,
         origin=origin,
-        mandatory=False,
+        mandatory=mandatory,
+        personal_element_id=element_id,
     )
     uow.add(fact)
     return fact
