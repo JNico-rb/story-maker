@@ -8,17 +8,40 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 4. Cada carril edita solo los bloques de sus specs; esta cabecera y sus tablas son del integrador (checkout principal, V2).
 5. Una spec empieza cuando sus dependencias están cerradas en V2, o en la rama de su propio carril.
 
-## Estado (2026-09-24)
+## Estado (2026-09-24, relevo del orquestador)
 
-- **Decisión del usuario (2026-09-24):** backend completo primero; sin revisiones (el integrador escribe y marca spec y plan); casos D y ejecuciones con modelo real al final, en un lote; como mucho 3 sesiones activas (integrador + 2 carriles); frontend después.
-- **000:** cerrada en V2. Pendientes D para el lote final: C15, C16, C17, C19.
-- **Aprobadas (spec y plan):** 001, 002, 003, 006, 007, 008, 009, 010, 011, 012, 014, 015, 016, 017, 018, 019. **En redacción:** 004, 005. **Sin redactar:** 013, 020, 021.
-- **Ruta crítica:** 000 → 001 → 002 → 009 → 010 → 011 → 012 → 014 → 015 → 021 (carril A). B lleva 003, 008 y 017; C, 005, 007 y 019; F, 018; G, 010; H, 016; D, 006, 004, 013 y 020.
+**Reglas vigentes (decisiones del usuario, 2026-09-24):**
+- Backend primero. Sin revisiones: el integrador escribe y marca spec y plan. TDD y `verificador` al cierre.
+- Los pasos D y las ejecuciones con modelo real van al final, en un lote. Frontend después (el carril E lo lleva otra sesión, `story-maker-f5`).
+- Paralelizar todo lo seguro: un implementador por carril, nunca dos specs a la vez en el mismo worktree. Una spec puede empezar por lo que no usa una dependencia en curso: lo marca *parcial* en la tabla de specs.
+- Modelo del implementador: opus en 003, 006, 007, 009, 011, 012, 014 y 016, y en cualquier fallo que se repita tras 2 intentos; sonnet en el resto. Verificador y redactor: sonnet.
+- Integración automática: verificador PASS → commit `NNN: <nombre>` en el carril → `git merge --no-ff` en V2 → suite completa → `git push origin V2` → rebase de los carriles libres. Rojo → deshacer con `git reset --merge ORIG_HEAD` (no `--hard`: en el checkout puede haber ficheros de otros, p. ej. `COMO-FUNCIONA.md`, que no es nuestro) y devolver el fallo.
+- Contexto: cada spec nueva, un implementador nuevo. Retomar uno ya lanzado (SendMessage) solo para arreglos cortos de esa misma spec. En cada prompt: «HAZ EL TRABAJO TÚ MISMO: no lances subagentes» (uno que delegó no hizo nada) y la ruta absoluta del worktree.
+- Lean no corre en el portátil. La CI corre también en `carril-*`: para ver el Lean de un carril, `git push --force-with-lease origin carril-<x>` (solo en ramas de carril, nunca en V2) y leer la CI con la API pública de GitHub (`curl .../actions/runs?branch=carril-<x>`). `gh` no está instalado.
+
+**Integradas en V2:** 000 (D al final: C15, C16, C17, C19), 001, 002, 003, 004, 005, 006, 007, 009 y 022 (frontend).
+
+**En curso (a las 2026-09-24 ~16:00; los pasos, en el bloque de cada spec de su rama):**
+
+| Spec | Carril | Pasos | Qué falta |
+|---|---|---|---|
+| 008 | B `../sm-b` | 11/38 | todo lo demás; cablea el adaptador del motor de políticas real (aviso abajo) |
+| 010 | G `../sm-g` | 22/36 | rebase sobre V2 (tiene la 009) y los pasos que aplican el plan a la story bible; comprobación de fallo de C09–C16 (se escribieron antes que su prueba) |
+| 011 | A `../sm-a` | 4/43 | parcial: todo lo que no usa 010, 008 ni 016; las costuras con ellas, según su código en sus carriles |
+| 013 | D `../sm-d` | 21/22 | 013-I4; después, verificador e integrar. C16 y C19 pasaron a 020 |
+| 016 | H `../sm-h` | 18/29 | rebase sobre V2 y las tarjetas desde la story bible de la 009 |
+| 018 | F `../sm-f` | 19/25 | C18–C23 esperan a la 011 (linters en el bucle) |
+
+**Siguiente:** integrar 013 → D con la 020 parcial (tabla de evals, `evals table`). Integrar 010 → A completa la 011. Integrar 008 → avisar a `story-maker-f5` (023 y 024) con sus rutas de /api. 011 → 012 (A, opus) y 018 (F). 012 → 014, 017, 019 y 020. 014 → 015 → 021.
+
+**Pendiente para §18 al integrar la 013:** la dedicatoria sale de `Brief.content["dedication"]`; el nombre del destinatario, del personaje `recipient` de la story bible; `changed_chapters` está congelado en una versión publicada y se calcula en vivo en una candidata.
+
 - **Avisos abiertos:**
-  - Adaptador del motor de políticas real para el puerto de agente (carga de prohibidas por cliente y novela, `base_url` del revisor visual, `record_decision` en el audit log): lo cablea la primera spec que abre sesiones reales, 008, y lo reutiliza 011; patrón en `tests/agents/test_port.py` (`RealEngine`) de carril-b.
-    - 012 decide qué hace el gate con el `error` de 007; la propuesta es `failed` con `internal_error`.
+  - La 008 cablea el adaptador del motor de políticas real para el puerto de agente (carga de las prohibidas por cliente y novela, `base_url` del revisor visual, `record_decision` en el audit log), y la 011 lo reutiliza. El patrón es `RealEngine` en `tests/agents/test_port.py`.
+  - 012 decide qué hace el gate con el `error` de 007; la propuesta es `failed` con `internal_error`. Tipo de defecto común: el de la 007 lleva capítulo y criterio y el de la 003 no; lo decide la 012.
   - 014: la propuesta pedida por MCP cuelga de `mcp:request_change` (lo pide 015).
-- **Tareas humanas:** `GITHUB_TOKEN` de grano fino para 007-C25; decidir si V2 pasa a ser la rama por defecto (`workflow_dispatch`).
+  - El vocabulario de atributos del canon (`NOMINAL_ATTRIBUTES`) está en `store/brief_canon.py`; debe pasar a `domain/` con la 008.
+- **Tareas humanas:** `GITHUB_TOKEN` de grano fino para 007-C25; decidir si V2 pasa a ser la rama por defecto (`workflow_dispatch` de `verificar-cronologia.yml`).
 
 ## Carriles
 
