@@ -52,4 +52,5 @@ Lane E owns `frontend/`. Frontend specs start at 022 in `specs/frontend/`; the i
 | 000 scaffolding | integrator (V2) | tooling, `package.json`, `pnpm-lock.yaml`, `src/app/` skeleton and brand tokens, `src/shared/ui/` primitives |
 | 022 acceso | E | `src/pages/` (register, login), `src/shared/api/` (client with the session header, 401 handling), `src/shared/lib/` (stored session), `src/app/` (router and protected routes) |
 | 023 mis-novelas | E | `src/pages/` (novels list, user-level banned terms) |
-| 024+ | E | rows added as frontend specs are approved |
+| 024 entrevista | E | `src/pages/` (interview: chat, brief panel, free texts, facts, novel-level banned terms, confirmation) |
+| 025+ | E | rows added as frontend specs are approved |

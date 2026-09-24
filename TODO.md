@@ -1002,3 +1002,38 @@ Todas dependen de 000. Carril B disuelto y C rehecho (decisión del usuario, 202
 - [ ] Full suite green, type checks clean
 - [ ] Spec updated, or confirmed still true
 - [ ] Docs updated, or confirmed still true
+
+## 024 — entrevista
+
+- [x] Spec `specs/frontend/024-entrevista.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
+
+### Steps
+- [ ] 024-C01 · Historial vacío al entrar en una entrevista nueva
+- [ ] 024-C02 · Enviar un mensaje añade la respuesta del entrevistador
+- [ ] 024-C03 · Fallo al enviar un mensaje
+- [ ] 024-C04 · Rechazo de un mensaje vacío antes de enviarlo
+- [ ] 024-C05 · El panel muestra lo fijado, lo que falta y las contradicciones
+- [ ] 024-C06 · Cota de obligatorios
+- [ ] 024-C07 · Enviar un texto libre y ver sus hechos verificados
+- [ ] 024-C08 · Aceptar y rechazar un hecho
+- [ ] 024-C09 · Marcar un hecho obligatorio
+- [ ] 024-C10 · Fallo al enviar un texto libre
+- [ ] 024-C11 · Texto libre vacío no se envía
+- [ ] 024-C12 · Ver la lista prohibida de nivel `novel`
+- [ ] 024-C13 · Añadir una palabra o un tema
+- [ ] 024-C14 · Alta rechazada o repetida
+- [ ] 024-C15 · Borrar una entrada prohibida
+- [ ] 024-C16 · Confirmar disponible solo sin problemas
+- [ ] 024-C17 · Confirmar un brief válido lleva a la pantalla que sigue
+- [ ] 024-C18 · Confirmación rechazada
+- [ ] 024-C19 · Entrada en una novela con el brief ya confirmado
+- [ ] 024-I2 · Ninguna llamada de esta pantalla a la API real fuera de 024-C20
+- [ ] 024-I3 · Un error de cualquier llamada de esta pantalla (mensaje, texto libre, aceptar o rechazar un hecho, alta o borrado prohibido, confirmar) s…
+- [ ] 024-I5 · Con el brief confirmado, ninguna acción de escritura de esta pantalla (mensaje, texto libre, hecho, prohibida) queda disponible
+- [ ] 024-C20 · Recorrido real de la entrevista (D, al final)
+
+### Closing
+- [ ] Full suite green, type checks clean
+- [ ] Spec updated, or confirmed still true
+- [ ] Docs updated, or confirmed still true

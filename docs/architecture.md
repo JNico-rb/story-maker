@@ -1486,3 +1486,6 @@ Registro de trade-offs: cada fila da opciones, criterio y elección. Reabrir una
 | Cierre de sesión (022) | Llamada al servidor · solo local | 002 deja fuera el cierre en el servidor | Solo local: se borra el token guardado |
 | Etiquetas y navegación de «mis novelas» (023) | Mostrar el estado interno · etiqueta fija por estado; un destino · destino por estado | Los docs no dan textos de UI; el estado derivado ya lo calcula 008 | Una etiqueta fija por estado derivado y un destino por estado (entrevista, progreso o lectura); crear novela se deshabilita mientras la petición está en curso |
 | Importar un brief desde la SPA (023) | Pantalla propia · solo CLI y API | §14.8 no la lista | Fuera de la SPA |
+| Confirmar el brief en la SPA (024) | Pulsar siempre y mostrar el 422 · deshabilitar con faltantes o contradicciones | Lo más fácil; 008 rechaza igual en el servidor | Deshabilitado mientras haya faltantes o contradicciones |
+| Entrevista con el brief ya confirmado (024) | Redirigir · solo lectura | 008 sigue sirviendo el brief tras confirmar | La pantalla se muestra en solo lectura |
+| Chat y texto libre en la SPA (024) | Un campo compartido · dos controles separados | §3.1: el entrevistador nunca recibe un `TextoLibre` | Dos controles y dos rutas separados |
