@@ -731,7 +731,9 @@ def evals_run_command(
     ] = None,
 ) -> None:
     """Importa los cinco briefs de `ejemplos/briefs/` a nombre de `--email` y lanza su ejecución
-    de generación. Nunca corre en la CI (020-C05); sin un cliente ya registrado, no crea nada
+    de generación, y procesa la cola hasta vaciarla (020-C03). Un brief que no pasa no para a los
+    demás, pero la orden termina con 1 (020-C04); uno que ya tiene novela del cliente no se repite
+    (020-C17). Nunca corre en la CI (020-C05); sin un cliente ya registrado, no crea nada
     (020-C02)."""
     if os.environ.get("CI") is not None:
         typer.echo("evals run no corre en la CI (verification.md §4.2 método 2)")
@@ -898,6 +900,10 @@ async def _run_evals(
     launches: list[_EvalLaunch] = []
     defects: dict[str, str] = {}
     for path in sorted(EVAL_BRIEFS_DIR.glob("*.json")):
+        existing = _existing_eval_launch(mount.session_factory, user_id, eval_slug(path))
+        if existing is not None:
+            launches.append(existing)
+            continue
         outcome = await _launch_brief(mount, config, telemetry, user_id, path, eval_slug(path))
         if isinstance(outcome, str):
             defects[eval_slug(path)] = outcome
@@ -905,6 +911,31 @@ async def _run_evals(
             launches.append(outcome)
     await _drain_queue(mount)
     return launches, defects
+
+
+def _existing_eval_launch(
+    session_factory: sessionmaker[Session], user_id: int, slug: str
+) -> _EvalLaunch | None:
+    """La novela del cliente con ese brief de eval (de `example` o de un `evals run` anterior) y
+    su ejecución de generación, que no se relanza: si quedó interrumpida, vuelve a la cola en su
+    puesto, como con `resume` (011-C26; 020-C17)."""
+    with unit_of_work(session_factory) as uow:
+        novel = uow.session.scalar(
+            select(Novel)
+            .where(Novel.user_id == user_id, Novel.eval_brief == slug)
+            .order_by(Novel.id)
+        )
+        if novel is None:
+            return None
+        run = uow.session.scalars(
+            select(Run)
+            .where(Run.novel_id == novel.id, Run.type == "generation")
+            .order_by(Run.id.desc())
+            .limit(1)
+        ).one()
+        if run.status == "interrupted":
+            resume_run(uow, run.id)
+        return _EvalLaunch(slug, novel.id, run.id)
 
 
 async def _drain_queue(mount: Mount) -> None:

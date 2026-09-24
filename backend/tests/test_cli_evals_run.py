@@ -30,6 +30,7 @@ from story_maker.agents.profiles import RoleProfile
 from story_maker.cli import EVAL_BRIEF_SLUGS, EVAL_BRIEFS_DIR, EVAL_MAX_MANDATORY_ELEMENTS, app
 from story_maker.cli import eval_brief_content as _eval_brief_content
 from story_maker.composition import Adapters
+from story_maker.config import load_config
 from story_maker.domain.brief import BriefContent, brief_problems
 from story_maker.formal.double import ProgrammedFormalVerifier
 from story_maker.pipeline.planning.plan import (
@@ -434,3 +435,121 @@ def test_example_publishes_a_novel_of_the_client_and_saves_its_pdf_at_the_given_
     assert out.read_bytes() == stored
     assert check_pdf_links(out.read_bytes()).passed
     assert str(out) in result.stdout
+
+
+# --- 020-C17: un brief que ya tiene novela del cliente no se repite --------------------------
+
+
+def test_evals_run_counts_the_example_novel_as_the_one_of_its_brief(
+    eval_env: Path, eval_agent: tuple[EvalAgent, ProgrammedFormalVerifier], tmp_path: Path
+) -> None:
+    db_path = _db_path(eval_env)
+    _register(db_path, "cliente@example.com")
+    example = runner.invoke(
+        app,
+        [
+            "example",
+            str(EVAL_BRIEFS_DIR / "01-ejemplo.json"),
+            "--email",
+            "cliente@example.com",
+            "--out",
+            str(tmp_path / "novela-ejemplo.pdf"),
+        ],
+    )
+    assert example.exit_code == 0, example.stdout
+    engine = make_engine(db_path)
+    try:
+        with make_session_factory(engine)() as session:
+            example_novel = session.query(models.Novel).one()
+            example_run = session.query(models.Run).one()
+            assert example_novel.eval_brief == "ejemplo"
+            example_ids = (example_novel.id, example_run.id)
+    finally:
+        engine.dispose()
+
+    result = runner.invoke(app, ["evals", "run", "--email", "cliente@example.com"])
+
+    assert result.exit_code == 0, result.stdout
+    assert f"ejemplo: novela {example_ids[0]}, ejecución {example_ids[1]} (published)" in (
+        result.stdout
+    )
+    engine = make_engine(db_path)
+    try:
+        with make_session_factory(engine)() as session:
+            novels = session.query(models.Novel).order_by(models.Novel.id).all()
+            assert [n.eval_brief for n in novels] == list(EVAL_BRIEF_SLUGS)
+            assert novels[0].id == example_ids[0]
+            runs = session.query(models.Run).order_by(models.Run.id).all()
+            assert [r.status for r in runs] == ["published"] * 5
+    finally:
+        engine.dispose()
+    table = runner.invoke(app, ["evals", "table"])
+    assert _row(table.stdout, "Estado final (`published`/`failed` + motivo)") == ["published"] * 5
+
+
+def _seed_eval_novel(
+    db_path: Path, user_id: int, path: Path, *, run_status: str
+) -> tuple[int, int]:
+    """Una novela de un `evals run` anterior, con su brief confirmado y su ejecución de
+    generación sin terminar."""
+    content, _banned, _free = _eval_brief_content(json.loads(path.read_text(encoding="utf-8")))
+    engine = make_engine(db_path)
+    try:
+        with make_session_factory(engine)() as session:
+            novel = models.Novel(
+                user_id=user_id,
+                title=None,
+                embedding_model=load_config(REAL_ROOT / "config.json").embedding_model,
+                created_at=NOW,
+                eval_brief=path.stem.split("-", 1)[1],
+            )
+            session.add(novel)
+            session.flush()
+            session.add(
+                models.Brief(
+                    novel_id=novel.id, content=content.model_dump(mode="json"), status="confirmed"
+                )
+            )
+            run = models.Run(
+                novel_id=novel.id,
+                type="generation",
+                status=run_status,
+                phase=None,
+                chapter=None,
+                resumes=0,
+                reason="crash" if run_status == "interrupted" else None,
+                created_at=NOW,
+            )
+            session.add(run)
+            session.commit()
+            return novel.id, run.id
+    finally:
+        engine.dispose()
+
+
+def test_evals_run_takes_a_queued_or_interrupted_eval_run_to_published_without_relaunching_it(
+    eval_env: Path, eval_agent: tuple[EvalAgent, ProgrammedFormalVerifier]
+) -> None:
+    db_path = _db_path(eval_env)
+    user_id = _register(db_path, "cliente@example.com")
+    files = _brief_files()
+    queued = _seed_eval_novel(db_path, user_id, files[0], run_status="queued")
+    interrupted = _seed_eval_novel(db_path, user_id, files[1], run_status="interrupted")
+
+    result = runner.invoke(app, ["evals", "run", "--email", "cliente@example.com"])
+
+    assert result.exit_code == 0, result.stdout
+    assert f"ejemplo: novela {queued[0]}, ejecución {queued[1]} (published)" in result.stdout
+    assert f"infantil: novela {interrupted[0]}, ejecución {interrupted[1]} (published)" in (
+        result.stdout
+    )
+    engine = make_engine(db_path)
+    try:
+        with make_session_factory(engine)() as session:
+            novels = session.query(models.Novel).order_by(models.Novel.id).all()
+            assert [n.eval_brief for n in novels] == list(EVAL_BRIEF_SLUGS)
+            runs = session.query(models.Run).order_by(models.Run.id).all()
+            assert [(r.novel_id, r.status) for r in runs] == [(n.id, "published") for n in novels]
+            assert session.get_one(models.Run, interrupted[1]).resumes == 1
+    finally:
+        engine.dispose()
