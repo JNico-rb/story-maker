@@ -350,6 +350,15 @@ def _texts(value: Any, path: str) -> list[tuple[str, str]]:
     return []
 
 
+async def _cut(driver: DriverSession, *tasks: asyncio.Task[None] | asyncio.Task[bool]) -> None:
+    """Corta la sesión: cancela y recoge sus tareas, interrumpe y desconecta."""
+    for task in tasks:
+        task.cancel()
+    await asyncio.gather(*tasks, return_exceptions=True)
+    await driver.interrupt()
+    await driver.disconnect()
+
+
 class AgentPort:
     def __init__(
         self,
@@ -451,19 +460,21 @@ class AgentPort:
         """Conduce la sesión hasta que termina o un hook pide cortarla; siempre desconecta."""
         running = asyncio.create_task(driver.run())
         stop_requested = asyncio.create_task(live.stopped.wait())
-        done, _ = await asyncio.wait(
-            {running, stop_requested},
-            timeout=self._config.session_timeout_seconds,
-            return_when=asyncio.FIRST_COMPLETED,
-        )
+        try:
+            done, _ = await asyncio.wait(
+                {running, stop_requested},
+                timeout=self._config.session_timeout_seconds,
+                return_when=asyncio.FIRST_COMPLETED,
+            )
+        except asyncio.CancelledError:
+            # El servidor se detiene con la sesión abierta: se corta sin dejar tareas (031-C03).
+            await _cut(driver, running, stop_requested)
+            raise
         stop_requested.cancel()
         if not done:
             live.stop("time_exhausted")
         if live.stop_outcome is not None:
-            running.cancel()
-            await asyncio.gather(running, return_exceptions=True)
-            await driver.interrupt()
-            await driver.disconnect()
+            await _cut(driver, running)
             return live.stop_outcome
         await driver.disconnect()
         failure = running.exception()
