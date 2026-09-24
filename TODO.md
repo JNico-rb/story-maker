@@ -803,7 +803,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 016-C12 · BM25 con las estadísticas de la versión en el capítulo *n
 - [ ] 016-C13 · Consultas con signos de búsqueda o sin palabras
 - [x] 016-C14 · El canal denso compara por fragmentos
-- [ ] 016-C15 · Fusión RRF con k = 60
+- [x] 016-C15 · Fusión RRF con k = 60
 - [ ] 016-C16 · Desempate estable
 - [ ] 016-C17 · Consulta prospectiva del writer
 - [ ] 016-C18 · La consulta retrospectiva del editor tiene otro punto ciego

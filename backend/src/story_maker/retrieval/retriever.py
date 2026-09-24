@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
+from fractions import Fraction
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -12,6 +13,8 @@ from story_maker.retrieval.dense import min_distances, novel_model
 from story_maker.retrieval.embedding import EmbeddingModel, embed_texts
 from story_maker.retrieval.lexical import bm25, candidates, words
 from story_maker.store.models import CanonCard
+
+RRF_K = 60
 
 
 @dataclass(frozen=True)
@@ -22,6 +25,18 @@ class RankedCard:
     lexical_rank: int | None
     lexical_score: float | None = None
     dense_rank: int | None = None
+
+    @property
+    def rrf(self) -> Fraction:
+        """Σ 1 / (60 + rango) sobre los canales en que aparece; exacta, para que un empate sea
+        un empate."""
+        ranks = (rank for rank in (self.lexical_rank, self.dense_rank) if rank is not None)
+        return sum((Fraction(1, RRF_K + rank) for rank in ranks), Fraction(0))
+
+
+def fuse(entries: Iterable[RankedCard]) -> list[RankedCard]:
+    """Las entradas por RRF descendente."""
+    return sorted(entries, key=lambda entry: -entry.rrf)
 
 
 def eligible_cards(session: Session, version_id: int, chapter: int) -> list[CanonCard]:
@@ -56,10 +71,10 @@ def rank_cards(
     distances = min_distances(session, model, [card.id for card in eligible], query_vectors)
     by_distance = sorted(distances, key=lambda card_id: distances[card_id])
     dense_ranks = {card_id: rank for rank, card_id in enumerate(by_distance, start=1)}
-    return [
+    return fuse(
         RankedCard(card, lexical_ranks.get(card.id), scores.get(card.id), dense_ranks.get(card.id))
         for card in eligible
-    ]
+    )
 
 
 def retrieve(
