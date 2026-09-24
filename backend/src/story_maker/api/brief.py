@@ -23,11 +23,26 @@ from story_maker.domain.brief import (
     schema_errors,
 )
 from story_maker.interview.brief import interview_trace_key
-from story_maker.interview.novels import brief_of, load_accepted_facts, load_banned_entries
+from story_maker.interview.novels import (
+    brief_of,
+    load_accepted_facts,
+    load_banned_entries,
+    load_verified_facts,
+)
 from story_maker.store.models import Brief, ExtractedFact, FreeText, Novel
 from story_maker.store.session import unit_of_work
 
 router = APIRouter()
+
+
+class VerifiedFactOut(BaseModel):
+    id: int
+    subject: str
+    attribute: str
+    value: str
+    quote: str
+    accepted: bool | None
+    mandatory: bool
 
 
 class BriefOut(BaseModel):
@@ -39,6 +54,7 @@ class BriefOut(BaseModel):
     mandatory_count: int
     max_mandatory_elements: int
     personal_elements: list[ElementoPersonal]
+    verified_facts: list[VerifiedFactOut]
 
 
 def build_brief_out(
@@ -47,6 +63,18 @@ def build_brief_out(
     content = BriefContent.model_validate(brief.content) if brief.content else BriefContent()
     banned_entries = load_banned_entries(session, novel.user_id, novel.id)
     accepted_facts = load_accepted_facts(session, novel.id)
+    verified_facts = [
+        VerifiedFactOut(
+            id=row.id,
+            subject=row.subject,
+            attribute=row.attribute,
+            value=row.value,
+            quote=row.quote,
+            accepted=row.accepted,
+            mandatory=row.mandatory,
+        )
+        for row in load_verified_facts(session, novel.id)
+    ]
     return BriefOut(
         status=brief.status,
         content=content,
@@ -58,6 +86,7 @@ def build_brief_out(
         mandatory_count=mandatory_count(content, accepted_facts),
         max_mandatory_elements=max_mandatory_elements,
         personal_elements=personal_elements(content, accepted_facts),
+        verified_facts=verified_facts,
     )
 
 
@@ -205,7 +234,12 @@ def patch_extracted_fact(
             raise HTTPException(status_code=409, detail="el brief ya está confirmado")
         fact = _verified_fact_or_404(session, novel_id, fact_id)
         new_accepted = body.accepted if body.accepted is not None else bool(fact.accepted)
-        new_mandatory = body.mandatory if body.mandatory is not None else fact.mandatory
+        if body.mandatory is not None:
+            new_mandatory = body.mandatory
+        elif body.accepted is False:
+            new_mandatory = False  # rechazar deja de ser obligatorio (008-C24)
+        else:
+            new_mandatory = fact.mandatory
         if new_mandatory and not new_accepted:
             raise HTTPException(
                 status_code=422,

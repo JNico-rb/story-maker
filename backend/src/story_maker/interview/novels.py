@@ -136,3 +136,15 @@ def load_accepted_facts(session: Session, novel_id: int) -> list[AcceptedFact]:
         AcceptedFact(id=row.id, subject=row.subject, value=row.value, mandatory=row.mandatory)
         for row in rows
     ]
+
+
+def load_verified_facts(session: Session, novel_id: int) -> list[ExtractedFact]:
+    """Los hechos verificados de la novela, con su cita: lo que ve el cliente en el brief
+    (008-C18, 008-C22). Un hecho sin verificar no sale nunca (008-I3)."""
+    return (
+        session.query(ExtractedFact)
+        .join(FreeText, ExtractedFact.free_text_id == FreeText.id)
+        .filter(FreeText.novel_id == novel_id, ExtractedFact.verified.is_(True))
+        .order_by(ExtractedFact.id)
+        .all()
+    )
