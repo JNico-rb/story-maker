@@ -705,10 +705,10 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [ ] 014-I3 · Ningún rol escribe canon
 - [x] 014-I4 · Sin un código válido no se encola nada
 - [x] 014-I6 · Una petición tiene como mucho 1 + `max_retries.change` intentos (`ReintentosAcotados`)
-- [ ] 014-I7 · Un cambio no modifica la versión base ni ninguna otra versión publicada, tanto si publica como si falla (`VersionAnteriorConservada`)
-- [ ] 014-I8 · Historia lineal
+- [x] 014-I7 · Un cambio no modifica la versión base ni ninguna otra versión publicada, tanto si publica como si falla (`VersionAnteriorConservada`)
+- [x] 014-I8 · Historia lineal
 - [ ] 014-I9 · En la fase `writing` de una ejecución de cambio, solo los afectados pasan por el writer, en orden ascendente (recortado)
-- [ ] 014-I10 · Los puntos de control de una ejecución de cambio son el 0 y un prefijo de sus afectados en orden, sin huecos ni duplicados
+- [x] 014-I10 · Los puntos de control de una ejecución de cambio son el 0 y un prefijo de sus afectados en orden, sin huecos ni duplicados
 - [x] 014-I11 · Toda decisión del motor sobre la petición y sobre los valores nuevos queda en el audit log con origen `change_request`
 - [ ] 014-I12 · Los capítulos cambiados de la versión nueva son exactamente los de huella distinta de su base (recortado)
 - [ ] 014-C20 · Un cambio real propagado sobre la novela del brief 1 (D, al final)
