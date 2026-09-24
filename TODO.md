@@ -240,7 +240,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
-- [ ] 004-C01 · Con las cuatro variables de Langfuse, se usa el adaptador real
+- [x] 004-C01 · Con las cuatro variables de Langfuse, se usa el adaptador real
 - [ ] 004-C02 · Sin alguna variable de Langfuse, se usa el doble nulo
 - [ ] 004-I2 · Con alguna variable ausente, el puerto usa siempre el doble nulo
 - [ ] 004-C03 · `check-env` informa «ok» con credenciales válidas y prompts vigentes

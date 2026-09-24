@@ -13,6 +13,9 @@ import uvicorn
 
 from story_maker.api.app import create_app
 from story_maker.config import ConfigError, load_config
+from story_maker.observability.factory import build_langfuse_client, has_langfuse_vars
+from story_maker.observability.langfuse_adapter import LangfuseObservability
+from story_maker.observability.langfuse_adapter import auth_check as langfuse_auth_check
 from story_maker.observability.null import NullObservability
 from story_maker.settings import Settings, SettingsError, load_settings, resolve_paths
 from story_maker.store.session import (
@@ -108,16 +111,34 @@ def _check_database(data_dir: Path) -> str:
         engine.dispose()
 
 
-def _diagnostics() -> list[str]:
+ObservabilityAdapter = NullObservability | LangfuseObservability
+
+
+def _check_observability(settings: Settings | None) -> tuple[ObservabilityAdapter | None, str]:
+    """Doble nulo salvo con las cuatro variables de Langfuse; si no, `auth_check` (004-C01..C06)."""
+    if settings is None or not has_langfuse_vars(settings):
+        return NullObservability(), "observabilidad: ok (doble nulo, sin Langfuse)"
+
+    client = build_langfuse_client(settings)
+    label = cast(str, settings.langfuse_prompt_label)
+    problem = langfuse_auth_check(client, label)
+    if problem is not None:
+        return None, f"observabilidad: fallo: {problem}"
+    return LangfuseObservability(client), "observabilidad: ok (Langfuse)"
+
+
+def _diagnostics() -> tuple[list[str], ObservabilityAdapter | None]:
     """Una línea por comprobación; corre las que no dependen de una que ya ha fallado (C14)."""
-    _, settings_line = _check_settings()
+    settings, settings_line = _check_settings()
     data_dir, config_path = resolve_paths()
-    return [
+    observability, observability_line = _check_observability(settings)
+    lines = [
         settings_line,
         _check_config(config_path),
         _check_database(data_dir),
-        "observabilidad: ok (doble nulo, sin Langfuse)",
+        observability_line,
     ]
+    return lines, observability
 
 
 def _has_failed(lines: list[str]) -> bool:
@@ -127,13 +148,13 @@ def _has_failed(lines: list[str]) -> bool:
 @app.command(name="check-env")
 def check_env_command() -> None:
     """Una línea por comprobación (ajustes, config, base y observabilidad); C14."""
-    lines = _diagnostics()
+    lines, _ = _diagnostics()
     for line in lines:
         typer.echo(line)
     raise typer.Exit(1 if _has_failed(lines) else 0)
 
 
-def _build_server(settings: Settings, observability: NullObservability) -> uvicorn.Server:
+def _build_server(settings: Settings, observability: ObservabilityAdapter) -> uvicorn.Server:
     parsed = urlparse(settings.base_url)
     # `settings.base_url` ya pasó la regex de C4 (http://host:puerto): los dos siempre están.
     host = cast(str, parsed.hostname)
@@ -143,7 +164,7 @@ def _build_server(settings: Settings, observability: NullObservability) -> uvico
     return uvicorn.Server(config)
 
 
-async def _run_server(server: uvicorn.Server, observability: NullObservability) -> None:
+async def _run_server(server: uvicorn.Server, observability: ObservabilityAdapter) -> None:
     try:
         await server.serve()
     finally:
@@ -152,14 +173,13 @@ async def _run_server(server: uvicorn.Server, observability: NullObservability) 
 
 @app.command(name="serve")
 def serve_command() -> None:
-    """No arranca con config, ajustes o base inválidos (C15); un solo proceso, sin recarga (C16)."""
-    lines = _diagnostics()
+    """No arranca con config, ajustes, base u observabilidad inválidos (C15); un proceso (C16)."""
+    lines, observability = _diagnostics()
     for line in lines:
         typer.echo(line)
-    if _has_failed(lines):
+    if _has_failed(lines) or observability is None:
         raise typer.Exit(1)
 
     settings = load_settings()
-    observability = NullObservability()
     server = _build_server(settings, observability)
     asyncio.run(_run_server(server, observability))

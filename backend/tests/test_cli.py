@@ -1,4 +1,7 @@
-"""`init-db`, `check-env` y `serve` (001-C06, C07, C14, C15, C16) e invariantes I1, I2."""
+"""`init-db`, `check-env` y `serve` (001-C06, C07, C14, C15, C16) e invariantes I1, I2.
+
+004-C01, C02, I2, C03, C04, C05, I3, C06: selección de adaptador de observabilidad y `auth_check`
+en `check-env`/`serve`, con el cliente de Langfuse simulado de `tests/conftest.py`."""
 
 from __future__ import annotations
 
@@ -11,11 +14,15 @@ from pathlib import Path
 
 import httpx
 import pytest
+from tests.conftest import FakeLangfuseClient
 from typer.testing import CliRunner
 
+import story_maker.cli as cli_module
 import story_maker.settings as settings_module
-from story_maker.cli import _build_server, _run_server, app
+from story_maker.cli import _build_server, _diagnostics, _run_server, app
+from story_maker.observability.langfuse_adapter import LangfuseObservability
 from story_maker.observability.null import NullObservability
+from story_maker.observability.roles import ROLE_LABELS
 
 REAL_ROOT = settings_module.ROOT
 REAL_CONFIG = json.loads((REAL_ROOT / "config.json").read_text(encoding="utf-8"))
@@ -297,3 +304,54 @@ def test_serve_listens_on_the_configured_host_and_port_and_flushes_once_on_stop(
         thread.join(timeout=5)
 
     assert observability.flush_count == 1
+
+
+# --- 004: selección de adaptador, auth_check y prompts vigentes en check-env/serve ------------
+
+LANGFUSE_ENV = {
+    "LANGFUSE_PUBLIC_KEY": "pk-marcador-prueba",
+    "LANGFUSE_SECRET_KEY": "sk-marcador-prueba",
+    "LANGFUSE_BASE_URL": "http://127.0.0.1:9999",
+    "LANGFUSE_PROMPT_LABEL": "produccion",
+}
+
+
+def _set_langfuse_env(
+    monkeypatch: pytest.MonkeyPatch, overrides: dict[str, str] | None = None
+) -> None:
+    values = {**LANGFUSE_ENV, **(overrides or {})}
+    for key, value in values.items():
+        monkeypatch.setenv(key, value)
+
+
+def _register_all_role_prompts(client: FakeLangfuseClient, label: str = "produccion") -> None:
+    for role_label in ROLE_LABELS.values():
+        client.register_prompt(role_label, label, version=1)
+
+
+def _use_fake_langfuse_client(monkeypatch: pytest.MonkeyPatch, client: FakeLangfuseClient) -> None:
+    monkeypatch.setattr(cli_module, "build_langfuse_client", lambda settings: client)
+
+
+# --- C01: con las cuatro variables de Langfuse, se usa el adaptador real ----------------------
+
+
+def test_check_env_with_the_four_langfuse_vars_uses_the_real_adapter_to_export(
+    monkeypatch: pytest.MonkeyPatch, base_env: Path, fake_langfuse_client: FakeLangfuseClient
+) -> None:
+    runner.invoke(app, ["init-db"])
+    _set_langfuse_env(monkeypatch)
+    _register_all_role_prompts(fake_langfuse_client)
+    _use_fake_langfuse_client(monkeypatch, fake_langfuse_client)
+
+    lines, observability = _diagnostics()
+
+    observability_line = next(line for line in lines if line.startswith("observabilidad"))
+    assert "doble nulo" not in observability_line
+    assert isinstance(observability, LangfuseObservability)
+
+    with observability.trace("run:1", name="generacion"):
+        pass
+    observability.flush()
+
+    assert fake_langfuse_client.roots  # lo emitido llegó al cliente simulado, no al doble nulo
