@@ -177,9 +177,9 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 002-I4 · El cliente de una petición sale solo del token
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-24: `uv run pytest` 338 passed; `uv run ruff check .` all checks passed; `uv run ruff format --check .` 47 files already formatted; `uv run mypy src` no issues in 28 source files
+- [x] Spec updated, or confirmed still true — verificador 2026-09-24: confirmada sin cambios
+- [x] Docs updated, or confirmed still true — verificador 2026-09-24: confirmada sin cambios (la forma única del 422 ya está en `architecture.md` §18, commit 1bbb4a4 en V2)
 
 ## 003 — puerto-de-agente
 
