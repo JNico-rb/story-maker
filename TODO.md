@@ -531,13 +531,13 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [ ] 010-C07 · Catálogo de tropos curado
 - [x] 010-C08 · Schema de `submit_plan`
 - [x] 010-C09 · Policy sobre la entrega del plan
-- [ ] 010-C10 · Un plan válido pasa
-- [ ] 010-C11 · Capítulos y beats
-- [ ] 010-C12 · Elementos obligatorios asignados
-- [ ] 010-C13 · Momentos de los eventos y año presente
-- [ ] 010-C14 · Referencias y tipo de evento
-- [ ] 010-C15 · Fecha del novum
-- [ ] 010-C16 · `outline` no juzga la cronología
+- [x] 010-C10 · Un plan válido pasa
+- [x] 010-C11 · Capítulos y beats
+- [x] 010-C12 · Elementos obligatorios asignados
+- [x] 010-C13 · Momentos de los eventos y año presente
+- [x] 010-C14 · Referencias y tipo de evento
+- [x] 010-C15 · Fecha del novum
+- [x] 010-C16 · `outline` no juzga la cronología
 - [ ] 010-C17 · Replanificación con los defectos
 - [ ] 010-C18 · Una sesión sin entrega cuenta como intento
 - [ ] 010-C19 · Intentos agotados
@@ -556,7 +556,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [ ] 010-I3 · Una entrega rechazada (schema, policy, `outline` o sin entrega) no deja nada en la candidata
 - [ ] 010-I4 · Los intentos del evaluable `plan` nunca superan 1 + `max_retries.plan`, contando los de antes de una reanudación; el cortado por una caíd…
 - [ ] 010-I5 · El punto de control 0 existe si y solo si el plan está aplicado, se escribe una sola vez, y relanzar con él nunca abre el planner
-- [ ] 010-I6 · `outline` es determinista y exhaustivo
+- [x] 010-I6 · `outline` es determinista y exhaustivo
 - [ ] 010-C30 · Planificación con el modelo real (D, al final)
 
 ### Closing
