@@ -1,8 +1,8 @@
 # Presupuesto y coste — borrador de la slide
 
-Fuente de la slide obligatoria de presupuesto (`project-constraints.md`, «Slide de presupuesto y coste»). Es un borrador: **el coste de tokens es una estimación** hasta que se mida sobre ejecuciones reales (uso registrado por la spec 004-observabilidad; ejecuciones de la 020-evals); entonces se sustituyen las filas marcadas con ⚠ y se recalcula el resto con las mismas fórmulas.
+Fuente de la slide obligatoria de presupuesto (`project-constraints.md`, «Slide de presupuesto y coste»). Es un borrador: **el coste de tokens es una estimación** hasta que se mida sobre ejecuciones reales (uso registrado por la spec 004-observabilidad; ejecuciones de la 020-evals); entonces se sustituyen los tokens de [`costes.py`](costes.py) (marcados ⚠, el bloque `TOKENS_K`) por los medidos y se reejecuta `uv run presentacion/costes.py` — el resto (€/novela, margen, tabla de volumen, sensibilidad) se recalcula solo, con las mismas fórmulas.
 
-Moneda: euros, con 1 USD = 0,90 € (supuesto; se fija el tipo del día al cerrar la slide). Precios de modelo: precio de lista de la API de Anthropic, los de `operation.pricing` en `config.json` (`architecture.md` §13.2 y §15.4). Con el login de Claude Code no se paga por token: la cifra es lo que costaría la novela en producción.
+Todas las cifras de este fichero salen de ese script; no se recalculan a mano. Moneda: euros, con 1 USD = 0,90 € (supuesto; se fija el tipo del día al cerrar la slide). Precios de modelo: oficiales de la API de Anthropic (https://platform.claude.com/docs/en/about-claude/pricing, consultado 2026-09-24), los mismos de `operation.pricing` en `config.json` (`architecture.md` §13.2 y §15.4). Con el login de Claude Code no se paga por token: la cifra es lo que costaría la novela en producción.
 
 ---
 
@@ -35,12 +35,12 @@ Calculado en el escenario central, de 200 novelas al mes.
 | Partida | €/novela |
 |---|---|
 | ⚠ Tokens de la novela (entrevista y generación) | 2,48 |
-| ⚠ Tokens de las 3 revisiones incluidas (0,51 cada una) | 1,53 |
+| ⚠ Tokens de las 3 revisiones incluidas (0,51 cada una) | 1,54 |
 | Infraestructura (92 €/mes ÷ 200) | 0,46 |
 | Margen operativo: pasarela de pago (1,5 % + 0,25 €) | 0,69 |
 | Margen operativo: contingencia del 15 % sobre tokens | 0,60 |
 | Margen operativo: soporte y operación (10 h/mes × 45 €/h ÷ 200) | 2,25 |
-| **Coste unitario** | **8,01** |
+| **Coste unitario** | **8,02** |
 
 **Infraestructura mensual**:
 
@@ -60,7 +60,7 @@ Unsure: las tarifas de Langfuse, de GitHub Actions y del servidor son las públi
 
 - **Precio de venta al cliente final: 29 € IVA incluido**, que son 23,97 € netos, con 3 revisiones incluidas. Cada revisión extra, 2,99 €.
 - **Referencia:** un libro personalizado impreso para regalo se vende entre 30 y 45 €. Este producto es digital (web y PDF), sin impresión ni envío, y se puede corregir después de entregado.
-- **Margen:** 23,97 − 8,01 = **15,96 € por novela (67 %)**.
+- **Margen:** 23,97 − 8,02 = **15,95 € por novela (67 %)**.
 
 ---
 
@@ -106,25 +106,27 @@ Con 3 revisiones por novela.
 
 ## 6. Análisis de sensibilidad
 
-Margen en el escenario central, 200 novelas al mes:
+Margen en el escenario central, 200 novelas al mes. Tabla y cifras de `costes.py` (`ESCENARIOS_SENSIBILIDAD`), la misma que rellena el Anexo E del deck:
 
 | Caso | Coste variable/novela | Margen/mes | % |
 |---|---|---|---|
 | Base | 5,31 € | 3.190 € | 67 % |
-| Precio de los tokens +50 % | 7,62 € | 2.728 € | 57 % |
+| Tokens +50 % | 7,62 € | 2.728 € | 57 % |
+| Tokens −20 % | 4,38 € | 3.375 € | 70 % |
 | 6 revisiones por novela, las 3 extra gratis | 7,08 € | 2.836 € | 59 % |
 | 6 revisiones, las 3 extra cobradas a 2,99 € | 7,08 € | 4.318 € | 69 % |
-| Tokens +50 % y 6 revisiones gratis (peor caso) | 10,28 € | 2.196 € | 46 % |
-| Todos los roles de Sonnet pasan a Opus 5.5 (4 $/20 $): 4,53 € por novela y 0,73 € por revisión | 8,41 € | 2.570 € | 54 % |
+| Todos los roles de Sonnet pasan a Opus 5.5 (4 $/20 $): 4,44 € por novela y 0,72 € por revisión | 8,26 € | 2.599 € | 54 % |
+| Peor caso: Opus 5.5 + tokens +50 % + 6 revisiones gratis | 15,77 € | 1.098 € | 23 % |
 
-- **Precio de los tokens +50 %:** el margen baja unos 10 puntos, pero el precio sigue cubriéndolo con holgura. Los tokens son la mitad del coste unitario.
+- **Precio de los tokens ±50 %/−20 %:** el margen se mueve unos 10 puntos en cualquier dirección, pero el precio lo sigue cubriendo con holgura. Los tokens son poco más de la mitad del coste unitario.
 - **Más de tres revisiones:** cada revisión cuesta ~0,51 € de tokens, así que el coste casi no se mueve. El riesgo real es la capacidad: 6 revisiones por novela a 500/mes son ~750 h, y eso no cabe en una instancia; el techo baja a ~350 novelas al mes. Por eso las revisiones extra se cobran, aunque sea poco: más que cubrir su coste, sirven para regular la carga.
+- **Peor caso:** incluso acumulando los tres supuestos adversos a la vez, el margen se queda en 23 % y sigue siendo positivo; no hay ningún escenario de la tabla que lo tumbe.
 
 ---
 
 ## 7. Qué se mide antes de cerrar la slide
 
-1. El coste real por novela y por revisión, en Langfuse (specs 004 y 020): uso real × precio de lista; `total_cost_usd` del SDK, solo como contraste (`architecture.md` §13.2).
+1. Los tokens de entrada y salida por rol y por novela, en Langfuse (specs 004 y 020) — se agregan por modelo (Sonnet/Haiku) y se sustituyen en `TOKENS_K` de [`costes.py`](costes.py); `total_cost_usd` del SDK, solo como contraste (`architecture.md` §13.2).
 2. La duración de una generación y de una revisión, que fija la capacidad.
-3. Los modelos elegidos para cada rol (`architecture.md` §15.2).
+3. Los modelos elegidos para cada rol (`architecture.md` §15.2) — si cambian, se actualiza `config.json` y el mapeo Sonnet/Haiku de `costes.py`.
 4. Las tarifas de Langfuse, GitHub Actions, servidor y Claude Code Enterprise.
