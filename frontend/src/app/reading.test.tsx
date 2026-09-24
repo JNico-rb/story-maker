@@ -165,4 +165,17 @@ describe("026 lectura", () => {
     await screen.findByRole("region", { name: "Portada" });
     expect(screen.queryByRole("region", { name: "Novedades" })).not.toBeInTheDocument();
   });
+
+  it("026-C06: the cast sheet links to each chapter where the entity appears", async () => {
+    apiAtV1();
+    renderReading();
+
+    const ficha = await screen.findByRole("region", { name: "Ficha" });
+    const toby = within(ficha).getByText("Toby").closest("li");
+    if (!toby) throw new Error("no se encontró la entrada de Toby");
+    const links = within(toby).getAllByRole("link");
+    expect(links).toHaveLength(2);
+    expect(links[0]).toHaveAttribute("href", "#capitulo-2");
+    expect(links[1]).toHaveAttribute("href", "#capitulo-5");
+  });
 });

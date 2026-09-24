@@ -86,6 +86,26 @@ function Chapter({ chapter }: { chapter: VersionDetail["view"]["chapters"][numbe
   );
 }
 
+function Ficha({ entities }: { entities: VersionDetail["view"]["ficha"] }) {
+  return (
+    <section aria-label="Ficha" className="mb-10">
+      <h3 className="font-reading text-xl font-semibold text-secondary">Ficha</h3>
+      <ul className="space-y-1">
+        {entities.map((entity) => (
+          <li key={entity.name}>
+            {entity.name}
+            {entity.chapters.map((number) => (
+              <a key={number} href={`#capitulo-${number}`} className="ml-2">
+                capítulo {number}
+              </a>
+            ))}
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 function VersionContent({ novelId, version }: { novelId: string; version: number }) {
   const load = useJson<VersionDetail>(`/api/novels/${novelId}/versions/${version}`);
   if (load.status === "loading") return <p>Cargando la versión…</p>;
@@ -98,6 +118,7 @@ function VersionContent({ novelId, version }: { novelId: string; version: number
       {view.chapters.map((chapter) => (
         <Chapter key={chapter.number} chapter={chapter} />
       ))}
+      <Ficha entities={view.ficha} />
     </>
   );
 }
