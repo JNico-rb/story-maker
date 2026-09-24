@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import subprocess
 import sys
 from dataclasses import dataclass
 from importlib.metadata import version
 from pathlib import Path
-from typing import Annotated, cast
+from typing import Annotated, Any, cast
 from urllib.parse import urlparse
 
 import typer
@@ -24,6 +25,7 @@ from story_maker.api.app import create_app
 from story_maker.api.auth import normalize_email, utc_now
 from story_maker.api.brief import brief_problems, build_brief_out
 from story_maker.config import Config, ConfigError, load_config
+from story_maker.domain.brief import BannedEntry, BriefContent
 from story_maker.interview.brief import TurnFailure, confirm_brief_status, run_turn
 from story_maker.interview.free_text import FreeTextFailure, run_free_text
 from story_maker.interview.novels import brief_of, create_interview_novel, load_verified_facts
@@ -48,6 +50,7 @@ from story_maker.store.models import (
     Novel,
     RoleSession,
     Run,
+    User,
     ValidatorResult,
 )
 from story_maker.store.session import (
@@ -622,6 +625,122 @@ evals_app = typer.Typer(no_args_is_help=True, add_completion=False)
 app.add_typer(evals_app, name="evals")
 
 EVAL_BRIEF_SLUGS: tuple[str, ...] = ("ejemplo", "infantil", "boda", "adversarial", "temporal")
+
+# --- `evals run` (020-C01..C05) -----------------------------------------------------------------
+#
+# Cada fichero de `ejemplos/briefs/` es un brief de evaluación: el B0 de `BriefContent` (008), más
+# `purpose`/`expect` (documentales, no entran en el import) y una forma más legible que la interna
+# (`relationship` en vez de `relation`, rasgos y deseos de trama como texto llano, y los presentes
+# o el excluido de un recuerdo referidos por la `key` de un allegado en vez de por su nombre).
+# `eval_brief_content` traduce esa forma a lo que `brief_problems` y `import_brief` (008) esperan.
+
+EVAL_BRIEFS_DIR = settings_module.ROOT / "ejemplos" / "briefs"
+EVAL_MAX_MANDATORY_ELEMENTS = 8
+
+
+def _eval_close_one(raw: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "name": raw["name"],
+        "relation": raw["relationship"],
+        "species": raw["species"],
+        "age": raw["age"],
+        "birth_date": raw["birth_date"],
+        "mandatory": raw["mandatory"],
+    }
+
+
+def _eval_recollection(raw: dict[str, Any], names_by_key: dict[str, str]) -> dict[str, Any]:
+    excludes = raw.get("excludes")
+    return {
+        "statement": raw["statement"],
+        "age": raw["age"],
+        "year": raw["year"],
+        "place": raw["place"],
+        "present": [names_by_key[key] for key in raw.get("close_ones", [])],
+        "excluded": names_by_key[excludes] if excludes else None,
+        "mandatory": raw["mandatory"],
+    }
+
+
+def eval_brief_content(data: dict[str, Any]) -> tuple[BriefContent, list[BannedEntry], list[str]]:
+    """El `BriefContent` (B0), sus entradas prohibidas (novel + user) y sus textos libres, desde
+    la forma de fichero de un brief de `ejemplos/briefs/` (020-C01)."""
+    brief = data["brief"]
+    close_ones = brief.get("close_ones", [])
+    names_by_key = {c["key"]: c["name"] for c in close_ones}
+    content = BriefContent.model_validate(
+        {
+            "recipient": {
+                "name": brief["recipient"]["name"],
+                "age": brief["recipient"]["age"],
+                "birth_date": brief["recipient"]["birth_date"],
+                "traits": [
+                    {"statement": trait, "mandatory": False}
+                    for trait in brief["recipient"]["traits"]
+                ],
+                "relation": brief["recipient"]["relationship"],
+            },
+            "close_ones": [_eval_close_one(c) for c in close_ones],
+            "recollections": [
+                _eval_recollection(r, names_by_key) for r in brief.get("recollections", [])
+            ],
+            "occasion": brief["occasion"],
+            "genre": brief["genre"],
+            "tone": brief["tone"],
+            "length": brief["length"],
+            "dedication": brief["dedication"],
+            "banned_asked": brief["banned_asked"],
+            "plot_wishes": [{"statement": wish} for wish in brief.get("plot_wishes", [])],
+        }
+    )
+    banned_entries = [
+        BannedEntry(term=e["term"], type=e["type"], level="novel", keywords=e.get("keywords", []))
+        for e in brief.get("banned_terms", [])
+    ] + [
+        BannedEntry(term=e["term"], type=e["type"], level="user", keywords=e.get("keywords", []))
+        for e in data.get("user_banned_terms", [])
+    ]
+    free_texts = list(data.get("free_texts", []))
+    return content, banned_entries, free_texts
+
+
+@evals_app.command(name="run")
+def evals_run_command(
+    email: Annotated[
+        str | None, typer.Option("--email", help="Cliente propietario de las evals.")
+    ] = None,
+) -> None:
+    """Importa los cinco briefs de `ejemplos/briefs/` a nombre de `--email` y lanza su ejecución
+    de generación. Nunca corre en la CI (020-C05); sin un cliente ya registrado, no crea nada
+    (020-C02)."""
+    if os.environ.get("CI") is not None:
+        typer.echo("evals run no corre en la CI (verification.md §4.2 método 2)")
+        raise typer.Exit(1)
+
+    try:
+        settings = load_settings()
+    except SettingsError as exc:
+        for error in exc.errors:
+            typer.echo(error)
+        raise typer.Exit(1) from None
+
+    if not email:
+        typer.echo("evals run necesita --email de un cliente ya registrado")
+        raise typer.Exit(1)
+
+    engine = make_engine(_db_path(settings.data_dir))
+    try:
+        with make_session_factory(engine)() as session:
+            user = session.scalar(select(User).where(User.email == email))
+        if user is None:
+            typer.echo(f"{email} no es un cliente registrado")
+            raise typer.Exit(1)
+        # 020-C03/C04 (importar cada brief y lanzar su ejecución) esperan a que el gate de
+        # publicación (012) esté integrado en V2: sin él ninguna ejecución puede llegar a
+        # `published`, así que esta orden por ahora solo hace las comprobaciones de arriba.
+    finally:
+        engine.dispose()
+
 
 _BLOCKING = "blocking"
 _SEMANTIC = "semantic"
