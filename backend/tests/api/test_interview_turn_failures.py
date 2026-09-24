@@ -31,11 +31,12 @@ def _build(
     config: Config,
 ) -> tuple[TestClient, TokenCeiling]:
     ceiling = TokenCeiling(config.token_ceiling)
+    policy = RealPolicyEngine(session_factory, base_url="http://127.0.0.1:8000")
     agent_port = AgentPort(
         agent=fake,
         config=config,
         ceiling=ceiling,
-        policy=RealPolicyEngine(session_factory, base_url="http://127.0.0.1:8000"),
+        policy=policy,
         telemetry=telemetry,
         session_factory=session_factory,
         workspace=workspace,
@@ -48,6 +49,7 @@ def _build(
         telemetry=telemetry,
         config=config,
         workspace=workspace,
+        policy=policy,
     )
     client = TestClient(app)
     client.post("/api/auth/register", json={"email": "cliente@example.com", "password": "x" * 8})

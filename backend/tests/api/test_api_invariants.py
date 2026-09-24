@@ -24,6 +24,14 @@ NOVEL_ROUTES = {
     ("/api/novels/{novel_id}/interview/messages", "POST"),
     ("/api/novels/{novel_id}/brief", "GET"),
     ("/api/novels/{novel_id}/brief/confirm", "POST"),
+    ("/api/novels/{novel_id}/brief/extracted-facts/{fact_id}", "PATCH"),
+    ("/api/banned-terms", "GET"),
+    ("/api/banned-terms", "POST"),
+    ("/api/banned-terms/{term_id}", "DELETE"),
+    ("/api/novels/{novel_id}/free-texts", "POST"),
+    ("/api/novels/{novel_id}/banned-terms", "GET"),
+    ("/api/novels/{novel_id}/banned-terms", "POST"),
+    ("/api/novels/{novel_id}/banned-terms/{term_id}", "DELETE"),
 }
 ALL_ROUTES = PUBLIC_ROUTES | PROTECTED_ROUTES | NOVEL_ROUTES
 

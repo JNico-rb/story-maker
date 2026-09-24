@@ -428,20 +428,20 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 008-C09 · Datos faltantes, uno por campo
 - [x] 008-C10 · Contradicciones C1–C5, por tabla
 - [x] 008-C11 · Contradicción C6, por nivel, lugar y variante
-- [ ] 008-C12 · Cota de elementos obligatorios
-- [ ] 008-C13 · Comprobación de schema: forma y referencias internas
-- [ ] 008-C14 · Las comprobaciones se recalculan en cada lectura
-- [ ] 008-C15 · Confirmar un brief válido
-- [ ] 008-C16 · Confirmación rechazada
-- [ ] 008-C17 · Un brief confirmado es inmutable
-- [ ] 008-C18 · Extraer hechos de un texto libre
+- [x] 008-C12 · Cota de elementos obligatorios
+- [x] 008-C13 · Comprobación de schema: forma y referencias internas
+- [x] 008-C14 · Las comprobaciones se recalculan en cada lectura
+- [x] 008-C15 · Confirmar un brief válido
+- [x] 008-C16 · Confirmación rechazada
+- [x] 008-C17 · Un brief confirmado es inmutable
+- [x] 008-C18 · Extraer hechos de un texto libre
 - [ ] 008-C19 · `citas-verificadas`, regla por regla
 - [ ] 008-C20 · Inyección en el texto libre (RT1)
 - [ ] 008-C21 · Hecho inventado o exfiltrado por el extractor (RT2)
 - [ ] 008-C22 · El texto libre solo llega al extractor
 - [ ] 008-C23 · Texto libre rechazado o con la sesión fallida
 - [ ] 008-C24 · Aceptar, rechazar y marcar obligatorio un hecho extraído
-- [ ] 008-C25 · Lista prohibida de nivel `novel`
+- [x] 008-C25 · Lista prohibida de nivel `novel`
 - [ ] 008-C26 · Lista prohibida de nivel `user`
 - [ ] 008-C27 · Audit log de la novela
 - [ ] 008-C28 · Importar un brief válido

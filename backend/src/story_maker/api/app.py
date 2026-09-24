@@ -12,7 +12,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session, sessionmaker
 
-from story_maker.agents.port import AgentPort
+from story_maker.agents.port import AgentPort, PolicyEngine
 from story_maker.api.auth import Clock, utc_now
 from story_maker.api.auth import router as auth_router
 from story_maker.api.errors import validation_exception_handler
@@ -36,6 +36,7 @@ def create_app(
     telemetry: ObservabilityPort | None = None,
     config: Config | None = None,
     workspace: Path | None = None,
+    policy: PolicyEngine | None = None,
 ) -> FastAPI:
     """`frontend_dist` es el build de la SPA; si no existe, el servidor arranca sin servirla.
 
@@ -68,6 +69,7 @@ def create_app(
             app.state.telemetry = telemetry
             app.state.config = config
             app.state.workspace = workspace
+            app.state.policy = policy
             _include_interview_routers(app)
 
     if frontend_dist is not None and frontend_dist.is_dir():
@@ -99,10 +101,14 @@ def create_app(
 
 def _include_interview_routers(app: FastAPI) -> None:
     """Las rutas de la spec 008 (novelas, entrevista, brief); cada paso añade las suyas."""
+    from story_maker.api.banned_terms import router as banned_terms_router
     from story_maker.api.brief import router as brief_router
+    from story_maker.api.free_texts import router as free_texts_router
     from story_maker.api.interview import router as interview_router
     from story_maker.api.novels import router as novels_router
 
     app.include_router(novels_router)
     app.include_router(interview_router)
+    app.include_router(banned_terms_router)
     app.include_router(brief_router)
+    app.include_router(free_texts_router)

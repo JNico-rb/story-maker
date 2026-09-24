@@ -78,6 +78,11 @@ UPDATE_BRIEF_TOOL = ToolSpec(
 )
 
 
+def interview_trace_key(novel_id: int) -> str:
+    """La traza `entrevista` de una novela: la misma clave sigue la misma traza (008-C31)."""
+    return f"interview:{novel_id}"
+
+
 @dataclass(frozen=True)
 class TurnResult:
     reply: str
@@ -180,8 +185,9 @@ async def run_turn(
             client_message=text,
         )
 
-    trace_key = f"interview:{novel_id}"
-    with telemetry.trace(trace_key, name="entrevista", session=str(novel_id)) as trace:
+    with telemetry.trace(
+        interview_trace_key(novel_id), name="entrevista", session=str(novel_id)
+    ) as trace:
         request = SessionRequest(
             role=ROLE,
             mode=None,

@@ -79,10 +79,18 @@ def ceiling(config: Config) -> TokenCeiling:
 
 
 @pytest.fixture
+def policy(session_factory: sessionmaker[Session]) -> RealPolicyEngine:
+    """La misma instancia sirve al hook de policy del puerto de agente y a las llamadas directas
+    de la 008 (extracción, 008-C20): un solo `MotorDePoliticas` real por app de prueba."""
+    return RealPolicyEngine(session_factory, base_url="http://127.0.0.1:8000")
+
+
+@pytest.fixture
 def agent_port(
     fake: FakeAgent,
     config: Config,
     ceiling: TokenCeiling,
+    policy: RealPolicyEngine,
     session_factory: sessionmaker[Session],
     workspace: Path,
     telemetry: NullObservability,
@@ -91,7 +99,7 @@ def agent_port(
         agent=fake,
         config=config,
         ceiling=ceiling,
-        policy=RealPolicyEngine(session_factory, base_url="http://127.0.0.1:8000"),
+        policy=policy,
         telemetry=telemetry,
         session_factory=session_factory,
         workspace=workspace,
@@ -111,6 +119,7 @@ def client(
     config: Config,
     workspace: Path,
     clock: Callable[[], dt.datetime],
+    policy: RealPolicyEngine,
 ) -> TestClient:
     app = create_app(
         session_factory=session_factory,
@@ -120,6 +129,7 @@ def client(
         telemetry=telemetry,
         config=config,
         workspace=workspace,
+        policy=policy,
     )
     return TestClient(app)
 

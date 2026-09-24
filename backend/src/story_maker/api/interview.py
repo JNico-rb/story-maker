@@ -99,6 +99,7 @@ async def post_interview_message(
     try:
         novel = owned_or_404(session, Novel, novel_id, lambda n: n.user_id == user_id)
         brief = brief_of(session, novel_id)
-        return TurnOut(reply=outcome.reply, brief=build_brief_out(session, brief, novel))
+        brief_out = build_brief_out(session, brief, novel, state.config.max_mandatory_elements)
+        return TurnOut(reply=outcome.reply, brief=brief_out)
     finally:
         session.close()

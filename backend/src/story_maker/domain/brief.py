@@ -5,6 +5,7 @@ C1-C6 y cota de obligatorios (`definitions.md` §1, `architecture.md` §3.2,
 from __future__ import annotations
 
 import datetime as dt
+import re
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -353,3 +354,203 @@ def all_contradictions(
         content, banned_entries, accepted_facts
     )
     return sorted(found, key=lambda c: (c.rule, tuple(c.fields)))
+
+
+def mandatory_count(content: BriefContent, accepted_facts: list[AcceptedFact]) -> int:
+    """Obligatorios contados para la cota (008-C12): el nombre siempre cuenta, más cada rasgo,
+    recuerdo, allegado y hecho aceptado marcado obligatorio. Un elemento que no es obligatorio no
+    cuenta, y un hecho que no está aceptado no puede ser obligatorio (`accepted_facts` ya viene
+    filtrado a los aceptados, 008-C24)."""
+    count = 1  # el nombre de la destinataria, obligatorio siempre
+    count += sum(1 for trait in content.recipient.traits if trait.mandatory)
+    count += sum(1 for recollection in content.recollections if recollection.mandatory)
+    count += sum(1 for close_one in content.close_ones if close_one.mandatory)
+    count += sum(1 for fact in accepted_facts if fact.mandatory)
+    return count
+
+
+class SchemaError(BaseModel):
+    """Un error de schema que cruza datos del brief (008-C13): a diferencia de los de forma
+    (tipos, catálogos, textos vacíos, edad negativa, fechas que no existen), que `BriefContent`
+    ya rechaza al validar, estos sí llegan al borrador y bloquean la confirmación."""
+
+    model_config = ConfigDict(extra="forbid")
+    message: str
+    fields: list[str]
+
+
+def schema_errors(content: BriefContent, accepted_facts: list[AcceptedFact]) -> list[SchemaError]:
+    errors: list[SchemaError] = []
+    close_one_names = {c.name for c in content.close_ones if c.name}
+    all_names = close_one_names | ({content.recipient.name} if content.recipient.name else set())
+
+    for i, recollection in enumerate(content.recollections):
+        field = f"recollections[{i}]"
+        unknown_present = [p for p in recollection.present if p not in close_one_names]
+        if unknown_present:
+            errors.append(
+                SchemaError(
+                    message="Presente desconocido en el recuerdo", fields=[f"{field}.present"]
+                )
+            )
+        if recollection.excluded is not None and recollection.excluded not in close_one_names:
+            errors.append(SchemaError(message="Excluido no válido", fields=[f"{field}.excluded"]))
+        has_age = recollection.age is not None
+        has_year = recollection.year is not None
+        if has_age == has_year:
+            errors.append(
+                SchemaError(message="El recuerdo necesita edad o año, uno solo", fields=[field])
+            )
+        if not recollection.place.strip():
+            errors.append(SchemaError(message="Recuerdo sin lugar", fields=[f"{field}.place"]))
+
+    for i, close_one in enumerate(content.close_ones):
+        if not close_one.relation.strip() or close_one.species is None:
+            errors.append(SchemaError(message="Allegado incompleto", fields=[f"close_ones[{i}]"]))
+
+    names = [content.recipient.name, *(c.name for c in content.close_ones)]
+    names = [n for n in names if n]
+    if len(names) != len(set(names)):
+        errors.append(SchemaError(message="Nombre repetido", fields=["close_ones"]))
+
+    for fact in accepted_facts:
+        if fact.subject not in all_names:
+            errors.append(
+                SchemaError(
+                    message="Sujeto desconocido", fields=[f"extracted_facts[{fact.id}].subject"]
+                )
+            )
+
+    return errors
+
+
+class ElementoPersonal(BaseModel):
+    """Dato del brief que personaliza la novela (`definitions.md` §1, 008-C15): el nombre de la
+    destinataria, un rasgo, un recuerdo, un allegado o un hecho extraído aceptado. El id es único
+    dentro del brief; se calcula al confirmar, y el brief confirmado es inmutable (008-C17), así
+    que no necesita ser estable frente a ediciones posteriores del borrador."""
+
+    model_config = ConfigDict(extra="forbid")
+    id: int
+    origin: Literal["brief_field", "extracted_fact"]
+    field: str
+    mandatory: bool
+
+
+def personal_elements(
+    content: BriefContent, accepted_facts: list[AcceptedFact]
+) -> list[ElementoPersonal]:
+    elements = [
+        ElementoPersonal(id=1, origin="brief_field", field="recipient.name", mandatory=True)
+    ]
+    next_id = 2
+    for i, trait in enumerate(content.recipient.traits):
+        elements.append(
+            ElementoPersonal(
+                id=next_id,
+                origin="brief_field",
+                field=f"recipient.traits[{i}]",
+                mandatory=trait.mandatory,
+            )
+        )
+        next_id += 1
+    for i, recollection in enumerate(content.recollections):
+        elements.append(
+            ElementoPersonal(
+                id=next_id,
+                origin="brief_field",
+                field=f"recollections[{i}]",
+                mandatory=recollection.mandatory,
+            )
+        )
+        next_id += 1
+    for i, close_one in enumerate(content.close_ones):
+        elements.append(
+            ElementoPersonal(
+                id=next_id,
+                origin="brief_field",
+                field=f"close_ones[{i}]",
+                mandatory=close_one.mandatory,
+            )
+        )
+        next_id += 1
+    for fact in accepted_facts:
+        elements.append(
+            ElementoPersonal(
+                id=next_id,
+                origin="extracted_fact",
+                field=f"extracted_facts[{fact.id}]",
+                mandatory=fact.mandatory,
+            )
+        )
+        next_id += 1
+    return elements
+
+
+# --- HechoExtraido: citas-verificadas (008-C18, 008-C19, 008-C20) -----------------------------
+
+_WHITESPACE = re.compile(r"\s+")
+
+
+def _normalize_whitespace(text: str) -> str:
+    return _WHITESPACE.sub(" ", text).strip()
+
+
+def valid_subjects(content: BriefContent) -> set[str]:
+    """El destinatario y los allegados, tal cual (008-C18): los únicos sujetos válidos."""
+    subjects = {c.name for c in content.close_ones if c.name}
+    if content.recipient.name:
+        subjects.add(content.recipient.name)
+    return subjects
+
+
+def quote_appears_literally(text: str, quote: str) -> bool:
+    """La cita aparece tal cual en `text`, con los espacios normalizados (008-C19)."""
+    if not quote.strip():
+        return False
+    return _normalize_whitespace(quote) in _normalize_whitespace(text)
+
+
+def _all_spans(haystack: str, needle: str) -> list[tuple[int, int]]:
+    if not needle:
+        return []
+    spans = []
+    start = 0
+    while True:
+        index = haystack.find(needle, start)
+        if index == -1:
+            break
+        spans.append((index, index + len(needle)))
+        start = index + 1
+    return spans
+
+
+def _overlaps(a: tuple[int, int], b: tuple[int, int]) -> bool:
+    return a[0] < b[1] and b[0] < a[1]
+
+
+def quote_overlaps_a_marked_phrase(text: str, quote: str, marked_phrases: list[str]) -> bool:
+    """La cita comparte al menos un carácter con una frase marcada por el detector (008-C19);
+    tocar el límite sin compartir carácter no cuenta. Todo se compara en espacios normalizados,
+    igual que `quote_appears_literally`, para que las dos reglas midan sobre el mismo texto."""
+    normalized_text = _normalize_whitespace(text)
+    quote_spans = _all_spans(normalized_text, _normalize_whitespace(quote))
+    if not quote_spans:
+        return False
+    for phrase in marked_phrases:
+        for phrase_span in _all_spans(normalized_text, _normalize_whitespace(phrase)):
+            if any(_overlaps(span, phrase_span) for span in quote_spans):
+                return True
+    return False
+
+
+def is_fact_verified(
+    subject: str, quote: str, text: str, content: BriefContent, marked_phrases: list[str]
+) -> bool:
+    """`citas-verificadas` (`definitions.md` §1 HechoExtraido, 008-C19): la cita aparece literal,
+    el sujeto es válido y la cita no se solapa con una frase marcada."""
+    return (
+        quote_appears_literally(text, quote)
+        and subject in valid_subjects(content)
+        and not quote_overlaps_a_marked_phrase(text, quote, marked_phrases)
+    )
