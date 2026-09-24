@@ -207,7 +207,7 @@ Todas dependen de 000. Cuatro carriles de backend en paralelo, A, B, C y D, uno 
 - [x] 003-C12 · La política recibe como narrativos solo los campos que la tool marca
 - [x] 003-C13 · Si la política falla, la tool no corre
 - [x] 003-I3 · Ninguna tool corre sin una decisión `allow` o `flag` de la política
-- [ ] 003-I4 · Las tools entregan, no persisten
+- [x] 003-I4 · Las tools entregan, no persisten
 - [ ] 003-C14 · Con defectos bloqueantes, el modelo lee los defectos en lugar del acuse
 - [ ] 003-C15 · Las comprobaciones corren solo sobre entregas permitidas y válidas, y lo no bloqueante no bloquea
 - [ ] 003-C16 · La reserva es la entrada estimada más el crecimiento de los turnos

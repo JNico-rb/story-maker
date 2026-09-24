@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import datetime as dt
 from collections.abc import Callable
 from typing import Any, Literal
 
@@ -17,7 +18,7 @@ from story_maker.agents.port import ACK, AgentPort, SessionRequest
 from story_maker.agents.profiles import ToolsMismatch
 from story_maker.agents.tools import ToolSpec
 from story_maker.agents.usage import Usage
-from story_maker.store.models import Base, RoleSession
+from story_maker.store.models import AuditLog, Base, RoleSession
 
 USAGE = Usage(input_tokens=10, output_tokens=5, cache_read_tokens=0, cache_write_tokens=0)
 
@@ -346,3 +347,51 @@ async def test_if_the_policy_fails_the_tool_does_not_run_and_the_error_reaches_t
     with session_factory() as session:
         (row,) = session.scalars(select(RoleSession)).all()
     assert row.outcome == "infrastructure_failure"
+
+
+async def test_a_session_only_writes_its_role_session_and_what_the_policy_records(
+    port: AgentPort,
+    fake: FakeAgent,
+    policy: Any,
+    run_id: int,
+    session_factory: sessionmaker[Session],
+    make_request: Callable[..., SessionRequest],
+) -> None:
+    decide = writer_rule([])
+
+    def recording(request: PolicyRequest) -> PolicyDecision:
+        decision = decide(request)
+        with session_factory() as session:
+            session.add(
+                AuditLog(
+                    user_id=request.user_id,
+                    novel_id=request.novel_id,
+                    run_id=request.run_id,
+                    role=request.role,
+                    tool=request.tool,
+                    origin=request.origin,
+                    decision=decision.decision,
+                    rule="doble",
+                    detail={},
+                    created_at=dt.datetime(2026, 9, 24, 12, 0),
+                )
+            )
+            session.commit()
+        return decision
+
+    policy.rule = recording
+    calls = (
+        Call("Skill", {"skill": "personalizacion-natural"}),
+        Call("Skill", {"skill": "otra-skill"}),
+        Call("submit_chapter", {"title": "Uno", "text": "limpio"}),
+        Call("submit_chapter", {"title": "Dos", "text": "prohibido"}),
+        Call("Bash", {"command": "dir"}),
+    )
+    fake.script("writer", "write", Script(steps=(*calls, Say("Fin.")), usage=USAGE))
+    before = fingerprint(session_factory)
+
+    await port.run(make_request("writer", "write", run_id=run_id))
+
+    after = fingerprint(session_factory)
+    changed = {t: n - before[t] for t, n in after.items() if n != before[t]}
+    assert changed == {"role_sessions": 1, "audit_log": 5}
