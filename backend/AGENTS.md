@@ -54,7 +54,7 @@ A spec touches only its modules and their `tests/<module>/`. In a shared module 
 | 015 servidor-mcp | A | `api/` (MCP server) |
 | 016 recuperacion-hibrida | B | `retrieval/` |
 | 017 revision-visual | B | `validators/` (visual review), visual reviewer prompt |
-| 018 linters-de-prosa | C | `lint/`, `api/` (chapter lint) |
+| 018 linters-de-prosa | F | `lint/`, `api/` (chapter lint) |
 | 019 edicion-manual | C | `pipeline/` (manual edit), `api/` (chapter save) |
 | 020 evals | D | `cli.py` (`evals run\|table`), `ejemplos/briefs/` |
 | 021 auditoria-de-seguridad | A | `docs/security-report.md` via the `seguridad` subagent; fixes go to the owning lane |
