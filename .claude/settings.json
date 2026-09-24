@@ -25,6 +25,7 @@
     ],
     "additionalDirectories": ["../sm-a", "../sm-b", "../sm-c", "../sm-d", "../sm-e"]
   },
+  "enabledMcpjsonServers": ["playwright", "langfuse"],
   "hooks": {
     "PreToolUse": [
       {
