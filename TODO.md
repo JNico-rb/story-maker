@@ -115,7 +115,7 @@ Todas dependen de 000. Carril B disuelto y C rehecho (decisión del usuario, 202
 - [x] 001-C04 · Ajustes obligatorios y condicionales
 - [x] 001-C01 · El `config.json` del repositorio es válido y lleva los valores de §15.4
 - [x] 001-C02 · La config se valida entera y nombra cada clave que falta, sobra o no vale
-- [ ] 001-C05 · `.env.example` lista los ajustes sin valores
+- [x] 001-C05 · `.env.example` lista los ajustes sin valores
 - [ ] 001-C06 · `init-db` crea la base con el esquema completo
 - [ ] 001-C07 · `init-db` no pisa una base existente sin `--reset`
 - [ ] 001-C08 · Toda conexión abre la base igual
