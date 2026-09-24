@@ -15,8 +15,15 @@ const FRAGMENT_SELECTION: Selection = {
   quote: "Toby corría por la playa.",
 };
 
-function renderPanel(onDiscard: () => void = () => undefined) {
-  render(<ChangeRequestPanel novelId={NOVEL} selection={FRAGMENT_SELECTION} onDiscard={onDiscard} />);
+function renderPanel(onDiscard: () => void = () => undefined, onConfirmed: (runId: string) => void = () => undefined) {
+  render(
+    <ChangeRequestPanel
+      novelId={NOVEL}
+      selection={FRAGMENT_SELECTION}
+      onDiscard={onDiscard}
+      onConfirmed={onConfirmed}
+    />,
+  );
 }
 
 // API simulada en el límite del cliente (frontend/AGENTS.md), mismo patrón que src/app/reading.test.tsx.

@@ -140,6 +140,11 @@ function ChangeRequestEntryPoint({
   onClear: () => void;
 }) {
   const [selection, setSelection] = useState<Selection | null>(null);
+  const [runInProgress, setRunInProgress] = useState<string | null>(null);
+
+  if (runInProgress) {
+    return <p>El cambio está en marcha (ejecución {runInProgress}).</p>;
+  }
 
   if (selection) {
     return (
@@ -149,6 +154,11 @@ function ChangeRequestEntryPoint({
         onDiscard={() => {
           setSelection(null);
           onClear();
+        }}
+        onConfirmed={(runId) => {
+          setSelection(null);
+          onClear();
+          setRunInProgress(runId);
         }}
       />
     );

@@ -1,12 +1,20 @@
 import { useState } from "react";
 
-import { errorMessage, requestChange, type ChangeRequestCreated, type Proposal, type Selection } from "../../shared/api";
+import {
+  confirmChange,
+  errorMessage,
+  requestChange,
+  type ChangeRequestCreated,
+  type Proposal,
+  type Selection,
+} from "../../shared/api";
 
 type FormState = { step: "form"; text: string; submitting: boolean; error?: string };
 type ProposalState = {
   step: "proposal";
   text: string;
   created: ChangeRequestCreated;
+  confirming: boolean;
 };
 type State = FormState | ProposalState;
 
@@ -22,15 +30,26 @@ function ProposalView({ proposal }: { proposal: Proposal }) {
 export function ChangeRequestPanel({
   novelId,
   selection,
+  onConfirmed,
 }: {
   novelId: string;
   selection: Selection;
   onDiscard: () => void;
+  onConfirmed: (runId: string) => void;
 }) {
   const [state, setState] = useState<State>({ step: "form", text: "", submitting: false });
 
   if (state.step === "proposal") {
     const { created } = state;
+
+    async function handleConfirm() {
+      if (state.step !== "proposal" || state.confirming) return;
+      setState({ ...state, confirming: true });
+      const response = await confirmChange(created.id, created.code);
+      const { run_id } = (await response.json()) as { run_id: string };
+      onConfirmed(run_id);
+    }
+
     return (
       <section aria-label="Propuesta de cambio">
         <ProposalView proposal={created.proposal} />
@@ -43,8 +62,12 @@ export function ChangeRequestPanel({
             ))}
           </ul>
         )}
-        <button type="button">Confirmar</button>
-        <button type="button">Descartar</button>
+        <button type="button" disabled={state.confirming} onClick={() => void handleConfirm()}>
+          Confirmar
+        </button>
+        <button type="button" disabled={state.confirming}>
+          Descartar
+        </button>
       </section>
     );
   }
@@ -56,7 +79,7 @@ export function ChangeRequestPanel({
     const response = await requestChange(novelId, selection, state.text);
     if (response.status === 201) {
       const created = (await response.json()) as ChangeRequestCreated;
-      setState({ step: "proposal", text: state.text, created });
+      setState({ step: "proposal", text: state.text, created, confirming: false });
       return;
     }
     // Un 409 al pedir el cambio es siempre la versión de la selección ya no vigente

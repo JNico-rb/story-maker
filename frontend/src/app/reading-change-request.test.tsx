@@ -77,13 +77,24 @@ function selectChapterText(chapterSection: HTMLElement) {
   fireEvent.mouseUp(chapterSection);
 }
 
+function baseRoutes(): Record<string, Reply> {
+  return {
+    [`GET ${BASE}`]: () => json(200, LIST),
+    [`GET ${BASE}/1`]: () => json(200, DETAIL),
+  };
+}
+
+// Abre el panel desde la lectura: selecciona el texto del capítulo 3 y pulsa «pedir un cambio».
+async function openChangeRequestForm(user: ReturnType<typeof userEvent.setup>) {
+  renderReading();
+  const chapter = await screen.findByRole("region", { name: /Capítulo 3/ });
+  selectChapterText(chapter);
+  await user.click(screen.getByRole("button", { name: /pedir un cambio/i }));
+}
+
 beforeEach(() => {
   localStorage.clear();
   saveSession("token-de-prueba");
-  fakeApi({
-    [`GET ${BASE}`]: () => json(200, LIST),
-    [`GET ${BASE}/1`]: () => json(200, DETAIL),
-  });
 });
 
 afterEach(() => {
@@ -94,14 +105,38 @@ afterEach(() => {
 describe("027 cambio del lector", () => {
   it("027-C01: selecting a fragment in a chapter and asking for a change opens the request form", async () => {
     const user = userEvent.setup();
-    renderReading();
+    fakeApi(baseRoutes());
 
-    const chapter = await screen.findByRole("region", { name: /Capítulo 3/ });
-    selectChapterText(chapter);
-    await user.click(screen.getByRole("button", { name: /pedir un cambio/i }));
+    await openChangeRequestForm(user);
 
     const form = screen.getByRole("form", { name: "Petición de cambio" });
     expect(within(form).getByText(CHAPTER_3_TEXT, { exact: false })).toBeInTheDocument();
     expect(within(form).getByRole("textbox", { name: "Petición" })).toHaveValue("");
+  });
+
+  it("027-C09: confirming queues the run and the reading shows it is in progress", async () => {
+    const user = userEvent.setup();
+    fakeApi({
+      ...baseRoutes(),
+      [`POST /api/novels/${NOVEL}/change-requests`]: () =>
+        json(201, {
+          id: "req-1",
+          proposal: { fact: "Nombre del perro", old_value: "Toby", new_value: "Nala" },
+          affected_chapters: [2],
+          code: "SECRETO-123",
+          expires_at: "2026-09-25T12:00:00Z",
+        }),
+      "POST /api/change-requests/req-1/confirm": () => json(202, { run_id: "run-9" }),
+    });
+
+    await openChangeRequestForm(user);
+    await user.type(screen.getByRole("textbox", { name: "Petición" }), "el perro se llama Nala");
+    await user.click(screen.getByRole("button", { name: "Pedir el cambio" }));
+    await user.click(await screen.findByRole("button", { name: "Confirmar" }));
+
+    expect(await screen.findByText(/cambio.*en marcha/i)).toBeInTheDocument();
+    expect(screen.getByText(/run-9/)).toBeInTheDocument();
+    expect(screen.queryByText("SECRETO-123")).not.toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Portada" })).toBeInTheDocument();
   });
 });
