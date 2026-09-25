@@ -1288,17 +1288,17 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
-- [ ] 030-C07 · Sin ejecuciones, el informe lo dice
-- [ ] 030-C08 · Ruta de salida
-- [ ] 030-C01 · Coste, tokens y latencia por novela
-- [ ] 030-C02 · Por capítulo
-- [ ] 030-C03 · Por rol
-- [ ] 030-C04 · Scores por validador y novela
-- [ ] 030-C05 · Versiones de prompt
-- [ ] 030-C06 · Un dato que falta es un hueco, nunca una estimación
-- [ ] 030-I1 · El informe es determinista
-- [ ] 030-I2 · Ninguna prueba ni la orden llaman a un modelo, a Langfuse ni a la red
-- [ ] 030-I3 · El fichero no contiene texto de capítulos, prompts, briefs ni el detalle JSON de los validadores
+- [x] 030-C07 · Sin ejecuciones, el informe lo dice
+- [x] 030-C08 · Ruta de salida
+- [x] 030-C01 · Coste, tokens y latencia por novela
+- [x] 030-C02 · Por capítulo
+- [x] 030-C03 · Por rol
+- [x] 030-C04 · Scores por validador y novela
+- [x] 030-C05 · Versiones de prompt
+- [x] 030-C06 · Un dato que falta es un hueco, nunca una estimación
+- [x] 030-I1 · El informe es determinista
+- [x] 030-I2 · Ninguna prueba ni la orden llaman a un modelo, a Langfuse ni a la red
+- [x] 030-I3 · El fichero no contiene texto de capítulos, prompts, briefs ni el detalle JSON de los validadores
 
 ### Closing
 - [ ] Full suite green, type checks clean
