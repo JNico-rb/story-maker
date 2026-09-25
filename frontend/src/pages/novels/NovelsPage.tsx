@@ -68,21 +68,27 @@ function LoadError({ onRetry }: { onRetry: () => void }) {
   );
 }
 
+// El destino de una fila según su estado y su versión vigente (023-C09): con versión vigente
+// (publicada, o `in_progress` tras un cambio del lector) va a la lectura; en entrevista o lista
+// para escribir, a la entrevista; `in_progress` sin versión vigente (primera generación), al
+// progreso.
+function destinationOf(novel: NovelSummary): string {
+  if (novel.current_version !== null) return `/novelas/${novel.id}/lectura`;
+  if (novel.status === "in_progress") return `/novelas/${novel.id}/progreso`;
+  return `/novelas/${novel.id}/entrevista`;
+}
+
 function NovelRow({ novel }: { novel: NovelSummary }) {
   const title = novel.title.trim() === "" ? "Sin título todavía" : novel.title;
   const date = new Date(novel.created_at).toLocaleDateString("es-ES");
   return (
     <li className="flex flex-wrap items-center gap-x-4 gap-y-1 py-3">
-      {novel.current_version !== null ? (
-        <Link
-          to={`/novelas/${novel.id}/lectura`}
-          className="font-reading text-lg font-semibold text-primary underline"
-        >
-          {title}
-        </Link>
-      ) : (
-        <span className="font-reading text-lg font-semibold text-secondary">{title}</span>
-      )}
+      <Link
+        to={destinationOf(novel)}
+        className="font-reading text-lg font-semibold text-primary underline"
+      >
+        {title}
+      </Link>
       <span>Para {novel.recipient_name}</span>
       <span className="rounded-full bg-accent px-2 py-0.5 text-sm text-secondary">
         {STATUS_LABELS[novel.status]}

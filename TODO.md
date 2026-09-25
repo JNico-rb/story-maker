@@ -1060,7 +1060,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 023-C04 · Novela sin título todavía
 - [x] 023-C05 · La lista respeta el orden que entrega la API
 - [x] 023-C06 · Fallo al cargar la lista
-- [ ] 023-C09 · El destino depende del estado y de la versión vigente
+- [x] 023-C09 · El destino depende del estado y de la versión vigente
 - [x] 023-C17 · El acceso lleva a «mis novelas»
 - [ ] 023-C07 · Crear una novela lleva a su entrevista
 - [ ] 023-C08 · Fallo al crear una novela

@@ -157,21 +157,26 @@ describe("023 mis novelas", () => {
     expect(await screen.findByRole("list", { name: "Novelas" })).toBeInTheDocument();
   });
 
-  it("023-C09: only novels with a current version link to their reading", async () => {
+  it("023-C09: the destination depends on the status and the current version", async () => {
     fakeApi({
       "GET /api/novels": () =>
         json(200, [
           novel({ id: 5, status: "published", current_version: 3 }),
           novel({ id: 6, status: "interview", current_version: null }),
+          novel({ id: 7, status: "ready", current_version: null }),
+          novel({ id: 8, status: "in_progress", current_version: null }),
         ]),
     });
     renderNovels();
 
-    const [first, second] = await screen.findAllByRole("listitem");
-    if (!first || !second) throw new Error("no se encontraron las dos filas");
-    const linked = within(first).getByRole("link");
-    expect(linked).toHaveAttribute("href", "/novelas/5/lectura");
-    expect(within(second).queryByRole("link")).not.toBeInTheDocument();
+    const [withVersion, interview, ready, inProgress] = await screen.findAllByRole("listitem");
+    if (!withVersion || !interview || !ready || !inProgress) {
+      throw new Error("no se encontraron las cuatro filas");
+    }
+    expect(within(withVersion).getByRole("link")).toHaveAttribute("href", "/novelas/5/lectura");
+    expect(within(interview).getByRole("link")).toHaveAttribute("href", "/novelas/6/entrevista");
+    expect(within(ready).getByRole("link")).toHaveAttribute("href", "/novelas/7/entrevista");
+    expect(within(inProgress).getByRole("link")).toHaveAttribute("href", "/novelas/8/progreso");
   });
 
   it("023-C17: a valid access ends up on \"mis novelas\" with the list", async () => {
