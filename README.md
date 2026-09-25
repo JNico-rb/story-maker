@@ -7,7 +7,8 @@ Es el proyecto del examen de Harness Engineering: el encargo está en [project-c
 ## Cómo se usa
 
 - **Configuración:** entrevista por la CLI (`interview`), con texto libre del que se extraen hechos, detección de datos que faltan y contradicciones, y un brief validado con schema.
-- **Lectura:** web (entrar, índice, ficha de personajes y lugares, versiones, pedir un cambio) y PDF interactivo con portada, dedicatoria, índice y ficha enlazados.
+- **Generación:** tras confirmar el brief, la web muestra el progreso capítulo a capítulo hasta el gate.
+- **Lectura:** web (entrar, índice, ficha de personajes y lugares, versiones, pedir un cambio, editar un capítulo a mano) y PDF interactivo con portada, dedicatoria, índice y ficha enlazados.
 - El desarrollo va spec a spec; el estado, en [TODO.md](TODO.md) → *Estado*.
 
 ## Arranque rápido
@@ -38,8 +39,10 @@ Una novela completa tarda del orden de 1–1,5 h con el login de Claude Code.
 ### Entrevista con el cliente
 
 ```sh
-uv run story-maker interview --email <cliente registrado>
+uv run story-maker interview --email <cliente registrado> [--novel <id>]
 ```
+
+`--novel` retoma una entrevista guardada propia; sin él, empieza una novela nueva.
 
 Cada línea es un turno. `/texto <fichero>` manda una carta o anécdota al extractor (contenido no confiable); `/hechos`, `/aceptar`, `/rechazar` y `/obligatorio` gobiernan los hechos extraídos; `/confirmar` cierra el brief y, con una segunda confirmación, lanza la generación; `/salir` termina.
 
@@ -65,13 +68,15 @@ En `.env`: `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_BASE_URL` (Cl
 | `init-db [--reset]` | Crea la base con el esquema completo; sin `--reset` no toca una existente |
 | `check-env` | Una línea por comprobación: ajustes, config, base y observabilidad |
 | `serve` | La API, la SPA compilada y el worker de la cola, en un proceso (sin `--reload`) |
-| `interview --email <e>` | La entrevista por terminal, con confirmación explícita del brief y de la generación |
+| `interview --email <e> [--novel <id>]` | La entrevista por terminal, con confirmación explícita del brief y de la generación; `--novel` retoma una guardada propia |
 | `resume <run_id>` | Vuelve a encolar una ejecución `interrupted` en su puesto |
 | `export-pdf <novel> <v>` | Regenera el PDF de una versión publicada |
 | `example <brief.json> --email <e> [--out <ruta>]` | Brief → novela publicada → su PDF |
+| `change <novel_id> <petición> --email <e> [--fact <id> \| --chapter <n> --fragment <cita>]` | Propone un cambio del lector sobre un hecho o un fragmento y, tras confirmarlo, lo encola |
 | `evals run --email <e>` | Importa los 5 briefs de `ejemplos/briefs/`, una novela y una ejecución por brief, y procesa la cola; no repite un brief que ya tiene novela del cliente; nunca en CI |
 | `evals table` | La tabla brief × validador y el resumen por brief, desde SQLite |
 | `prompts push` | Sube a Langfuse el prompt de cada rol cuya huella cambió, con la etiqueta `LANGFUSE_PROMPT_LABEL` |
+| `report metrics [--out <ruta>]` | Agrega `role_sessions` y `validator_results` en un Markdown determinista y sin red; por defecto `docs/metrics.md` |
 
 ## Cómo verificar esta entrega
 
@@ -123,7 +128,9 @@ Cada afirmación del proyecto tiene un sitio donde comprobarla. Sin modelo ni cu
 | Login de usuarios con SQLite | Registro e inicio de sesión con bcrypt y JWT; cada novela, brief y entrada del audit log tiene propietario; lo ajeno responde 404 | spec 002; `backend/tests/api/test_ownership.py`, `test_auth.py`, `test_audit_log.py` |
 | Invariantes adicionales en Lean y demostraciones generales | Cinco invariantes (T1–T5, tres más de los exigidos) y teoremas que prueban cada comprobación correcta y completa **para cualquier cronología** | [lean/Chronology.lean](lean/Chronology.lean), [lean/README.md](lean/README.md) |
 | TLA+ de la concurrencia entre regeneraciones | `Regenerations.tla`: cambios del lector simultáneos sobre la misma novela, invariante `VersionesLineales` | [tla/Regenerations.tla](tla/Regenerations.tla), su prueba en `backend/tests/pipeline/changes/test_change_stale_base.py` |
-| Linters de prosa | Repetición y muletillas, legibilidad según el tono, estilo típico de IA y consistencia de narrador y tiempo verbal, como biblioteca probada; aún sin conectar al bucle de escritura | `backend/src/story_maker/lint/`, `backend/tests/lint/` (spec 018) |
+| Linters de prosa | Repetición y muletillas, legibilidad según el tono, estilo típico de IA y consistencia de narrador y tiempo verbal; conectados al bucle de escritura y a la edición manual | `backend/src/story_maker/lint/`, `pipeline/production.py:ChapterProducer._lint`, `pipeline/manual_edit/live_lint.py` (spec 018) |
+| Servidor MCP, de lectura y de escritura | Siete tools en `/mcp` (§*Servidores MCP*): cinco de lectura y dos de escritura (proponer y confirmar un cambio del lector), con la misma identidad JWT que `/api` y una fila de traza por llamada | [backend/src/story_maker/api/mcp/](backend/src/story_maker/api/mcp/) (spec 015) |
+| Linter propio para la edición manual | El editor de capítulos de la web señala en vivo palabras prohibidas, formas no canónicas y avisos de los linters de prosa; un guardado que cambia un hecho actualiza la story bible y repasa los validadores (Lean incluido) antes de publicar | `pipeline/manual_edit/`, `frontend/src/pages/chapter-editor` (specs 019 y 028) |
 | Seguridad con agentes (parcial) | Subagente `seguridad` definido; `detect-secrets`, `pip-audit` y `pnpm audit` en cada push. El informe `docs/security-report.md` lo genera la spec 021, pendiente | [.claude/agents/seguridad.md](.claude/agents/seguridad.md), `.github/workflows/ci.yml` |
 
 ### Límites del encargo, en código
@@ -152,7 +159,9 @@ Cada acción de `tla/Harness.tla` corresponde a una transición del orquestador 
 
 ## Servidores MCP
 
-Para el desarrollo, `.mcp.json` ya trae Playwright MCP (Edge) y el MCP de Langfuse; este último lee la cabecera de la variable de entorno `LANGFUSE_MCP_AUTH` (`Basic <base64 de public_key:secret_key>`), que se define en el entorno del usuario, nunca en el repo.
+**Del producto (spec 015).** `story-maker serve` monta un servidor MCP propio en `/mcp` con siete tools: cinco de lectura (`list_novels`, `list_versions`, `get_chapter`, `query_story_bible`, `download_novel`) y dos de escritura, para pedir un cambio del lector desde un cliente MCP (`request_change`, que solo propone, y `confirm_change`, que lo encola con el código de la propuesta). Se conecta como un servidor `http` (streamable-http), con la misma identidad que `/api`: la cabecera `Authorization: Bearer <token>` de `POST /api/auth/login`, sin la cual la petición recibe 401 antes de llegar al protocolo MCP. Cada llamada deja una traza `mcp:<tool>` en Langfuse; las de escritura, además, una fila de auditoría.
+
+**Para el desarrollo**, `.mcp.json` ya trae Playwright MCP (Edge) y el MCP de Langfuse; este último lee la cabecera de la variable de entorno `LANGFUSE_MCP_AUTH` (`Basic <base64 de public_key:secret_key>`), que se define en el entorno del usuario, nunca en el repo. El mismo Playwright MCP (Edge) lo usa en tiempo de ejecución el validador `revision-visual` del gate (spec 017): sin Edge instalado, esa etapa interrumpe la ejecución en vez de fallar en silencio.
 
 ## Trabajo en paralelo
 
