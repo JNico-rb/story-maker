@@ -143,6 +143,178 @@ function CreateNovelButton() {
   );
 }
 
+// Lista prohibida de nivel `user` (023-C10 a 023-C15): forma normalizada de `005-guardarrailes`,
+// declarada aquí igual que `NovelSummary` (023, alcance; `schema.d.ts` no la tiene todavía).
+type TermType = "word" | "topic";
+type BannedTermEntry = {
+  id: number;
+  term: string;
+  type: TermType;
+  keywords: string[];
+};
+
+type BannedList =
+  | { status: "loading" }
+  | { status: "ready"; entries: BannedTermEntry[] }
+  | { status: "error" };
+
+function useBannedTerms(): [
+  BannedList,
+  (entry: BannedTermEntry) => void,
+  (id: number) => void,
+] {
+  const [list, setList] = useState<BannedList>({ status: "loading" });
+  useEffect(() => {
+    let current = true;
+    void apiFetch("/api/banned-terms")
+      .then((response) => {
+        if (!response.ok) throw new Error("fallo al cargar /api/banned-terms");
+        return response.json() as Promise<BannedTermEntry[]>;
+      })
+      .then((entries) => {
+        if (current) setList({ status: "ready", entries });
+      })
+      .catch(() => {
+        if (current) setList({ status: "error" });
+      });
+    return () => {
+      current = false;
+    };
+  }, []);
+  const add = (entry: BannedTermEntry) => {
+    setList((current) =>
+      current.status === "ready" ? { status: "ready", entries: [...current.entries, entry] } : current,
+    );
+  };
+  const remove = (id: number) => {
+    setList((current) =>
+      current.status === "ready"
+        ? { status: "ready", entries: current.entries.filter((e) => e.id !== id) }
+        : current,
+    );
+  };
+  return [list, add, remove];
+}
+
+function splitKeywords(input: string): string[] {
+  return input
+    .split(",")
+    .map((keyword) => keyword.trim())
+    .filter((keyword) => keyword !== "");
+}
+
+type BannedFormState = { term: string; type: TermType; keywords: string; submitting: boolean; error?: string };
+
+function BannedTermRow({ entry, onDeleted }: { entry: BannedTermEntry; onDeleted: (id: number) => void }) {
+  async function handleDelete() {
+    const response = await apiFetch(`/api/banned-terms/${entry.id}`, { method: "DELETE" });
+    if (response.status === 204) onDeleted(entry.id);
+  }
+  return (
+    <li className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2">
+      <span className="font-medium text-secondary">{entry.term}</span>
+      {entry.type === "topic" && entry.keywords.length > 0 && (
+        <span className="text-sm text-secondary/70">({entry.keywords.join(", ")})</span>
+      )}
+      <button type="button" onClick={() => void handleDelete()} className="text-sm underline">
+        Borrar {entry.term}
+      </button>
+    </li>
+  );
+}
+
+function BannedTermsPanel() {
+  const [list, add, remove] = useBannedTerms();
+  const [form, setForm] = useState<BannedFormState>({ term: "", type: "word", keywords: "", submitting: false });
+
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    setForm((f) => ({ ...f, submitting: true, error: undefined }));
+    const keywords = form.type === "topic" ? splitKeywords(form.keywords) : [];
+    const response = await apiFetch("/api/banned-terms", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ term: form.term, type: form.type, keywords }),
+    });
+    if (response.status === 201) {
+      const created = (await response.json()) as BannedTermEntry;
+      add(created);
+      setForm({ term: "", type: "word", keywords: "", submitting: false });
+      return;
+    }
+    const message = response.status === 409 ? "Ese término ya está en la lista." : await errorMessage(response);
+    setForm((f) => ({ ...f, submitting: false, error: message }));
+  }
+
+  return (
+    <section aria-label="Palabras y temas prohibidos" className="mt-10">
+      <h3 className="mb-4 text-lg font-semibold text-secondary">Prohibidas</h3>
+      {list.status === "loading" && <p role="status">Cargando la lista prohibida…</p>}
+      {list.status === "error" && <p role="alert">No se pudo cargar la lista prohibida.</p>}
+      {list.status === "ready" && (
+        <ul aria-label="Prohibidas" className="mb-4 divide-y divide-secondary/10">
+          {list.entries.map((entry) => (
+            <BannedTermRow key={entry.id} entry={entry} onDeleted={remove} />
+          ))}
+        </ul>
+      )}
+      <form onSubmit={(event) => void handleSubmit(event)} className="flex flex-wrap items-end gap-3">
+        <label className="flex flex-col text-sm">
+          Término
+          <input
+            aria-label="Término"
+            value={form.term}
+            onChange={(event) => setForm((f) => ({ ...f, term: event.target.value }))}
+            className="rounded border border-secondary/30 p-2"
+          />
+        </label>
+        <label className="flex items-center gap-1 text-sm">
+          <input
+            type="radio"
+            name="banned-type"
+            checked={form.type === "word"}
+            onChange={() => setForm((f) => ({ ...f, type: "word" }))}
+          />
+          Palabra
+        </label>
+        <label className="flex items-center gap-1 text-sm">
+          <input
+            type="radio"
+            name="banned-type"
+            aria-label="Tema"
+            checked={form.type === "topic"}
+            onChange={() => setForm((f) => ({ ...f, type: "topic" }))}
+          />
+          Tema
+        </label>
+        {form.type === "topic" && (
+          <label className="flex flex-col text-sm">
+            Palabras clave
+            <input
+              aria-label="Palabras clave"
+              value={form.keywords}
+              onChange={(event) => setForm((f) => ({ ...f, keywords: event.target.value }))}
+              className="rounded border border-secondary/30 p-2"
+            />
+          </label>
+        )}
+        <button
+          type="submit"
+          disabled={form.submitting}
+          className="rounded bg-primary px-4 py-2 text-sm font-semibold text-secondary disabled:opacity-50"
+        >
+          Añadir
+        </button>
+      </form>
+      {form.error && (
+        <p role="alert" className="mt-3 rounded bg-accent px-3 py-2 text-sm">
+          {form.error}
+        </p>
+      )}
+    </section>
+  );
+}
+
 export function NovelsPage() {
   const [load, retry] = useNovels();
   return (
@@ -161,6 +333,7 @@ export function NovelsPage() {
           ))}
         </ul>
       )}
+      <BannedTermsPanel />
     </main>
   );
 }

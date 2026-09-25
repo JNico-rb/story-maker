@@ -1064,15 +1064,15 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 023-C17 · El acceso lleva a «mis novelas»
 - [x] 023-C07 · Crear una novela lleva a su entrevista
 - [x] 023-C08 · Fallo al crear una novela
-- [ ] 023-C10 · Ver la lista prohibida de nivel `user`
-- [ ] 023-C11 · Añadir una palabra
-- [ ] 023-C12 · Añadir un tema con sus palabras clave
-- [ ] 023-C13 · Alta rechazada
-- [ ] 023-C14 · Alta de un término repetido
-- [ ] 023-C15 · Borrar una entrada
-- [ ] 023-I1 · Los cuatro estados derivados de `definitions.md` §3 tienen cada uno su etiqueta, y ningún otro valor cae en un caso por defecto silencioso
-- [ ] 023-I3 · Ninguna llamada de esta pantalla a la API real
-- [ ] 023-I4 · Un error de cualquier llamada de esta pantalla (lista, alta o borrado prohibido, crear novela) siempre se muestra; nunca se descarta en s…
+- [x] 023-C10 · Ver la lista prohibida de nivel `user`
+- [x] 023-C11 · Añadir una palabra
+- [x] 023-C12 · Añadir un tema con sus palabras clave
+- [x] 023-C13 · Alta rechazada
+- [x] 023-C14 · Alta de un término repetido
+- [x] 023-C15 · Borrar una entrada
+- [x] 023-I1 · Los cuatro estados derivados de `definitions.md` §3 tienen cada uno su etiqueta, y ningún otro valor cae en un caso por defecto silencioso
+- [x] 023-I3 · Ninguna llamada de esta pantalla a la API real
+- [x] 023-I4 · Un error de cualquier llamada de esta pantalla (lista, alta o borrado prohibido, crear novela) siempre se muestra; nunca se descarta en s…
 - [ ] 023-C16 · Recorrido real de «mis novelas» (D, al final)
 
 ### Closing
