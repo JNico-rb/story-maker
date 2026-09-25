@@ -93,6 +93,14 @@ La pantalla de lectura de una novela: muestra una versión publicada (portada co
 - **Entrada:** la API simulada responde con un error al detalle de la versión elegida.
 - **Salida:** la pantalla muestra que no se pudo cargar esa versión y ofrece reintentar; el selector sigue disponible para elegir otra versión.
 
+#### 026-C15 — Mientras carga, la pantalla lo indica (T)
+- **Entrada:** la API simulada aún no ha respondido a la lista de versiones, o al detalle de la versión elegida.
+- **Salida:** la pantalla muestra un aviso de carga accesible (`role="status"`) en el lugar de lo que falta; no muestra contenido vacío como si la novela no tuviera nada ni un error. Al llegar la respuesta, el aviso desaparece.
+
+#### 026-C16 — La lectura se presenta como un libro, en escritorio y en móvil (D)
+- **Entrada:** la lectura de una versión real (y el panel de cambio de 027-cambio-del-lector sobre ella), vista con Playwright MCP a ancho de escritorio y de móvil (≈390 px), sin llamar a ningún modelo.
+- **Salida:** portada centrada con la dedicatoria destacada; índice y ficha con buen aspecto y la marca «cambiado en vN» visible; capítulos en columna de lectura con tipografía de libro; sin desbordes horizontales en móvil; estados de carga y error claros. Sin comportamiento nuevo: 026-C01 a C15 y 027-C01 a C14 siguen en verde.
+
 ### Marca y recorrido completo
 
 #### 026-C14 — El recorrido completo se observa en el navegador (D, al final)
