@@ -741,7 +741,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 
 **N3** (usuario, 2026-09-24): tras el MVP.
 
-**Fuera de alcance** (usuario, 2026-09-24): no se implementa.
+**Dentro del alcance** (usuario, 2026-09-25, segunda decisión): se implementa en la segunda tanda.
 
 - [x] Spec `specs/backend/015-servidor-mcp.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
@@ -914,7 +914,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 
 **N3** (usuario, 2026-09-24): tras el MVP.
 
-**Fuera de alcance** (usuario, 2026-09-24): no se implementa.
+**Dentro del alcance** (usuario, 2026-09-25, segunda decisión): se implementa en la segunda tanda.
 
 - [x] Spec `specs/backend/019-edicion-manual.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
@@ -1003,7 +1003,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 
 **N3** (usuario, 2026-09-24): tras el MVP.
 
-**Fuera de alcance** (usuario, 2026-09-24): no se implementa.
+**Dentro del alcance** (usuario, 2026-09-25, segunda decisión): se implementa en la segunda tanda.
 
 - [x] Spec `specs/backend/021-auditoria-de-seguridad.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
@@ -1084,7 +1084,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 
 **N3** (usuario, 2026-09-24): tras el MVP.
 
-**Fuera de alcance** (usuario, 2026-09-24): no se implementa.
+**Dentro del alcance** (usuario, 2026-09-25, segunda decisión): se implementa en la segunda tanda.
 
 - [x] Spec `specs/frontend/024-entrevista.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcada — integrador 2026-09-25: sin revisión, decisión del usuario (C17 ofrece escribir la novela; C21 nuevo)
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcado — integrador 2026-09-25: sin revisión, decisión del usuario (C17 ofrece escribir la novela; C21 nuevo)
@@ -1124,7 +1124,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 
 **N3** (usuario, 2026-09-24): tras el MVP.
 
-**Fuera de alcance** (usuario, 2026-09-24): no se implementa.
+**Dentro del alcance** (usuario, 2026-09-25, segunda decisión): se implementa en la segunda tanda.
 
 - [x] Spec `specs/frontend/025-progreso.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcada — integrador 2026-09-25: sin revisión, decisión del usuario (C00 nuevo)
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcado — integrador 2026-09-25: sin revisión, decisión del usuario (C00 nuevo)
@@ -1225,7 +1225,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 
 **N3** (usuario, 2026-09-24): tras el MVP.
 
-**Fuera de alcance** (usuario, 2026-09-24): no se implementa.
+**Dentro del alcance** (usuario, 2026-09-25, segunda decisión): se implementa en la segunda tanda.
 
 - [x] Spec `specs/frontend/028-edicion-manual.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
