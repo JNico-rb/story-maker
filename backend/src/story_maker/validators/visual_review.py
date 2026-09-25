@@ -9,8 +9,13 @@ observado es de render y nunca lleva capítulo (017-I4). Nada aquí abre una ses
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
-from typing import Literal
+from typing import Annotated, Literal
+
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints
+
+from story_maker.agents.tools import ToolSpec
 
 VALIDATOR = "revision-visual"
 
@@ -50,3 +55,89 @@ class ExpectedStructure:
     index: tuple[int, ...]
     chapters: tuple[ExpectedChapter, ...]
     ficha: tuple[ExpectedEntity, ...]
+
+
+# --- Lo que entrega el revisor: solo observaciones (017-C12, 017-I1) ----------------------------
+
+SUBMIT_VISUAL_REVIEW = "submit_visual_review"
+# El destino de un enlace: la parte de la vista a la que lleva, o ninguna (`null`).
+DESTINATION = r"^(portada|indice|ficha|capitulo-[1-9][0-9]*)$"
+Destination = Annotated[str, StringConstraints(pattern=DESTINATION)] | None
+
+
+class _Observation(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+
+class CoverObservation(_Observation):
+    title: str = ""
+    recipient: str = ""
+    dedication: str = ""
+
+
+class IndexEntryObservation(_Observation):
+    text: str = ""
+    destination: Destination = None
+
+
+class ChapterObservation(_Observation):
+    number: int
+    title: str = ""
+    first_sentence: str = ""
+
+
+class LinkObservation(_Observation):
+    destination: Destination = None
+
+
+class EntityObservation(_Observation):
+    name: str
+    links: list[LinkObservation] = Field(default_factory=list)
+
+
+class VisualReviewSubmission(_Observation):
+    """`submit_visual_review`: las cuatro partes son obligatorias; una parte vacía significa «no lo
+    vi» y se compara (017-C12, 017-C13). No hay campo de veredicto (017-I1)."""
+
+    portada: CoverObservation
+    indice: list[IndexEntryObservation]
+    capitulos: list[ChapterObservation]
+    ficha: list[EntityObservation]
+
+
+def submit_visual_review_tool() -> ToolSpec:
+    return ToolSpec(
+        name=SUBMIT_VISUAL_REVIEW,
+        model=VisualReviewSubmission,
+        description="Entrega lo observado en la portada, el índice, los capítulos y la ficha.",
+    )
+
+
+# --- Lo que recibe el revisor: la dirección y la forma, nunca los valores (017-C02, 017-I2) ------
+
+
+DELIVER: dict[Part, str] = {
+    "portada": "el título, el nombre del destinatario y la dedicatoria, tal como se leen",
+    "indice": "cada entrada, en orden, con su texto y el destino al que lleva al pulsarla",
+    "capitulos": "el número, el título y la primera frase de cada capítulo",
+    "ficha": "cada personaje y cada lugar por su nombre, con el destino de cada uno de sus enlaces",
+}
+DESTINATIONS = (
+    "El destino de un enlace es la parte a la que llegas al pulsarlo: `portada`, `indice`, "
+    "`ficha` o `capitulo-<n>`; `null` si no lleva a ninguna."
+)
+
+
+def reviewer_message(url: str, expected: ExpectedStructure) -> str:
+    """La dirección de la vista y la forma de la entrega: las partes, qué entregar de cada una y
+    cuántos capítulos, personajes y lugares hay. Ningún valor que el código compare."""
+    kinds = [e.kind for e in expected.ficha]
+    structure = {
+        "parts": list(PARTS),
+        "deliver": dict(DELIVER),
+        "destinations": DESTINATIONS,
+        "chapters": len(expected.chapters),
+        "characters": kinds.count("personaje"),
+        "places": kinds.count("lugar"),
+    }
+    return json.dumps({"url": url, "structure": structure}, ensure_ascii=False, indent=2)

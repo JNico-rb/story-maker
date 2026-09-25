@@ -834,7 +834,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 
 ### Steps
 - [x] 017-C01 · La estructura esperada sale de la candidata
-- [ ] 017-C02 · El revisor recibe la dirección de la vista y la forma de lo que entrega, no los valores
+- [x] 017-C02 · El revisor recibe la dirección de la vista y la forma de lo que entrega, no los valores
 - [ ] 017-C03 · La sesión del revisor solo navega la vista
 - [ ] 017-C04 · Una revisión que coincide pasa
 - [ ] 017-C05 · La comparación tolera espacios y mayúsculas, no letras
@@ -853,7 +853,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [ ] 017-C18 · Integración: un fallo de render hace fallar la ejecución
 - [ ] 017-C19 · La revisión visual corre en el gate de un cambio y de una edición manual
 - [ ] 017-I1 · El resultado lo decide el código
-- [ ] 017-I2 · El revisor nunca recibe los valores que el código compara (título, nombre del destinatario, dedicatoria, títulos y textos de capítulo, no…
+- [x] 017-I2 · El revisor nunca recibe los valores que el código compara (título, nombre del destinatario, dedicatoria, títulos y textos de capítulo, no…
 - [ ] 017-I3 · `revision-visual` no escribe canon ni capítulos
 - [ ] 017-I4 · Todo defecto de `revision-visual` es de datos o de render
 - [ ] 017-I5 · Si en un ciclo `revision-visual` no pasa (por datos, render, sin entrega o sin navegador), en ese ciclo no se genera el PDF ni se publica

@@ -5,13 +5,19 @@ from __future__ import annotations
 
 import datetime as dt
 from collections.abc import Sequence
+from pathlib import Path
 from typing import Any
 
 from sqlalchemy.orm import Session, sessionmaker
-from tests.pipeline.conftest import NOW, USAGE, Seed, text_of
+from tests.pipeline.conftest import USAGE, Seed, text_of
 
-from story_maker.agents.fake import Call, Say, Script, Step
+from story_maker.agents.fake import Call, FakeAgent, FakeSession, Say, Script, Step
+from story_maker.composition import view_url
 from story_maker.pipeline.acceptance import chapter_hash
+from story_maker.pipeline.gate.phase import GateJob
+from story_maker.pipeline.gate.visual import VisualReviewStage
+from story_maker.pipeline.production import Production
+from story_maker.settings import ROOT, Settings
 from story_maker.store.models import Brief, Chapter, Event, Fact, FactUsage, Novel, Place
 from story_maker.validators.visual_review import (
     ExpectedChapter,
@@ -176,4 +182,55 @@ def reviewer_script(*deliveries: dict[str, Any], steps: Sequence[Step] = ()) -> 
     return Script(steps=(*steps, *calls, Say("Fin.")), usage=USAGE, sdk_cost_usd=0.1)
 
 
-__all__ = ["NOW"]
+# --- La etapa con el doble del revisor visual ---------------------------------------------------
+
+BASE_URL = "http://127.0.0.1:8000"
+SECRET = "secreto-de-prueba-de-32-caracteres!"
+REVIEWER_PROMPT = "Prompt del revisor visual"
+
+
+def make_settings(data_dir: Path) -> Settings:
+    """Ajustes de prueba, sin `.env`; la clave, un marcador de prueba."""
+    return Settings(
+        data_dir=data_dir,
+        config_path=ROOT / "config.json",
+        base_url=BASE_URL,
+        frontend_dist=data_dir / "dist",
+        jwt_secret=SECRET,
+        llm_provider="claude_login",
+        formal_verifier="github",
+        github_repository=None,
+        lean_workflow=None,
+        github_token=None,
+        claude_code_oauth_token=None,
+        anthropic_base_url=None,
+        anthropic_auth_token=None,
+        openrouter_api_key=None,
+        langfuse_public_key=None,
+        langfuse_secret_key=None,
+        langfuse_base_url=None,
+        langfuse_prompt_label=None,
+    )
+
+
+def make_stage(production: Production, settings: Settings) -> VisualReviewStage:
+    return VisualReviewStage(
+        production=production,
+        view_url=view_url(settings, production.config, production.clock),
+        prompt=REVIEWER_PROMPT,
+    )
+
+
+def job_of(seed: Seed, cycle: int = 1, *, cycles_remaining: bool = True) -> GateJob:
+    return GateJob(
+        run_id=seed.run_id,
+        user_id=seed.user_id,
+        novel_id=seed.novel_id,
+        version_id=seed.version_id,
+        cycle=cycle,
+        cycles_remaining=cycles_remaining,
+    )
+
+
+def reviewer_sessions(fake: FakeAgent) -> list[FakeSession]:
+    return [s for s in fake.sessions if s.request.role == "visual_reviewer"]

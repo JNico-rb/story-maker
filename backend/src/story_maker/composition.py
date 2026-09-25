@@ -25,12 +25,14 @@ from story_maker.agents.port import Agent, AgentPort
 from story_maker.agents.sdk import SdkAgent
 from story_maker.api.app import create_app
 from story_maker.api.auth import Clock, utc_now
+from story_maker.api.view_tokens import create_view_token
 from story_maker.config import Config
 from story_maker.formal.candidate import CandidateVerification, verify_candidate
 from story_maker.formal.verifier import FormalVerifier, make_formal_verifier
 from story_maker.observability.port import ObservabilityPort, Trace
 from story_maker.observability.roles import ROLE_LABELS
 from story_maker.pipeline.gate.phase import Gate, PdfOutcome, PdfStage, VisualReviewOutcome
+from story_maker.pipeline.gate.visual import ViewUrl
 from story_maker.pipeline.orchestrator import Orchestrator
 from story_maker.pipeline.planning_seam import PlanningSeam
 from story_maker.pipeline.production import Production, Prompts
@@ -129,6 +131,19 @@ async def no_visual_review(run_id: int, trace: Trace) -> VisualReviewOutcome:
     """La etapa 3 (017) está fuera de alcance: el montaje no la arranca."""
     del run_id, trace
     return VisualReviewOutcome()
+
+
+def view_url(settings: Settings, config: Config, clock: Clock) -> ViewUrl:
+    """La dirección de la `VistaDeVersion` de una versión en `STORY_MAKER_BASE_URL`, con un token
+    de vista de esa versión que caduca con `session_timeout_seconds` (§14.2; 013, 017-C02)."""
+
+    def url(version_id: int) -> str:
+        token = create_view_token(
+            version_id, settings.jwt_secret, config.session_timeout_seconds, clock()
+        )
+        return f"{settings.base_url}/view/versions/{version_id}?token={token}"
+
+    return url
 
 
 def build_worker(
