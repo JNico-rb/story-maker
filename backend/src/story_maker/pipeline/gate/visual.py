@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import cast
 
 from sqlalchemy.orm import Session
 
@@ -20,6 +21,9 @@ from story_maker.validators.visual_review import (
     ExpectedCover,
     ExpectedEntity,
     ExpectedStructure,
+    VisualReviewSubmission,
+    VisualVerdict,
+    compare,
     reviewer_message,
     submit_visual_review_tool,
 )
@@ -56,8 +60,10 @@ class VisualReviewStage:
         with p.telemetry.span(trace, f"validador:{VALIDATOR}") as span:
             with p.session_factory() as session:
                 expected = expected_structure(session, job.version_id)
-            await self._review(job, expected, trace, span)
-        return VisualReviewOutcome()
+            result = await self._review(job, expected, trace, span)
+            observed = cast(VisualReviewSubmission, result.deliveries[0].value)
+            verdict = compare(expected, observed)
+        return _outcome(verdict)
 
     async def _review(
         self, job: GateJob, expected: ExpectedStructure, trace: Trace, span: Span
@@ -76,3 +82,9 @@ class VisualReviewStage:
             run_id=job.run_id,
         )
         return await self.production.port.run(request)
+
+
+def _outcome(verdict: VisualVerdict) -> VisualReviewOutcome:
+    """Lo que la etapa entrega al gate."""
+    del verdict
+    return VisualReviewOutcome()

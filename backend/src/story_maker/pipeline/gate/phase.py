@@ -71,7 +71,7 @@ class PdfOutcome:
 
 
 LeanStage = Callable[[int], Awaitable[CandidateVerification]]
-VisualReview = Callable[[int, Trace], Awaitable[VisualReviewOutcome]]
+VisualReview = Callable[["GateJob", Trace], Awaitable[VisualReviewOutcome]]
 PdfStage = Callable[[int], Awaitable[PdfOutcome]]
 
 
@@ -296,7 +296,7 @@ class Gate:
         return _StageTwoPart(verdict.defects)
 
     async def _stage_3(self, job: GateJob, trace: Trace) -> PassResult:
-        review = await self.visual_review(job.run_id, trace)
+        review = await self.visual_review(job, trace)
         verdict = gate_precedence(
             unattributable_reason=review.failure,
             defects=review.defects,

@@ -31,7 +31,13 @@ from story_maker.formal.candidate import CandidateVerification, verify_candidate
 from story_maker.formal.verifier import FormalVerifier, make_formal_verifier
 from story_maker.observability.port import ObservabilityPort, Trace
 from story_maker.observability.roles import ROLE_LABELS
-from story_maker.pipeline.gate.phase import Gate, PdfOutcome, PdfStage, VisualReviewOutcome
+from story_maker.pipeline.gate.phase import (
+    Gate,
+    GateJob,
+    PdfOutcome,
+    PdfStage,
+    VisualReviewOutcome,
+)
 from story_maker.pipeline.gate.visual import ViewUrl
 from story_maker.pipeline.orchestrator import Orchestrator
 from story_maker.pipeline.planning_seam import PlanningSeam
@@ -127,9 +133,9 @@ def pdf_stage(
     return stage
 
 
-async def no_visual_review(run_id: int, trace: Trace) -> VisualReviewOutcome:
+async def no_visual_review(job: GateJob, trace: Trace) -> VisualReviewOutcome:
     """La etapa 3 (017) está fuera de alcance: el montaje no la arranca."""
-    del run_id, trace
+    del job, trace
     return VisualReviewOutcome()
 
 

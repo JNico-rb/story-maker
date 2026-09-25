@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import datetime as dt
 from collections.abc import Sequence
 from pathlib import Path
@@ -10,11 +11,12 @@ from typing import Any
 
 from sqlalchemy.orm import Session, sessionmaker
 from tests.pipeline.conftest import USAGE, Seed, text_of
+from tests.pipeline.gate.conftest import GateKit
 
 from story_maker.agents.fake import Call, FakeAgent, FakeSession, Say, Script, Step
 from story_maker.composition import view_url
 from story_maker.pipeline.acceptance import chapter_hash
-from story_maker.pipeline.gate.phase import GateJob
+from story_maker.pipeline.gate.phase import Gate, GateJob
 from story_maker.pipeline.gate.visual import VisualReviewStage
 from story_maker.pipeline.production import Production
 from story_maker.settings import ROOT, Settings
@@ -234,3 +236,8 @@ def job_of(seed: Seed, cycle: int = 1, *, cycles_remaining: bool = True) -> Gate
 
 def reviewer_sessions(fake: FakeAgent) -> list[FakeSession]:
     return [s for s in fake.sessions if s.request.role == "visual_reviewer"]
+
+
+def with_stage(kit: GateKit, stage: VisualReviewStage) -> Gate:
+    """El gate del kit con la etapa 3 real en lugar del doble."""
+    return dataclasses.replace(kit.gate, visual_review=stage)

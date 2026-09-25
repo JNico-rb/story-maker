@@ -141,3 +141,41 @@ def reviewer_message(url: str, expected: ExpectedStructure) -> str:
         "places": kinds.count("lugar"),
     }
     return json.dumps({"url": url, "structure": structure}, ensure_ascii=False, indent=2)
+
+
+# --- La comparación: el código decide (017-C04 a 017-C13, 017-I1, 017-I4) -----------------------
+
+Kind = Literal["datos", "render"]
+
+
+@dataclass(frozen=True)
+class VisualDefect:
+    """Un `Defecto` de `revision-visual`, siempre bloqueante: de datos (parte `ficha`, con el
+    capítulo en que sale la entidad o ninguno) o de render (nunca con capítulo)."""
+
+    part: Part
+    kind: Kind
+    chapter: int | None
+    message: str
+
+
+@dataclass(frozen=True)
+class VisualVerdict:
+    """El resultado de cada parte evaluada, en orden, y sus defectos."""
+
+    parts: tuple[tuple[Part, bool], ...]
+    defects: tuple[VisualDefect, ...]
+
+    @property
+    def passed(self) -> bool:
+        return all(ok for _, ok in self.parts)
+
+
+def compare(expected: ExpectedStructure, observed: VisualReviewSubmission) -> VisualVerdict:
+    """Cada parte por separado: una que no pasa no impide evaluar las otras (017-C06)."""
+    del expected, observed
+    by_part: dict[Part, tuple[VisualDefect, ...]] = dict.fromkeys(PARTS, ())
+    return VisualVerdict(
+        tuple((part, not by_part[part]) for part in PARTS),
+        tuple(d for part in PARTS for d in by_part[part]),
+    )

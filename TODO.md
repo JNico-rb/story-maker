@@ -836,7 +836,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 017-C01 · La estructura esperada sale de la candidata
 - [x] 017-C02 · El revisor recibe la dirección de la vista y la forma de lo que entrega, no los valores
 - [x] 017-C03 · La sesión del revisor solo navega la vista
-- [ ] 017-C04 · Una revisión que coincide pasa
+- [x] 017-C04 · Una revisión que coincide pasa
 - [ ] 017-C05 · La comparación tolera espacios y mayúsculas, no letras
 - [ ] 017-C06 · Una portada que no muestra lo suyo es fallo de render
 - [ ] 017-C07 · Un índice que no lleva a sus capítulos es fallo de render

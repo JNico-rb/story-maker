@@ -40,7 +40,7 @@ from story_maker.formal.result import (
 )
 from story_maker.observability.port import Trace
 from story_maker.pipeline.acceptance import chapter_hash
-from story_maker.pipeline.gate.phase import Gate, PdfOutcome, VisualReviewOutcome
+from story_maker.pipeline.gate.phase import Gate, GateJob, PdfOutcome, VisualReviewOutcome
 from story_maker.pipeline.production import Production
 from story_maker.store.models import (
     Attempt,
@@ -126,8 +126,8 @@ class VisualDouble:
     outcomes: list[VisualReviewOutcome] = field(default_factory=list)
     calls: list[int] = field(default_factory=list)
 
-    async def __call__(self, run_id: int, trace: Trace) -> VisualReviewOutcome:
-        self.calls.append(run_id)
+    async def __call__(self, job: GateJob, trace: Trace) -> VisualReviewOutcome:
+        self.calls.append(job.run_id)
         self.log.entries.append("revision-visual")
         return self.outcomes.pop(0) if self.outcomes else VisualReviewOutcome()
 
