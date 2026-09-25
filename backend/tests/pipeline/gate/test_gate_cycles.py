@@ -72,6 +72,27 @@ def test_a_third_pass_that_passes_publishes(
     assert run_of(session_factory, at_gate.run_id).status == "published"
 
 
+def test_a_blocking_criterion_cited_on_several_chapters_leaves_its_comment_once_in_the_detail(
+    session_factory: sessionmaker[Session],
+    at_gate: Seed,
+    fake: FakeAgent,
+    kit: GateKit,
+    trace: Trace,
+) -> None:
+    """Bug de la tanda D (ejecución 16): el comentario del juez salía repetido una vez por cada
+    capítulo citado (012-bug-D1)."""
+    script_judges(
+        fake, evaluation(scores={"continuidad": 2}, chapters={"continuidad": (1, 2, 3, 4, 5, 6)})
+    )
+    gate = with_gate_cycles(kit, 0)
+
+    with pytest.raises(RunStop) as stop:
+        asyncio.run(gate(at_gate.run_id, trace))
+
+    assert (stop.value.status, stop.value.reason) == ("failed", "retries_exhausted")
+    assert stop.value.detail.count("justificación de continuidad") == 1
+
+
 def test_with_zero_gate_cycles_the_first_pass_with_attributable_defects_fails(
     session_factory: sessionmaker[Session],
     at_gate: Seed,

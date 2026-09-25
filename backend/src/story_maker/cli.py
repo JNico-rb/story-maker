@@ -39,7 +39,6 @@ from story_maker.composition import (
 from story_maker.config import Config, ConfigError, load_config
 from story_maker.domain.brief import BannedEntry, BriefContent
 from story_maker.formal.defects import VALIDATOR as LEAN
-from story_maker.interview.banned_terms import add_banned_term
 from story_maker.interview.brief import TurnFailure, confirm_brief_status, run_turn
 from story_maker.interview.free_text import FreeTextFailure, run_free_text
 from story_maker.interview.import_brief import ImportFailure, ImportRejected, import_brief
@@ -818,36 +817,17 @@ class _EvalLaunch:
 def _import_body(
     content: BriefContent, banned_entries: list[BannedEntry], free_texts: list[str]
 ) -> dict[str, Any]:
-    """El cuerpo de la importación de la API (008-C28): el B0, sus prohibidas de nivel `novel` y
-    sus textos libres."""
+    """El cuerpo de la importación de la API (008-C28): el B0, sus textos libres y sus prohibidas.
+    Las `user_banned_terms` del fichero de un brief de eval no son del cliente que corre las
+    evals: quedan de nivel `novel`, atadas a la novela que nace de ese brief, igual que las de
+    nivel `novel` del propio fichero (020-C18)."""
     return {
         **content.model_dump(mode="json"),
         "banned_entries": [
-            {"term": e.term, "type": e.type, "keywords": e.keywords}
-            for e in banned_entries
-            if e.level == "novel"
+            {"term": e.term, "type": e.type, "keywords": e.keywords} for e in banned_entries
         ],
         "free_texts": free_texts,
     }
-
-
-def _add_user_banned_terms(
-    session_factory: sessionmaker[Session], user_id: int, banned_entries: list[BannedEntry]
-) -> None:
-    """Las prohibidas de nivel `user` del fichero, en la lista del cliente, como las añade la API
-    (008-C26); una que ya estaba no se duplica."""
-    with unit_of_work(session_factory) as uow:
-        for entry in banned_entries:
-            if entry.level == "user":
-                add_banned_term(
-                    uow,
-                    level="user",
-                    user_id=user_id,
-                    novel_id=None,
-                    term=entry.term,
-                    type_=entry.type,
-                    keywords=entry.keywords,
-                )
 
 
 def _problems_text(problems: list[dict[str, Any]]) -> str:
@@ -876,7 +856,6 @@ async def _launch_brief(
         return f"no pasa schema-brief: {_problems_text(problems)}"
     except (ValueError, KeyError, TypeError) as exc:
         return f"no pasa schema-brief: {exc!r}"
-    _add_user_banned_terms(mount.session_factory, user_id, banned_entries)
     now = utc_now()
     outcome = await import_brief(
         agent_port=mount.agent_port,

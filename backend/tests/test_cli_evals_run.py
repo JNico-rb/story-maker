@@ -363,6 +363,36 @@ def test_evals_run_publishes_one_novel_and_one_run_per_brief_of_the_given_client
     assert _row(table.stdout, "Estado final (`published`/`failed` + motivo)") == ["published"] * 5
 
 
+# --- 020-C18: las prohibidas de nivel user de un brief no alcanzan a los demás briefs ---------
+
+
+def test_a_briefs_user_banned_terms_become_novel_level_bans_of_its_own_novel(
+    eval_env: Path, eval_agent: tuple[EvalAgent, ProgrammedFormalVerifier]
+) -> None:
+    """La boda trae `user_banned_terms` («pantalla», «dron»): 020-C18 exige que queden como
+    prohibidas de nivel `novel` de la novela de la boda, no de nivel `user` del cliente."""
+    db_path = _db_path(eval_env)
+    user_id = _register(db_path, "cliente@example.com")
+
+    result = runner.invoke(app, ["evals", "run", "--email", "cliente@example.com"])
+
+    assert result.exit_code == 0, result.stdout
+    engine = make_engine(db_path)
+    try:
+        with make_session_factory(engine)() as session:
+            boda = session.query(models.Novel).filter_by(eval_brief="boda").one()
+            user_level = (
+                session.query(models.BannedTerm).filter_by(level="user", user_id=user_id).all()
+            )
+            assert [t.term for t in user_level] == []
+            novel_level = (
+                session.query(models.BannedTerm).filter_by(level="novel", novel_id=boda.id).all()
+            )
+            assert {t.term for t in novel_level} >= {"pantalla", "dron"}
+    finally:
+        engine.dispose()
+
+
 # --- 020-C04: un brief que no pasa no para a los demás ---------------------------------------
 
 
