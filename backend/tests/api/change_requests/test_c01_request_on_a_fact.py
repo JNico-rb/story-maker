@@ -32,10 +32,7 @@ def test_the_response_carries_the_proposal_with_the_old_value_from_v1_the_affect
     body = _ask(client, f, fake)
 
     assert isinstance(body["id"], int)
-    assert body["proposal"] == {
-        "changes": [{"fact_id": f.toby_name_fact, "old_value": "Toby", "new_value": "Nala"}],
-        "new_fact": None,
-    }
+    assert body["proposal"] == {"fact": "Toby · name", "old_value": "Toby", "new_value": "Nala"}
     assert body["affected_chapters"] == [2, 5, 7]
     assert isinstance(body["code"], str)
     assert body["code"]

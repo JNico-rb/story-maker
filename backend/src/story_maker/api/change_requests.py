@@ -88,7 +88,7 @@ async def post_change_request(
         raise HTTPException(status_code=outcome.status, detail=outcome.detail)
     return ChangeRequestOut(
         id=outcome.id,
-        proposal=outcome.proposal,
+        proposal=outcome.readable_proposal,
         affected_chapters=outcome.affected_chapters,
         code=outcome.code,
         expires_at=_aware_utc(outcome.expires_at),

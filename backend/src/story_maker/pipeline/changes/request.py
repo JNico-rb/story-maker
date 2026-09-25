@@ -56,6 +56,10 @@ class ProposalOut:
     affected_chapters: list[int]
     code: str
     expires_at: dt.datetime
+    # Forma que lee la SPA congelada (027-C03; `architecture.md` §15.7, «Forma de la propuesta»):
+    # solo para la API web (014-bug-C01b). `proposal` sigue siendo la forma interna, la que
+    # guarda la base y la que entrega el servidor MCP (015): no cambia.
+    readable_proposal: dict[str, Any]
 
 
 @dataclass(frozen=True)
@@ -162,6 +166,7 @@ async def request_change(
             ],
             "new_fact": proposal.new_fact.model_dump() if proposal.new_fact else None,
         }
+        readable = _readable_proposal(proposal, bible, values)
 
     code = secrets.token_urlsafe(16)
     expires_at = naive(now) + dt.timedelta(minutes=config.confirmation_minutes)
@@ -187,7 +192,7 @@ async def request_change(
         uow.session.flush()
         _add_attempts(uow, row.id, found.outcomes)
         request_id = row.id
-    return ProposalOut(request_id, out_proposal, affected, code, expires_at)
+    return ProposalOut(request_id, out_proposal, affected, code, expires_at, readable)
 
 
 @dataclass
@@ -296,6 +301,42 @@ def _save_rejected(
         uow.add(row)
         uow.session.flush()
         _add_attempts(uow, row.id, outcomes)
+
+
+def _readable_proposal(
+    proposal: ProposeChangeInput, bible: StoryBible, values: dict[int, str]
+) -> dict[str, Any]:
+    """`architecture.md` §15.7, «Forma de la propuesta» (014-bug-C01b): un cambio de hechos sale
+    como `fact`/`old_value`/`new_value` en texto, uno por cada campo juntando los de todos los
+    cambios en orden con «; »; un hecho nuevo sale como `new_fact`, una sola frase. La clave que
+    no aplica no aparece."""
+    if proposal.new_fact is not None:
+        subject = _subject_name(bible, proposal.new_fact.subject_type, proposal.new_fact.subject_id)
+        sentence = f"{subject} · {proposal.new_fact.attribute}: {proposal.new_fact.value}"
+        return {"new_fact": sentence}
+    facts_by_id = {entry.id: entry for entry in bible.facts}
+    facts, old_values, new_values = [], [], []
+    for change in proposal.changes:
+        entry = facts_by_id[change.fact_id]
+        subject_id = entry.character_id if entry.subject_type == "character" else entry.place_id
+        subject = _subject_name(bible, entry.subject_type, subject_id)
+        facts.append(f"{subject} · {entry.attribute}")
+        old_values.append(values[change.fact_id])
+        new_values.append(change.new_value)
+    return {
+        "fact": "; ".join(facts),
+        "old_value": "; ".join(old_values),
+        "new_value": "; ".join(new_values),
+    }
+
+
+def _subject_name(bible: StoryBible, subject_type: str, subject_id: int | None) -> str:
+    # Un hecho del mundo no tiene sujeto (`subject_type` = `world`, sin id).
+    if subject_type == "world":
+        return "mundo"
+    if subject_type == "character":
+        return next(c.canonical_name for c in bible.characters if c.id == subject_id)
+    return next(p.canonical_name for p in bible.places if p.id == subject_id)
 
 
 def _message(
