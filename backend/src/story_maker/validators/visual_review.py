@@ -171,6 +171,22 @@ class VisualVerdict:
         return all(ok for _, ok in self.parts)
 
 
+def normalized(text: str) -> str:
+    """Espacios colapsados (saltos de línea incluidos) y sin distinguir mayúsculas; las letras,
+    los acentos y los signos cuentan (017-C05)."""
+    return " ".join(text.split()).casefold()
+
+
+def texts_match(observed: str, expected: str) -> bool:
+    return normalized(observed) == normalized(expected)
+
+
+def sentence_in(observed: str, text: str) -> bool:
+    """Una primera frase observada coincide si está en el texto de su capítulo; vacía, nunca."""
+    sentence = normalized(observed)
+    return bool(sentence) and sentence in normalized(text)
+
+
 def compare(expected: ExpectedStructure, observed: VisualReviewSubmission) -> VisualVerdict:
     """Cada parte por separado: una que no pasa no impide evaluar las otras (017-C06)."""
     del expected, observed
