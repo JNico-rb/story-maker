@@ -55,3 +55,34 @@ def test_the_title_is_also_checked() -> None:
 
     assert check.passed is False
     assert [d.message for d in check.defects] == ["«Tobi» es una variante de «Toby»"]
+
+
+def test_a_capitalized_word_the_text_also_writes_in_lowercase_is_not_a_variant() -> None:
+    check = check_exact_names(
+        "El faro",
+        "Nada quedaba por hacer. Al final ya no quedaba nada por decir.",
+        CANONICAL,
+    )
+
+    assert check.passed is True
+    assert check.defects == ()
+
+
+def test_como_at_the_start_of_a_sentence_is_not_a_variant_of_cobo() -> None:
+    """Bug de la ejecución real 16: «Como»/«Cómo» a principio de frase se marcaba como
+    variante de «Cobo» y rechazó once entregas."""
+    check = check_exact_names(
+        "El faro",
+        "Cómo llegó hasta allí, nadie lo sabe; así como vino, se fue.",
+        ("Cobo",),
+    )
+
+    assert check.passed is True
+    assert check.defects == ()
+
+
+def test_a_capitalized_word_with_no_lowercase_occurrence_elsewhere_is_still_a_variant() -> None:
+    check = check_exact_names("El faro", "Nada al puerto llegó esa tarde.", CANONICAL)
+
+    assert check.passed is False
+    assert [d.message for d in check.defects] == ["«Nada» es una variante de «Nala»"]
