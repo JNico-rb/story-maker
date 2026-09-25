@@ -173,26 +173,45 @@ Sin trazas, el resto de §4 es opinión: no hay evals, ni red-team reproducible,
 | 4 adversarial | Carta pegada con instrucciones dirigidas al sistema | Detector de inyección marca; `citas-verificadas` descarta los hechos solapados; nada llega al brief ni a la novela (RT1–RT2) |
 | 5 temporal | Un recuerdo con una partida definitiva de la abuela y un deseo de trama que la hace reaparecer | `cronologia-lean` falla con T4 en el primer ciclo del gate y ningún otro lo detecta; reescritura dirigida de los capítulos atribuidos |
 
-**(c) Iteración de tuning** — plantilla (una por iteración; su efecto va a §8)
+**(c) Iteración de tuning** — una tabla por iteración; su efecto va a §8. Disparador común: en 020-C10 (ejecuciones 1–5) `longitud-capitulo` falla en los 5 briefs y ninguna novela llega al gate.
+
+*Iteración 1 — writer v1 → v2*
 
 | Campo | Valor |
 |---|---|
-| Fecha · commit | pendiente |
-| Disparador | celda o métrica de (a)/(b) que motiva el cambio |
-| Hipótesis | pendiente |
-| Cambio | prompt `<rol>` vN → vN+1 en Langfuse, o umbral/criterio en `config.json` |
-| Etiqueta de prompts | antes: pendiente · después: pendiente |
-| Control | solo los briefs del disparador (mínimo uno): el antes es su resultado de (a), sin regenerar; el después, una ejecución nueva con la misma config y los mismos modelos salvo el cambio |
+| Fecha · commit | 2026-09-25 · `cf6b5e4`, `ff129b7` |
+| Disparador | (a) `longitud-capitulo`: `falla` en 1–5 (2, 5, 5, 3 y 3 rechazos); (b) 5 `failed (retries_exhausted)`. Entregas de 666 a 1.194 palabras con objetivo 1.100/1.250; tras el rechazo con el recuento, el writer sube solo hasta rozar las 1.000. Sesiones de writer en 1–10: 12 `turns_exhausted`, 3 cortadas al agotar intentos y 11 completas |
+| Hipótesis | El writer (Haiku 4.5) subestima la extensión; repartir `target_words` por beat, contar en párrafos y no inventar personajes con nombre (un intento de 1.194 palabras lo rechazó `fidelidad-canon`) |
+| Cambio | prompt `writer` v1 → v2 en Langfuse (`prompts push`) |
+| Etiqueta de prompts | antes: `writer` v1 · después: `writer` v2 |
+| Control | los 5 briefs (todos en el disparador); después = ejecuciones 6–10, misma config y mismos modelos |
 
-| Métrica | Brief(s) | Antes (vN) | Después (vN+1) | Δ |
+| Métrica | Brief(s) | Antes (v1) | Después (v2) | Δ |
 |---|---|---|---|---|
-| Capítulos aceptados al primer intento | pendiente | pendiente | pendiente | pendiente |
-| Detecciones del validador objetivo | pendiente | pendiente | pendiente | pendiente |
-| Score medio del criterio objetivo | pendiente | pendiente | pendiente | pendiente |
-| Ciclos de gate | pendiente | pendiente | pendiente | pendiente |
-| Coste USD por novela | 1–5 | pendiente | pendiente | pendiente |
+| Capítulos aceptados al primer intento | 1–5 | 1 | 0 | −1 |
+| Entregas en rango de `longitud-capitulo` | 1–5 | 8 de 26 (media 945) | 11 de 28 (media 979) | +3 (+34 palabras) |
+| Novelas publicadas | 1–5 | 0 | 0 | 0 |
+| Ciclos de gate | 1–5 | 0 | 0 | 0 |
+| Coste USD por novela (media) | 1–5 | 0,73 | 0,86 | +0,13 |
 
-Cada fila de resultado enlaza la generación de Langfuse que la produjo, y esta, su versión de prompt (`architecture.md` §13).
+Efecto insuficiente: la extensión apenas se mueve.
+
+*Iteración 2 — writer v2 → v3*
+
+| Campo | Valor |
+|---|---|
+| Fecha · commit | 2026-09-25 · `0455b81` |
+| Disparador | La iteración 1: entregas de 674 a 1.226 palabras, 5 `failed` |
+| Hipótesis | Haiku 4.5 entrega en torno a un 25 % menos de lo que cree; apuntar a `target_words` + 200 con al menos 14 párrafos compensa el sesgo. El writer sigue en Haiku por decisión del usuario (`architecture.md` §18, cuota) |
+| Cambio | prompt `writer` v2 → v3 en Langfuse |
+| Etiqueta de prompts | antes: `writer` v2 · después: `writer` v3 |
+| Control | los 5 briefs; después = ejecuciones 11–16. Desde la 12, la lista de nivel user del brief boda solo está activa durante su ejecución: los cinco briefs comparten cliente y «pantalla», prohibida de ese nivel, tumbó la 11 (brief 1, `banned_content` en el capítulo 4) |
+
+| Métrica | Brief(s) | Antes (v2) | Después (v3) | Δ |
+|---|---|---|---|---|
+| Entregas en rango de `longitud-capitulo` | 1 | 0 de 2 (media 858) | 5 de 6 (media 1.375) | +5 (+517 palabras) |
+| Novelas publicadas | 1–5 | 0 | en curso | — |
+| Coste USD por novela | 1 | 0,52 | 1,28 (hasta el capítulo 4) | — |
 
 **(d) Juez frente a revisión humana** — I
 
@@ -560,6 +579,11 @@ Formato: **# · Fecha · Disparador** (`eval` · `TLC` · `Lean` · `browser MCP
 | 3 | 2026-09-24 | TLC | Contraejemplo de `ReintentosAcotados` en `Harness.cfg`: gate superado, `Caer` antes de `Publicar`, `Reanudar` y el relanzamiento vuelve a pasar el gate (§9.2); cada pasada contaba un ciclo y se llegaba a 4 > 1 + `max_retries.gate_cycles`. Cambio: solo un ciclo fallido del gate es un intento; volver a pasar el gate tras una caída no consume ciclo si lo supera | `Harness.cfg` pasa: 862.143 estados, sin error | `architecture.md` §9.2 y §9.4; spec 006 C4 (fila `Validar`); `tla/Harness.tla` |
 | 4 | 2026-09-24 | auditoría (de alcance del frontend frente al plazo) | Frontend reducido a lo que el encargo pide en la web: acceso (022), lectura (026) y cambio del lector (027); entrevista, confirmación, lanzamiento y progreso por la CLI; 023–025 fuera y 027 sin pasar por la pantalla de progreso. Se descarta pasar a solo PDF + CLI, que obligaba a reescribir el modelo de lectura | ~70 pasos de frontend menos; la demo del cambio y el browser MCP siguen sobre la SPA | `architecture.md` §18 «Alcance del frontend»; `specs/frontend/027`; `TODO.md` → *Alcance* |
 | 5 | 2026-09-24 | Lean (primera verificación real por GitHub Actions) | `LEAN_WORKFLOW` apuntaba a un workflow borrado y al token le faltaba el permiso Actions: Read and write; los dos, corregidos (`verificar-cronologia.yml`) | `dorado.lean` → passed (T1–T5), run 36063901911; `negativo-T1.lean` → failed en T1 con el testigo (61, 62), run 36063902268 | `architecture.md` §11 (`github`), `.env.example` |
+| 6 | 2026-09-25 | eval (020-C10, ejecuciones 1–5) | Writer v1 → v2: repartir `target_words` por beat, contar en párrafos, sin personajes con nombre fuera de la ventana | 5 de 5 `failed`: por longitud (entregas de 666 a 1.194 palabras) y turnos agotados; con v2 (ejecuciones 6–10), entregas en rango de 8/26 a 11/28 y ninguna publicada | `backend/harness_workspace/prompts/writer.md`; §4.2 (c), iteración 1 |
+| 7 | 2026-09-25 | eval (iteración 1 sin efecto) | Writer v2 → v3: apuntar a `target_words` + 200, al menos 14 párrafos; el writer sigue en Haiku 4.5 (decisión del usuario, cuota) | Brief 1: 5 de 6 entregas en rango, media 1.375 (antes 858) | `writer.md`; §4.2 (c), iteración 2 |
+| 8 | 2026-09-25 | eval (primera tabla real) | Bug de `evals table`: buscaba los validadores con el nombre de fila entre comillas invertidas y esperaba otra forma de `detail` → `n/a` con datos reales; ahora lee los nombres y el `detail` de los productores y usa la última ejecución de generación del brief. Con TDD y verificador | `longitud-capitulo` de las ejecuciones 1–5: `falla · 2/5/5/3/3` en vez de `n/a` | `backend/src/story_maker/cli.py`; `architecture.md` §18 |
+| 9 | 2026-09-25 | eval (ejecución 11) | Los cinco briefs comparten cliente, así que la lista de nivel user del brief boda («pantalla», entre otras) se aplicaba a todos; «pantalla», común en un presente post-IA, tumbó la 11 por `banned_content`. Desde la 12, esa lista solo está activa durante la ejecución de boda (API de prohibidas del cliente) | Aísla cada brief; boda conserva su caso de nivel user | §4.2 (c), control de la iteración 2 |
+| 10 | 2026-09-25 | entorno | La base real, creada antes de 020 y 014, no tenía `novels.eval_brief` ni `change_requests.proposal_trace`; se añadieron con `ALTER TABLE … ADD COLUMN` (admiten vacío), sin `init-db --reset`, con copia previa | `check-env` y `serve` en verde sin perder datos | — |
 
 **Antecedentes previos al rediseño que siguen vigentes.** Hallazgos del 2026-09-23 que fijaron decisiones que el diseño lean conserva.
 
