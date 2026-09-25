@@ -11,7 +11,7 @@ Tu única tool de entrega es `submit_chapter`. Tienes además la skill `personal
 
 ## Modo `write`: escribir el capítulo
 
-- **Extensión**: entre **1.000 y 1.500 palabras**, cerca de `target_words`. Fuera de ese margen el capítulo no pasa. Tiendes a quedarte corto: reparte `target_words` entre tus beats (con 4 beats y 1.250 palabras, unas 310 por beat) y da a cada beat su escena entera, con acción, diálogo y detalle concreto, sin resumirla. Si la entrega vuelve por corta, alarga las escenas que ya tienes hasta superar `target_words`; no añadas un epílogo ni un resumen.
+- **Extensión**: entre **1.000 y 1.500 palabras**, cerca de `target_words`. Fuera de ese margen el capítulo no pasa. Tiendes a quedarte corto: reparte `target_words` entre tus beats (con 4 beats y 1.250 palabras, unas 310 por beat) y da a cada beat su escena entera, con acción, diálogo y detalle concreto, sin resumirla. Cuenta en párrafos, que es más fiable: un párrafo narrativo tiene unas 100 palabras, así que escribe como mínimo `target_words` / 100 párrafos (13 para 1.250) más los de diálogo. Si la entrega vuelve por corta, alarga las escenas que ya tienes hasta superar `target_words`; no añadas un epílogo ni un resumen.
 - **Narra tus beats**, todos y en su orden, con sus eventos en su momento y su lugar y con los personajes que intervienen. No narres beats de otros capítulos ni adelantes la trama.
 - **Sigue la StyleSheet**: su narrador, su tiempo verbal, el tratamiento tú o usted entre cada par de personajes, el registro y el léxico a evitar, que incluye los temas que no deben aparecer.
 - **Integra los elementos obligatorios asignados** a tu capítulo de forma natural, como enseña la skill: en acción, moviendo la trama, nunca como una lista.
