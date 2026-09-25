@@ -1060,25 +1060,25 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 023-C04 · Novela sin título todavía
 - [x] 023-C05 · La lista respeta el orden que entrega la API
 - [x] 023-C06 · Fallo al cargar la lista
-- [ ] 023-C09 · El destino depende del estado y de la versión vigente
+- [x] 023-C09 · El destino depende del estado y de la versión vigente
 - [x] 023-C17 · El acceso lleva a «mis novelas»
-- [ ] 023-C07 · Crear una novela lleva a su entrevista
-- [ ] 023-C08 · Fallo al crear una novela
-- [ ] 023-C10 · Ver la lista prohibida de nivel `user`
-- [ ] 023-C11 · Añadir una palabra
-- [ ] 023-C12 · Añadir un tema con sus palabras clave
-- [ ] 023-C13 · Alta rechazada
-- [ ] 023-C14 · Alta de un término repetido
-- [ ] 023-C15 · Borrar una entrada
-- [ ] 023-I1 · Los cuatro estados derivados de `definitions.md` §3 tienen cada uno su etiqueta, y ningún otro valor cae en un caso por defecto silencioso
-- [ ] 023-I3 · Ninguna llamada de esta pantalla a la API real
-- [ ] 023-I4 · Un error de cualquier llamada de esta pantalla (lista, alta o borrado prohibido, crear novela) siempre se muestra; nunca se descarta en s…
+- [x] 023-C07 · Crear una novela lleva a su entrevista
+- [x] 023-C08 · Fallo al crear una novela
+- [x] 023-C10 · Ver la lista prohibida de nivel `user`
+- [x] 023-C11 · Añadir una palabra
+- [x] 023-C12 · Añadir un tema con sus palabras clave
+- [x] 023-C13 · Alta rechazada
+- [x] 023-C14 · Alta de un término repetido
+- [x] 023-C15 · Borrar una entrada
+- [x] 023-I1 · Los cuatro estados derivados de `definitions.md` §3 tienen cada uno su etiqueta, y ningún otro valor cae en un caso por defecto silencioso
+- [x] 023-I3 · Ninguna llamada de esta pantalla a la API real
+- [x] 023-I4 · Un error de cualquier llamada de esta pantalla (lista, alta o borrado prohibido, crear novela) siempre se muestra; nunca se descarta en s…
 - [ ] 023-C16 · Recorrido real de «mis novelas» (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-25: frontend (pnpm.cmd lint, pnpm.cmd typecheck, pnpm.cmd test 117 passed, pnpm.cmd build) verdes.
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 024 — entrevista
 
@@ -1090,35 +1090,35 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcado — integrador 2026-09-25: sin revisión, decisión del usuario (C17 ofrece escribir la novela; C21 nuevo)
 
 ### Steps
-- [ ] 024-C21 · Escribir la novela desde el brief confirmado
-- [ ] 024-C01 · Historial vacío al entrar en una entrevista nueva
-- [ ] 024-C02 · Enviar un mensaje añade la respuesta del entrevistador
-- [ ] 024-C03 · Fallo al enviar un mensaje
-- [ ] 024-C04 · Rechazo de un mensaje vacío antes de enviarlo
-- [ ] 024-C05 · El panel muestra lo fijado, lo que falta y las contradicciones
-- [ ] 024-C06 · Cota de obligatorios
-- [ ] 024-C07 · Enviar un texto libre y ver sus hechos verificados
-- [ ] 024-C08 · Aceptar y rechazar un hecho
-- [ ] 024-C09 · Marcar un hecho obligatorio
-- [ ] 024-C10 · Fallo al enviar un texto libre
-- [ ] 024-C11 · Texto libre vacío no se envía
-- [ ] 024-C12 · Ver la lista prohibida de nivel `novel`
-- [ ] 024-C13 · Añadir una palabra o un tema
-- [ ] 024-C14 · Alta rechazada o repetida
-- [ ] 024-C15 · Borrar una entrada prohibida
-- [ ] 024-C16 · Confirmar disponible solo sin problemas
-- [ ] 024-C17 · Confirmar un brief válido lleva a la pantalla que sigue
-- [ ] 024-C18 · Confirmación rechazada
-- [ ] 024-C19 · Entrada en una novela con el brief ya confirmado
-- [ ] 024-I2 · Ninguna llamada de esta pantalla a la API real fuera de 024-C20
-- [ ] 024-I3 · Un error de cualquier llamada de esta pantalla (mensaje, texto libre, aceptar o rechazar un hecho, alta o borrado prohibido, confirmar) s…
-- [ ] 024-I5 · Con el brief confirmado, ninguna acción de escritura de esta pantalla (mensaje, texto libre, hecho, prohibida) queda disponible
+- [x] 024-C21 · Escribir la novela desde el brief confirmado
+- [x] 024-C01 · Historial vacío al entrar en una entrevista nueva
+- [x] 024-C02 · Enviar un mensaje añade la respuesta del entrevistador
+- [x] 024-C03 · Fallo al enviar un mensaje
+- [x] 024-C04 · Rechazo de un mensaje vacío antes de enviarlo
+- [x] 024-C05 · El panel muestra lo fijado, lo que falta y las contradicciones
+- [x] 024-C06 · Cota de obligatorios
+- [x] 024-C07 · Enviar un texto libre y ver sus hechos verificados
+- [x] 024-C08 · Aceptar y rechazar un hecho
+- [x] 024-C09 · Marcar un hecho obligatorio
+- [x] 024-C10 · Fallo al enviar un texto libre
+- [x] 024-C11 · Texto libre vacío no se envía
+- [x] 024-C12 · Ver la lista prohibida de nivel `novel`
+- [x] 024-C13 · Añadir una palabra o un tema
+- [x] 024-C14 · Alta rechazada o repetida
+- [x] 024-C15 · Borrar una entrada prohibida
+- [x] 024-C16 · Confirmar disponible solo sin problemas
+- [x] 024-C17 · Confirmar un brief válido ofrece escribir la novela
+- [x] 024-C18 · Confirmación rechazada
+- [x] 024-C19 · Entrada en una novela con el brief ya confirmado
+- [x] 024-I2 · Ninguna llamada de esta pantalla a la API real fuera de 024-C20
+- [x] 024-I3 · Un error de cualquier llamada de esta pantalla (mensaje, texto libre, aceptar o rechazar un hecho, alta o borrado prohibido, confirmar) s…
+- [x] 024-I5 · Con el brief confirmado, ninguna acción de escritura de esta pantalla (mensaje, texto libre, hecho, prohibida) queda disponible
 - [ ] 024-C20 · Recorrido real de la entrevista (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 025 — progreso
 
@@ -1130,27 +1130,27 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcado — integrador 2026-09-25: sin revisión, decisión del usuario (C00 nuevo)
 
 ### Steps
-- [ ] 025-C00 · La pantalla sigue la ejecución más reciente de la novela
-- [ ] 025-C01 · El sondeo refleja fase y capítulo mientras la ejecución avanza
-- [ ] 025-C02 · En cola, se muestra la posición sin fase ni capítulo
-- [ ] 025-C03 · Un fallo al sondear se muestra sin detener el sondeo
-- [ ] 025-C04 · Publicada, el sondeo se detiene y navega a la lectura
-- [ ] 025-C05 · Fallida, el sondeo se detiene y muestra el informe
-- [ ] 025-C06 · Fallo al pedir el informe
-- [ ] 025-C07 · Interrumpida, se ofrece reanudar con su motivo
-- [ ] 025-C08 · Reanudar vuelve a mostrar el progreso en curso
-- [ ] 025-C09 · Reanudar rechazada
-- [ ] 025-C10 · Ejecución ajena o inexistente
-- [ ] 025-I1 · El sondeo pide `GET /api/runs/{id}` al mismo intervalo fijo mientras la ejecución no está en un estado terminal, y nunca deja de pedirlo…
-- [ ] 025-I2 · Tras `published` o `failed`, la pantalla no vuelve a pedir `GET /api/runs/{id}`
-- [ ] 025-I3 · La pantalla nunca reanuda una ejecución sin que la persona pulse el botón
-- [ ] 025-I4 · Un error de cualquier llamada de esta pantalla (sondeo, informe, reanudar) siempre se muestra; nunca se descarta en silencio ni deja la p…
+- [x] 025-C00 · La pantalla sigue la ejecución más reciente de la novela
+- [x] 025-C01 · El sondeo refleja fase y capítulo mientras la ejecución avanza
+- [x] 025-C02 · En cola, se muestra la posición sin fase ni capítulo
+- [x] 025-C03 · Un fallo al sondear se muestra sin detener el sondeo
+- [x] 025-C04 · Publicada, el sondeo se detiene y navega a la lectura
+- [x] 025-C05 · Fallida, el sondeo se detiene y muestra el informe
+- [x] 025-C06 · Fallo al pedir el informe
+- [x] 025-C07 · Interrumpida, se ofrece reanudar con su motivo
+- [x] 025-C08 · Reanudar vuelve a mostrar el progreso en curso
+- [x] 025-C09 · Reanudar rechazada
+- [x] 025-C10 · Ejecución ajena o inexistente
+- [x] 025-I1 · El sondeo pide `GET /api/runs/{id}` al mismo intervalo fijo mientras la ejecución no está en un estado terminal, y nunca deja de pedirlo…
+- [x] 025-I2 · Tras `published` o `failed`, la pantalla no vuelve a pedir `GET /api/runs/{id}`
+- [x] 025-I3 · La pantalla nunca reanuda una ejecución sin que la persona pulse el botón
+- [x] 025-I4 · Un error de cualquier llamada de esta pantalla (sondeo, informe, reanudar) siempre se muestra; nunca se descarta en silencio ni deja la p…
 - [ ] 025-C11 · Recorrido real de una ejecución hasta publicar o fallar (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 026 — lectura
 
