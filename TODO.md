@@ -53,7 +53,7 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 | W | workspace de producto: 010-I8, 011-I12–I14 (solo `backend/harness_workspace/`) | — | `../sm-w` | `carril-w` | cerrada e integrada |
 | P | presentación (solo `presentacion/`) | — | `../sm-p` | `carril-p` | cerrado: el deck y su PDF los rellena el usuario con los datos de la tanda D |
 
-Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs alternativos están en `ejemplos/briefs-extra/`.
+Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas.
 
 ## Specs
 
