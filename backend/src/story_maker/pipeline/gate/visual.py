@@ -68,6 +68,11 @@ class VisualReviewStage:
                 # Es código y va antes: no se abre el revisor en este ciclo (017-C10).
                 return _outcome(VisualVerdict((("ficha", False),), data))
             result = await self._review(job, expected, trace, span)
+            if not result.deliveries:
+                return VisualReviewOutcome(
+                    no_valid_delivery=True,
+                    detail=f"el revisor visual terminó sin entrega válida ({result.outcome})",
+                )
             observed = cast(VisualReviewSubmission, result.deliveries[0].value)
             verdict = compare(expected, observed)
         return _outcome(verdict)

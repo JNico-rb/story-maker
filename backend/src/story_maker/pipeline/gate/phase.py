@@ -60,6 +60,8 @@ class VisualReviewOutcome:
     detail: str = ""
     # Un fallo de datos: sus capítulos los vuelve a registrar el editor, sin writer (§9.4).
     reregister: bool = False
+    # La sesión del revisor terminó sin entrega válida: ciclo fallido sin capítulos (017-C14).
+    no_valid_delivery: bool = False
 
 
 @dataclass(frozen=True)
@@ -302,6 +304,8 @@ class Gate:
         verdict = gate_precedence(
             unattributable_reason=review.failure,
             defects=review.defects,
+            # Como el juez sin evaluación válida (012-C15): un ciclo fallido sin capítulos.
+            judge_no_valid_delivery=review.no_valid_delivery,
             cycles_remaining=job.cycles_remaining,
         )
         return PassResult(verdict, review.defects, review.detail or _messages(review.defects))
