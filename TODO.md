@@ -114,8 +114,8 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] 000-C13 · Cada herramienta falla ante su defecto sembrado
 - [x] 000-C14 · Un clon limpio funciona en el portátil
 - [x] 000-C20 · TLC arranca en el portátil sobre Temurin portable
-- [ ] 000-C15 · Claude Code conecta los servidores de `.mcp.json` (D, al final)
-- [ ] 000-C16 · Playwright MCP inspecciona la SPA en Edge: marca, mismo origen y proxy de `/api` (D, al final)
+- [x] 000-C15 · Claude Code conecta los servidores de `.mcp.json` (D; 2026-09-25, `verification.md` §9.2; el caso sin `LANGFUSE_MCP_AUTH` no se probó)
+- [x] 000-C16 · Playwright MCP inspecciona la SPA en Edge: marca, mismo origen y proxy de `/api` (D; 2026-09-25, `verification.md` §9.3)
 - [ ] 000-C17 · En una sesión real, los hooks y los permisos actúan (D, al final)
 - [x] 000-C18 · La primera CI de `V2` sale en verde, con Lean y TLC — CI de 1f4eacd verde: backend, frontend, formal (Lean y TLC), seguridad
 - [ ] 000-C19 · La CI se pone en rojo ante defectos sembrados (D, al final)

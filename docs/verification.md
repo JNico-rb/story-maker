@@ -604,8 +604,8 @@ Descartadas con motivo en el README: `SecureSkills-io/sqlite-skill` (inyección 
 
 | Servidor | Configuración | Para qué | Verificado |
 |---|---|---|---|
-| Playwright MCP | `.mcp.json` del proyecto: `@playwright/mcp@0.0.82`, `--browser msedge`, `--output-dir .playwright-mcp` | Que Claude Code abra la lectura web y la `VistaDeVersion` e inspeccione el resultado (§9.3). El revisor visual del producto usa el mismo paquete | pendiente en V2 |
-| Langfuse MCP | `.mcp.json` del proyecto, cabecera desde `LANGFUSE_MCP_AUTH` (solo desarrollo) | Consultar trazas, scores y prompts desde Claude Code al analizar evals | pendiente |
+| Playwright MCP | `.mcp.json` del proyecto: `@playwright/mcp@0.0.82`, `--browser msedge`, `--output-dir .playwright-mcp` | Que Claude Code abra la lectura web y la `VistaDeVersion` e inspeccione el resultado (§9.3). El revisor visual del producto usa el mismo paquete | 2026-09-25: conectado; abre Edge, inspecciona la SPA y rechaza `file://` (000-C15, 000-C16) |
+| Langfuse MCP | `.mcp.json` del proyecto, cabecera desde `LANGFUSE_MCP_AUTH` (solo desarrollo) | Consultar trazas, scores y prompts desde Claude Code al analizar evals | 2026-09-25: conectado; `listPrompts` devuelve 7 prompts (editor, entrevistador, extractor, juez, planner, writer y el de la comprobación de la cadena de herramientas) (000-C15). Sin `LANGFUSE_MCP_AUTH`: no probado (la variable llega también por el `env` de `.claude/settings.local.json`; sin ella en la shell, `claude mcp list` sigue conectado) |
 
 Notas: Claude Code pide aprobar los servidores del proyecto la primera vez (`/mcp`). `file://` sigue bloqueado: un HTML local se sirve por `http://127.0.0.1` (H4). `.playwright-mcp/` va ignorada por git. Las sesiones de rol del producto no heredan este fichero (`strict_mcp_config`, §4.7).
 
@@ -616,6 +616,7 @@ Log de cada inspección: qué inspeccionó el agente, qué detectó y qué cambi
 | Fecha | Qué inspeccionó | Qué detectó | Cambio provocado | §8 |
 |---|---|---|---|---|
 | 2026-09-23 | HTML de prueba local (capítulo ficticio con portada sin `alt` y un enlace a un ancla inexistente), con el servidor lanzado igual que lo lanza Claude Code | Arranca; rechaza `file://`; por `http://127.0.0.1` navega y devuelve la instantánea. La imagen sin `alt` no sale en la instantánea (solo su 404 en consola) y el enlace roto se ve igual que uno válido | Inspección local siempre por HTTP; el revisor visual sigue cada enlace en vez de fiarse de la instantánea | H4 |
+| 2026-09-25 | SPA en `http://127.0.0.1:5173` (Vite) con un servidor de prueba de `/api/ping` en `127.0.0.1:8000` (000-C16) | Imagen «Qaracter» y encabezado «Qaracter · Story Maker»; título de pestaña igual; `body`: fondo `rgb(250, 248, 245)` = `#faf8f5`, texto `rgb(35, 52, 65)` = `#233441`, «Inter Tight»; 45 peticiones, todas a `127.0.0.1`; `/api/ping` llega por el proxy; `file://` rechazado; salida en `.playwright-mcp/`. Solo un 404 de `/favicon.ico` en consola | Ninguno | — |
 
 **Inspecciones previstas** (una fila al log cuando ocurran):
 
