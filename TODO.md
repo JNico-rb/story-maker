@@ -58,6 +58,7 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 | N | 023 completa → 024 → 025 (API real de 008/011; ruta de progreso `/novelas/:novelId/progreso`, de entrevista `/novelas/:novelId/entrevista`) | 022, 008, 011 | `../sm-n` | `carril-n` | en curso |
 | G | 028 (edición manual, frontend, con la API simulada según 019; tras guardar, a `/novelas/:novelId/progreso`) | 026 | `../sm-g` | `carril-g` | en curso |
 | M | 015 (servidor MCP) → 030 (report metrics, desde el patch archivado) | 013, 014 | `../sm-m` | `carril-m` | en curso |
+| Q | 017 (revisión visual en el gate). Toca `pipeline/gate/`, `composition.py` (la etapa 3), un módulo propio del revisor | 012, 013 | `../sm-q` | `carril-q` | en curso |
 | Z | errores de la tanda D: `nombres-exactos` marca «Cómo» como variante de «Cobo»; `runs.reason_detail` repite el comentario del juez; 020-C18 (desde `carril-u`) | 012, 020 | `../sm-z` | `carril-z` | en curso |
 
 Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas borradas; los nombres F y G se reusan en la segunda.
