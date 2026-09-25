@@ -29,6 +29,7 @@ from story_maker.observability.port import Span, Trace
 from story_maker.pipeline.gate import inputs
 from story_maker.pipeline.gate.precedence import PassVerdict, gate_precedence
 from story_maker.pipeline.gate.publication import publish_candidate, record_pass
+from story_maker.pipeline.gate.reregister import reregister_chapter
 from story_maker.pipeline.production import ChapterProducer, Production, defect_entry
 from story_maker.pipeline.runs import RunStop, get_run, naive
 from story_maker.policy.audit import record_decision
@@ -58,6 +59,12 @@ class VisualReviewOutcome:
     defects: tuple[Defect, ...] = ()
     failure: str | None = None
     detail: str = ""
+    # Un fallo de datos: sus capítulos los vuelve a registrar el editor, sin writer (§9.4).
+    reregister: bool = False
+    # La sesión del revisor terminó sin entrega válida: ciclo fallido sin capítulos (017-C14).
+    no_valid_delivery: bool = False
+    # Infraestructura (el navegador o el proveedor): la ejecución pasa a `interrupted` (017-C15).
+    interruption: str | None = None
 
 
 @dataclass(frozen=True)
@@ -71,7 +78,7 @@ class PdfOutcome:
 
 
 LeanStage = Callable[[int], Awaitable[CandidateVerification]]
-VisualReview = Callable[[int, Trace], Awaitable[VisualReviewOutcome]]
+VisualReview = Callable[["GateJob", Trace], Awaitable[VisualReviewOutcome]]
 PdfStage = Callable[[int], Awaitable[PdfOutcome]]
 
 
@@ -91,6 +98,7 @@ class PassResult:
     defects: tuple[Defect, ...] = ()
     detail: str = ""
     pdf_path: str | None = None
+    reregister: bool = False
 
 
 @dataclass(frozen=True)
@@ -153,7 +161,10 @@ class Gate:
                     run.phase, run.chapter = "rewriting", None
             if verdict.outcome == "fail":
                 raise RunStop("failed", cast(str, verdict.reason), result.detail)
-            await self._rewrite(job, verdict.chapters_to_rewrite, result.defects, trace)
+            if result.reregister:
+                await self._reregister(job, verdict.chapters_to_rewrite, result.defects, trace)
+            else:
+                await self._rewrite(job, verdict.chapters_to_rewrite, result.defects, trace)
 
     # --- Arranque de una pasada -----------------------------------------------------------------
 
@@ -299,13 +310,17 @@ class Gate:
         return _StageTwoPart(verdict.defects)
 
     async def _stage_3(self, job: GateJob, trace: Trace) -> PassResult:
-        review = await self.visual_review(job.run_id, trace)
+        review = await self.visual_review(job, trace)
         verdict = gate_precedence(
             unattributable_reason=review.failure,
+            interruption_reason=review.interruption,
             defects=review.defects,
+            # Como el juez sin evaluación válida (012-C15): un ciclo fallido sin capítulos.
+            judge_no_valid_delivery=review.no_valid_delivery,
             cycles_remaining=job.cycles_remaining,
         )
-        return PassResult(verdict, review.defects, review.detail or _messages(review.defects))
+        detail = review.detail or _messages(review.defects)
+        return PassResult(verdict, review.defects, detail, reregister=review.reregister)
 
     async def _stage_4(self, job: GateJob, trace: Trace) -> PassResult:
         """El PDF de la candidata: sin PDF o con un enlace interno roto, `render_failure`, sin
@@ -431,6 +446,27 @@ class Gate:
                 gate_cycle=job.cycle,
                 defects=tuple(_entry(d) for d in own),
                 editor_defects=tuple(_entry(d) for d in own if d.validator == LEAN),
+            )
+
+    async def _reregister(
+        self, job: GateJob, chapters: Sequence[int], defects: Sequence[Defect], trace: Trace
+    ) -> None:
+        """Un fallo de datos de `revision-visual`: el editor vuelve a registrar cada capítulo
+        atribuido, sin writer (§9.4; 017-C17)."""
+        for chapter in sorted(chapters):
+            with unit_of_work(self.production.session_factory) as uow:
+                run = get_run(uow.session, job.run_id)
+                run.phase, run.chapter = "rewriting", chapter
+            await reregister_chapter(
+                self.production,
+                run_id=job.run_id,
+                user_id=job.user_id,
+                novel_id=job.novel_id,
+                version_id=job.version_id,
+                gate_cycle=job.cycle,
+                chapter=chapter,
+                defects=tuple(_entry(d) for d in defects if d.chapter == chapter),
+                trace=trace,
             )
 
     def _publish(self, job: GateJob, pdf_path: str) -> None:
