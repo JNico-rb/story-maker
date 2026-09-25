@@ -538,8 +538,8 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 010-C27 · Reserva inviable en el techo
 - [x] 010-C28 · Una generación nueva tras un fallo tiene su propia candidata
 - [x] 010-C29 · Resultado y score de `outline`
-- [ ] 010-I1 · Ninguna ventana del planner contiene el contenido de un `TextoLibre` ni la cita de un `HechoExtraido`
-- [ ] 010-I2 · Planificar no modifica ni borra nada de origen brief o free_text
+- [x] 010-I1 · Ninguna ventana del planner contiene el contenido de un `TextoLibre` ni la cita de un `HechoExtraido`
+- [x] 010-I2 · Planificar no modifica ni borra nada de origen brief o free_text
 - [x] 010-I3 · Una entrega rechazada (schema, policy, `outline` o sin entrega) no deja nada en la candidata
 - [x] 010-I4 · Los intentos del evaluable `plan` nunca superan 1 + `max_retries.plan`, contando los de antes de una reanudación; el cortado por una caíd…
 - [x] 010-I5 · El punto de control 0 existe si y solo si el plan está aplicado, se escribe una sola vez, y relanzar con él nunca abre el planner
@@ -590,17 +590,17 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 011-C29 · Un error imprevisto del worker falla con `internal_error`
 - [x] 011-C30 · El informe de la ejecución se calcula al pedirlo
 - [x] 011-C31 · Trazas, spans y scores de la producción
-- [ ] 011-I1 · Hay como mucho una ejecución `running` en el servidor, y las `queued` salen en orden de fecha de creación
+- [x] 011-I1 · Hay como mucho una ejecución `running` en el servidor, y las `queued` salen en orden de fecha de creación
 - [x] 011-I2 · `ReanudacionSinDuplicarNiPerder`
 - [x] 011-I3 · `ReintentosAcotados`
 - [x] 011-I4 · La aceptación es atómica
-- [ ] 011-I5 · Ningún rol escribe canon
+- [x] 011-I5 · Ningún rol escribe canon
 - [x] 011-I6 · Ningún capítulo aceptado tiene un defecto bloqueante
-- [ ] 011-I7 · El writer nunca recibe prosa recuperada
+- [x] 011-I7 · El writer nunca recibe prosa recuperada
 - [x] 011-I8 · Writer y editor son sesiones distintas
-- [ ] 011-I9 · Las ventanas solo llevan datos de la candidata de su novela, nunca de otra novela del mismo cliente ni de otro cliente
-- [ ] 011-I10 · El tamaño estimado de la ventana entra en la reserva de su sesión
-- [ ] 011-I11 · Los usos y los eventos registrados solo citan hechos y entidades de la candidata
+- [x] 011-I9 · Las ventanas solo llevan datos de la candidata de su novela, nunca de otra novela del mismo cliente ni de otro cliente
+- [x] 011-I10 · El tamaño estimado de la ventana entra en la reserva de su sesión
+- [x] 011-I11 · Los usos y los eventos registrados solo citan hechos y entidades de la candidata
 - [x] 011-I12 · El `CLAUDE.md` de producto (entrega tardía, carril W; lo lee el `verificador`) — `backend/harness_workspace/CLAUDE.md`
 - [x] 011-I13 · La skill `personalizacion-natural` (entrega tardía, carril W) — `backend/harness_workspace/.claude/skills/personalizacion-natural/SKILL.md`
 - [x] 011-I14 · Los prompts del writer (`write`, `rewrite`) y del editor (entrega tardía, carril W) — `backend/harness_workspace/prompts/writer.md`, `editor.md`
@@ -728,10 +728,10 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 014-I6 · Una petición tiene como mucho 1 + `max_retries.change` intentos (`ReintentosAcotados`)
 - [x] 014-I7 · Un cambio no modifica la versión base ni ninguna otra versión publicada, tanto si publica como si falla (`VersionAnteriorConservada`)
 - [x] 014-I8 · Historia lineal
-- [ ] 014-I9 · En la fase `writing` de una ejecución de cambio, solo los afectados pasan por el writer, en orden ascendente
+- [x] 014-I9 · En la fase `writing` de una ejecución de cambio, solo los afectados pasan por el writer, en orden ascendente
 - [x] 014-I10 · Los puntos de control de una ejecución de cambio son el 0 y un prefijo de sus afectados en orden, sin huecos ni duplicados
 - [x] 014-I11 · Toda decisión del motor sobre la petición y sobre los valores nuevos queda en el audit log con origen `change_request`
-- [ ] 014-I12 · Los capítulos cambiados de la versión nueva son exactamente los de huella distinta de su base
+- [x] 014-I12 · Los capítulos cambiados de la versión nueva son exactamente los de huella distinta de su base
 - [ ] 014-C20 · Un cambio real propagado sobre la novela del brief 1 (D, al final)
 
 ### Closing
