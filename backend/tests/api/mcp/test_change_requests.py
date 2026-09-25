@@ -17,6 +17,7 @@ from tests.api.change_requests.conftest import (
     propose,
     rename,
 )
+from tests.pipeline.changes.conftest import version_fingerprint
 
 from story_maker.agents.fake import FakeAgent
 from story_maker.store.models import AuditLog, ChangeRequest, Run
@@ -52,6 +53,7 @@ async def test_request_change_proposes_the_same_as_the_api_and_only_proposes(
     session_factory: sessionmaker[Session],
     mcp_session,
 ) -> None:
+    before = version_fingerprint(session_factory, f.v1_id)
     propose(fake, rename(f.toby_name_fact, "Luna"))
 
     async with mcp_session(headers(f.user_a)) as session:
@@ -79,6 +81,7 @@ async def test_request_change_proposes_the_same_as_the_api_and_only_proposes(
         assert row.base_version_id == f.v1_id
         run_count = session.query(Run).filter(Run.novel_id == f.novel_id).count()
     assert run_count == 0
+    assert version_fingerprint(session_factory, f.v1_id) == before
 
     allow_rows = _mcp_write_rows(session_factory, "request_change")
     (allow,) = [r for r in allow_rows if r.novel_id == f.novel_id]
@@ -127,6 +130,7 @@ async def test_request_change_with_a_banned_entry_is_422_and_leaves_the_request_
     session_factory: sessionmaker[Session],
     mcp_session,
 ) -> None:
+    before = version_fingerprint(session_factory, f.v1_id)
     async with mcp_session(headers(f.user_a)) as session:
         with pytest.raises(ToolError) as excinfo:
             await session.call_tool(
@@ -143,6 +147,7 @@ async def test_request_change_with_a_banned_entry_is_422_and_leaves_the_request_
         rows = session.query(ChangeRequest).filter(ChangeRequest.novel_id == f.novel_id).all()
     (row,) = rows
     assert row.status == "rejected"
+    assert version_fingerprint(session_factory, f.v1_id) == before
 
 
 # --- 015-C13 -------------------------------------------------------------------------------
@@ -155,6 +160,7 @@ async def test_confirm_change_with_the_code_enqueues_the_run(
     session_factory: sessionmaker[Session],
     mcp_session,
 ) -> None:
+    before = version_fingerprint(session_factory, f.v1_id)
     propose(fake, rename(f.toby_name_fact, "Luna"))
     async with mcp_session(headers(f.user_a)) as session:
         proposal = (
@@ -190,6 +196,7 @@ async def test_confirm_change_with_the_code_enqueues_the_run(
     allow_rows = _mcp_write_rows(session_factory, "confirm_change")
     (allow,) = [r for r in allow_rows if r.novel_id == f.novel_id]
     assert allow.decision == "allow"
+    assert version_fingerprint(session_factory, f.v1_id) == before
 
 
 async def test_the_same_flow_crosses_channels_api_proposes_mcp_confirms(
@@ -220,17 +227,20 @@ async def test_the_same_flow_crosses_channels_api_proposes_mcp_confirms(
 
 
 async def test_confirm_change_with_a_nonexistent_request_is_404(
-    client: TestClient, f: F, mcp_session
+    client: TestClient, f: F, session_factory: sessionmaker[Session], mcp_session
 ) -> None:
+    before = version_fingerprint(session_factory, f.v1_id)
     async with mcp_session(headers(f.user_a)) as session:
         with pytest.raises(ToolError) as excinfo:
             await session.call_tool("confirm_change", {"request_id": 999_999, "code": "x"})
     assert _status(excinfo.value) == 404
+    assert version_fingerprint(session_factory, f.v1_id) == before
 
 
 async def test_confirm_change_with_the_wrong_code_is_422(
     client: TestClient, f: F, fake: FakeAgent, session_factory: sessionmaker[Session], mcp_session
 ) -> None:
+    before = version_fingerprint(session_factory, f.v1_id)
     propose(fake, rename(f.toby_name_fact, "Luna"))
     async with mcp_session(headers(f.user_a)) as session:
         proposal = (
@@ -255,10 +265,11 @@ async def test_confirm_change_with_the_wrong_code_is_422(
         row = session.get(ChangeRequest, proposal["id"])
         assert row is not None
         assert row.status == "proposed"
+    assert version_fingerprint(session_factory, f.v1_id) == before
 
 
 async def test_confirm_change_twice_with_the_used_code_is_409(
-    client: TestClient, f: F, fake: FakeAgent, mcp_session
+    client: TestClient, f: F, fake: FakeAgent, session_factory: sessionmaker[Session], mcp_session
 ) -> None:
     propose(fake, rename(f.toby_name_fact, "Luna"))
     async with mcp_session(headers(f.user_a)) as session:
@@ -278,9 +289,11 @@ async def test_confirm_change_twice_with_the_used_code_is_409(
             "confirm_change", {"request_id": proposal["id"], "code": proposal["code"]}
         )
 
+    before = version_fingerprint(session_factory, f.v1_id)
     async with mcp_session(headers(f.user_a)) as session:
         with pytest.raises(ToolError) as excinfo:
             await session.call_tool(
                 "confirm_change", {"request_id": proposal["id"], "code": proposal["code"]}
             )
     assert _status(excinfo.value) == 409
+    assert version_fingerprint(session_factory, f.v1_id) == before

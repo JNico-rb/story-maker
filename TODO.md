@@ -761,17 +761,17 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 015-C14 · Una confirmación inválida se rechaza sin efecto
 - [x] 015-C15 · Un cambio pedido y confirmado por MCP publica versión y PDF nuevos, y conserva la anterior
 - [x] 015-C16 · Cada llamada a una tool deja exactamente una traza `mcp:<tool>`
-- [ ] 015-C17 · Las trazas pasan por la máscara y nunca llevan el código de confirmación ni el PDF
-- [ ] 015-I1 · Las cinco tools de lectura no modifican nada
-- [ ] 015-I2 · Las tools de escritura solo proponen o encolan
-- [ ] 015-I3 · La identidad es la del `TokenDeAcceso` de cada petición, verificada en el mismo punto que la API
-- [ ] 015-I4 · Por MCP solo se ven versiones publicadas
-- [ ] 015-I5 · Hay exactamente siete tools
-- [ ] 015-I6 · Para el mismo cliente y los mismos argumentos, cada tool de lectura devuelve lo mismo que su endpoint de la API, y las de escritura recor…
-- [ ] 015-I7 · Cada llamada a una tool deja exactamente una traza `mcp:<tool>` (O.4)
-- [ ] 015-I8 · Cada llamada a una tool de escritura que supera el schema deja exactamente una fila `mcp_write`
-- [ ] 015-I9 · El código de confirmación solo sale en claro en la respuesta de `request_change`
-- [ ] 015-I10 · Nada de un brief llega a Langfuse sin pasar por la máscara
+- [x] 015-C17 · Las trazas pasan por la máscara y nunca llevan el código de confirmación ni el PDF
+- [x] 015-I1 · Las cinco tools de lectura no modifican nada
+- [x] 015-I2 · Las tools de escritura solo proponen o encolan
+- [x] 015-I3 · La identidad es la del `TokenDeAcceso` de cada petición, verificada en el mismo punto que la API
+- [x] 015-I4 · Por MCP solo se ven versiones publicadas
+- [x] 015-I5 · Hay exactamente siete tools
+- [x] 015-I6 · Para el mismo cliente y los mismos argumentos, cada tool de lectura devuelve lo mismo que su endpoint de la API, y las de escritura recor…
+- [x] 015-I7 · Cada llamada a una tool deja exactamente una traza `mcp:<tool>` (O.4)
+- [x] 015-I8 · Cada llamada a una tool de escritura que supera el schema deja exactamente una fila `mcp_write`
+- [x] 015-I9 · El código de confirmación solo sale en claro en la respuesta de `request_change`
+- [x] 015-I10 · Nada de un brief llega a Langfuse sin pasar por la máscara
 - [ ] 015-C18 · Siguiendo el README, un cliente real se conecta y pide un cambio (D, al final)
 
 ### Closing

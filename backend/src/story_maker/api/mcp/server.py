@@ -187,13 +187,23 @@ def build_mcp_route(
         with traced_tool(
             telemetry, session_factory, "download_novel", user_id=user_id, novel_id=novel_id
         ) as (trace, mask):
-            pdf_bytes = _call(
+            input_ = {"novel_id": novel_id, "version": version}
+            try:
+                pdf_bytes = download_novel_tool(session_factory, user_id, novel_id, version)
+            except ToolError as exc:
+                record_call(telemetry, trace, "download_novel", mask, input=input_, error=str(exc))
+                raise
+            record_call(
                 telemetry,
                 trace,
-                mask,
                 "download_novel",
-                {"novel_id": novel_id, "version": version},
-                lambda: download_novel_tool(session_factory, user_id, novel_id, version),
+                mask,
+                input=input_,
+                output={
+                    "version": version,
+                    "content_type": "application/pdf",
+                    "size": len(pdf_bytes),
+                },
             )
             return File(data=pdf_bytes, format="pdf", name=f"novela-v{version}.pdf")
 
