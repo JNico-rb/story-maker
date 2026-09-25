@@ -538,7 +538,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 010-C27 · Reserva inviable en el techo
 - [x] 010-C28 · Una generación nueva tras un fallo tiene su propia candidata
 - [x] 010-C29 · Resultado y score de `outline`
-- [ ] 010-I1 · Ninguna ventana del planner contiene el contenido de un `TextoLibre` ni la cita de un `HechoExtraido`
+- [x] 010-I1 · Ninguna ventana del planner contiene el contenido de un `TextoLibre` ni la cita de un `HechoExtraido`
 - [ ] 010-I2 · Planificar no modifica ni borra nada de origen brief o free_text
 - [x] 010-I3 · Una entrega rechazada (schema, policy, `outline` o sin entrega) no deja nada en la candidata
 - [x] 010-I4 · Los intentos del evaluable `plan` nunca superan 1 + `max_retries.plan`, contando los de antes de una reanudación; el cortado por una caíd…
