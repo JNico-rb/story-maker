@@ -64,18 +64,28 @@ def _capitalized(words: Iterable[str]) -> list[str]:
     return [word for word in words if word[0].isupper()]
 
 
+def _lowercase_folded_words(*texts: str) -> set[str]:
+    """Palabras del título o del texto que empiezan por minúscula, sin mayúsculas ni acentos."""
+    return {_fold(word) for text in texts for word in letter_words(text) if word[0].islower()}
+
+
 def name_variants(title: str, text: str, canonical_names: Sequence[str]) -> list[NameVariant]:
     """Cada palabra con mayúscula inicial del título y del texto que no es ya una palabra de un
-    nombre canónico y que es variante de mayúsculas o acentos, o está a la distancia admitida, de
-    una palabra con mayúscula de un nombre canónico; las partículas («de») no se comparan."""
+    nombre canónico, que el mismo título o texto no escribe también empezando por minúscula (una
+    palabra corriente a principio de frase), y que es variante de mayúsculas o acentos, o está a la
+    distancia admitida, de una palabra con mayúscula de un nombre canónico; las partículas («de»)
+    no se comparan."""
     canonical_words = [word for name in canonical_names for word in letter_words(name)]
     exact = set(canonical_words)
     comparable = list(dict.fromkeys(_capitalized(canonical_words)))
+    lowercase_elsewhere = _lowercase_folded_words(title, text)
     variants: list[NameVariant] = []
     for word in _capitalized(letter_words(title) + letter_words(text)):
         if word in exact:
             continue
         folded = _fold(word)
+        if folded in lowercase_elsewhere:
+            continue
         for canonical in comparable:
             target = _fold(canonical)
             if folded == target or edit_distance(folded, target) <= _allowed_distance(target):

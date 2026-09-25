@@ -567,7 +567,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 011-C10 · Una entrega que pasa los hooks llega al editor
 - [x] 011-C11 · `longitud-capitulo` en sus límites
 - [x] 011-C12 · `nombres-exactos` sobre el título y el texto
-- [ ] 011-C12b · Una palabra con mayúscula que el texto escribe también en minúscula no es variante (bug de la tanda D: «Como» por «Cobo»)
+- [x] 011-C12b · Una palabra con mayúscula que el texto escribe también en minúscula no es variante (bug de la tanda D: «Como» por «Cobo»)
 - [x] 011-C13 · Qué cuenta como intento en la sesión del writer
 - [x] 011-C14 · Una sesión del writer que termina sin entrega válida es un intento fallido
 - [x] 011-C15 · La revisión del editor tiene schema y solo cita lo que existe
