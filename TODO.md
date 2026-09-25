@@ -67,6 +67,9 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 | S | 008-I4 sin recortar: toda ruta de 008 entra en la prueba parametrizada de 002 (401 y 404 de lo ajeno). Pruebas; código solo si una ruta no cumple | 002, 008 | `../sm-s` | `carril-s` | parado: opcional (usuario 2026-09-25, solo lo obligatorio) |
 | SEC | 021 (auditoría con el subagente `seguridad`): solo `docs/security-report.md` y la columna «Resultado» de `verification.md` §4.9; los arreglos, a su carril dueño | todo el backend | `../sm-sec` | `carril-sec` | parado: opcional (usuario 2026-09-25, solo lo obligatorio) |
 | DOC | README fiel a V2 (flujo web, órdenes nuevas de la CLI, MCP). Solo `README.md` | — | `../sm-doc` | `carril-doc` | cerrado e integrado |
+| W | 001-bug-C18b (la SPA no sirve nada fuera de su compilado) y 008-bug-C02c (fechas con huso). Toca solo `api/app.py` y `interview/novels.py` | 001, 008 | `../sm-w` | `carril-w` | en curso |
+| P | 014-bug-C01b y C01c: la propuesta con la forma que lee 027 y `expires_at` con huso. Toca solo `api/change_requests.py` y `pipeline/changes/request.py` | 014 | `../sm-p` | `carril-p` | en curso |
+| O | 019-bug-pos (posiciones UTF-16) y 011-bug-C27b (informe sin objetos anidados). Toca solo `pipeline/manual_edit/diagnostics.py` y `pipeline/report.py` | 019, 011 | `../sm-o` | `carril-o` | en curso |
 
 Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas borradas; los nombres F y G se reusan en la segunda.
 
@@ -146,8 +149,8 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 
 ## 001 — base
 
-- [x] Spec `specs/backend/001-base.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; C6 corregido: uso y coste de `role_sessions` vacíos sin resultado final (§18, hallazgo de 003)
-- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcado 2026-09-25 (integrador: sin revisión, decisión del usuario), sin pasos nuevos
+- [x] Spec `specs/backend/001-base.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; C6 corregido: uso y coste de `role_sessions` vacíos sin resultado final (§18, hallazgo de 003); re-marcada 2026-09-25 (auditoría de contrato front↔back)
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcado 2026-09-25 (integrador: sin revisión, decisión del usuario), sin pasos nuevos; re-marcado 2026-09-25 (pasos bug de contrato)
 
 ### Steps
 - [x] 001-C03 · Ajustes: valores por defecto, rutas desde la raíz y precedencia del entorno
@@ -176,6 +179,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 001-I3 · Ni el doble nulo ni las órdenes de esta spec abren una conexión fuera de la máquina
 - [ ] 001-C22 · Primera generación de los tipos del frontend (D, al final)
 - [ ] 001-C23 · Un clon limpio arranca siguiendo el README (D, al final)
+- [ ] 001-bug-C18b · Una ruta que sale del compilado de la SPA (`..`, codificado o no) da 404 y nunca ese fichero (carril W; auditoría de contrato 2026-09-25: `/..%2f..%2f.env` servía el `.env` sin token)
 
 ### Closing
 - [x] Full suite green, type checks clean — verificador 2026-09-24: `uv run pytest` 278 passed; `uv run ruff check .` All checks passed; `uv run ruff format --check .` 38 files already formatted; `uv run mypy src` Success, no issues found in 23 source files
@@ -410,8 +414,8 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 
 ## 008 — brief-y-entrevista
 
-- [x] Spec `specs/backend/008-brief-y-entrevista.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcada — integrador 2026-09-25: sin revisión, decisión del usuario (C02: id de la ejecución más reciente)
-- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcado — integrador 2026-09-25: sin revisión, decisión del usuario (C02: id de la ejecución más reciente)
+- [x] Spec `specs/backend/008-brief-y-entrevista.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcada — integrador 2026-09-25: sin revisión, decisión del usuario (C02: id de la ejecución más reciente); re-marcada 2026-09-25 (auditoría de contrato front↔back)
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcado — integrador 2026-09-25: sin revisión, decisión del usuario (C02: id de la ejecución más reciente); re-marcado 2026-09-25 (pasos bug de contrato)
 
 ### Steps
 - [x] 008-C02b · La novela lleva el id de su ejecución más reciente, vacío sin ninguna (carril Z; lo usa 025-C00)
@@ -453,6 +457,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 008-I5 · Un turno, una extracción, una confirmación y una importación se guardan enteros o no se guardan
 - [ ] 008-C32 · Entrevista real con el login de Claude Code (D, al final)
 - [ ] 008-C33 · Extracción real de una carta con inyección (D, al final)
+- [ ] 008-bug-C02c · La fecha de creación de la lista y el detalle sale en UTC con huso (carril W; §15.7)
 
 ### Closing
 - [x] Full suite green, type checks clean; re-verificado 2026-09-25 (carril Z): `uv run pytest` 1680 passed, `ruff check .` y `ruff format --check .` limpios (399 ficheros), `mypy src` sin incidencias en 158 ficheros
@@ -559,8 +564,8 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 
 ## 011 — produccion-de-capitulos
 
-- [x] Spec `specs/backend/011-produccion-de-capitulos.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; C33–C34 añadidos y movidos a 031-arranque; re-marcada — integrador 2026-09-25: sin revisión, decisión del usuario (C12: palabra corriente en minúscula no es variante)
-- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; C33–C34 movidos a 031; re-marcado — integrador 2026-09-25: sin revisión, decisión del usuario (paso 011-C12b)
+- [x] Spec `specs/backend/011-produccion-de-capitulos.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; C33–C34 añadidos y movidos a 031-arranque; re-marcada — integrador 2026-09-25: sin revisión, decisión del usuario (C12: palabra corriente en minúscula no es variante); re-marcada 2026-09-25 (auditoría de contrato front↔back)
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; C33–C34 movidos a 031; re-marcado — integrador 2026-09-25: sin revisión, decisión del usuario (paso 011-C12b); re-marcado 2026-09-25 (pasos bug de contrato)
 
 ### Steps
 - [x] 011-C01 · Lanzar la generación la encola
@@ -610,6 +615,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 011-I13 · La skill `personalizacion-natural` (entrega tardía, carril W) — `backend/harness_workspace/.claude/skills/personalizacion-natural/SKILL.md`
 - [x] 011-I14 · Los prompts del writer (`write`, `rewrite`) y del editor (entrega tardía, carril W) — `backend/harness_workspace/prompts/writer.md`, `editor.md`
 - [ ] 011-C32 · Una producción real con el login de Claude Code llega al gate y se reanuda (D, al final)
+- [ ] 011-bug-C27b · Cada campo de un defecto sin resolver del informe es texto, número o booleano, nunca un objeto (carril O; la pantalla de 025 pintaba «[object Object]»)
 
 ### Closing
 - [x] Full suite green, type checks clean — verificador 2026-09-24: pytest 1342 passed, ruff check clean, ruff format clean, mypy 128 files clean
@@ -703,8 +709,8 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 
 ## 014 — cambios-del-lector
 
-- [x] Spec `specs/backend/014-cambios-del-lector.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcada 2026-09-25 (integrador: sin revisión, decisión del usuario): I18 e I19 con su fila de §6; C19 enlaza la propuesta por su traza
-- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Spec `specs/backend/014-cambios-del-lector.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcada 2026-09-25 (integrador: sin revisión, decisión del usuario): I18 e I19 con su fila de §6; C19 enlaza la propuesta por su traza; re-marcada 2026-09-25 (auditoría de contrato front↔back)
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcado 2026-09-25 (pasos bug de contrato)
 
 ### Steps
 - [x] 014-C01 · Una petición sobre un hecho devuelve la propuesta, los afectados y el código
@@ -738,6 +744,8 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 014-I11 · Toda decisión del motor sobre la petición y sobre los valores nuevos queda en el audit log con origen `change_request`
 - [x] 014-I12 · Los capítulos cambiados de la versión nueva son exactamente los de huella distinta de su base
 - [ ] 014-C20 · Un cambio real propagado sobre la novela del brief 1 (D, al final)
+- [ ] 014-bug-C01b · La propuesta sale con la forma que lee 027-C03: `fact`/`old_value`/`new_value` en texto (varios cambios, juntados con «; ») o `new_fact` en una frase; la clave que no aplica no aparece (carril P; la lectura quedaba en blanco con un hecho nuevo)
+- [ ] 014-bug-C01c · `expires_at` sale en UTC con huso (carril P; §15.7: al oeste de UTC la propuesta salía caducada al instante)
 
 ### Closing
 - [x] Full suite green, type checks clean — verificador 2026-09-25: `uv run python -m pytest -q` 1666 passed; `ruff check .` y `ruff format --check .` limpios; `mypy src` sin incidencias
@@ -923,8 +931,8 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 
 **Dentro del alcance** (usuario, 2026-09-25, segunda decisión): se implementa en la segunda tanda.
 
-- [x] Spec `specs/backend/019-edicion-manual.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
-- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Spec `specs/backend/019-edicion-manual.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcada 2026-09-25 (auditoría de contrato front↔back)
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcado 2026-09-25 (pasos bug de contrato)
 
 ### Steps
 - [x] 019-C01 · Texto sin nada que avisar
@@ -967,6 +975,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 019-I11 · La `EdicionManual` sigue a su ejecución
 - [x] 019-I12 · La historia de versiones es lineal
 - [ ] 019-C29 · Edición manual real con Lean (D, recortado: opcional del encargo, usuario 2026-09-25)
+- [ ] 019-bug-pos · Las posiciones de los diagnósticos del lint cuentan unidades UTF-16 (carril O; §15.7: con emoji el resaltado se desplazaba)
 
 ### Closing
 - [x] Full suite green, type checks clean

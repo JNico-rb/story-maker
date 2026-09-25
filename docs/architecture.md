@@ -1129,6 +1129,8 @@ Las tablas de ámbito versión son las que una candidata copia de su base en una
 
 Bajo `/api`. 401 sin token salvo registro y acceso; lo ajeno o inexistente, 404; entrada fuera de schema, 422; estado que no admite la operación, 409.
 
+**Forma común** (añadido 2026-09-25, auditoría del contrato con la SPA congelada): toda fecha y hora sale en ISO 8601 en UTC con su huso (`Z` o `+00:00`), nunca sin huso, porque el navegador lee sin huso como hora local; toda posición dentro de un texto (inicio y fin) cuenta unidades UTF-16, como las cuenta el navegador. La SPA compilada solo sirve ficheros de dentro de su compilado: una ruta que salga de él (`..`, codificado o no) nunca devuelve ese fichero.
+
 ```
 POST   /api/auth/register {email, password}                  -> 201
 POST   /api/auth/login {email, password}                     -> {access_token}
@@ -1154,7 +1156,7 @@ PUT    /api/novels/{id}/chapters/{n} {text, base_version}    -> 202 {run_id}
 GET    /api/novels/{id}/audit-log
 GET    /view/versions/{version_id}?token=...                 VistaDeVersion (interna: PDF y revisor visual)
 GET    /health                                               -> 200, sin token (fuera de /api)
-/mcp                                                         servidor MCP (diseño, no implementado, §14.4)
+/mcp                                                         servidor MCP (spec 015, §14.4)
 ```
 
 | Código | Cuándo |

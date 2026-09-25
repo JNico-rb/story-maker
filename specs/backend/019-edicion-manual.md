@@ -72,7 +72,7 @@ Un **texto válido** tiene 1.200 palabras, sin prohibidas ni formas no canónica
 **Diagnóstico del lint en vivo:**
 - tipo: forma no canónica, personaje desconocido, hecho, prohibida, linter o cronología;
 - mensaje;
-- posición (inicio y fin, en caracteres del texto enviado), si señala un fragmento;
+- posición (inicio y fin, en unidades UTF-16 del texto enviado, como las cuenta el navegador: `architecture.md` §15.7; precisado 2026-09-25), si señala un fragmento;
 - si **bloqueará el guardado**. Solo lo marcan las prohibidas y las formas no canónicas.
 
 La respuesta los ordena por posición, y los que no tienen posición van al final, por tipo. Los **momentos del capítulo *n*** son los de sus eventos registrados en la versión vigente; si no tiene ninguno, el año presente.

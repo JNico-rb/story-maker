@@ -286,6 +286,7 @@ Con `STORY_MAKER_FRONTEND_DIST` apuntando a un compilado de prueba con `index.ht
 | `GET /assets/app.js` | 200 con ese fichero |
 | `GET /novelas/3`, una ruta del cliente que no es un fichero | 200 con `index.html` |
 | `GET /api/x`, `GET /view/x` o `GET /mcp/x`, sin nada montado en esa ruta | 404, nunca `index.html`: `/view` es de 013-lectura-y-pdf y `/mcp`, de 015-servidor-mcp |
+| `GET /..%2f..%2fsecreto.txt` o `GET /%2e%2e/%2e%2e/secreto.txt`, con `secreto.txt` fuera del compilado (añadido 2026-09-25, `architecture.md` §15.7) | 404, nunca ese fichero; lo mismo para cualquier ruta que resuelva fuera del compilado |
 | Cualquier ruta, con `STORY_MAKER_FRONTEND_DIST` apuntando a un directorio que no existe | el servidor arranca; `GET /health` da 200; `GET /` da 404 |
 
 ### Puerto de observabilidad

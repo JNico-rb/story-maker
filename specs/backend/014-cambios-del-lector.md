@@ -93,7 +93,8 @@ Cada fila de una tabla es una variación de F con una sola causa.
     - la propuesta: el hecho, su valor antiguo «Toby» y el valor nuevo «Nala». El valor antiguo sale de v1, no del planner;
     - los capítulos afectados, `[2, 5, 7]`;
     - un código de confirmación;
-    - su caducidad (`expires_at`), la misma que guarda la solicitud: la lectura de 027 la muestra.
+    - su caducidad (`expires_at`), la misma que guarda la solicitud, en UTC con huso (`architecture.md` §15.7): la lectura de 027 la muestra.
+  - **Forma de la propuesta** (añadido 2026-09-25: la que lee la lectura congelada de 027-C03; lo guardado no cambia). Un cambio de hechos sale como `fact` (el hecho, legible: el nombre canónico de su sujeto en la story bible de la versión base y su atributo, separados por « · »), `old_value` y `new_value`, todo texto; si cambia varios hechos, cada campo junta los de todos, en orden, separados por «; ». Un hecho nuevo sale como `new_fact`, una sola frase legible con sujeto, atributo y valor. La clave que no aplica no aparece; ninguna lleva un objeto.
   - **La solicitud.** La `SolicitudDeCambio` queda `proposed`, con versión base v1 y caducidad = ahora + `confirmation_minutes`. El código no aparece en claro en la base de datos.
   - **El planner.** Se abrió una sola `SesionDeRol` del planner en modo cambio. Se guarda con la novela y sin ejecución. Recibió la selección, la petición delimitada y declarada como dato, y la story bible de v1.
   - **Audit log.** Las decisiones del motor sobre la petición y sobre el valor nuevo quedan en él, con origen `change_request` y decisión `allow`.

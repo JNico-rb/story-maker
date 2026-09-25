@@ -84,7 +84,7 @@ Las listas `user` y `global` de prueba no coinciden con nada de B0. B0 cuenta do
   - su estado, calculado al leer;
   - su versión vigente: el número de la versión publicada más alta, vacío si no hay ninguna;
   - el id de su ejecución más reciente, de cualquier tipo y estado, vacío si no tiene ninguna (lo usa la pantalla de progreso, 025; añadido 2026-09-25);
-  - su fecha de creación.
+  - su fecha de creación, en UTC con huso (`architecture.md` §15.7; añadido 2026-09-25).
 
   El detalle devuelve lo mismo para una sola novela.
 

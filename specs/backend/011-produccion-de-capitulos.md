@@ -466,7 +466,7 @@ Del encargo cubre: writer y editor/critic separados; el `CLAUDE.md` de producto;
 - **Cuando** se llama a `GET /api/runs/{id}/report`
 - **Entonces** el informe tiene:
   - los validadores de cada capítulo y cada intento, con pasa o falla;
-  - los defectos sin resolver: los bloqueantes del último intento del capítulo 3 y los no bloqueantes de los capítulos 1–2;
+  - los defectos sin resolver: los bloqueantes del último intento del capítulo 3 y los no bloqueantes de los capítulos 1–2; cada campo de un defecto es texto, número o booleano, nunca un objeto anidado (la pantalla de 025 los pinta tal cual; añadido 2026-09-25);
   - las decisiones de política de la ejecución (005);
   - los intentos de cada capítulo con su desenlace;
   - 1 reanudación;
