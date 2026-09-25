@@ -590,7 +590,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 011-C29 · Un error imprevisto del worker falla con `internal_error`
 - [x] 011-C30 · El informe de la ejecución se calcula al pedirlo
 - [x] 011-C31 · Trazas, spans y scores de la producción
-- [ ] 011-I1 · Hay como mucho una ejecución `running` en el servidor, y las `queued` salen en orden de fecha de creación
+- [x] 011-I1 · Hay como mucho una ejecución `running` en el servidor, y las `queued` salen en orden de fecha de creación
 - [x] 011-I2 · `ReanudacionSinDuplicarNiPerder`
 - [x] 011-I3 · `ReintentosAcotados`
 - [x] 011-I4 · La aceptación es atómica
