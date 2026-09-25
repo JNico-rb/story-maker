@@ -627,13 +627,13 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 012-C3 · Un elemento obligatorio sin uso se atribuye a los capítulos que el outline le asignó
 - [x] 012-C4 · Un nombre no canónico en un capítulo se atribuye a ese capítulo — necesita la regla de variantes de 011 (fuera de alcance de la spec 012, no en V2 todavía)
 - [x] 012-C5 · Una prohibida en un capítulo se atribuye a ese capítulo
-- [ ] 012-C6 · Una prohibida en la portada o en la ficha hace fallar la ejecución (recortado)
+- [x] 012-C6 · Una prohibida en la portada o en la ficha hace fallar la ejecución
 - [x] 012-C7 · Una etapa que falla corta la pasada
-- [ ] 012-C8 · Lean y el juez corren a la vez (recortado)
+- [x] 012-C8 · Lean y el juez corren a la vez
 - [x] 012-C9 · Un invariante Lean violado se atribuye a los capítulos de los eventos del testigo
 - [x] 012-C10 · Un testigo Lean sin capítulo hace fallar la ejecución
 - [x] 012-C11 · Un `FicheroDeCronologia` que no compila hace fallar la ejecución
-- [ ] 012-C12 · Una interrupción en la etapa 2 no gasta la pasada (recortado)
+- [x] 012-C12 · Una interrupción en la etapa 2 no gasta la pasada
 - [x] 012-C13 · Un criterio bloqueante del juez bajo su umbral se atribuye a los capítulos que cita
 - [x] 012-C14 · Ningún criterio compensa a otro
 - [x] 012-C15 · Una entrega inválida del juez se corrige en su sesión, y sin entrega válida la pasada falla
@@ -658,7 +658,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 012-bug-D1 · Una ejecución que falla por el gate guarda en su motivo el comentario de cada validador una sola vez (tanda D: la 16 repetía seis veces el del juez)
 
 ### Closing
-- [x] Full suite green, type checks clean — verificador 2026-09-24: `uv run pytest` 1523 passed; `uv run ruff check .` all checks passed; `uv run ruff format --check .` 345 files already formatted; `uv run mypy src` no issues in 144 source files; re-verificado 2026-09-25 (carril Z): `uv run pytest` 1680 passed, `ruff check .` y `ruff format --check .` limpios (399 ficheros), `mypy src` sin incidencias en 158 ficheros
+- [x] Full suite green, type checks clean — verificador 2026-09-24: `uv run pytest` 1523 passed; `uv run ruff check .` all checks passed; `uv run ruff format --check .` 345 files already formatted; `uv run mypy src` no issues in 144 source files; re-verificado 2026-09-25 (carril Z): `uv run pytest` 1680 passed, `ruff check .` y `ruff format --check .` limpios (399 ficheros), `mypy src` sin incidencias en 158 ficheros; re-verificado 2026-09-25 sin recortes C6, C8, C12 (carril K2): `uv run python -m pytest -q -p no:cacheprovider` 1841 passed (1837 + 4 en lote Edge/Playwright); `ruff check .` y `ruff format --check .` limpios; `mypy src` sin incidencias en 173 ficheros
 - [x] Spec updated, or confirmed still true
 - [x] Docs updated, or confirmed still true
 

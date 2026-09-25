@@ -47,6 +47,8 @@ from story_maker.store.models import (
     ChangeRequest,
     Chapter,
     Checkpoint,
+    Event,
+    EventCharacter,
     Fact,
     OutlineChapter,
     Run,
@@ -413,3 +415,27 @@ def seed_change_over_v3(session_factory: sessionmaker[Session], seed: Seed) -> C
 def version_of(session_factory: sessionmaker[Session], version_id: int) -> Version:
     with session_factory() as session:
         return session.get_one(Version, version_id)
+
+
+def seed_t1_witness_in_6(session_factory: sessionmaker[Session], seed: Seed) -> tuple[int, int]:
+    """Dos eventos registrados del capítulo 6, con Marta presente, narrados en orden inverso."""
+    ids = []
+    with session_factory() as session:
+        for beat, moment in ((1, dt.datetime(2031, 5, 2, 10)), (2, dt.datetime(2031, 5, 1, 10))):
+            event = Event(
+                version_id=seed.version_id,
+                statement=f"Marta en el faro, beat {beat}",
+                moment=moment,
+                place_id=seed.places["Faro de Cabo Mayor"],
+                type="ordinary",
+                analepsis=False,
+                origin="recorded",
+                chapter=6,
+                beat=beat,
+            )
+            session.add(event)
+            session.flush()
+            session.add(EventCharacter(event_id=event.id, character_id=seed.characters["Marta"]))
+            ids.append(event.id)
+        session.commit()
+    return ids[0], ids[1]

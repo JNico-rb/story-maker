@@ -80,10 +80,14 @@ class ChapterText:
 
 @dataclass(frozen=True)
 class BannedTermMatch:
+    """Una coincidencia en un capítulo, o en la portada o la ficha (`location` `cover` o `sheet`,
+    sin capítulo: no se puede atribuir, 012-C6)."""
+
     term: str
     level: str
     variant: str
-    chapter: int
+    chapter: int | None
+    location: str = "chapter"
 
 
 def banned_terms_in_chapters(
@@ -92,33 +96,19 @@ def banned_terms_in_chapters(
     """`palabras-prohibidas` aplicado a los capítulos de la candidata, con origen
     `publication_gate` (012-C5): un defecto bloqueante por capítulo con coincidencia, y una única
     decisión de política por pasada con todas las coincidencias en el detalle (`deny` si hay
-    alguna, `allow` si no hay ninguna).
+    alguna, `allow` si no hay ninguna). Una coincidencia en la portada o la ficha da un defecto
+    sin capítulo, que ninguna reescritura corrige (012-C6).
 
     `matches` ya viene calculada (`domain.banned_terms.find_term_matches` sobre las tres listas
     activas al correr la pasada): aquí solo se atribuye y se agrega, sin repetir la normalización
     ni la coincidencia por tokens, que son de 005."""
     known_chapters = {c.chapter for c in chapters}
     defects = tuple(
-        Defect(
-            BANNED_TERMS_VALIDATOR,
-            None,
-            True,
-            match.chapter,
-            f"«{match.variant}» está prohibido: {match.term} (nivel {match.level})",
-        )
+        Defect(BANNED_TERMS_VALIDATOR, None, True, match.chapter, _banned_message(match))
         for match in matches
-        if match.chapter in known_chapters
+        if match.chapter in known_chapters or match.location != "chapter"
     )
-    detail = [
-        {
-            "term": match.term,
-            "level": match.level,
-            "variant": match.variant,
-            "location": "chapter",
-            "chapter": str(match.chapter),
-        }
-        for match in matches
-    ]
+    detail = [_match_detail(match) for match in matches]
     decision = DecisionDePolitica(
         decision="deny" if detail else "allow",
         rule=BANNED_TERMS_VALIDATOR if detail else None,
@@ -156,3 +146,24 @@ def lean_stage_result(result: ChronologyResult, bible: StoryBible) -> LeanStageR
     return LeanStageResult(
         passed=result.result == "passed", defects=defects, unattributable=unattributable
     )
+
+
+def _banned_message(match: BannedTermMatch) -> str:
+    where = "" if match.location == "chapter" else f", en {_PLACES[match.location]}"
+    return f"«{match.variant}» está prohibido: {match.term} (nivel {match.level}{where})"
+
+
+_PLACES = {"cover": "la portada", "sheet": "la ficha"}
+
+
+def _match_detail(match: BannedTermMatch) -> dict[str, str]:
+    """La coincidencia en el detalle de la decisión; el capítulo, solo si lo hay (012-C5, C6)."""
+    detail = {
+        "term": match.term,
+        "level": match.level,
+        "variant": match.variant,
+        "location": match.location,
+    }
+    if match.chapter is not None:
+        detail["chapter"] = str(match.chapter)
+    return detail
