@@ -20,6 +20,17 @@ def frontend_dist(tmp_path: Path) -> Path:
     return dist
 
 
+@pytest.fixture
+def frontend_dist_with_secret_outside(tmp_path: Path) -> Path:
+    """El compilado queda dos niveles bajo `tmp_path`, para que las rutas de la auditoría
+    (`..%2f..%2f`, dos niveles) puedan salir de él si el arreglo no las bloquea."""
+    dist = tmp_path / "public" / "dist"
+    (dist / "assets").mkdir(parents=True)
+    (dist / "index.html").write_text("<html>spa</html>", encoding="utf-8")
+    (tmp_path / "secreto.txt").write_text("SECRETO_FUERA_DEL_COMPILADO", encoding="utf-8")
+    return dist
+
+
 def test_health_answers_ok_with_the_package_version() -> None:
     client = TestClient(create_app())
 
@@ -94,6 +105,25 @@ def test_reserved_prefixes_without_anything_mounted_are_404(frontend_dist: Path,
 
     assert response.status_code == 404
     assert response.text != "<html>spa</html>"
+
+
+@pytest.mark.parametrize(
+    "escaping_path",
+    [
+        "/..%2f..%2fsecreto.txt",
+        "/%2e%2e/%2e%2e/secreto.txt",
+        "/..%5c..%5csecreto.txt",
+    ],
+)
+def test_a_path_that_escapes_the_frontend_dist_is_404_and_never_serves_the_file_outside(
+    frontend_dist_with_secret_outside: Path, escaping_path: str
+) -> None:
+    client = TestClient(create_app(frontend_dist_with_secret_outside))
+
+    response = client.get(escaping_path)
+
+    assert response.status_code == 404
+    assert "SECRETO_FUERA_DEL_COMPILADO" not in response.text
 
 
 def test_with_a_frontend_dist_that_does_not_exist_the_server_still_starts(tmp_path: Path) -> None:

@@ -105,6 +105,7 @@ def create_app(
                 app.router.routes.append(mcp_route)
 
     if frontend_dist is not None and frontend_dist.is_dir():
+        dist_resolved = frontend_dist.resolve()
         assets_dir = frontend_dist / "assets"
         if assets_dir.is_dir():
             app.mount("/assets", StaticFiles(directory=assets_dir), name="frontend-assets")
@@ -120,7 +121,11 @@ def create_app(
         def spa_fallback(full_path: str) -> FileResponse:
             if full_path.split("/", 1)[0] in RESERVED_PREFIXES:
                 raise HTTPException(status_code=404, detail="Not Found")
-            candidate = frontend_dist / full_path
+            # `..`, codificada o no, nunca sale del compilado (001-bug-C18b, `architecture.md`
+            # §15.7): resuelta la ruta, se sirve solo si queda dentro de `dist_resolved`.
+            candidate = (frontend_dist / full_path).resolve()
+            if not candidate.is_relative_to(dist_resolved):
+                raise HTTPException(status_code=404, detail="Not Found")
             if candidate.is_file():
                 return FileResponse(candidate)
             index = frontend_dist / "index.html"

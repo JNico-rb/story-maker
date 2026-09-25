@@ -179,7 +179,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 001-I3 · Ni el doble nulo ni las órdenes de esta spec abren una conexión fuera de la máquina
 - [ ] 001-C22 · Primera generación de los tipos del frontend (D, al final)
 - [ ] 001-C23 · Un clon limpio arranca siguiendo el README (D, al final)
-- [ ] 001-bug-C18b · Una ruta que sale del compilado de la SPA (`..`, codificado o no) da 404 y nunca ese fichero (carril W; auditoría de contrato 2026-09-25: `/..%2f..%2f.env` servía el `.env` sin token)
+- [x] 001-bug-C18b · Una ruta que sale del compilado de la SPA (`..`, codificado o no) da 404 y nunca ese fichero (carril W; auditoría de contrato 2026-09-25: `/..%2f..%2f.env` servía el `.env` sin token)
 
 ### Closing
 - [x] Full suite green, type checks clean — verificador 2026-09-24: `uv run pytest` 278 passed; `uv run ruff check .` All checks passed; `uv run ruff format --check .` 38 files already formatted; `uv run mypy src` Success, no issues found in 23 source files
