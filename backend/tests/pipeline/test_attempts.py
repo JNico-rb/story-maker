@@ -28,6 +28,7 @@ from story_maker.agents.ceiling import TokenCeiling
 from story_maker.agents.fake import Call, FakeAgent, Hang
 from story_maker.agents.port import AgentPort
 from story_maker.config import Config
+from story_maker.lint.chapter import LINTERS
 from story_maker.observability.null import NullObservability
 from story_maker.observability.port import Trace
 from story_maker.pipeline.orchestrator import Orchestrator
@@ -164,12 +165,13 @@ async def test_rewriting_is_a_new_writer_session_with_the_defects_and_without_th
     first, second = message(fake, 0), message(fake, 2)
     assert second["window"] == first["window"]
     assert windows.writer_calls == [(seed.version_id, 4)]
-    defects = second["call_inputs"]["defects"]
+    defects = [d for d in second["call_inputs"]["defects"] if d["validator"] not in LINTERS]
     assert [(d["criterion"], d["blocking"]) for d in defects] == [
         ("fidelidad-canon", True),
         ("prosa", False),
     ]
-    assert "primera" not in fake.sessions[2].request.message
+    # Los avisos de los linters citan la palabra repetida (018-C1, C21), nunca el texto.
+    assert text_of(50, word="primera") not in fake.sessions[2].request.message
     assert fake.sessions[2].request.chapter_checks is not None
     assert [s.name for s in trace.scores].count("longitud-capitulo") == 2
     assert attempts(session_factory, seed.run_id, 4) == [(1, "rewrite"), (2, "accept")]

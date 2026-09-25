@@ -146,6 +146,10 @@ async def test_accepting_a_chapter_writes_everything_in_one_transaction(
         ]
         results = session.query(ValidatorResult).filter_by(run_id=seed.run_id, chapter=4)
         assert sorted((r.validator, r.passed, r.detail["attempt"]) for r in results) == [
+            ("linter-consistencia", True, 1),
+            ("linter-estilo-ia", True, 1),
+            ("linter-legibilidad", False, 1),
+            ("linter-repeticion", False, 1),
             ("longitud-capitulo", True, 1),
             ("nombres-exactos", True, 1),
             ("rubrica-capitulo", True, 1),

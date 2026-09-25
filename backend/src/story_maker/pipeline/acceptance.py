@@ -47,6 +47,14 @@ class ValidatorRun:
     comment: str
     defects: tuple[dict[str, Any], ...] = ()
     parts: tuple[tuple[str, int, str], ...] = field(default=())
+    # La métrica de un linter (018): su score en lugar del 0/1.
+    metric: float | None = None
+
+    @property
+    def score(self) -> float:
+        if self.metric is not None:
+            return self.metric
+        return 1.0 if self.passed else 0.0
 
     def detail(self, attempt: int) -> dict[str, Any]:
         detail: dict[str, Any] = {
@@ -93,7 +101,7 @@ def record_validator_results(
                 validator=run.validator,
                 chapter=chapter,
                 passed=run.passed,
-                score=1.0 if run.passed else 0.0,
+                score=run.score,
                 detail=run.detail(attempt),
                 created_at=naive(now),
             )

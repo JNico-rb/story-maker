@@ -894,7 +894,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 018-C15 · `linter-consistencia`: tratamiento con excepciones y mezcla
 - [x] 018-C16 · Capítulo limpio
 - [x] 018-C17 · Texto sin palabras
-- [ ] 018-C18 · Corren tras los hooks y antes del editor, que recibe sus avisos
+- [x] 018-C18 · Corren tras los hooks y antes del editor, que recibe sus avisos
 - [ ] 018-C19 · Una entrega que no pasa los hooks no llega a los linters
 - [ ] 018-C20 · Con solo avisos, el capítulo se acepta
 - [ ] 018-C21 · En una reescritura por otra causa, el writer recibe los avisos
