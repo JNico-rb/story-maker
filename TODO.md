@@ -594,7 +594,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 011-I2 · `ReanudacionSinDuplicarNiPerder`
 - [x] 011-I3 · `ReintentosAcotados`
 - [x] 011-I4 · La aceptación es atómica
-- [ ] 011-I5 · Ningún rol escribe canon
+- [x] 011-I5 · Ningún rol escribe canon
 - [x] 011-I6 · Ningún capítulo aceptado tiene un defecto bloqueante
 - [ ] 011-I7 · El writer nunca recibe prosa recuperada
 - [x] 011-I8 · Writer y editor son sesiones distintas
