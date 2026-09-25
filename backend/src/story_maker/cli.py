@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import os
+import shutil
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -14,6 +16,7 @@ from urllib.parse import urlparse
 
 import typer
 import uvicorn
+from pydantic import ValidationError
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -23,11 +26,22 @@ from story_maker.agents.port import Agent, AgentPort, PolicyEngine
 from story_maker.agents.sdk import SdkAgent
 from story_maker.api.auth import normalize_email, utc_now
 from story_maker.api.brief import brief_problems, build_brief_out
-from story_maker.composition import DB_FILENAME, Adapters, build_app, real_adapters
+from story_maker.api.novels import EXTRACTOR_PROMPT_FILE
+from story_maker.composition import (
+    DB_FILENAME,
+    Adapters,
+    Mount,
+    build_app,
+    build_mount,
+    real_adapters,
+    workspace,
+)
 from story_maker.config import Config, ConfigError, load_config
 from story_maker.domain.brief import BannedEntry, BriefContent
+from story_maker.interview.banned_terms import add_banned_term
 from story_maker.interview.brief import TurnFailure, confirm_brief_status, run_turn
 from story_maker.interview.free_text import FreeTextFailure, run_free_text
+from story_maker.interview.import_brief import ImportFailure, ImportRejected, import_brief
 from story_maker.interview.novels import brief_of, create_interview_novel, load_verified_facts
 from story_maker.observability.factory import build_langfuse_client, has_langfuse_vars
 from story_maker.observability.langfuse_adapter import LangfuseObservability
@@ -52,6 +66,7 @@ from story_maker.store.models import (
     Run,
     User,
     ValidatorResult,
+    Version,
 )
 from story_maker.store.session import (
     create_schema,
@@ -716,7 +731,9 @@ def evals_run_command(
     ] = None,
 ) -> None:
     """Importa los cinco briefs de `ejemplos/briefs/` a nombre de `--email` y lanza su ejecución
-    de generación. Nunca corre en la CI (020-C05); sin un cliente ya registrado, no crea nada
+    de generación, y procesa la cola hasta vaciarla (020-C03). Un brief que no pasa no para a los
+    demás, pero la orden termina con 1 (020-C04); uno que ya tiene novela del cliente no se repite
+    (020-C17). Nunca corre en la CI (020-C05); sin un cliente ya registrado, no crea nada
     (020-C02)."""
     if os.environ.get("CI") is not None:
         typer.echo("evals run no corre en la CI (verification.md §4.2 método 2)")
@@ -733,18 +750,262 @@ def evals_run_command(
         typer.echo("evals run necesita --email de un cliente ya registrado")
         raise typer.Exit(1)
 
+    config, observability, user_id = _brief_services(settings, email)
+    mount = build_mount(settings, config, observability, real_adapters(settings, config))
+    try:
+        launches, defects = asyncio.run(_run_evals(mount, config, observability, user_id))
+        with mount.session_factory() as session:
+            for launch in launches:
+                status = session.get_one(Run, launch.run_id).status
+                typer.echo(
+                    f"{launch.slug}: novela {launch.novel_id}, ejecución {launch.run_id} ({status})"
+                )
+    finally:
+        mount.engine.dispose()
+        observability.flush()
+    for slug, defect in defects.items():
+        typer.echo(f"{slug}: {defect}")
+    if defects:
+        raise typer.Exit(1)
+
+
+def _brief_services(settings: Settings, email: str) -> tuple[Config, ObservabilityAdapter, int]:
+    """La config, la observabilidad y el cliente propietario de las órdenes que importan un brief
+    (`evals run`, `example`); sin cualquiera de los tres, código 1 y nada se crea (020-C02)."""
     engine = make_engine(_db_path(settings.data_dir))
     try:
         with make_session_factory(engine)() as session:
             user = session.scalar(select(User).where(User.email == email))
-        if user is None:
-            typer.echo(f"{email} no es un cliente registrado")
-            raise typer.Exit(1)
-        # 020-C03/C04 (importar cada brief y lanzar su ejecución) esperan a que el gate de
-        # publicación (012) esté integrado en V2: sin él ninguna ejecución puede llegar a
-        # `published`, así que esta orden por ahora solo hace las comprobaciones de arriba.
     finally:
         engine.dispose()
+    if user is None:
+        typer.echo(f"{email} no es un cliente registrado")
+        raise typer.Exit(1)
+
+    try:
+        config = load_config(settings.config_path)
+    except ConfigError as exc:
+        for error in exc.errors:
+            typer.echo(error)
+        raise typer.Exit(1) from None
+    observability, observability_line = _check_observability(settings)
+    if observability is None:
+        typer.echo(observability_line)
+        raise typer.Exit(1)
+    return config, observability, user.id
+
+
+def eval_slug(path: Path) -> str:
+    """`01-ejemplo.json` → `ejemplo`: el brief de eval de la novela que sale del fichero."""
+    return path.stem.split("-", 1)[-1]
+
+
+@dataclass(frozen=True)
+class _EvalLaunch:
+    slug: str | None
+    novel_id: int
+    run_id: int
+
+
+def _import_body(
+    content: BriefContent, banned_entries: list[BannedEntry], free_texts: list[str]
+) -> dict[str, Any]:
+    """El cuerpo de la importación de la API (008-C28): el B0, sus prohibidas de nivel `novel` y
+    sus textos libres."""
+    return {
+        **content.model_dump(mode="json"),
+        "banned_entries": [
+            {"term": e.term, "type": e.type, "keywords": e.keywords}
+            for e in banned_entries
+            if e.level == "novel"
+        ],
+        "free_texts": free_texts,
+    }
+
+
+def _add_user_banned_terms(
+    session_factory: sessionmaker[Session], user_id: int, banned_entries: list[BannedEntry]
+) -> None:
+    """Las prohibidas de nivel `user` del fichero, en la lista del cliente, como las añade la API
+    (008-C26); una que ya estaba no se duplica."""
+    with unit_of_work(session_factory) as uow:
+        for entry in banned_entries:
+            if entry.level == "user":
+                add_banned_term(
+                    uow,
+                    level="user",
+                    user_id=user_id,
+                    novel_id=None,
+                    term=entry.term,
+                    type_=entry.type,
+                    keywords=entry.keywords,
+                )
+
+
+def _problems_text(problems: list[dict[str, Any]]) -> str:
+    return "; ".join(
+        ".".join(str(part) for part in problem["loc"]) + f": {problem['msg']}"
+        for problem in problems
+    )
+
+
+async def _launch_brief(
+    mount: Mount,
+    config: Config,
+    telemetry: ObservabilityPort,
+    user_id: int,
+    path: Path,
+    slug: str | None,
+) -> _EvalLaunch | str:
+    """El brief del fichero, importado como en la API (008), marcado con su brief de eval `slug`
+    y con su generación encolada (011); o su defecto, sin novela (020-C04)."""
+    try:
+        content, banned_entries, free_texts = eval_brief_content(
+            json.loads(path.read_text(encoding="utf-8"))
+        )
+    except ValidationError as exc:
+        problems = [{"loc": error["loc"], "msg": error["msg"]} for error in exc.errors()]
+        return f"no pasa schema-brief: {_problems_text(problems)}"
+    except (ValueError, KeyError, TypeError) as exc:
+        return f"no pasa schema-brief: {exc!r}"
+    _add_user_banned_terms(mount.session_factory, user_id, banned_entries)
+    now = utc_now()
+    outcome = await import_brief(
+        agent_port=mount.agent_port,
+        telemetry=telemetry,
+        policy=mount.policy,
+        session_factory=mount.session_factory,
+        prompt=(workspace() / EXTRACTOR_PROMPT_FILE).read_text(encoding="utf-8"),
+        user_id=user_id,
+        embedding_model=config.embedding_model,
+        max_mandatory_elements=config.max_mandatory_elements,
+        body=_import_body(content, banned_entries, free_texts),
+        now=now,
+    )
+    if isinstance(outcome, ImportRejected):
+        return f"no pasa schema-brief: {_problems_text(outcome.problems)}"
+    if isinstance(outcome, ImportFailure):
+        return f"la extracción de sus textos libres falló: {outcome.reason}"
+    with unit_of_work(mount.session_factory) as uow:
+        uow.session.get_one(Novel, outcome.novel_id).eval_brief = slug
+        run_id, _position = enqueue_generation(uow, outcome.novel_id, now=now)
+    return _EvalLaunch(slug, outcome.novel_id, run_id)
+
+
+async def _run_evals(
+    mount: Mount, config: Config, telemetry: ObservabilityPort, user_id: int
+) -> tuple[list[_EvalLaunch], dict[str, str]]:
+    """Lanza cada brief de `EVAL_BRIEFS_DIR` y procesa la cola con el worker del montaje, sin
+    atajos (020-I3), hasta que no queda nada en cola."""
+    launches: list[_EvalLaunch] = []
+    defects: dict[str, str] = {}
+    for path in sorted(EVAL_BRIEFS_DIR.glob("*.json")):
+        existing = _existing_eval_launch(mount.session_factory, user_id, eval_slug(path))
+        if existing is not None:
+            launches.append(existing)
+            continue
+        outcome = await _launch_brief(mount, config, telemetry, user_id, path, eval_slug(path))
+        if isinstance(outcome, str):
+            defects[eval_slug(path)] = outcome
+        else:
+            launches.append(outcome)
+    await _drain_queue(mount)
+    return launches, defects
+
+
+def _existing_eval_launch(
+    session_factory: sessionmaker[Session], user_id: int, slug: str
+) -> _EvalLaunch | None:
+    """La novela del cliente con ese brief de eval (de `example` o de un `evals run` anterior) y
+    su ejecución de generación, que no se relanza: si quedó interrumpida, vuelve a la cola en su
+    puesto, como con `resume` (011-C26; 020-C17)."""
+    with unit_of_work(session_factory) as uow:
+        novel = uow.session.scalar(
+            select(Novel)
+            .where(Novel.user_id == user_id, Novel.eval_brief == slug)
+            .order_by(Novel.id)
+        )
+        if novel is None:
+            return None
+        run = uow.session.scalars(
+            select(Run)
+            .where(Run.novel_id == novel.id, Run.type == "generation")
+            .order_by(Run.id.desc())
+            .limit(1)
+        ).one()
+        if run.status == "interrupted":
+            resume_run(uow, run.id)
+        return _EvalLaunch(slug, novel.id, run.id)
+
+
+async def _drain_queue(mount: Mount) -> None:
+    """El worker del montaje toma la cola hasta vaciarla, sin atajos (020-I3)."""
+    while await mount.worker.run_next() is not None:
+        pass
+
+
+# --- `example` (020-C15) ----------------------------------------------------------------------
+
+EXAMPLE_PDF = Path("ejemplos") / "novela-ejemplo.pdf"
+
+
+async def _example(
+    mount: Mount, config: Config, telemetry: ObservabilityPort, user_id: int, brief: Path
+) -> _EvalLaunch | str:
+    in_evals = brief.resolve().parent == EVAL_BRIEFS_DIR.resolve()
+    slug = eval_slug(brief) if in_evals else None
+    launch = await _launch_brief(mount, config, telemetry, user_id, brief, slug)
+    if isinstance(launch, _EvalLaunch):
+        await _drain_queue(mount)
+    return launch
+
+
+@app.command(name="example")
+def example_command(
+    brief: Annotated[Path, typer.Argument(help="Brief en JSON, con la forma de ejemplos/briefs/.")],
+    email: Annotated[str, typer.Option("--email", help="Cliente propietario de la novela.")],
+    out: Annotated[
+        Path | None,
+        typer.Option("--out", help="Dónde dejar el PDF; por defecto, ejemplos/novela-ejemplo.pdf."),
+    ] = None,
+) -> None:
+    """Brief → novela publicada de `--email` → su PDF en `--out` (020-C15, `architecture.md`
+    §15.8): el PDF que el gate guardó y pasó `pdf-enlaces`. Es la única orden que escribe fuera
+    de `STORY_MAKER_DATA_DIR` (013-I4)."""
+    try:
+        settings = load_settings()
+    except SettingsError as exc:
+        for error in exc.errors:
+            typer.echo(error)
+        raise typer.Exit(1) from None
+
+    config, observability, user_id = _brief_services(settings, email)
+    target = out or settings_module.ROOT / EXAMPLE_PDF
+    mount = build_mount(settings, config, observability, real_adapters(settings, config))
+    try:
+        launch = asyncio.run(_example(mount, config, observability, user_id, brief))
+        if isinstance(launch, str):
+            typer.echo(f"{brief}: {launch}")
+            raise typer.Exit(1)
+        with mount.session_factory() as session:
+            run = session.get_one(Run, launch.run_id)
+            version = session.scalar(
+                select(Version).where(
+                    Version.novel_id == launch.novel_id, Version.status == "published"
+                )
+            )
+        if version is None or version.pdf_path is None:
+            typer.echo(
+                f"novela {launch.novel_id}: la ejecución {run.id} terminó {run.status} "
+                f"({run.reason}); no hay PDF"
+            )
+            raise typer.Exit(1)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(version.pdf_path, target)
+    finally:
+        mount.engine.dispose()
+        observability.flush()
+    typer.echo(f"novela {launch.novel_id}, ejecución {launch.run_id}: {target}")
 
 
 _BLOCKING = "blocking"
@@ -779,7 +1040,7 @@ _VALIDATOR_ROWS: tuple[tuple[str, str], ...] = (
 
 
 def _eval_novel(session: Session, slug: str) -> Novel | None:
-    return session.scalar(select(Novel).where(Novel.title == slug))
+    return session.scalar(select(Novel).where(Novel.eval_brief == slug).order_by(Novel.id))
 
 
 def _eval_run(session: Session, novel_id: int) -> Run | None:

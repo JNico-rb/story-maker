@@ -73,7 +73,11 @@ class _Seed:
     def novel(self, slug: str) -> int:
         with unit_of_work(self.session_factory) as uow:
             novel = models.Novel(
-                user_id=self.user_id, title=slug, embedding_model="m1", created_at=NOW
+                user_id=self.user_id,
+                title=f"El título que el plan dio a {slug}",
+                embedding_model="m1",
+                created_at=NOW,
+                eval_brief=slug,
             )
             uow.add(novel)
             uow.session.flush()

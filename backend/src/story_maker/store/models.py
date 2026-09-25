@@ -44,6 +44,8 @@ class Novel(Base):
     title: Mapped[str | None]
     embedding_model: Mapped[str]
     created_at: Mapped[dt.datetime]
+    # El slug del brief de `ejemplos/briefs/` del que sale (020: `evals run`, `example`).
+    eval_brief: Mapped[str | None]
 
 
 class BannedTerm(Base):

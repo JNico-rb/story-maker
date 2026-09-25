@@ -952,13 +952,11 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] Spec `specs/backend/020-evals.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; recibe `example` desde 013 (C15, C16); re-marcada 2026-09-25 (integrador: sin revisión, decisión del usuario) con C17, la identidad del brief de eval y C16 servida por la ejecución del brief 1
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; pasos C15 y C16 añadidos; re-marcado 2026-09-25 (integrador: sin revisión, decisión del usuario) con C17 y C16 servida por el brief 1
 
-**Cierre parcial** (C06–C09, I2: `evals table`) — verificador 2026-09-24: PASS; `uv run pytest` 959 passed, ruff y mypy limpios. El resto de la 020 sigue abierto.
-
 ### Steps
 - [x] 020-C01 · Los cinco briefs del repositorio son válidos
 - [x] 020-C02 · Sin un cliente registrado no se crea nada
-- [ ] 020-C03 · Una novela y una ejecución por brief, del cliente dado — bloqueado: necesita el gate de publicación (012) integrado en V2; `Orchestrator`/`Worker` aún no se instancian en `src/` (sin ellos ninguna ejecución llega a `published`)
-- [ ] 020-C04 · Un brief que no pasa no para a los demás — mismo bloqueo que C03
+- [x] 020-C03 · Una novela y una ejecución por brief, del cliente dado
+- [x] 020-C04 · Un brief que no pasa no para a los demás
 - [x] 020-C05 · `evals run` no corre en la CI
 - [x] 020-C06 · Celdas de la tabla brief × validador
 - [x] 020-C07 · Resumen por brief
@@ -966,8 +964,8 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] 020-C09 · Sin ejecuciones de evals, la tabla lo dice
 - [x] 020-I1 · Ninguna prueba de esta spec llama a un modelo ni a Langfuse
 - [x] 020-I2 · `evals table` es determinista
-- [ ] 020-C15 · `example` produce la novela y su PDF (movido desde 013)
-- [ ] 020-C17 · Un brief que ya tiene novela del cliente no se repite (añadido 2026-09-25; también identifica la novela de `example` como la de su brief)
+- [x] 020-C15 · `example` produce la novela y su PDF (movido desde 013)
+- [x] 020-C17 · Un brief que ya tiene novela del cliente no se repite (añadido 2026-09-25; también identifica la novela de `example` como la de su brief)
 - [ ] 020-C10 · Cinco briefs reales llenan (a) y (b) (D, al final)
 - [ ] 020-C11 · Una iteración de tuning con antes y después (D, al final)
 - [ ] 020-C12 · Juez frente a revisión humana (D, al final)
@@ -976,9 +974,9 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [ ] 020-C16 · La novela de ejemplo real: el PDF de la ejecución del brief 1 de 020-C10 (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-25: pasos no D cerrados (C01–C09, C15, C17, I1, I2; C10–C14 y C16 quedan `(D, al final)`); `uv run python -m pytest -q` 1636 passed, `uv run python -m ruff check .` y `uv run python -m ruff format --check .` limpios, `uv run python -m mypy src` sin incidencias
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 021 — auditoria-de-seguridad
 
