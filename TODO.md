@@ -950,8 +950,6 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] Spec `specs/backend/020-evals.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; recibe `example` desde 013 (C15, C16); re-marcada 2026-09-25 (integrador: sin revisión, decisión del usuario) con C17 y la identidad del brief de eval
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; pasos C15 y C16 añadidos; re-marcado 2026-09-25 (integrador: sin revisión, decisión del usuario) con C17
 
-**Cierre parcial** (C06–C09, I2: `evals table`) — verificador 2026-09-24: PASS; `uv run pytest` 959 passed, ruff y mypy limpios. El resto de la 020 sigue abierto.
-
 ### Steps
 - [x] 020-C01 · Los cinco briefs del repositorio son válidos
 - [x] 020-C02 · Sin un cliente registrado no se crea nada
@@ -974,9 +972,9 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [ ] 020-C16 · La novela de ejemplo real (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-25: pasos no D cerrados (C01–C09, C15, C17, I1, I2; C10–C14 y C16 quedan `(D, al final)`); `uv run python -m pytest -q` 1636 passed, `uv run python -m ruff check .` y `uv run python -m ruff format --check .` limpios, `uv run python -m mypy src` sin incidencias
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 021 — auditoria-de-seguridad
 
