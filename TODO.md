@@ -692,31 +692,31 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] 014-C09 · Sin proveedor, sin sitio en el techo o con la sesión agotada, no queda solicitud
 - [x] 014-C10 · Confirmar con el código encola una ejecución de cambio con su versión base
 - [x] 014-C11 · La confirmación exige el código vigente de una solicitud propia en estado `proposed`
-- [ ] 014-C12 · Si al arrancar la versión vigente ya no es su base, la ejecución falla con `stale_base`
-- [ ] 014-C13 · La candidata copia la base y aplica el cambio en una sola transacción
-- [ ] 014-C14 · Solo los afectados pasan por el writer, en orden y en modo revisión
-- [ ] 014-C15 · Superado el gate, se publica la versión nueva y la solicitud pasa a `applied`
-- [ ] 014-C16 · La reescritura dirigida del gate puede tocar un capítulo no afectado
-- [ ] 014-C17 · Si la ejecución de cambio falla, la solicitud queda `rejected` y la base intacta
-- [ ] 014-C18 · Reanudar una ejecución de cambio revalida la base y sigue por el siguiente afectado
-- [ ] 014-C19 · Cada propuesta y cada ejecución de cambio dejan su traza
+- [x] 014-C12 · Si al arrancar la versión vigente ya no es su base, la ejecución falla con `stale_base`
+- [x] 014-C13 · La candidata copia la base y aplica el cambio en una sola transacción
+- [x] 014-C14 · Solo los afectados pasan por el writer, en orden y en modo revisión
+- [x] 014-C15 · Superado el gate, se publica la versión nueva y la solicitud pasa a `applied`
+- [x] 014-C16 · La reescritura dirigida del gate puede tocar un capítulo no afectado
+- [x] 014-C17 · Si la ejecución de cambio falla, la solicitud queda `rejected` y la base intacta
+- [x] 014-C18 · Reanudar una ejecución de cambio revalida la base y sigue por el siguiente afectado
+- [x] 014-C19 · Cada propuesta y cada ejecución de cambio dejan su traza
 - [x] 014-I1 · El código calcula los capítulos afectados desde la versión base
-- [ ] 014-I2 · Receptor único
-- [ ] 014-I3 · Ningún rol escribe canon
+- [x] 014-I2 · Receptor único
+- [x] 014-I3 · Ningún rol escribe canon
 - [x] 014-I4 · Sin un código válido no se encola nada
 - [x] 014-I6 · Una petición tiene como mucho 1 + `max_retries.change` intentos (`ReintentosAcotados`)
-- [ ] 014-I7 · Un cambio no modifica la versión base ni ninguna otra versión publicada, tanto si publica como si falla (`VersionAnteriorConservada`)
-- [ ] 014-I8 · Historia lineal
-- [ ] 014-I9 · En la fase `writing` de una ejecución de cambio, solo los afectados pasan por el writer, en orden ascendente
-- [ ] 014-I10 · Los puntos de control de una ejecución de cambio son el 0 y un prefijo de sus afectados en orden, sin huecos ni duplicados
+- [x] 014-I7 · Un cambio no modifica la versión base ni ninguna otra versión publicada, tanto si publica como si falla (`VersionAnteriorConservada`)
+- [x] 014-I8 · Historia lineal
+- [ ] 014-I9 · En la fase `writing` de una ejecución de cambio, solo los afectados pasan por el writer, en orden ascendente (recortado)
+- [x] 014-I10 · Los puntos de control de una ejecución de cambio son el 0 y un prefijo de sus afectados en orden, sin huecos ni duplicados
 - [x] 014-I11 · Toda decisión del motor sobre la petición y sobre los valores nuevos queda en el audit log con origen `change_request`
-- [ ] 014-I12 · Los capítulos cambiados de la versión nueva son exactamente los de huella distinta de su base
+- [ ] 014-I12 · Los capítulos cambiados de la versión nueva son exactamente los de huella distinta de su base (recortado)
 - [ ] 014-C20 · Un cambio real propagado sobre la novela del brief 1 (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-25: `uv run python -m pytest -q` 1666 passed; `ruff check .` y `ruff format --check .` limpios; `mypy src` sin incidencias
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 015 — servidor-mcp
 

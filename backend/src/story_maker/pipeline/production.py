@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import dataclasses
 import datetime as dt
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, Literal, cast
 
@@ -43,7 +43,7 @@ from story_maker.pipeline.windows import (
     editor_message,
     writer_message,
 )
-from story_maker.store.models import Attempt, Character, Novel
+from story_maker.store.models import Attempt, Chapter, Character, Novel
 from story_maker.store.session import unit_of_work
 from story_maker.validators.chapter_check import ChapterCheck
 from story_maker.validators.chapter_length import check_chapter_length, count_words
@@ -86,6 +86,15 @@ class Production:
 
 
 @dataclass(frozen=True)
+class Revision:
+    """El modo revisión de una ejecución de cambio (014-C14): el writer recibe el capítulo actual,
+    el cambio y la instrucción; el editor, el cambio."""
+
+    change: Mapping[str, Any]
+    instruction: str
+
+
+@dataclass(frozen=True)
 class ChapterJob:
     run_id: int
     user_id: int
@@ -98,6 +107,9 @@ class ChapterJob:
     # los defectos del gate que recibe el editor (Lean prevalece sobre `cumple-beats`, §9.4).
     gate_cycle: int | None = None
     gate_defects: tuple[dict[str, Any], ...] = ()
+    # En modo revisión: lo que se añade a las entradas del writer y del editor.
+    writer_extra: Mapping[str, Any] | None = None
+    editor_extra: Mapping[str, Any] | None = None
 
 
 @dataclass(frozen=True)
@@ -316,17 +328,24 @@ class ChapterProducer:
         gate_cycle: int | None = None,
         defects: tuple[dict[str, Any], ...] = (),
         editor_defects: tuple[dict[str, Any], ...] = (),
+        revision: Revision | None = None,
     ) -> None:
         """Con `gate_cycle`, es la reescritura dirigida del gate (012-C19): el writer empieza en
-        modo `rewrite` con `defects` y el editor recibe además `editor_defects`."""
+        modo `rewrite` con `defects` y el editor recibe además `editor_defects`. Con `revision`,
+        el writer va en modo `revise` en todos sus intentos (014-C14)."""
         with self.p.telemetry.span(trace, f"capitulo-{chapter}") as span:
             job = dataclasses.replace(
                 self._job(run_id, chapter), gate_cycle=gate_cycle, gate_defects=editor_defects
             )
+            if revision is not None:
+                job = self._revising(job, revision)
             with self.p.session_factory() as session:
                 window = self.p.windows.writer(session, job.version_id, chapter)
             used = self._closed_attempts(run_id, chapter, gate_cycle)
+            retry = "rewrite" if revision is None else "revise"
             mode = "rewrite" if gate_cycle is not None else "write"
+            if revision is not None:
+                mode = "revise"
             while True:
                 written = await self._write(job, window, mode, defects, used, trace, span)
                 self._close(job, written.closed, trace, span)
@@ -338,7 +357,7 @@ class ChapterProducer:
                     if last.outcome == "fail":
                         reason = "banned_content" if last.banned else "retries_exhausted"
                         raise RunStop("failed", reason, self._exhausted(job, last))
-                    mode = "rewrite"
+                    mode = retry
                     defects = next((a.defects for a in reversed(written.closed) if a.defects), ())
                     continue
                 delivery = written.delivery
@@ -363,7 +382,26 @@ class ChapterProducer:
                 used += 1
                 if closed.outcome == "fail":
                     raise RunStop("failed", "retries_exhausted", self._exhausted(job, closed))
-                mode, defects = "rewrite", closed.defects
+                mode, defects = retry, closed.defects
+
+    def _revising(self, job: ChapterJob, revision: Revision) -> ChapterJob:
+        """El capítulo actual es el de la candidata: el copiado de la base, hasta aceptarlo."""
+        with self.p.session_factory() as session:
+            current = (
+                session.query(Chapter)
+                .filter(Chapter.version_id == job.version_id, Chapter.number == job.chapter)
+                .one()
+            )
+            chapter = {"title": current.title, "text": current.text}
+        return dataclasses.replace(
+            job,
+            writer_extra={
+                "chapter": chapter,
+                "change": dict(revision.change),
+                "instruction": revision.instruction,
+            },
+            editor_extra={"change": dict(revision.change)},
+        )
 
     def _request(self, job: ChapterJob, trace: Trace, span: Span, **fields: Any) -> SessionRequest:
         return SessionRequest(
@@ -395,7 +433,7 @@ class ChapterProducer:
             mode=mode,
             prompt=self.p.prompts.writer,
             prompt_version=self.p.prompts.writer_version,
-            message=writer_message(window, defects),
+            message=writer_message(window, defects, job.writer_extra),
             tools=(submit_chapter_tool(),),
             chapter_checks=hooks,
             cut_when=_AttemptLimit(used, self.p.max_attempts),
@@ -419,7 +457,12 @@ class ChapterProducer:
             prompt=self.p.prompts.editor,
             prompt_version=self.p.prompts.editor_version,
             message=editor_message(
-                window, title, text, lint_defects=(), gate_defects=job.gate_defects
+                window,
+                title,
+                text,
+                lint_defects=(),
+                gate_defects=job.gate_defects,
+                extra=job.editor_extra,
             ),
             tools=(submit_review_tool(job.citable),),
         )

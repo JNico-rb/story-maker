@@ -5,6 +5,9 @@
 - Con el k de 0 a 9: fase `writing` desde el capítulo k+1, sin planner.
 - Con el 10, o caída en `gate` o `rewriting`: fase `gate`, que es de 012 (costura `gate`).
 
+Una ejecución de cambio (014) revalida su base y sigue su propio camino: candidata copiada,
+afectados y gate (`pipeline/changes/run.py`).
+
 Una fase termina la ejecución lanzando `RunStop`; el orquestador la deja `failed` (descartando la
 candidata) o `interrupted`. Otra excepción la recibe el worker (`internal_error`)."""
 
@@ -17,6 +20,7 @@ from sqlalchemy.orm import Session
 
 from story_maker.agents.ceiling import NeverFits
 from story_maker.observability.port import Trace
+from story_maker.pipeline.changes.run import revalidate_base, revise_affected, start_change
 from story_maker.pipeline.production import ChapterProducer, Production
 from story_maker.pipeline.runs import RunStop, fail_run, get_run, stop_run
 from story_maker.store.models import Checkpoint
@@ -62,6 +66,11 @@ class Orchestrator:
 
     async def _advance(self, run_id: int, trace: Trace) -> None:
         p = self.production
+        with p.session_factory() as session:
+            kind = get_run(session, run_id).type
+        if kind == "change_request":
+            await self._change(run_id, trace)
+            return
         with unit_of_work(p.session_factory) as uow:
             run = get_run(uow.session, run_id)
             last = last_checkpoint(uow.session, run_id)
@@ -82,4 +91,21 @@ class Orchestrator:
             if last is None:
                 raise RuntimeError("la planificación terminó sin el punto de control 0")
         await ChapterProducer(p).produce(run_id, trace, last + 1)
+        await self.gate(run_id, trace)
+
+    async def _change(self, run_id: int, trace: Trace) -> None:
+        """Ejecución de cambio (014): revalida la base al arrancar y al relanzarse; sin punto de
+        control, crea la candidata; revisa los afectados que quedan; después, el gate."""
+        p = self.production
+        with unit_of_work(p.session_factory) as uow:
+            run = get_run(uow.session, run_id)
+            revalidate_base(uow.session, run)
+            last = last_checkpoint(uow.session, run_id)
+            if run.phase in ("gate", "rewriting"):
+                run.phase, run.chapter = "gate", None
+            phase = run.phase
+        if phase != "gate":
+            if last is None:
+                start_change(p, run_id)
+            await revise_affected(p, run_id, trace, after=last or 0)
         await self.gate(run_id, trace)
