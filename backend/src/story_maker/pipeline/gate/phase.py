@@ -58,6 +58,8 @@ class VisualReviewOutcome:
     defects: tuple[Defect, ...] = ()
     failure: str | None = None
     detail: str = ""
+    # Un fallo de datos: sus capítulos los vuelve a registrar el editor, sin writer (§9.4).
+    reregister: bool = False
 
 
 @dataclass(frozen=True)

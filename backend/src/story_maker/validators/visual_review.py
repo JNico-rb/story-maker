@@ -16,6 +16,7 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
 from story_maker.agents.tools import ToolSpec
+from story_maker.domain.banned_terms import find_term_matches
 
 VALIDATOR = "revision-visual"
 
@@ -175,6 +176,36 @@ def normalized(text: str) -> str:
     """Espacios colapsados (saltos de línea incluidos) y sin distinguir mayúsculas; las letras,
     los acentos y los signos cuentan (017-C05)."""
     return " ".join(text.split()).casefold()
+
+
+def data_defects(expected: ExpectedStructure) -> tuple[VisualDefect, ...]:
+    """Las entidades de la ficha sin capítulo: un defecto de datos por cada capítulo cuyo texto
+    nombra la entidad con la coincidencia literal de la aceptación (011), o uno sin capítulo si
+    ningún capítulo la nombra (017-C10, 017-C11)."""
+    defects: list[VisualDefect] = []
+    for entity in expected.ficha:
+        if entity.chapters:
+            continue
+        named = [c.number for c in expected.chapters if find_term_matches(c.text, entity.name)]
+        defects += [
+            VisualDefect(
+                "ficha",
+                "datos",
+                n,
+                f"ficha: la ficha no enlaza «{entity.name}», que sale en el capítulo {n}",
+            )
+            for n in named
+        ]
+        if not named:
+            defects.append(
+                VisualDefect(
+                    "ficha",
+                    "datos",
+                    None,
+                    f"ficha: la ficha no enlaza «{entity.name}», que no sale en ningún capítulo",
+                )
+            )
+    return tuple(defects)
 
 
 def texts_match(observed: str, expected: str) -> bool:

@@ -10,6 +10,7 @@ from typing import cast
 from sqlalchemy.orm import Session
 
 from story_maker.agents.port import SessionRequest, SessionResult
+from story_maker.formal.defects import Defect
 from story_maker.observability.port import Span, Trace
 from story_maker.pipeline.gate.phase import GateJob, VisualReviewOutcome
 from story_maker.pipeline.production import Production
@@ -21,9 +22,11 @@ from story_maker.validators.visual_review import (
     ExpectedCover,
     ExpectedEntity,
     ExpectedStructure,
+    VisualDefect,
     VisualReviewSubmission,
     VisualVerdict,
     compare,
+    data_defects,
     reviewer_message,
     submit_visual_review_tool,
 )
@@ -60,6 +63,10 @@ class VisualReviewStage:
         with p.telemetry.span(trace, f"validador:{VALIDATOR}") as span:
             with p.session_factory() as session:
                 expected = expected_structure(session, job.version_id)
+            data = data_defects(expected)
+            if data:
+                # Es código y va antes: no se abre el revisor en este ciclo (017-C10).
+                return _outcome(VisualVerdict((("ficha", False),), data))
             result = await self._review(job, expected, trace, span)
             observed = cast(VisualReviewSubmission, result.deliveries[0].value)
             verdict = compare(expected, observed)
@@ -85,6 +92,10 @@ class VisualReviewStage:
 
 
 def _outcome(verdict: VisualVerdict) -> VisualReviewOutcome:
-    """Lo que la etapa entrega al gate."""
-    del verdict
-    return VisualReviewOutcome()
+    """Lo que la etapa entrega al gate: pasa, o un fallo de datos atribuido."""
+    defects = tuple(_gate_defect(d) for d in verdict.defects)
+    return VisualReviewOutcome(defects=defects, reregister=bool(defects))
+
+
+def _gate_defect(defect: VisualDefect) -> Defect:
+    return Defect(VALIDATOR, defect.part, True, defect.chapter, defect.message)
