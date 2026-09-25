@@ -1159,7 +1159,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas.
 - [x] 026-C11 · El PDF aún no está disponible
 - [x] 026-C12 · Fallo al cargar la lista de versiones
 - [x] 026-C13 · Fallo al cargar el detalle de una versión
-- [ ] 026-C15 · Mientras carga, la pantalla lo indica
+- [x] 026-C15 · Mientras carga, la pantalla lo indica
 - [ ] 026-C16 · La lectura se presenta como un libro, en escritorio y en móvil (D, al final)
 - [ ] 026-I1 · Lo mostrado (portada, novedades, índice, capítulos, ficha) es siempre de una sola versión, la que marca el selector; nunca mezcla datos d… (recortado)
 - [ ] 026-I3 · Todo enlace interno de la página de novedades, del índice y de la ficha lleva al capítulo correcto dentro de la propia pantalla (recortado)

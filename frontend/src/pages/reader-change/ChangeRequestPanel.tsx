@@ -78,28 +78,52 @@ export function ChangeRequestPanel({
     }
 
     return (
-      <section aria-label="Propuesta de cambio">
+      <section
+        aria-label="Propuesta de cambio"
+        className="mx-auto max-w-prose rounded-lg border border-secondary/10 bg-white/70 p-5 shadow-sm break-words"
+      >
         <ProposalView proposal={created.proposal} />
         {created.affected_chapters.length === 0 ? (
-          <p>Ningún capítulo cambiará.</p>
+          <p className="mt-2 text-sm text-secondary/70">Ningún capítulo cambiará.</p>
         ) : (
-          <ul aria-label="Capítulos afectados">
+          <ul aria-label="Capítulos afectados" className="mt-2 flex flex-wrap gap-2">
             {created.affected_chapters.map((chapter) => (
-              <li key={chapter}>{chapter}</li>
+              <li key={chapter} className="rounded-full bg-accent px-2 py-0.5 text-xs text-secondary">
+                {chapter}
+              </li>
             ))}
           </ul>
         )}
         {state.expired ? (
-          <p role="alert">La propuesta ha caducado: pide el cambio otra vez.</p>
-        ) : (
-          <button type="button" disabled={state.confirming} onClick={() => void handleConfirm()}>
-            Confirmar
-          </button>
+          <p role="alert" className="mt-3 rounded bg-accent px-3 py-2 text-sm">
+            La propuesta ha caducado: pide el cambio otra vez.
+          </p>
+        ) : null}
+        {state.confirmError && (
+          <p role="alert" className="mt-3 rounded bg-accent px-3 py-2 text-sm">
+            {state.confirmError}
+          </p>
         )}
-        {state.confirmError && <p role="alert">{state.confirmError}</p>}
-        <button type="button" disabled={state.confirming} onClick={onDiscard}>
-          Descartar
-        </button>
+        <div className="mt-4 flex gap-3">
+          {!state.expired && (
+            <button
+              type="button"
+              disabled={state.confirming}
+              onClick={() => void handleConfirm()}
+              className="rounded bg-primary px-4 py-2 text-sm font-semibold text-secondary disabled:opacity-50"
+            >
+              Confirmar
+            </button>
+          )}
+          <button
+            type="button"
+            disabled={state.confirming}
+            onClick={onDiscard}
+            className="rounded border border-secondary/30 px-4 py-2 text-sm font-semibold text-secondary disabled:opacity-50"
+          >
+            Descartar
+          </button>
+        </div>
       </section>
     );
   }
@@ -124,16 +148,31 @@ export function ChangeRequestPanel({
   }
 
   return (
-    <form aria-label="Petición de cambio" onSubmit={(event) => void handleSubmit(event)}>
-      <p>«{selection.quote}»</p>
-      <label htmlFor="change-request-text">Petición</label>
+    <form
+      aria-label="Petición de cambio"
+      onSubmit={(event) => void handleSubmit(event)}
+      className="mx-auto max-w-prose rounded-lg border border-secondary/10 bg-white/70 p-5 shadow-sm break-words"
+    >
+      <p className="italic text-secondary">«{selection.quote}»</p>
+      <label htmlFor="change-request-text" className="mt-3 block text-sm font-medium text-secondary">
+        Petición
+      </label>
       <textarea
         id="change-request-text"
         value={state.text}
         onChange={(event) => setState({ ...state, text: event.target.value })}
+        className="mt-1 w-full rounded border border-secondary/30 p-2"
       />
-      {state.error && <p role="alert">{state.error}</p>}
-      <button type="submit" disabled={state.text.trim() === "" || state.submitting}>
+      {state.error && (
+        <p role="alert" className="mt-2 rounded bg-accent px-3 py-2 text-sm">
+          {state.error}
+        </p>
+      )}
+      <button
+        type="submit"
+        disabled={state.text.trim() === "" || state.submitting}
+        className="mt-4 rounded bg-primary px-4 py-2 text-sm font-semibold text-secondary disabled:opacity-50"
+      >
         Pedir el cambio
       </button>
     </form>

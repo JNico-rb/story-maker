@@ -11,7 +11,7 @@ type VersionDetail = components["schemas"]["VersionDetailResponse"];
 type VersionsList = components["schemas"]["VersionsListResponse"];
 
 // API simulada en el límite del cliente (026-I5): cada ruta responde lo que fija 013 para N.
-type Reply = () => Response;
+type Reply = () => Response | Promise<Response>;
 
 function json(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), {
@@ -313,5 +313,26 @@ describe("026 lectura", () => {
     await user.click(screen.getByRole("button", { name: /reintentar/i }));
 
     expect(await screen.findByRole("region", { name: "Portada" })).toBeInTheDocument();
+  });
+
+  it("026-C15: while loading, the screen shows an accessible notice that disappears on arrival", async () => {
+    let resolveList: (response: Response) => void = () => undefined;
+    let resolveDetail: (response: Response) => void = () => undefined;
+    fakeApi({
+      [`GET ${BASE}`]: () => new Promise<Response>((resolve) => (resolveList = resolve)),
+      [`GET ${BASE}/1`]: () => new Promise<Response>((resolve) => (resolveDetail = resolve)),
+    });
+    renderReading();
+
+    expect(await screen.findByRole("status")).toHaveTextContent("Cargando las versiones…");
+
+    resolveList(json(200, { versions: LIST.versions.slice(0, 1) }));
+
+    await vi.waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("Cargando la versión…"));
+
+    resolveDetail(json(200, detail(1)));
+
+    await screen.findByRole("region", { name: "Portada" });
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 });
