@@ -7,7 +7,7 @@ import { clearSession, saveSession } from "../shared/lib";
 import { buildRoutes } from "./router";
 
 // API simulada en el límite del cliente (023-I3), mismo patrón que src/app/reading.test.tsx.
-type Reply = () => Response;
+type Reply = () => Response | Promise<Response>;
 
 function json(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), {
@@ -177,6 +177,40 @@ describe("023 mis novelas", () => {
     expect(within(interview).getByRole("link")).toHaveAttribute("href", "/novelas/6/entrevista");
     expect(within(ready).getByRole("link")).toHaveAttribute("href", "/novelas/7/entrevista");
     expect(within(inProgress).getByRole("link")).toHaveAttribute("href", "/novelas/8/progreso");
+  });
+
+  it("023-C07: creating a novel navigates to its interview", async () => {
+    const user = userEvent.setup();
+    let resolvePost!: (response: Response) => void;
+    fakeApi({
+      "GET /api/novels": () => json(200, []),
+      "POST /api/novels": () => new Promise<Response>((resolve) => (resolvePost = resolve)),
+    });
+    const router = renderNovels();
+
+    const button = await screen.findByRole("button", { name: "Crear novela" });
+    await user.click(button);
+
+    expect(button).toBeDisabled();
+    resolvePost(json(201, novel({ id: 42, status: "interview", current_version: null })));
+
+    await vi.waitFor(() => expect(router.state.location.pathname).toBe("/novelas/42/entrevista"));
+  });
+
+  it("023-C08: a failure creating a novel stays on \"mis novelas\" and re-enables the button", async () => {
+    const user = userEvent.setup();
+    fakeApi({
+      "GET /api/novels": () => json(200, []),
+      "POST /api/novels": () => new Response(null, { status: 503 }),
+    });
+    const router = renderNovels();
+
+    const button = await screen.findByRole("button", { name: "Crear novela" });
+    await user.click(button);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/no se pudo completar/i);
+    expect(router.state.location.pathname).toBe("/");
+    expect(screen.getByRole("button", { name: "Crear novela" })).not.toBeDisabled();
   });
 
   it("023-C17: a valid access ends up on \"mis novelas\" with the list", async () => {

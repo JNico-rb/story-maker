@@ -1062,8 +1062,8 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 023-C06 · Fallo al cargar la lista
 - [x] 023-C09 · El destino depende del estado y de la versión vigente
 - [x] 023-C17 · El acceso lleva a «mis novelas»
-- [ ] 023-C07 · Crear una novela lleva a su entrevista
-- [ ] 023-C08 · Fallo al crear una novela
+- [x] 023-C07 · Crear una novela lleva a su entrevista
+- [x] 023-C08 · Fallo al crear una novela
 - [ ] 023-C10 · Ver la lista prohibida de nivel `user`
 - [ ] 023-C11 · Añadir una palabra
 - [ ] 023-C12 · Añadir un tema con sus palabras clave
