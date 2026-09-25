@@ -44,7 +44,7 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 | D | 020 (C01, C02, C05, I1 integrados; C03, C04 y C15 pasan al carril X, tras el arranque) | — | `../sm-d` | `carril-d` | parcial integrada |
 | X | 031 (C01–C04, I2). Toca `composition.py`, `cli.py`, `api/app.py`, `agents/port.py`, `planning_seam.py` | 012 | `../sm-x` | `carril-x` | C01–C05, I2 hechos; cierre en curso |
 | V | 020-C03 (con el arreglo de D2), C04, C15 y C17, desde `carril-x`: el camino a la tanda D. Toca `cli.py`, `composition.py`, `store/models.py` (el brief de eval de la novela) y las pruebas de evals | 031 | `../sm-v` | `carril-v` | cerrada e integrada (pasos no D) |
-| T | bug de 020 hallado en la tanda D: `evals table` busca los validadores con el nombre de fila entre comillas invertidas y espera un `detail` distinto del que escriben 011/012, así que da `n/a` con resultados reales. Toca solo `cli.py` (tabla de evals) y `tests/test_cli_evals*.py` | 020 | `../sm-t` | `carril-t` | en curso |
+| T | bug de 020 hallado en la tanda D: `evals table` busca los validadores con el nombre de fila entre comillas invertidas y espera un `detail` distinto del que escriben 011/012, así que da `n/a` con resultados reales. Toca solo `cli.py` (tabla de evals) y `tests/test_cli_evals*.py` | 020 | `../sm-t` | `carril-t` | cerrado e integrado |
 | Y | 031-C05 (adaptador de incrustaciones, solo `retrieval/`) | — | `../sm-y` | `carril-y` | cerrada e integrada |
 | E | 026 → 027 (027 con la API simulada según 014) | — | `../sm-e` | `carril-e` | 026 y 027 cerradas e integradas (027-C15 D) |
 | I | 012 (con el WIP de la rama `wip-012-gate`) | 007, 011 | `../sm-i` | `carril-i` | cerrada e integrada |
