@@ -109,3 +109,46 @@ def test_a_cover_that_does_not_show_its_own_is_a_render_failure_and_the_rest_is_
         ("capitulos", True),
         ("ficha", True),
     )
+
+
+# --- 017-C07 -------------------------------------------------------------------------------------
+
+
+def with_index(destinations: list[str | None]) -> dict[str, Any]:
+    delivery = faithful()
+    delivery["indice"] = [
+        {"text": f"entrada {i}", "destination": d} for i, d in enumerate(destinations, 1)
+    ]
+    return delivery
+
+
+def to(*chapters: int) -> list[str | None]:
+    return [f"capitulo-{n}" for n in chapters]
+
+
+@pytest.mark.parametrize(
+    ("destinations", "defects"),
+    [
+        (to(*range(1, 10)), 1),
+        (to(*range(1, 12)), 1),
+        (to(1, 2, 3, 5, 5, 6, 7, 8, 9, 10), 1),
+        ([*to(1, 2, 3, 4, 5, 6), None, *to(8, 9, 10)], 1),
+        (to(1, 3, 2, 4, 5, 6, 7, 8, 9, 10), 2),
+    ],
+    ids=["9-entradas", "11-entradas", "4a-al-5", "7a-sin-destino", "2-y-3-invertidas"],
+)
+def test_an_index_that_does_not_lead_to_its_chapters_is_a_render_failure_per_discrepancy(
+    destinations: list[str | None], defects: int
+) -> None:
+    verdict = verdict_of(with_index(destinations))
+
+    assert len(verdict.defects) == defects
+    assert {(d.part, d.kind, d.chapter) for d in verdict.defects} == {("indice", "render", None)}
+    assert dict(verdict.parts)["indice"] is False
+
+
+def test_an_index_of_ten_entries_leading_to_one_to_ten_in_order_passes() -> None:
+    verdict = verdict_of(with_index(to(*range(1, 11))))
+
+    assert dict(verdict.parts)["indice"] is True
+    assert verdict.defects == ()

@@ -191,7 +191,7 @@ def compare(expected: ExpectedStructure, observed: VisualReviewSubmission) -> Vi
     """Cada parte por separado: una que no pasa no impide evaluar las otras (017-C06)."""
     by_part: dict[Part, tuple[VisualDefect, ...]] = {
         "portada": _cover(expected.cover, observed.portada),
-        "indice": (),
+        "indice": _index(expected.index, observed.indice),
         "capitulos": (),
         "ficha": (),
     }
@@ -216,3 +216,34 @@ def _cover(expected: ExpectedCover, observed: CoverObservation) -> tuple[VisualD
         for label, want, seen in fields
         if not texts_match(seen, want)
     )
+
+
+def _index(
+    expected: tuple[int, ...], observed: list[IndexEntryObservation]
+) -> tuple[VisualDefect, ...]:
+    defects: list[VisualDefect] = []
+    if len(observed) != len(expected):
+        defects.append(
+            _render(
+                "indice",
+                f"índice: se esperaban {len(expected)} entradas y se vieron {len(observed)}",
+            )
+        )
+    for position, (chapter, entry) in enumerate(zip(expected, observed, strict=False), start=1):
+        if entry.destination != chapter_destination(chapter):
+            defects.append(
+                _render(
+                    "indice",
+                    f"índice: la entrada {position} debe llevar al capítulo {chapter} y lleva a "
+                    f"{_where(entry.destination)}",
+                )
+            )
+    return tuple(defects)
+
+
+def chapter_destination(number: int) -> str:
+    return f"capitulo-{number}"
+
+
+def _where(destination: str | None) -> str:
+    return destination if destination is not None else "ninguna parte"
