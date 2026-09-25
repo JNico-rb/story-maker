@@ -1076,9 +1076,9 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [ ] 023-C16 · Recorrido real de «mis novelas» (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-25: frontend (pnpm.cmd lint, pnpm.cmd typecheck, pnpm.cmd test 117 passed, pnpm.cmd build) verdes.
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 024 — entrevista
 
@@ -1116,9 +1116,9 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [ ] 024-C20 · Recorrido real de la entrevista (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 025 — progreso
 
@@ -1148,9 +1148,9 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [ ] 025-C11 · Recorrido real de una ejecución hasta publicar o fallar (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 026 — lectura
 
