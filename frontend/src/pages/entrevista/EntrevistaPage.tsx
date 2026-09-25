@@ -204,6 +204,166 @@ function BriefPanel({ brief }: { brief: BriefOut }) {
   );
 }
 
+// Un hecho pendiente de decisión ofrece aceptar o rechazar (024-C07); decidido, deja de
+// ofrecerlas (024-C08). Marcar obligatorio no se oculta según el estado de aceptación: el
+// servidor es quien decide si aplica (024-C09, 024-I1).
+function FactRow({
+  novelId,
+  fact,
+  onBrief,
+  readOnly,
+}: {
+  novelId: string;
+  fact: VerifiedFact;
+  onBrief: (updater: (brief: BriefOut) => BriefOut) => void;
+  readOnly: boolean;
+}) {
+  const [error, setError] = useState<string>();
+
+  async function patch(body: { accepted?: boolean; mandatory?: boolean }) {
+    const response = await apiFetch(`/api/novels/${novelId}/brief/extracted-facts/${fact.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (response.ok) {
+      const brief = (await response.json()) as BriefOut;
+      onBrief(() => brief);
+      setError(undefined);
+      return;
+    }
+    setError(await errorMessage(response));
+  }
+
+  return (
+    <li className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2">
+      <span>
+        {fact.subject} · {fact.attribute}: {fact.value}
+      </span>
+      {fact.accepted === null && !readOnly && (
+        <>
+          <button type="button" onClick={() => void patch({ accepted: true })} className="text-sm underline">
+            Aceptar
+          </button>
+          <button type="button" onClick={() => void patch({ accepted: false })} className="text-sm underline">
+            Rechazar
+          </button>
+        </>
+      )}
+      {fact.accepted === true && <span className="text-sm text-secondary/70">Aceptado</span>}
+      {fact.accepted === false && <span className="text-sm text-secondary/70">Rechazado</span>}
+      <label className="flex items-center gap-1 text-sm">
+        <input
+          type="checkbox"
+          aria-label="Obligatorio"
+          checked={fact.mandatory}
+          disabled={readOnly}
+          onChange={() => void patch({ mandatory: !fact.mandatory })}
+        />
+        Obligatorio
+      </label>
+      {error && (
+        <p role="alert" className="w-full text-sm">
+          {error}
+        </p>
+      )}
+    </li>
+  );
+}
+
+function FreeTextForm({
+  novelId,
+  onFacts,
+  readOnly,
+}: {
+  novelId: string;
+  onFacts: (facts: VerifiedFact[]) => void;
+  readOnly: boolean;
+}) {
+  const [content, setContent] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string>();
+
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    if (content.trim() === "" || submitting) return;
+    setSubmitting(true);
+    setError(undefined);
+    const response = await apiFetch(`/api/novels/${novelId}/free-texts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content }),
+    });
+    if (response.status === 201) {
+      const created = (await response.json()) as { free_text_id: number; verified_facts: VerifiedFact[] };
+      onFacts(created.verified_facts);
+      setContent("");
+      setSubmitting(false);
+      return;
+    }
+    setSubmitting(false);
+    setError(await errorMessage(response));
+  }
+
+  if (readOnly) return null;
+
+  return (
+    <form onSubmit={(event) => void handleSubmit(event)} className="flex flex-wrap items-end gap-3">
+      <label htmlFor="entrevista-texto-libre" className="sr-only">
+        Texto libre
+      </label>
+      <textarea
+        id="entrevista-texto-libre"
+        aria-label="Texto libre"
+        value={content}
+        onChange={(event) => setContent(event.target.value)}
+        className="min-w-64 flex-1 rounded border border-secondary/30 p-2"
+      />
+      <button
+        type="submit"
+        disabled={content.trim() === "" || submitting}
+        className="rounded bg-primary px-4 py-2 text-sm font-semibold text-secondary disabled:opacity-50"
+      >
+        Enviar texto
+      </button>
+      {error && (
+        <p role="alert" className="w-full text-sm">
+          {error}
+        </p>
+      )}
+    </form>
+  );
+}
+
+function FreeTextAndFacts({
+  novelId,
+  brief,
+  updateBrief,
+  readOnly,
+}: {
+  novelId: string;
+  brief: BriefOut;
+  updateBrief: (updater: (brief: BriefOut) => BriefOut) => void;
+  readOnly: boolean;
+}) {
+  return (
+    <section aria-label="Texto libre y hechos" className="mb-10">
+      <FreeTextForm
+        novelId={novelId}
+        readOnly={readOnly}
+        onFacts={(facts) => updateBrief((current) => ({ ...current, verified_facts: [...current.verified_facts, ...facts] }))}
+      />
+      {brief.verified_facts.length > 0 && (
+        <ul aria-label="Hechos" className="mt-4 divide-y divide-secondary/10">
+          {brief.verified_facts.map((fact) => (
+            <FactRow key={fact.id} novelId={novelId} fact={fact} onBrief={updateBrief} readOnly={readOnly} />
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
 export function EntrevistaPage() {
   const { novelId = "" } = useParams();
   const [messagesLoad, addMessages] = useJson<InterviewMessage[]>(`/api/novels/${novelId}/interview/messages`);
@@ -231,6 +391,7 @@ export function EntrevistaPage() {
     <main className="mx-auto max-w-3xl px-6 py-10">
       <h2 className="mb-6 text-xl font-semibold text-secondary">Entrevista</h2>
       <BriefPanel brief={brief} />
+      <FreeTextAndFacts novelId={novelId} brief={brief} updateBrief={updateBrief} readOnly={readOnly} />
       <Chat
         novelId={novelId}
         messages={messagesLoad.data}

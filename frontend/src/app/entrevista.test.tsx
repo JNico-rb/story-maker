@@ -192,3 +192,124 @@ describe("024 entrevista: panel del brief", () => {
     expect(within(panel).getByText(/3\/5/)).toBeInTheDocument();
   });
 });
+
+function verifiedFact(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 1,
+    subject: "Marta",
+    attribute: "age",
+    value: "40",
+    quote: "cumple 40",
+    accepted: null,
+    mandatory: false,
+    ...overrides,
+  };
+}
+
+describe("024 entrevista: texto libre y hechos extraídos", () => {
+  it("024-C07: sending a free text shows its verified facts, and clears the field", async () => {
+    const user = userEvent.setup();
+    fakeApi({
+      [`POST ${BASE}/free-texts`]: () =>
+        json(201, { free_text_id: 1, verified_facts: [verifiedFact()] }),
+    });
+    renderEntrevista();
+    await screen.findByRole("form", { name: "Entrevista" });
+
+    await user.type(screen.getByLabelText("Texto libre"), "Cumple 40 años");
+    await user.click(screen.getByRole("button", { name: "Enviar texto" }));
+
+    const facts = await screen.findByRole("list", { name: "Hechos" });
+    expect(within(facts).getByText(/Marta/)).toBeInTheDocument();
+    expect(within(facts).getByText(/age/)).toBeInTheDocument();
+    expect(within(facts).getByText(/40/)).toBeInTheDocument();
+    expect(screen.getByLabelText("Texto libre")).toHaveValue("");
+  });
+
+  it("024-C08: accepting and rejecting a fact updates it without a full reload", async () => {
+    const user = userEvent.setup();
+    fakeApi({
+      [`POST ${BASE}/free-texts`]: () =>
+        json(201, {
+          free_text_id: 1,
+          verified_facts: [verifiedFact({ id: 1 }), verifiedFact({ id: 2, attribute: "name", value: "Marta" })],
+        }),
+      [`PATCH ${BASE}/brief/extracted-facts/1`]: () =>
+        json(200, emptyBrief({ verified_facts: [verifiedFact({ id: 1, accepted: true }), verifiedFact({ id: 2, attribute: "name", value: "Marta" })] })),
+      [`PATCH ${BASE}/brief/extracted-facts/2`]: () =>
+        json(200, emptyBrief({ verified_facts: [verifiedFact({ id: 1, accepted: true }), verifiedFact({ id: 2, attribute: "name", value: "Marta", accepted: false })] })),
+    });
+    renderEntrevista();
+    await screen.findByRole("form", { name: "Entrevista" });
+    await user.type(screen.getByLabelText("Texto libre"), "Cumple 40 y se llama Marta");
+    await user.click(screen.getByRole("button", { name: "Enviar texto" }));
+    const facts = await screen.findByRole("list", { name: "Hechos" });
+    const [first, second] = within(facts).getAllByRole("listitem");
+    if (!first || !second) throw new Error("no se encontraron los dos hechos");
+
+    await user.click(within(first).getByRole("button", { name: "Aceptar" }));
+    expect(await within(first).findByText("Aceptado")).toBeInTheDocument();
+    expect(within(first).queryByRole("button", { name: "Aceptar" })).not.toBeInTheDocument();
+
+    await user.click(within(second).getByRole("button", { name: "Rechazar" }));
+    expect(await within(second).findByText("Rechazado")).toBeInTheDocument();
+    expect(within(second).queryByRole("button", { name: "Rechazar" })).not.toBeInTheDocument();
+  });
+
+  it("024-C09: marking an accepted fact mandatory works; on an unaccepted one it's rejected", async () => {
+    const user = userEvent.setup();
+    fakeApi({
+      [`GET ${BASE}/brief`]: () =>
+        json(
+          200,
+          emptyBrief({
+            verified_facts: [
+              verifiedFact({ id: 1, accepted: true }),
+              verifiedFact({ id: 2, attribute: "name", value: "Marta" }),
+            ],
+          }),
+        ),
+      [`PATCH ${BASE}/brief/extracted-facts/1`]: () =>
+        json(200, emptyBrief({ verified_facts: [verifiedFact({ id: 1, accepted: true, mandatory: true }), verifiedFact({ id: 2, attribute: "name", value: "Marta" })] })),
+      [`PATCH ${BASE}/brief/extracted-facts/2`]: () =>
+        json(422, { detail: [{ loc: ["body", "mandatory"], msg: "un hecho sin aceptar no puede ser obligatorio", type: "value_error" }] }),
+    });
+    renderEntrevista();
+    const facts = await screen.findByRole("list", { name: "Hechos" });
+    const [first, second] = within(facts).getAllByRole("listitem");
+    if (!first || !second) throw new Error("no se encontraron los dos hechos");
+
+    await user.click(within(first).getByLabelText("Obligatorio"));
+    expect(await within(first).findByLabelText("Obligatorio")).toBeChecked();
+
+    await user.click(within(second).getByLabelText("Obligatorio"));
+    expect(await within(second).findByRole("alert")).toHaveTextContent(/no puede ser obligatorio/i);
+  });
+
+  it("024-C10: a failed free text shows the reason, keeps the text, adds no fact", async () => {
+    const user = userEvent.setup();
+    fakeApi({
+      [`POST ${BASE}/free-texts`]: () => new Response(null, { status: 503 }),
+    });
+    renderEntrevista();
+    await screen.findByRole("form", { name: "Entrevista" });
+
+    await user.type(screen.getByLabelText("Texto libre"), "Cumple 40 años");
+    await user.click(screen.getByRole("button", { name: "Enviar texto" }));
+
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
+    expect(screen.getByLabelText("Texto libre")).toHaveValue("Cumple 40 años");
+    expect(screen.queryByRole("list", { name: "Hechos" })).not.toBeInTheDocument();
+  });
+
+  it("024-C11: an empty or blank free text is never sent", async () => {
+    const user = userEvent.setup();
+    fakeApi({});
+    renderEntrevista();
+    await screen.findByRole("form", { name: "Entrevista" });
+
+    expect(screen.getByRole("button", { name: "Enviar texto" })).toBeDisabled();
+    await user.type(screen.getByLabelText("Texto libre"), "   ");
+    expect(screen.getByRole("button", { name: "Enviar texto" })).toBeDisabled();
+  });
+});

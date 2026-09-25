@@ -1097,11 +1097,11 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 024-C04 · Rechazo de un mensaje vacío antes de enviarlo
 - [x] 024-C05 · El panel muestra lo fijado, lo que falta y las contradicciones
 - [x] 024-C06 · Cota de obligatorios
-- [ ] 024-C07 · Enviar un texto libre y ver sus hechos verificados
-- [ ] 024-C08 · Aceptar y rechazar un hecho
-- [ ] 024-C09 · Marcar un hecho obligatorio
-- [ ] 024-C10 · Fallo al enviar un texto libre
-- [ ] 024-C11 · Texto libre vacío no se envía
+- [x] 024-C07 · Enviar un texto libre y ver sus hechos verificados
+- [x] 024-C08 · Aceptar y rechazar un hecho
+- [x] 024-C09 · Marcar un hecho obligatorio
+- [x] 024-C10 · Fallo al enviar un texto libre
+- [x] 024-C11 · Texto libre vacío no se envía
 - [ ] 024-C12 · Ver la lista prohibida de nivel `novel`
 - [ ] 024-C13 · Añadir una palabra o un tema
 - [ ] 024-C14 · Alta rechazada o repetida
