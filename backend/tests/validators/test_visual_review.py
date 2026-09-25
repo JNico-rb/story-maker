@@ -25,6 +25,7 @@ from story_maker.validators.visual_review import (
     VisualVerdict,
     compare,
     sentence_in,
+    submit_visual_review_tool,
     texts_match,
 )
 
@@ -248,3 +249,39 @@ def test_an_empty_or_error_view_is_a_render_failure_in_the_four_parts() -> None:
     assert verdict.parts == tuple((part, False) for part in PARTS)
     assert {d.part for d in verdict.defects} == set(PARTS)
     assert {(d.kind, d.chapter) for d in verdict.defects} == {("render", None)}
+
+
+# --- 017-I1 y 017-I4, sobre las entregas de 017-C04 a 017-C13 -------------------------------------
+
+DELIVERIES = [
+    faithful(),
+    with_cover(dedication=""),
+    with_cover(title="Otra novela", recipient="Lucía"),
+    with_index(to(1, 3, 2, 4, 5, 6, 7, 8, 9, 10)),
+    with_index(to(*range(1, 12))),
+    with_chapters(_retitle_3),
+    with_chapters(_no_sentence_8),
+    with_entity("Toby", [*to(3, 5, 7), None]),
+    with_entity("Nala", to(2)),
+    EMPTY,
+]
+
+
+@pytest.mark.parametrize("delivery", DELIVERIES)
+def test_the_same_expected_structure_and_delivery_always_give_the_same_result_in_the_same_order(
+    delivery: dict[str, Any],
+) -> None:
+    first = verdict_of(delivery)
+
+    assert all(verdict_of(delivery) == first for _ in range(5))
+
+
+@pytest.mark.parametrize("verdict", ["passed", "verdict", "ok"])
+def test_the_delivery_has_no_verdict_field(verdict: str) -> None:
+    submit = submit_visual_review_tool()
+
+    value, errors = submit.validate({**faithful(), verdict: True})
+
+    assert value is None
+    assert errors
+    assert verdict not in VisualReviewSubmission.model_fields
