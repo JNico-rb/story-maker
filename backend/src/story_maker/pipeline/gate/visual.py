@@ -92,8 +92,12 @@ class VisualReviewStage:
 
 
 def _outcome(verdict: VisualVerdict) -> VisualReviewOutcome:
-    """Lo que la etapa entrega al gate: pasa, o un fallo de datos atribuido."""
+    """Lo que la etapa entrega al gate: pasa; fallo de datos atribuido; o no atribuible, si una
+    entidad sin capítulo no sale en ninguno (solo el cliente puede arreglarlo, §9.4)."""
     defects = tuple(_gate_defect(d) for d in verdict.defects)
+    witnesses = [d.message for d in verdict.defects if d.kind == "datos" and d.chapter is None]
+    if witnesses:
+        return VisualReviewOutcome(defects, "unattributable_defect", "; ".join(witnesses))
     return VisualReviewOutcome(defects=defects, reregister=bool(defects))
 
 
