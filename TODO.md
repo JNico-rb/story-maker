@@ -904,9 +904,9 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 018-I2 · Los linters son deterministas
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-25: `uv run python -m pytest -q` 1728 passed; `uv run python -m ruff check .` sin avisos; `uv run python -m ruff format --check .` 422 ficheros formateados; `uv run python -m mypy src` sin incidencias (170 ficheros)
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 019 — edicion-manual
 
@@ -960,9 +960,9 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [ ] 019-C29 · Edición manual real con Lean (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 020 — evals
 
