@@ -615,7 +615,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 011-I13 · La skill `personalizacion-natural` (entrega tardía, carril W) — `backend/harness_workspace/.claude/skills/personalizacion-natural/SKILL.md`
 - [x] 011-I14 · Los prompts del writer (`write`, `rewrite`) y del editor (entrega tardía, carril W) — `backend/harness_workspace/prompts/writer.md`, `editor.md`
 - [ ] 011-C32 · Una producción real con el login de Claude Code llega al gate y se reanuda (D, al final)
-- [ ] 011-bug-C27b · Cada campo de un defecto sin resolver del informe es texto, número o booleano, nunca un objeto (carril O; la pantalla de 025 pintaba «[object Object]»)
+- [x] 011-bug-C27b · Cada campo de un defecto sin resolver del informe es texto, número o booleano, nunca un objeto (carril O; la pantalla de 025 pintaba «[object Object]»)
 
 ### Closing
 - [x] Full suite green, type checks clean — verificador 2026-09-24: pytest 1342 passed, ruff check clean, ruff format clean, mypy 128 files clean
