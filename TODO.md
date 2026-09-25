@@ -61,7 +61,12 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 | Q | 017 (revisión visual en el gate). Toca `pipeline/gate/`, `composition.py` (la etapa 3), un módulo propio del revisor | 012, 013 | `../sm-q` | `carril-q` | en curso |
 | C | 029 sin recortes: seguir la entrevista guardada, `change` por la CLI (C02–C04, C09–C14, I1–I3). Toca solo los comandos `interview` y `change` de `cli.py` y sus pruebas | 008, 014 | `../sm-c` | `carril-c` | en curso |
 | I | invariantes T recortadas de 010 (I1, I2), 011 (I1, I5, I7, I9–I11) y 014 (I9, I12): pruebas; código solo si una invariante no se cumple | 010, 011, 014 | `../sm-i2` | `carril-i2` | en curso |
-| Z | errores de la tanda D: `nombres-exactos` marca «Cómo» como variante de «Cobo»; `runs.reason_detail` repite el comentario del juez; 020-C18 (desde `carril-u`) | 012, 020 | `../sm-z` | `carril-z` | en curso |
+| Z | errores de la tanda D: `nombres-exactos` marca «Cómo» como variante de «Cobo»; `runs.reason_detail` repite el comentario del juez; 020-C18 (desde `carril-u`) | 012, 020 | `../sm-z` | `carril-z` | cerrado e integrado |
+| K2 | 012 sin recortes: C6, C8, C12. Toca `pipeline/gate/` y `validators/novel.py` | 012 | `../sm-k2` | `carril-k2` | verificado |
+| X2 | 031-C06: `example` y `evals run` sirven la vista en `STORY_MAKER_BASE_URL`. Toca `cli.py` y `composition.py` | 031, 017 | `../sm-x2` | `carril-x2` | en curso |
+| S | 008-I4 sin recortar: toda ruta de 008 entra en la prueba parametrizada de 002 (401 y 404 de lo ajeno). Pruebas; código solo si una ruta no cumple | 002, 008 | `../sm-s` | `carril-s` | en curso |
+| SEC | 021 (auditoría con el subagente `seguridad`): solo `docs/security-report.md` y la columna «Resultado» de `verification.md` §4.9; los arreglos, a su carril dueño | todo el backend | `../sm-sec` | `carril-sec` | en curso |
+| DOC | README fiel a V2 (flujo web, órdenes nuevas de la CLI, MCP). Solo `README.md` | — | `../sm-doc` | `carril-doc` | en curso |
 
 Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas borradas; los nombres F y G se reusan en la segunda.
 
@@ -444,7 +449,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 008-I1 · Importar y confirmar deciden igual
 - [x] 008-I2 · Las comprobaciones son deterministas y solo dependen del brief, de las tres listas, de la fecha de creación de la novela y de `max_mandat…
 - [x] 008-I3 · Un hecho sin verificar no sale nunca
-- [ ] 008-I4 · Toda ruta de esta spec exige `TokenDeAcceso` (401) y trata como inexistente (404) la novela, el hecho o la entrada prohibida de otro cliente (recortado)
+- [ ] 008-I4 · Toda ruta de esta spec exige `TokenDeAcceso` (401) y trata como inexistente (404) la novela, el hecho o la entrada prohibida de otro cliente (carril S; sin recortar, integrador 2026-09-25: protege la propiedad que audita 021)
 - [x] 008-I5 · Un turno, una extracción, una confirmación y una importación se guardan enteros o no se guardan
 - [ ] 008-C32 · Entrevista real con el login de Claude Code (D, al final)
 - [ ] 008-C33 · Extracción real de una carta con inyección (D, al final)
