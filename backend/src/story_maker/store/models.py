@@ -175,6 +175,9 @@ class ChangeRequest(Base):
     status: Mapped[str]
     run_id: Mapped[int | None] = mapped_column(ForeignKey("runs.id"), unique=True)
     created_at: Mapped[dt.datetime]
+    # La traza `propuesta-de-cambio` que la produjo: enlaza las `SesionDeRol` de la propuesta,
+    # que corre antes de que exista la ejecución (§18).
+    proposal_trace: Mapped[str | None]
 
 
 class ManualEdit(Base):

@@ -699,7 +699,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas; los briefs 
 - [x] 014-C16 · La reescritura dirigida del gate puede tocar un capítulo no afectado
 - [x] 014-C17 · Si la ejecución de cambio falla, la solicitud queda `rejected` y la base intacta
 - [x] 014-C18 · Reanudar una ejecución de cambio revalida la base y sigue por el siguiente afectado
-- [ ] 014-C19 · Cada propuesta y cada ejecución de cambio dejan su traza
+- [x] 014-C19 · Cada propuesta y cada ejecución de cambio dejan su traza
 - [x] 014-I1 · El código calcula los capítulos afectados desde la versión base
 - [x] 014-I2 · Receptor único
 - [x] 014-I3 · Ningún rol escribe canon

@@ -102,7 +102,7 @@ async def request_change(
             text=request,
         )
         if decision.decision == "deny":
-            _save_rejected(session_factory, novel_id, base.id, selection, request, now)
+            _save_rejected(session_factory, novel_id, base.id, selection, request, trace_key, now)
             detail = {"reason": BANNED_TERMS, **(decision.detail or [{}])[0]}
             detail.pop("location", None)
             return RequestFailure(422, detail)
@@ -140,7 +140,14 @@ async def request_change(
         proposal = found.proposal
         if proposal is None:
             _save_rejected(
-                session_factory, novel_id, base.id, selection, request, now, found.outcomes
+                session_factory,
+                novel_id,
+                base.id,
+                selection,
+                request,
+                trace_key,
+                now,
+                found.outcomes,
             )
             return RequestFailure(422, {"defects": found.defects})
         values = {fact.id: fact.value for fact in bible.facts}
@@ -174,6 +181,7 @@ async def request_change(
             expires_at=expires_at,
             status="proposed",
             created_at=naive(now),
+            proposal_trace=trace_key,
         )
         uow.add(row)
         uow.session.flush()
@@ -270,6 +278,7 @@ def _save_rejected(
     base_id: int,
     selection: FactSelection | FragmentSelection,
     request: str,
+    trace_key: str,
     now: dt.datetime,
     outcomes: Sequence[str] = (),
 ) -> None:
@@ -282,6 +291,7 @@ def _save_rejected(
             request=request,
             status="rejected",
             created_at=naive(now),
+            proposal_trace=trace_key,
         )
         uow.add(row)
         uow.session.flush()
