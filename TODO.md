@@ -895,11 +895,11 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 018-C16 · Capítulo limpio
 - [x] 018-C17 · Texto sin palabras
 - [x] 018-C18 · Corren tras los hooks y antes del editor, que recibe sus avisos
-- [ ] 018-C19 · Una entrega que no pasa los hooks no llega a los linters
-- [ ] 018-C20 · Con solo avisos, el capítulo se acepta
-- [ ] 018-C21 · En una reescritura por otra causa, el writer recibe los avisos
-- [ ] 018-C22 · Con la aceptación: un resultado por linter en SQLite y en el informe
-- [ ] 018-C23 · Tras el commit: un score por linter en Langfuse
+- [x] 018-C19 · Una entrega que no pasa los hooks no llega a los linters
+- [x] 018-C20 · Con solo avisos, el capítulo se acepta
+- [x] 018-C21 · En una reescritura por otra causa, el writer recibe los avisos
+- [x] 018-C22 · Con la aceptación: un resultado por linter en SQLite y en el informe
+- [x] 018-C23 · Tras el commit: un score por linter en Langfuse
 - [x] 018-I1 · Todo aviso es un `Defecto` no bloqueante, sin criterio de rúbrica, con su capítulo y un mensaje que nombra lo detectado y su párrafo (o e…
 - [x] 018-I2 · Los linters son deterministas
 
