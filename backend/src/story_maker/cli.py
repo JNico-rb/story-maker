@@ -60,6 +60,7 @@ from story_maker.policy.real_engine import RealPolicyEngine
 from story_maker.render.pdf import render_pdf
 from story_maker.render.version_view import render_version_view
 from story_maker.render.view_data import load_version_view_data
+from story_maker.reporting.metrics import build_report
 from story_maker.settings import Settings, SettingsError, load_settings, resolve_paths
 from story_maker.store.models import (
     Attempt,
@@ -1514,3 +1515,36 @@ def evals_table_command() -> None:
         typer.echo(table_b)
     finally:
         engine.dispose()
+
+
+report_app = typer.Typer(no_args_is_help=True, add_completion=False)
+app.add_typer(report_app, name="report")
+
+
+@report_app.command(name="metrics")
+def report_metrics_command(
+    out: Annotated[
+        Path | None, typer.Option("--out", help="Ruta del Markdown; por defecto docs/metrics.md.")
+    ] = None,
+) -> None:
+    """Agrega `role_sessions` y `validator_results` en un Markdown determinista, sin red (030)."""
+    try:
+        settings = load_settings()
+    except SettingsError as exc:
+        for error in exc.errors:
+            typer.echo(error)
+        raise typer.Exit(1) from None
+
+    out_path = out if out is not None else settings_module.ROOT / "docs" / "metrics.md"
+
+    engine = make_engine(_db_path(settings.data_dir))
+    try:
+        session_factory = make_session_factory(engine)
+        with session_factory() as session:
+            report = build_report(session)
+    finally:
+        engine.dispose()
+
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(report, encoding="utf-8")
+    typer.echo(str(out_path))
