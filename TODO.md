@@ -939,7 +939,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 019-C19 · Una edición que cambia un hecho nominal se propaga
 - [x] 019-C20 · Las puntuaciones del editor no bloquean en el capítulo editado
 - [x] 019-C21 · Los hechos cambiados inválidos vuelven al editor
-- [ ] 019-C22 · Un validador determinista bloquea en la ejecución
+- [x] 019-C22 · Un validador determinista bloquea en la ejecución
 - [ ] 019-C23 · Un fallo del gate atribuido al capítulo editado rechaza la edición
 - [ ] 019-C24 · Un fallo del gate atribuido solo a otros capítulos
 - [ ] 019-C25 · Un fallo de datos de la ficha en el capítulo editado se vuelve a registrar
