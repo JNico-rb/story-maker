@@ -945,7 +945,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 019-C25 · Un fallo de datos de la ficha en el capítulo editado se vuelve a registrar
 - [x] 019-C26 · Una base obsoleta al arrancar
 - [x] 019-C27 · Reanudar una edición
-- [ ] 019-C28 · Una inyección en el texto editado que el editor obedece (RT16)
+- [x] 019-C28 · Una inyección en el texto editado que el editor obedece (RT16)
 - [ ] 019-I1 · El capítulo editado se publica como lo dejó la persona
 - [ ] 019-I2 · El lint en vivo no escribe nada y es determinista
 - [ ] 019-I3 · Lo que el lint marca como bloqueante es lo que bloquea el guardado
