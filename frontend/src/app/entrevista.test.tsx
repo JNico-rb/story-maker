@@ -313,3 +313,76 @@ describe("024 entrevista: texto libre y hechos extraídos", () => {
     expect(screen.getByRole("button", { name: "Enviar texto" })).toBeDisabled();
   });
 });
+
+function novelBannedTerm(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 1,
+    term: "Cristina",
+    type: "word" as const,
+    level: "novel" as const,
+    keywords: [] as string[],
+    normalized: "cristina",
+    ...overrides,
+  };
+}
+
+describe("024 entrevista: lista prohibida de nivel novel", () => {
+  it("024-C12: shows the banned list, words and topics with their keywords", async () => {
+    fakeApi({
+      [`GET ${BASE}/banned-terms`]: () =>
+        json(200, [
+          novelBannedTerm({ id: 1, term: "Cristina" }),
+          novelBannedTerm({ id: 2, term: "divorcio", type: "topic", keywords: ["separación", "custodia"] }),
+        ]),
+    });
+    renderEntrevista();
+
+    const list = await screen.findByRole("list", { name: "Prohibidas" });
+    expect(within(list).getByText("Cristina")).toBeInTheDocument();
+    expect(within(list).getByText("divorcio")).toBeInTheDocument();
+    expect(within(list).getByText(/separación/)).toBeInTheDocument();
+  });
+
+  it("024-C13: adding a word or a topic shows up in the list right away", async () => {
+    const user = userEvent.setup();
+    fakeApi({
+      [`POST ${BASE}/banned-terms`]: () => json(201, novelBannedTerm({ id: 5, term: "Cristina" })),
+    });
+    renderEntrevista();
+    await screen.findByRole("list", { name: "Prohibidas" });
+
+    await user.type(screen.getByLabelText("Término"), "Cristina");
+    await user.click(screen.getByRole("button", { name: "Añadir" }));
+
+    expect(await screen.findByText("Cristina")).toBeInTheDocument();
+    expect(screen.getByLabelText("Término")).toHaveValue("");
+  });
+
+  it("024-C14: a rejected or repeated entry adds nothing and shows the reason", async () => {
+    const user = userEvent.setup();
+    fakeApi({
+      [`POST ${BASE}/banned-terms`]: () => new Response(null, { status: 409 }),
+    });
+    renderEntrevista();
+    await screen.findByRole("list", { name: "Prohibidas" });
+
+    await user.type(screen.getByLabelText("Término"), "pedro");
+    await user.click(screen.getByRole("button", { name: "Añadir" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/ya está en la lista/i);
+  });
+
+  it("024-C15: deleting an entry, including one the interviewer registered, removes it right away", async () => {
+    const user = userEvent.setup();
+    fakeApi({
+      [`GET ${BASE}/banned-terms`]: () => json(200, [novelBannedTerm({ id: 7, term: "Cristina" })]),
+      [`DELETE ${BASE}/banned-terms/7`]: () => new Response(null, { status: 204 }),
+    });
+    renderEntrevista();
+
+    await screen.findByText("Cristina");
+    await user.click(screen.getByRole("button", { name: "Borrar Cristina" }));
+
+    await vi.waitFor(() => expect(screen.queryByText("Cristina")).not.toBeInTheDocument());
+  });
+});

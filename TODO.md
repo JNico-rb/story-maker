@@ -1102,10 +1102,10 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 024-C09 · Marcar un hecho obligatorio
 - [x] 024-C10 · Fallo al enviar un texto libre
 - [x] 024-C11 · Texto libre vacío no se envía
-- [ ] 024-C12 · Ver la lista prohibida de nivel `novel`
-- [ ] 024-C13 · Añadir una palabra o un tema
-- [ ] 024-C14 · Alta rechazada o repetida
-- [ ] 024-C15 · Borrar una entrada prohibida
+- [x] 024-C12 · Ver la lista prohibida de nivel `novel`
+- [x] 024-C13 · Añadir una palabra o un tema
+- [x] 024-C14 · Alta rechazada o repetida
+- [x] 024-C15 · Borrar una entrada prohibida
 - [ ] 024-C16 · Confirmar disponible solo sin problemas
 - [ ] 024-C17 · Confirmar un brief válido lleva a la pantalla que sigue
 - [ ] 024-C18 · Confirmación rechazada
