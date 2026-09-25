@@ -15,12 +15,14 @@ from tests.pipeline.conftest import (
     review,
     writer_script,
 )
-from tests.pipeline.gate.conftest import GateKit, evaluation, judge_script
+from tests.pipeline.gate.conftest import GateKit, evaluation, gate_passes, judge_script
 from tests.pipeline.manual_edit.conftest import N, chapter_text, clean_text
 
 from story_maker.agents.fake import FakeAgent
+from story_maker.formal.defects import Defect
 from story_maker.lint.chapter import LINTERS
 from story_maker.observability.null import NullObservability
+from story_maker.pipeline.gate.phase import VisualReviewOutcome
 from story_maker.pipeline.manual_edit.save import save_edit
 from story_maker.pipeline.report import build_report
 from story_maker.pipeline.worker import Worker
@@ -292,3 +294,29 @@ async def test_a_gate_failure_attributed_only_to_another_chapter_rewrites_only_t
     v2 = published(session_factory, n, 2)
     assert chapter_of(session_factory, v2.id, 3).text == text
     assert chapter_of(session_factory, v2.id, 7).title == "Reescrito"
+
+
+async def test_a_data_failure_of_the_sheet_in_the_edited_chapter_registers_it_again_without_writer(
+    n: N, fake: FakeAgent, worker: Worker, kit: GateKit, session_factory: sessionmaker[Session]
+) -> None:
+    text = rewritten_text(session_factory, n)
+    run_id = queue_edit(session_factory, n, text)
+    kit.visual.outcomes.append(
+        VisualReviewOutcome(
+            defects=(Defect("revision-visual", "ficha", True, 3, "la ficha no enlaza a Rosa"),)
+        )
+    )
+    fake.script("editor", None, editor_script(edited_review(session_factory, n)))
+    fake.script("judge", None, judge_script(evaluation(4)))
+    fake.script("editor", None, editor_script(edited_review(session_factory, n)))
+    fake.script("judge", None, judge_script(evaluation(4)))
+
+    await worker.run_next()
+
+    run = run_of(session_factory, run_id)
+    assert run.status == "published", run.reason_detail
+    assert roles(fake) == [("editor", 3), ("judge", None), ("editor", 3), ("judge", None)]
+    assert "la ficha no enlaza a Rosa" in fake.sessions[2].request.message
+    assert gate_passes(session_factory, run_id) == [(1, "rewrite"), (2, "accept")]
+    assert chapter_of(session_factory, published(session_factory, n, 2).id, 3).text == text
+    assert edit_of(session_factory, run_id).status == "applied"

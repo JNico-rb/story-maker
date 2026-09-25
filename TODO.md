@@ -942,7 +942,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 019-C22 · Un validador determinista bloquea en la ejecución
 - [x] 019-C23 · Un fallo del gate atribuido al capítulo editado rechaza la edición
 - [x] 019-C24 · Un fallo del gate atribuido solo a otros capítulos
-- [ ] 019-C25 · Un fallo de datos de la ficha en el capítulo editado se vuelve a registrar
+- [x] 019-C25 · Un fallo de datos de la ficha en el capítulo editado se vuelve a registrar
 - [ ] 019-C26 · Una base obsoleta al arrancar
 - [ ] 019-C27 · Reanudar una edición
 - [ ] 019-C28 · Una inyección en el texto editado que el editor obedece (RT16)
