@@ -1091,10 +1091,10 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 
 ### Steps
 - [ ] 024-C21 · Escribir la novela desde el brief confirmado
-- [ ] 024-C01 · Historial vacío al entrar en una entrevista nueva
-- [ ] 024-C02 · Enviar un mensaje añade la respuesta del entrevistador
-- [ ] 024-C03 · Fallo al enviar un mensaje
-- [ ] 024-C04 · Rechazo de un mensaje vacío antes de enviarlo
+- [x] 024-C01 · Historial vacío al entrar en una entrevista nueva
+- [x] 024-C02 · Enviar un mensaje añade la respuesta del entrevistador
+- [x] 024-C03 · Fallo al enviar un mensaje
+- [x] 024-C04 · Rechazo de un mensaje vacío antes de enviarlo
 - [ ] 024-C05 · El panel muestra lo fijado, lo que falta y las contradicciones
 - [ ] 024-C06 · Cota de obligatorios
 - [ ] 024-C07 · Enviar un texto libre y ver sus hechos verificados
