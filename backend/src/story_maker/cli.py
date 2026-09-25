@@ -6,8 +6,10 @@ import asyncio
 import json
 import os
 import shutil
+import socket
 import subprocess
 import sys
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from importlib.metadata import version
 from pathlib import Path
@@ -33,6 +35,7 @@ from story_maker.composition import (
     Mount,
     build_app,
     build_mount,
+    create_mounted_app,
     real_adapters,
     workspace,
 )
@@ -219,14 +222,17 @@ def check_env_command() -> None:
     raise typer.Exit(1 if _has_failed(lines) else 0)
 
 
+def _base_url_address(settings: Settings) -> tuple[str, int]:
+    parsed = urlparse(settings.base_url)
+    # `settings.base_url` ya pasó la regex de C4 (http://host:puerto): los dos siempre están.
+    return cast(str, parsed.hostname), cast(int, parsed.port)
+
+
 def _build_server(
     settings: Settings, observability: ObservabilityAdapter, adapters: Adapters | None = None
 ) -> uvicorn.Server:
     """El servidor con el montaje de 031; `adapters` solo lo pasan las pruebas, con sus dobles."""
-    parsed = urlparse(settings.base_url)
-    # `settings.base_url` ya pasó la regex de C4 (http://host:puerto): los dos siempre están.
-    host = cast(str, parsed.hostname)
-    port = cast(int, parsed.port)
+    host, port = _base_url_address(settings)
     app_config = load_config(settings.config_path)
     fastapi_app = build_app(
         settings, app_config, observability, adapters or real_adapters(settings, app_config)
@@ -950,9 +956,19 @@ def evals_run_command(
         raise typer.Exit(1)
 
     config, observability, user_id = _brief_services(settings, email)
+    listener = _bind_base_url(settings)
     mount = build_mount(settings, config, observability, real_adapters(settings, config))
     try:
-        launches, defects = asyncio.run(_run_evals(mount, config, observability, user_id))
+        launches, defects = asyncio.run(
+            _serving_view(
+                settings,
+                config,
+                observability,
+                mount,
+                listener,
+                lambda: _run_evals(mount, config, observability, user_id),
+            )
+        )
         with mount.session_factory() as session:
             for launch in launches:
                 status = session.get_one(Run, launch.run_id).status
@@ -960,6 +976,7 @@ def evals_run_command(
                     f"{launch.slug}: novela {launch.novel_id}, ejecución {launch.run_id} ({status})"
                 )
     finally:
+        listener.close()
         mount.engine.dispose()
         observability.flush()
     for slug, defect in defects.items():
@@ -1117,6 +1134,48 @@ def _existing_eval_launch(
         return _EvalLaunch(slug, novel.id, run.id)
 
 
+def _bind_base_url(settings: Settings) -> socket.socket:
+    """El puerto de `STORY_MAKER_BASE_URL`, tomado antes de crear nada; si no se puede (p. ej. un
+    `serve` en marcha), código 1 y un mensaje que lo nombra (031-C06). Sin `SO_REUSEADDR`, que
+    en Windows dejaría compartir el puerto de otro servidor."""
+    host, port = _base_url_address(settings)
+    try:
+        return socket.create_server((host, port))
+    except OSError as exc:
+        typer.echo(
+            f"no se puede servir la vista en el puerto {port} de STORY_MAKER_BASE_URL "
+            f"({settings.base_url}): {exc}; ¿hay un `serve` en marcha?"
+        )
+        raise typer.Exit(1) from None
+
+
+async def _serving_view[T](
+    settings: Settings,
+    config: Config,
+    telemetry: ObservabilityPort,
+    mount: Mount,
+    listener: socket.socket,
+    work: Callable[[], Awaitable[T]],
+) -> T:
+    """`work` con la API del mismo montaje servida en `listener`, para que la etapa 3 del gate
+    navegue la vista (017-C02). El servidor no trae worker: solo toma la cola el del montaje;
+    al terminar, se para (031-C06)."""
+    fastapi_app = create_mounted_app(settings, config, telemetry, mount)
+    server = uvicorn.Server(
+        uvicorn.Config(fastapi_app, workers=1, log_level="warning", lifespan="off")
+    )
+    serving = asyncio.create_task(server.serve(sockets=[listener]))
+    try:
+        while not server.started and not serving.done():
+            await asyncio.sleep(0.01)
+        if not server.started:
+            raise RuntimeError("el servidor de la vista no arrancó")
+        return await work()
+    finally:
+        server.should_exit = True
+        await asyncio.gather(serving, return_exceptions=True)
+
+
 async def _drain_queue(mount: Mount) -> None:
     """El worker del montaje toma la cola hasta vaciarla, sin atajos (020-I3)."""
     while await mount.worker.run_next() is not None:
@@ -1160,9 +1219,19 @@ def example_command(
 
     config, observability, user_id = _brief_services(settings, email)
     target = out or settings_module.ROOT / EXAMPLE_PDF
+    listener = _bind_base_url(settings)
     mount = build_mount(settings, config, observability, real_adapters(settings, config))
     try:
-        launch = asyncio.run(_example(mount, config, observability, user_id, brief))
+        launch = asyncio.run(
+            _serving_view(
+                settings,
+                config,
+                observability,
+                mount,
+                listener,
+                lambda: _example(mount, config, observability, user_id, brief),
+            )
+        )
         if isinstance(launch, str):
             typer.echo(f"{brief}: {launch}")
             raise typer.Exit(1)
@@ -1182,6 +1251,7 @@ def example_command(
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(version.pdf_path, target)
     finally:
+        listener.close()
         mount.engine.dispose()
         observability.flush()
     typer.echo(f"novela {launch.novel_id}, ejecución {launch.run_id}: {target}")

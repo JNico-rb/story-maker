@@ -1323,7 +1323,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 031-C02 · Arrancar el servidor pone el worker a tomar la cola
 - [x] 031-C03 · Parar el servidor apaga el worker sin perder nada
 - [x] 031-I2 · Ninguna prueba de esta spec llama a un modelo, a Langfuse ni a GitHub
-- [ ] 031-C06 · `example` y `evals run` sirven la vista mientras procesan la cola (carril X2; sin él, la etapa 3 de 017 no publica)
+- [x] 031-C06 · `example` y `evals run` sirven la vista mientras procesan la cola (carril X2; sin él, la etapa 3 de 017 no publica)
 - [ ] 031-I1 · El montaje es uno (lo lee el `verificador`) (recortado)
 
 ### Closing
