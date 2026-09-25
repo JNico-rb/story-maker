@@ -1,5 +1,6 @@
 import { createBrowserRouter, type RouteObject } from "react-router";
 
+import { ChapterEditorPage } from "../pages/chapter-editor";
 import { LoginPage } from "../pages/login";
 import { NovelsPage } from "../pages/novels";
 import { ReadingPage } from "../pages/reading";
@@ -11,6 +12,7 @@ import { RequireSession } from "./RequireSession";
 const protectedScreens: RouteObject[] = [
   { path: "/", element: <NovelsPage /> },
   { path: "/novelas/:novelId/lectura", element: <ReadingPage /> },
+  { path: "/novelas/:novelId/versiones/:version/capitulos/:chapterNumber/editar", element: <ChapterEditorPage /> },
 ];
 
 export function buildRoutes(extra: RouteObject[] = []): RouteObject[] {
