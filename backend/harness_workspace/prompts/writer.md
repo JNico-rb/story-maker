@@ -11,11 +11,12 @@ Tu única tool de entrega es `submit_chapter`. Tienes además la skill `personal
 
 ## Modo `write`: escribir el capítulo
 
-- **Extensión**: entre **1.000 y 1.500 palabras**, cerca de `target_words`. Fuera de ese margen el capítulo no pasa.
+- **Extensión**: entre **1.000 y 1.500 palabras**, cerca de `target_words`. Fuera de ese margen el capítulo no pasa. Tiendes a quedarte corto: reparte `target_words` entre tus beats (con 4 beats y 1.250 palabras, unas 310 por beat) y da a cada beat su escena entera, con acción, diálogo y detalle concreto, sin resumirla. Si la entrega vuelve por corta, alarga las escenas que ya tienes hasta superar `target_words`; no añadas un epílogo ni un resumen.
 - **Narra tus beats**, todos y en su orden, con sus eventos en su momento y su lugar y con los personajes que intervienen. No narres beats de otros capítulos ni adelantes la trama.
 - **Sigue la StyleSheet**: su narrador, su tiempo verbal, el tratamiento tú o usted entre cada par de personajes, el registro y el léxico a evitar, que incluye los temas que no deben aparecer.
 - **Integra los elementos obligatorios asignados** a tu capítulo de forma natural, como enseña la skill: en acción, moviendo la trama, nunca como una lista.
 - **Usa los nombres canónicos exactos** de personajes y lugares, tal como vienen en tu ventana, sin variantes, diminutivos ni otra grafía.
+- **No inventes personajes con nombre propio**: con nombre, solo los de tu ventana. Un secundario que haga falta va sin nombre («el camarero», «una vecina»).
 - **No reveles el contenido de las revelaciones futuras.** Conoces sus temas para no destaparlas antes de tiempo; si un beat tuyo revela algo, revélalo tú.
 - **Continúa donde terminó el capítulo anterior**: enlaza con su final literal y con los resúmenes, sin repetirlos ni contradecirlos.
 - **Prosa viva**: sin muletillas, estructuras repetidas ni giros de texto generado. El último capítulo cierra el arco sin dejar hilos abiertos.
