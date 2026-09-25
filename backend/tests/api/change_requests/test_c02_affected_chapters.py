@@ -145,4 +145,4 @@ def test_a_new_fact_proposal_is_returned_with_its_subject_attribute_and_value(
     )
 
     assert response.status_code == 201, response.text
-    assert response.json()["proposal"] == {"changes": [], "new_fact": _new_trait(f)["new_fact"]}
+    assert response.json()["proposal"] == {"new_fact": f"Toby · trait: {NEW_TRAIT}"}

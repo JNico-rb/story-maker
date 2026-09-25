@@ -32,10 +32,7 @@ def test_the_response_carries_the_proposal_with_the_old_value_from_v1_the_affect
     body = _ask(client, f, fake)
 
     assert isinstance(body["id"], int)
-    assert body["proposal"] == {
-        "changes": [{"fact_id": f.toby_name_fact, "old_value": "Toby", "new_value": "Nala"}],
-        "new_fact": None,
-    }
+    assert body["proposal"] == {"fact": "Toby · name", "old_value": "Toby", "new_value": "Nala"}
     assert body["affected_chapters"] == [2, 5, 7]
     assert isinstance(body["code"], str)
     assert body["code"]
@@ -59,7 +56,9 @@ def test_the_request_stays_proposed_on_v1_expiring_after_the_confirmation_minute
         assert row.code_hash is not None
         assert row.code_hash != body["code"]
         assert body["code"] not in row.code_hash
-        assert dt.datetime.fromisoformat(str(body["expires_at"])) == row.expires_at
+        assert dt.datetime.fromisoformat(str(body["expires_at"])) == row.expires_at.replace(
+            tzinfo=dt.UTC
+        )
 
 
 def test_one_planner_session_in_change_mode_without_run_received_selection_request_and_bible(

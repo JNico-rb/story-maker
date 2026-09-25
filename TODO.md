@@ -744,8 +744,8 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 014-I11 · Toda decisión del motor sobre la petición y sobre los valores nuevos queda en el audit log con origen `change_request`
 - [x] 014-I12 · Los capítulos cambiados de la versión nueva son exactamente los de huella distinta de su base
 - [ ] 014-C20 · Un cambio real propagado sobre la novela del brief 1 (D, al final)
-- [ ] 014-bug-C01b · La propuesta sale con la forma que lee 027-C03: `fact`/`old_value`/`new_value` en texto (varios cambios, juntados con «; ») o `new_fact` en una frase; la clave que no aplica no aparece (carril P; la lectura quedaba en blanco con un hecho nuevo)
-- [ ] 014-bug-C01c · `expires_at` sale en UTC con huso (carril P; §15.7: al oeste de UTC la propuesta salía caducada al instante)
+- [x] 014-bug-C01b · La propuesta sale con la forma que lee 027-C03: `fact`/`old_value`/`new_value` en texto (varios cambios, juntados con «; ») o `new_fact` en una frase; la clave que no aplica no aparece (carril P; la lectura quedaba en blanco con un hecho nuevo)
+- [x] 014-bug-C01c · `expires_at` sale en UTC con huso (carril P; §15.7: al oeste de UTC la propuesta salía caducada al instante)
 
 ### Closing
 - [x] Full suite green, type checks clean — verificador 2026-09-25: `uv run python -m pytest -q` 1666 passed; `ruff check .` y `ruff format --check .` limpios; `mypy src` sin incidencias

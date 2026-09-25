@@ -56,10 +56,7 @@ def test_the_planner_receives_the_whole_request_as_data_and_the_proposal_only_re
     message = planner_message(fake)
     assert message["request"] == REQUEST
     assert "dato" in message["instructions"]
-    assert body["proposal"] == {
-        "changes": [{"fact_id": f.toby_name_fact, "old_value": "Toby", "new_value": "Nala"}],
-        "new_fact": None,
-    }
+    assert body["proposal"] == {"fact": "Toby · name", "old_value": "Toby", "new_value": "Nala"}
 
 
 def test_the_banned_lists_do_not_change_and_nothing_is_queued(

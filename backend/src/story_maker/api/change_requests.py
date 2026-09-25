@@ -23,6 +23,12 @@ router = APIRouter()
 PLANNER_CHANGE_PROMPT_FILE = "prompts/planner-change.md"
 
 
+def _aware_utc(moment: dt.datetime) -> dt.datetime:
+    """`expires_at` se guarda naive (UTC, `pipeline.runs.naive`); la API lo saca con huso
+    (`architecture.md` §15.7, «Forma común»), 014-bug-C01c."""
+    return moment if moment.tzinfo is not None else moment.replace(tzinfo=dt.UTC)
+
+
 class ChangeRequestIn(BaseModel):
     selection: Selection
     request: str
@@ -82,10 +88,10 @@ async def post_change_request(
         raise HTTPException(status_code=outcome.status, detail=outcome.detail)
     return ChangeRequestOut(
         id=outcome.id,
-        proposal=outcome.proposal,
+        proposal=outcome.readable_proposal,
         affected_chapters=outcome.affected_chapters,
         code=outcome.code,
-        expires_at=outcome.expires_at,
+        expires_at=_aware_utc(outcome.expires_at),
     )
 
 
