@@ -62,6 +62,8 @@ class VisualReviewOutcome:
     reregister: bool = False
     # La sesión del revisor terminó sin entrega válida: ciclo fallido sin capítulos (017-C14).
     no_valid_delivery: bool = False
+    # Infraestructura (el navegador o el proveedor): la ejecución pasa a `interrupted` (017-C15).
+    interruption: str | None = None
 
 
 @dataclass(frozen=True)
@@ -303,6 +305,7 @@ class Gate:
         review = await self.visual_review(job, trace)
         verdict = gate_precedence(
             unattributable_reason=review.failure,
+            interruption_reason=review.interruption,
             defects=review.defects,
             # Como el juez sin evaluación válida (012-C15): un ciclo fallido sin capítulos.
             judge_no_valid_delivery=review.no_valid_delivery,

@@ -68,6 +68,13 @@ class VisualReviewStage:
                 # Es código y va antes: no se abre el revisor en este ciclo (017-C10).
                 return _outcome(VisualVerdict((("ficha", False),), data))
             result = await self._review(job, expected, trace, span)
+            if result.outcome == "infrastructure_failure":
+                # Infraestructura, no un intento (§7.6): no se compara nada (017-C15).
+                return VisualReviewOutcome(
+                    interruption="provider_error",
+                    detail="la sesión del revisor visual cayó: el navegador (Playwright MCP) o "
+                    f"el proveedor no respondieron ({result.error})",
+                )
             if not result.deliveries:
                 return VisualReviewOutcome(
                     no_valid_delivery=True,
