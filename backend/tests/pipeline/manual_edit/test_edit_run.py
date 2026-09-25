@@ -267,3 +267,28 @@ async def test_the_editor_scores_do_not_block_the_edited_chapter(
     )
     scores = [s for s in telemetry.traces[f"run:{run_id}"].scores if s.name == "rubrica-capitulo"]
     assert scores[0].value == 0
+
+
+async def test_a_gate_failure_attributed_only_to_another_chapter_rewrites_only_that_chapter(
+    n: N, fake: FakeAgent, worker: Worker, session_factory: sessionmaker[Session]
+) -> None:
+    text = renamed(session_factory, n)
+    run_id = queue_edit(session_factory, n, text)
+    fake.script("editor", None, editor_script(rename_review(session_factory, n)))
+    script_revisions(fake, 2)
+    low = evaluation({"continuidad": 2}, chapters={"continuidad": [7]})
+    fake.script("judge", None, judge_script(low))
+    fake.script("writer", "rewrite", writer_script(chapter_call(title="Reescrito")))
+    fake.script("editor", None, editor_script(review()))
+    fake.script("judge", None, judge_script(evaluation(4)))
+
+    await worker.run_next()
+
+    run = run_of(session_factory, run_id)
+    assert run.status == "published", run.reason_detail
+    rewrites = [s.request.chapter for s in fake.sessions if s.request.mode == "rewrite"]
+    assert rewrites == [7]
+    assert not any(s.request.role == "writer" and s.request.chapter == 3 for s in fake.sessions)
+    v2 = published(session_factory, n, 2)
+    assert chapter_of(session_factory, v2.id, 3).text == text
+    assert chapter_of(session_factory, v2.id, 7).title == "Reescrito"
