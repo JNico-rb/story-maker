@@ -3,8 +3,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from contextlib import AbstractAsyncContextManager
+from collections.abc import AsyncIterator, Callable
+from contextlib import AbstractAsyncContextManager, asynccontextmanager
 from importlib.metadata import version
 from pathlib import Path
 
@@ -18,12 +18,15 @@ from story_maker.agents.port import AgentPort, PolicyEngine
 from story_maker.api.auth import Clock, utc_now
 from story_maker.api.auth import router as auth_router
 from story_maker.api.errors import validation_exception_handler
+from story_maker.api.mcp.server import build_mcp_route
 from story_maker.api.runs import router as runs_router
 from story_maker.api.story_bible import router as story_bible_router
 from story_maker.api.versions import router as versions_router
 from story_maker.api.view import router as view_router
 from story_maker.config import Config
 from story_maker.observability.port import ObservabilityPort
+
+Lifespan = Callable[[FastAPI], AbstractAsyncContextManager[None]]
 
 RESERVED_PREFIXES = ("api", "view", "mcp")
 
@@ -40,15 +43,36 @@ def create_app(
     config: Config | None = None,
     workspace: Path | None = None,
     policy: PolicyEngine | None = None,
-    lifespan: Callable[[FastAPI], AbstractAsyncContextManager[None]] | None = None,
+    lifespan: Lifespan | None = None,
 ) -> FastAPI:
     """`frontend_dist` es el build de la SPA; si no existe, el servidor arranca sin servirla.
 
     `session_factory` y `jwt_secret` habilitan el registro y el acceso (002); sin ellos, el
     servidor arranca igual, sin esas rutas, igual que sin `frontend_dist`. Las rutas de 008
-    (novelas, entrevista, textos libres, brief, listas de prohibidas y audit log) se montan solo
-    cuando además llegan `agent_port`, `telemetry`, `config` y `workspace`. `lifespan` es lo que
-    vive con el servidor: en `serve`, el worker (031-C02)."""
+    (novelas, entrevista, textos libres, brief, listas de prohibidas y audit log) y el servidor
+    MCP en `/mcp` se montan solo cuando además llegan `agent_port`, `telemetry`, `config` y
+    `workspace` (015-C01). `lifespan` es lo que vive con el servidor: en `serve`, el worker
+    (031-C02); el ciclo de vida del servidor MCP se compone con él, no lo sustituye."""
+    mcp_route = None
+    if (
+        session_factory is not None
+        and jwt_secret is not None
+        and agent_port is not None
+        and telemetry is not None
+        and config is not None
+        and workspace is not None
+    ):
+        mcp_route, mcp_lifespan = build_mcp_route(
+            session_factory=session_factory,
+            jwt_secret=jwt_secret,
+            clock=clock,
+            agent_port=agent_port,
+            telemetry=telemetry,
+            config=config,
+            workspace=workspace,
+        )
+        lifespan = _combine_lifespans(lifespan, mcp_lifespan)
+
     app = FastAPI(title="story-maker", lifespan=lifespan)
     # `exception_handler`, no `add_exception_handler`: su decorador tipa con un TypeVar genérico,
     # así que acepta un manejador específico de `RequestValidationError` sin que mypy strict se
@@ -77,6 +101,8 @@ def create_app(
             app.state.workspace = workspace
             app.state.policy = policy
             _include_interview_routers(app)
+            if mcp_route is not None:
+                app.router.routes.append(mcp_route)
 
     if frontend_dist is not None and frontend_dist.is_dir():
         assets_dir = frontend_dist / "assets"
@@ -103,6 +129,20 @@ def create_app(
             raise HTTPException(status_code=404, detail="Not Found")
 
     return app
+
+
+def _combine_lifespans(existing: Lifespan | None, mcp_lifespan: Lifespan) -> Lifespan:
+    """El servidor MCP arranca y se detiene con la app (§14.4); si ya hay otro `lifespan` (el
+    worker, en `serve`), los dos conviven, sin que uno sustituya al otro."""
+    if existing is None:
+        return mcp_lifespan
+
+    @asynccontextmanager
+    async def combined(app: FastAPI) -> AsyncIterator[None]:
+        async with existing(app), mcp_lifespan(app):
+            yield
+
+    return combined
 
 
 def _include_interview_routers(app: FastAPI) -> None:

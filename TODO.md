@@ -745,22 +745,22 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
-- [ ] 015-C01 · El servidor responde en `/mcp` y publica exactamente sus siete tools
-- [ ] 015-C02 · Sin un `TokenDeAcceso` válido, `/mcp` responde 401 y no ejecuta nada
-- [ ] 015-C03 · La identidad es la del token de cada petición
-- [ ] 015-C04 · `list_novels` devuelve las novelas del cliente con su estado y su versión vigente
-- [ ] 015-C05 · `list_versions` da el historial publicado con sus capítulos cambiados
-- [ ] 015-C06 · `get_chapter` devuelve un capítulo de una versión publicada
-- [ ] 015-C07 · `query_story_bible` devuelve la story bible de una versión
-- [ ] 015-C08 · `download_novel` devuelve el PDF guardado como recurso incrustado
-- [ ] 015-C09 · Lo ajeno responde como inexistente en las siete tools
-- [ ] 015-C10 · Una entrada fuera de schema es un error sin efecto
+- [x] 015-C01 · El servidor responde en `/mcp` y publica exactamente sus siete tools
+- [x] 015-C02 · Sin un `TokenDeAcceso` válido, `/mcp` responde 401 y no ejecuta nada
+- [x] 015-C03 · La identidad es la del token de cada petición
+- [x] 015-C04 · `list_novels` devuelve las novelas del cliente con su estado y su versión vigente
+- [x] 015-C05 · `list_versions` da el historial publicado con sus capítulos cambiados
+- [x] 015-C06 · `get_chapter` devuelve un capítulo de una versión publicada
+- [x] 015-C07 · `query_story_bible` devuelve la story bible de una versión
+- [x] 015-C08 · `download_novel` devuelve el PDF guardado como recurso incrustado
+- [x] 015-C09 · Lo ajeno responde como inexistente en las siete tools
+- [x] 015-C10 · Una entrada fuera de schema es un error sin efecto
 - [ ] 015-C11 · `request_change` hace la misma interpretación que la web y solo propone
 - [ ] 015-C12 · Una propuesta rechazada llega con el código de la API
 - [ ] 015-C13 · `confirm_change` con el código encola la ejecución de cambio
 - [ ] 015-C14 · Una confirmación inválida se rechaza sin efecto
 - [ ] 015-C15 · Un cambio pedido y confirmado por MCP publica versión y PDF nuevos, y conserva la anterior
-- [ ] 015-C16 · Cada llamada a una tool deja exactamente una traza `mcp:<tool>`
+- [x] 015-C16 · Cada llamada a una tool deja exactamente una traza `mcp:<tool>`
 - [ ] 015-C17 · Las trazas pasan por la máscara y nunca llevan el código de confirmación ni el PDF
 - [ ] 015-I1 · Las cinco tools de lectura no modifican nada
 - [ ] 015-I2 · Las tools de escritura solo proponen o encolan
