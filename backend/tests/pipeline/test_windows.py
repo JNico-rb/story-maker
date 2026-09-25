@@ -241,9 +241,9 @@ def test_the_writer_and_editor_windows_never_carry_another_novel_of_the_same_cli
         other_novel = seed_novel(session, candidate.user_id)
         _, _, other_places, other_facts = seed_candidate(session, other_novel.id)
         # Mismo nombre de personaje que la candidata de la fixture, pero otro mundo.
-        session.get_one(Place, other_places["Faro de Cabo Mayor"]).canonical_name = (
-            "Cueva del Viento"
-        )
+        session.get_one(
+            Place, other_places["Faro de Cabo Mayor"]
+        ).canonical_name = "Cueva del Viento"
         session.get_one(Fact, other_facts["rasgo"]).value = "le encantan las tormentas"
         session.commit()
 

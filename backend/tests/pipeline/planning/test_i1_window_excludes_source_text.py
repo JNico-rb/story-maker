@@ -14,6 +14,7 @@ import datetime as dt
 import json
 
 from sqlalchemy.orm import Session, sessionmaker
+from tests.pipeline.planning.test_candidate import reference_brief
 from tests.validators.test_outline import STORY_BIBLE, reference_plan
 
 from story_maker.agents.fake import Call, FakeAgent, Say, Script
@@ -29,11 +30,12 @@ from story_maker.pipeline.planning.resume import has_checkpoint_zero, plan_resum
 from story_maker.pipeline.planning.session import submit_plan_tool
 from story_maker.store.models import Attempt, ValidatorResult
 from story_maker.store.session import unit_of_work
-from tests.pipeline.planning.test_candidate import reference_brief
 
 NOW = dt.datetime(2026, 9, 24, 12, 0)
 
-FREE_TEXT_MARKER = "el verano de las gaviotas azules"  # texto libre de la entrevista, nunca confirmado
+FREE_TEXT_MARKER = (
+    "el verano de las gaviotas azules"  # texto libre de la entrevista, nunca confirmado
+)
 EXTRACTED_QUOTE_MARKER = "cita original: dijo que colecciona conchas de pequeña"
 
 BRIEF = BriefView(
@@ -68,7 +70,9 @@ async def test_the_replanning_window_never_carries_free_text_or_a_fact_quote(
     fake.script(
         "planner",
         "plan",
-        Script(steps=(Call("submit_plan", json.loads(reference_plan().model_dump_json())), Say("Va."))),
+        Script(
+            steps=(Call("submit_plan", json.loads(reference_plan().model_dump_json())), Say("Va."))
+        ),
     )
     trace = Trace(key="run:1")
 

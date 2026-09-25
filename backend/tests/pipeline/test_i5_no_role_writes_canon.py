@@ -55,7 +55,10 @@ def _fingerprint(
     with session_factory() as session:
         return {
             model.__tablename__: sorted(
-                (_row_fields(row) for row in session.scalars(select(model).filter_by(version_id=version_id)).all()),
+                (
+                    _row_fields(row)
+                    for row in session.scalars(select(model).filter_by(version_id=version_id)).all()
+                ),
                 key=repr,
             )
             for model in MODELS
@@ -72,7 +75,9 @@ async def test_the_candidate_is_unchanged_after_a_chapter_attempt_that_never_get
     before = _fingerprint(session_factory, seed.version_id)
 
     fake.script("writer", "write", writer_script(chapter_call()))
-    fake.script("editor", None, editor_script(review(scores=2)))  # bloqueante: por debajo del umbral
+    fake.script(
+        "editor", None, editor_script(review(scores=2))
+    )  # bloqueante: por debajo del umbral
 
     with pytest.raises(RunStop) as excinfo:
         await producer.produce_chapter(seed.run_id, 1, trace)

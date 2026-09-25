@@ -155,7 +155,5 @@ async def test_the_brief_canon_is_unchanged_after_relaunching_and_applying_the_p
     assert outcome.verdict == "accept"
     assert _brief_origin_fingerprint(session_factory, version.id) == before
 
-    finalize_accepted_plan(
-        session_factory, telemetry, trace, run_id, version.id, outcome, now=NOW
-    )
+    finalize_accepted_plan(session_factory, telemetry, trace, run_id, version.id, outcome, now=NOW)
     assert _brief_origin_fingerprint(session_factory, version.id) == before

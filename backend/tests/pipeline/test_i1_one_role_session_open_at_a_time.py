@@ -95,7 +95,9 @@ async def test_a_complete_generation_never_has_two_role_sessions_open_at_once(
     with session_factory() as session:
         assert session.query(Chapter).filter_by(version_id=seed.version_id).count() == 10
 
-    assert len(ledger.events) == 40  # apertura y cierre de una sesión del writer y una del editor por capítulo
+    assert (
+        len(ledger.events) == 40
+    )  # apertura y cierre de una sesión del writer y una del editor por capítulo
     assert ledger.max_concurrent == 1
     assert ledger.current == 0  # todas cerraron
 

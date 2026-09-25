@@ -39,6 +39,6 @@ def test_a_bigger_window_reserves_more_tokens_by_exactly_its_estimated_size(
     big_reservation = port.reservation(_request(seed, big_message))
 
     assert big_reservation > small_reservation
-    assert big_reservation - small_reservation == estimate_tokens(len(big_message)) - estimate_tokens(
-        len(small_message)
-    )
+    assert big_reservation - small_reservation == estimate_tokens(
+        len(big_message)
+    ) - estimate_tokens(len(small_message))
