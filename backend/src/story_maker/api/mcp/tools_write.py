@@ -12,6 +12,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session, sessionmaker
 
 from story_maker.agents.port import AgentPort
+from story_maker.api.auth import Clock
 from story_maker.api.change_requests import PLANNER_CHANGE_PROMPT_FILE
 from story_maker.api.errors import field_error
 from story_maker.api.interview import MAX_MESSAGE_CHARS
@@ -54,6 +55,7 @@ async def request_change_tool(
     telemetry: ObservabilityPort,
     config: Config,
     workspace: Path,
+    clock: Clock,
     trace: Trace,
     user_id: int,
     novel_id: int,
@@ -94,7 +96,7 @@ async def request_change_tool(
         user_id=user_id,
         selection=selection,
         request=request,
-        now=dt.datetime.now(dt.UTC),
+        now=clock(),
     )
     if isinstance(outcome, RequestFailure):
         _deny(session_factory, user_id, novel_id, "request_change", str(outcome.detail))
@@ -112,6 +114,7 @@ async def request_change_tool(
 def confirm_change_tool(
     *,
     session_factory: sessionmaker[Session],
+    clock: Clock,
     user_id: int,
     request_id: int,
     code: str,
@@ -123,9 +126,7 @@ def confirm_change_tool(
             _deny(session_factory, user_id, None, "confirm_change", NOT_FOUND_DETAIL)
             from_http_exception(HTTPException(status_code=404, detail=NOT_FOUND_DETAIL))
         novel_id = row.novel_id
-    outcome = confirm_change(
-        session_factory, request_id=request_id, code=code, now=dt.datetime.now(dt.UTC)
-    )
+    outcome = confirm_change(session_factory, request_id=request_id, code=code, now=clock())
     if isinstance(outcome, ConfirmFailure):
         _deny(session_factory, user_id, novel_id, "confirm_change", outcome.detail)
         from_http_exception(HTTPException(status_code=outcome.status, detail=outcome.detail))

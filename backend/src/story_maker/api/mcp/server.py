@@ -216,6 +216,7 @@ def build_mcp_route(
                     telemetry=telemetry,
                     config=config,
                     workspace=workspace,
+                    clock=clock,
                     trace=trace,
                     user_id=user_id,
                     novel_id=novel_id,
@@ -255,6 +256,7 @@ def build_mcp_route(
                 {"request_id": request_id},
                 lambda: confirm_change_tool(
                     session_factory=session_factory,
+                    clock=clock,
                     user_id=user_id,
                     request_id=request_id,
                     code=code,

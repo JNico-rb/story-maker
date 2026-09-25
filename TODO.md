@@ -755,10 +755,10 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 015-C08 · `download_novel` devuelve el PDF guardado como recurso incrustado
 - [x] 015-C09 · Lo ajeno responde como inexistente en las siete tools
 - [x] 015-C10 · Una entrada fuera de schema es un error sin efecto
-- [ ] 015-C11 · `request_change` hace la misma interpretación que la web y solo propone
-- [ ] 015-C12 · Una propuesta rechazada llega con el código de la API
-- [ ] 015-C13 · `confirm_change` con el código encola la ejecución de cambio
-- [ ] 015-C14 · Una confirmación inválida se rechaza sin efecto
+- [x] 015-C11 · `request_change` hace la misma interpretación que la web y solo propone
+- [x] 015-C12 · Una propuesta rechazada llega con el código de la API
+- [x] 015-C13 · `confirm_change` con el código encola la ejecución de cambio
+- [x] 015-C14 · Una confirmación inválida se rechaza sin efecto
 - [ ] 015-C15 · Un cambio pedido y confirmado por MCP publica versión y PDF nuevos, y conserva la anterior
 - [x] 015-C16 · Cada llamada a una tool deja exactamente una traza `mcp:<tool>`
 - [ ] 015-C17 · Las trazas pasan por la máscara y nunca llevan el código de confirmación ni el PDF

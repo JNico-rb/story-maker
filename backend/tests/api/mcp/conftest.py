@@ -29,6 +29,21 @@ NOW = dt.datetime(2026, 9, 24, 12, 0)
 
 
 @pytest.fixture
+def workspace(tmp_path: Path) -> Path:
+    """Sustituye el `workspace` de `tests/api/conftest.py`: además del entrevistador y el
+    extractor, `request_change` necesita el prompt del planner en modo cambio (015-C11)."""
+    path = tmp_path / "harness_workspace"
+    (path / "prompts").mkdir(parents=True)
+    (path / "CLAUDE.md").write_text("Escribe en español.", encoding="utf-8")
+    (path / "prompts" / "interviewer.md").write_text("Eres el entrevistador.", encoding="utf-8")
+    (path / "prompts" / "extractor.md").write_text("Eres el extractor.", encoding="utf-8")
+    (path / "prompts" / "planner-change.md").write_text(
+        "Eres el planner en modo cambio.", encoding="utf-8"
+    )
+    return path
+
+
+@pytest.fixture
 def mcp_app(client: TestClient) -> FastAPI:
     """La misma app que sirve `/api`, tal como la monta `create_app` (015-C01: mismo proceso)."""
     app: FastAPI = client.app  # type: ignore[assignment]
