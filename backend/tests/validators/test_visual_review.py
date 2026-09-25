@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import dataclasses
+from collections.abc import Callable
 from typing import Any
 
 import pytest
@@ -152,3 +153,41 @@ def test_an_index_of_ten_entries_leading_to_one_to_ten_in_order_passes() -> None
 
     assert dict(verdict.parts)["indice"] is True
     assert verdict.defects == ()
+
+
+# --- 017-C08 -------------------------------------------------------------------------------------
+
+
+def with_chapters(edit: Callable[[list[dict[str, Any]]], list[dict[str, Any]]]) -> dict[str, Any]:
+    delivery = faithful()
+    delivery["capitulos"] = edit(delivery["capitulos"])
+    return delivery
+
+
+def _retitle_3(chapters: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [{**c, "title": "Otro título"} if c["number"] == 3 else c for c in chapters]
+
+
+def _no_sentence_8(chapters: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [{**c, "first_sentence": ""} if c["number"] == 8 else c for c in chapters]
+
+
+@pytest.mark.parametrize(
+    ("edit", "chapter"),
+    [
+        (lambda cs: [c for c in cs if c["number"] != 6], 6),
+        (_retitle_3, 3),
+        (_no_sentence_8, 8),
+        (lambda cs: [*cs, {"number": 11, "title": "Epílogo", "first_sentence": "Fin."}], 11),
+    ],
+    ids=["sin-el-6", "titulo-del-3", "8-sin-frase", "capitulo-11"],
+)
+def test_a_chapter_not_seen_whole_is_a_render_failure_naming_it_without_attributing_it(
+    edit: Callable[[list[dict[str, Any]]], list[dict[str, Any]]], chapter: int
+) -> None:
+    verdict = verdict_of(with_chapters(edit))
+
+    [defect] = verdict.defects
+    assert (defect.part, defect.kind, defect.chapter) == ("capitulos", "render", None)
+    assert f"capítulo {chapter}" in defect.message
+    assert dict(verdict.parts)["capitulos"] is False

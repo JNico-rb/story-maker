@@ -192,7 +192,7 @@ def compare(expected: ExpectedStructure, observed: VisualReviewSubmission) -> Vi
     by_part: dict[Part, tuple[VisualDefect, ...]] = {
         "portada": _cover(expected.cover, observed.portada),
         "indice": _index(expected.index, observed.indice),
-        "capitulos": (),
+        "capitulos": _chapters(expected.chapters, observed.capitulos),
         "ficha": (),
     }
     return VisualVerdict(
@@ -247,3 +247,31 @@ def chapter_destination(number: int) -> str:
 
 def _where(destination: str | None) -> str:
     return destination if destination is not None else "ninguna parte"
+
+
+def _chapters(
+    expected: tuple[ExpectedChapter, ...], observed: list[ChapterObservation]
+) -> tuple[VisualDefect, ...]:
+    seen: dict[int, ChapterObservation] = {}
+    defects: list[str] = []
+    for chapter in observed:
+        if chapter.number in seen:
+            defects.append(f"el capítulo {chapter.number} se vio dos veces")
+        seen.setdefault(chapter.number, chapter)
+    for want in expected:
+        got = seen.get(want.number)
+        if got is None:
+            defects.append(f"no se vio el capítulo {want.number}")
+            continue
+        if not texts_match(got.title, want.title):
+            defects.append(
+                f"el capítulo {want.number} debe titularse «{want.title}» y se vio «{got.title}»"
+            )
+        if not sentence_in(got.first_sentence, want.text):
+            defects.append(
+                f"la primera frase vista en el capítulo {want.number} («{got.first_sentence}») "
+                "no está en su texto"
+            )
+    numbers = {want.number for want in expected}
+    defects += [f"se vio un capítulo {n} que no existe" for n in seen if n not in numbers]
+    return tuple(_render("capitulos", f"capítulos: {message}") for message in defects)
