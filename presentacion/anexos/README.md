@@ -29,6 +29,7 @@ Un fichero por anexo en [anexos/](anexos/), en PDF y con su fuente Markdown:
 | G · Modelos de LLM considerados | [anexo-g-modelos-llm.pdf](anexos/anexo-g-modelos-llm.pdf) |
 | H · Observabilidad en Langfuse | [anexo-h-langfuse.pdf](anexos/anexo-h-langfuse.pdf) |
 | I · Claude Code en el desarrollo | [anexo-i-claude-code.pdf](anexos/anexo-i-claude-code.pdf) |
+| J · Evidencias obligatorias (evals, coste y margen medidos, demo del cambio) | [anexo-j-evidencias.md](anexos/anexo-j-evidencias.md) |
 
 [anexos.md](anexos.md) es la fuente original de la que salen A, B, D, E, G e I. Los datos de C, F y H salen de `docs/verification.md` §4.2 y §4.9 y de SQLite (`story-maker evals table`).
 
