@@ -7,6 +7,9 @@ import type { components } from "../shared/api/schema";
 import { clearSession, saveSession } from "../shared/lib";
 import { buildRoutes } from "./router";
 
+// Caducidad relativa al reloj real: una fecha fija caduca sola (y una lejana desborda setTimeout).
+const IN_ONE_HOUR = new Date(Date.now() + 3_600_000).toISOString();
+
 type VersionDetail = components["schemas"]["VersionDetailResponse"];
 type VersionsList = components["schemas"]["VersionsListResponse"];
 
@@ -124,7 +127,7 @@ describe("027 cambio del lector", () => {
           proposal: { fact: "Nombre del perro", old_value: "Toby", new_value: "Nala" },
           affected_chapters: [2],
           code: "SECRETO-123",
-          expires_at: "2026-09-25T12:00:00Z",
+          expires_at: IN_ONE_HOUR,
         }),
       "POST /api/change-requests/req-1/confirm": () => json(202, { run_id: "run-9" }),
     });

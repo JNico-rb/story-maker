@@ -6,6 +6,9 @@ import { clearSession, saveSession } from "../../shared/lib";
 import type { Selection } from "../../shared/api";
 import { ChangeRequestPanel } from "./ChangeRequestPanel";
 
+// Caducidad relativa al reloj real: una fecha fija caduca sola (y una lejana desborda setTimeout).
+const IN_ONE_HOUR = new Date(Date.now() + 3_600_000).toISOString();
+
 const NOVEL = "7";
 
 const FRAGMENT_SELECTION: Selection = {
@@ -83,7 +86,7 @@ describe("027 cambio del lector", () => {
         proposal: { fact: "Nombre del perro", old_value: "Toby", new_value: "Nala" },
         affected_chapters: [2, 5, 7],
         code: "SECRETO-123",
-        expires_at: "2026-09-25T12:00:00Z",
+        expires_at: IN_ONE_HOUR,
       }),
     );
     renderPanel();
@@ -115,7 +118,7 @@ describe("027 cambio del lector", () => {
         proposal: { fact: "Nombre del perro", old_value: "Toby", new_value: "Nala" },
         affected_chapters: [],
         code: "SECRETO-123",
-        expires_at: "2026-09-25T12:00:00Z",
+        expires_at: IN_ONE_HOUR,
       }),
     );
     renderPanel();
@@ -166,7 +169,7 @@ describe("027 cambio del lector", () => {
           proposal: { fact: "Nombre del perro", old_value: "Toby", new_value: "Nala" },
           affected_chapters: [2],
           code: "SECRETO-123",
-          expires_at: "2026-09-25T12:00:00Z",
+          expires_at: IN_ONE_HOUR,
         });
       }),
     );
@@ -192,7 +195,7 @@ describe("027 cambio del lector", () => {
         proposal: { fact: "Nombre del perro", old_value: "Toby", new_value: "Nala" },
         affected_chapters: [2, 5, 7],
         code: "SECRETO-123",
-        expires_at: "2026-09-25T12:00:00Z",
+        expires_at: IN_ONE_HOUR,
       }),
     );
     renderPanel(onDiscard);
@@ -218,7 +221,7 @@ describe("027 cambio del lector", () => {
           proposal: { fact: "Nombre del perro", old_value: "Toby", new_value: "Nala" },
           affected_chapters: [2, 5, 7],
           code: "SECRETO-123",
-          expires_at: "2026-09-25T12:00:00Z",
+          expires_at: IN_ONE_HOUR,
         });
       }),
     );
@@ -281,7 +284,7 @@ describe("027 cambio del lector", () => {
           proposal: { fact: "Nombre del perro", old_value: "Toby", new_value: "Nala" },
           affected_chapters: [2, 5, 7],
           code: "SECRETO-123",
-          expires_at: "2026-09-25T12:00:00Z",
+          expires_at: IN_ONE_HOUR,
         });
       }),
     );
@@ -310,7 +313,7 @@ describe("027 cambio del lector", () => {
           proposal: { fact: "Nombre del perro", old_value: "Toby", new_value: "Nala" },
           affected_chapters: [2, 5, 7],
           code: "SECRETO-123",
-          expires_at: "2026-09-25T12:00:00Z",
+          expires_at: IN_ONE_HOUR,
         });
       }),
     );
@@ -351,7 +354,7 @@ describe("027 cambio del lector", () => {
         proposal: { fact: "Nombre del perro", old_value: "Toby", new_value: "Nala" },
         affected_chapters: [2],
         code: "SECRETO-123",
-        expires_at: "2026-09-25T12:00:00Z",
+        expires_at: IN_ONE_HOUR,
       }),
     );
 
