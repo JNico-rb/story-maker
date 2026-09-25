@@ -645,8 +645,8 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas.
 
 ## 013 — lectura-y-pdf
 
-- [x] Spec `specs/backend/013-lectura-y-pdf.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; `example` (C16, C19) movido a 020
-- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Spec `specs/backend/013-lectura-y-pdf.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; `example` (C16, C19) movido a 020; re-marcada — integrador 2026-09-25: sin revisión, decisión del usuario (carril R: presentación impresa, C20–C24)
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcado — integrador 2026-09-25: sin revisión, decisión del usuario (C20–C24)
 
 ### Steps
 - [x] 013-C01 · Portada, índice y ficha de una versión sin capítulos cambiados
@@ -671,11 +671,16 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas.
 - [x] 013-C17 · export-pdf regenera el PDF de una versión publicada
 - [x] 013-C18 · export-pdf sobre lo que no existe o no está publicado
 - [x] 013-I5 · Con los mismos datos de versión, la VistaDeVersion y el PDF que produce son iguales
+- [ ] 013-C20 · La portada ocupa sola la primera página
+- [ ] 013-C21 · El índice muestra el número de cada capítulo una sola vez
+- [ ] 013-C22 · Novedades, índice, cada capítulo y la ficha empiezan en página nueva
+- [ ] 013-C23 · Números de página al pie, salvo en la portada
+- [ ] 013-C24 · El aspecto del PDF es el de un libro (D, al final)
 
 ### Closing
-- [x] Full suite green, type checks clean — verificador 2026-09-24: `uv run pytest` 815 passed; `uv run ruff check .` all checks passed; `uv run ruff format --check .` 155 files already formatted; `uv run mypy src` no issues in 78 source files
-- [x] Spec updated, or confirmed still true
-- [x] Docs updated, or confirmed still true
+- [ ] Full suite green, type checks clean
+- [ ] Spec updated, or confirmed still true
+- [ ] Docs updated, or confirmed still true
 
 ## 014 — cambios-del-lector
 
@@ -1031,12 +1036,10 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas.
 
 ## 023 — mis-novelas
 
-**N3** (usuario, 2026-09-24): tras el MVP.
+**N1 mínima** (usuario, 2026-09-25, carril R): lista de novelas, enlace a la lectura y destino del acceso; crear novela y prohibidas `user`, recortadas; sus I, recortadas (`architecture.md` §18, «Alcance del frontend»).
 
-**Fuera de alcance** (usuario, 2026-09-24): no se implementa.
-
-- [x] Spec `specs/frontend/023-mis-novelas.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
-- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Spec `specs/frontend/023-mis-novelas.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcada — integrador 2026-09-25: sin revisión, decisión del usuario (N1 mínima, C09 reescrito, C17 nuevo)
+- [x] Plan below approved — integrador 2026-09-25: sin revisión, decisión del usuario
 
 ### Steps
 - [ ] 023-C01 · Lista vacía
@@ -1045,18 +1048,19 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas.
 - [ ] 023-C04 · Novela sin título todavía
 - [ ] 023-C05 · La lista respeta el orden que entrega la API
 - [ ] 023-C06 · Fallo al cargar la lista
-- [ ] 023-C07 · Crear una novela lleva a su entrevista
-- [ ] 023-C08 · Fallo al crear una novela
-- [ ] 023-C09 · El destino depende del estado de la novela
-- [ ] 023-C10 · Ver la lista prohibida de nivel `user`
-- [ ] 023-C11 · Añadir una palabra
-- [ ] 023-C12 · Añadir un tema con sus palabras clave
-- [ ] 023-C13 · Alta rechazada
-- [ ] 023-C14 · Alta de un término repetido
-- [ ] 023-C15 · Borrar una entrada
-- [ ] 023-I1 · Los cuatro estados derivados de `definitions.md` §3 tienen cada uno su etiqueta, y ningún otro valor cae en un caso por defecto silencioso
-- [ ] 023-I3 · Ninguna llamada de esta pantalla a la API real
-- [ ] 023-I4 · Un error de cualquier llamada de esta pantalla (lista, alta o borrado prohibido, crear novela) siempre se muestra; nunca se descarta en s…
+- [ ] 023-C09 · Solo las novelas con versión vigente llevan a su lectura
+- [ ] 023-C17 · El acceso lleva a «mis novelas»
+- [ ] 023-C07 · Crear una novela lleva a su entrevista (recortado)
+- [ ] 023-C08 · Fallo al crear una novela (recortado)
+- [ ] 023-C10 · Ver la lista prohibida de nivel `user` (recortado)
+- [ ] 023-C11 · Añadir una palabra (recortado)
+- [ ] 023-C12 · Añadir un tema con sus palabras clave (recortado)
+- [ ] 023-C13 · Alta rechazada (recortado)
+- [ ] 023-C14 · Alta de un término repetido (recortado)
+- [ ] 023-C15 · Borrar una entrada (recortado)
+- [ ] 023-I1 · Los cuatro estados derivados de `definitions.md` §3 tienen cada uno su etiqueta, y ningún otro valor cae en un caso por defecto silencioso (recortado)
+- [ ] 023-I3 · Ninguna llamada de esta pantalla a la API real (recortado)
+- [ ] 023-I4 · Un error de cualquier llamada de esta pantalla (lista, alta o borrado prohibido, crear novela) siempre se muestra; nunca se descarta en s… (recortado)
 - [ ] 023-C16 · Recorrido real de «mis novelas» (D, al final)
 
 ### Closing
@@ -1138,8 +1142,8 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas.
 
 **N1** (usuario, 2026-09-24): web mínima, lectura y cambio del lector (`architecture.md` §18, «Alcance del frontend»); sus I, recortadas.
 
-- [x] Spec `specs/frontend/026-lectura.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
-- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Spec `specs/frontend/026-lectura.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcada — integrador 2026-09-25: sin revisión, decisión del usuario (carril R: C15, C16)
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcado — integrador 2026-09-25: sin revisión, decisión del usuario (C15, C16)
 
 ### Steps
 - [x] 026-C01 · Sin versión indicada, se muestra la vigente
@@ -1155,6 +1159,8 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas.
 - [x] 026-C11 · El PDF aún no está disponible
 - [x] 026-C12 · Fallo al cargar la lista de versiones
 - [x] 026-C13 · Fallo al cargar el detalle de una versión
+- [ ] 026-C15 · Mientras carga, la pantalla lo indica
+- [ ] 026-C16 · La lectura se presenta como un libro, en escritorio y en móvil (D, al final)
 - [ ] 026-I1 · Lo mostrado (portada, novedades, índice, capítulos, ficha) es siempre de una sola versión, la que marca el selector; nunca mezcla datos d… (recortado)
 - [ ] 026-I3 · Todo enlace interno de la página de novedades, del índice y de la ficha lleva al capítulo correcto dentro de la propia pantalla (recortado)
 - [ ] 026-I4 · Un error de cualquier llamada de esta pantalla (lista de versiones, detalle, PDF) siempre se muestra; nunca se descarta en silencio ni de… (recortado)
@@ -1162,9 +1168,9 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas.
 - [ ] 026-C14 · El recorrido completo se observa en el navegador (D, al final)
 
 ### Closing
-- [x] Full suite green, type checks clean — verificador 2026-09-24: `pnpm.cmd lint`, `pnpm.cmd typecheck`, `pnpm.cmd build`, `pnpm.cmd test` (39 pasadas) en verde
-- [x] Spec updated, or confirmed still true
-- [x] Docs updated, or confirmed still true
+- [ ] Full suite green, type checks clean
+- [ ] Spec updated, or confirmed still true
+- [ ] Docs updated, or confirmed still true
 
 ## 027 — cambio-del-lector
 
