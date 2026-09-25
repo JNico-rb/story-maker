@@ -55,7 +55,7 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 | P | presentación (solo `presentacion/`) | — | `../sm-p` | `carril-p` | cerrado: el deck y su PDF los rellena el usuario con los datos de la tanda D |
 | R | 013 C20–C23 (presentación impresa), 023 mínima, 026 C15 | — | `../sm-r` | `carril-r` | cerrado e integrado (2026-09-25) |
 | F | 018 C18–C23 (linters en el bucle) → 019 (edición manual, backend). Toca `pipeline/` (producción, cambios), `api/` (rutas de edición), `store/` si 019 lo pide | 012, 014, 018 | `../sm-f` | `carril-f` | en curso |
-| E | 023 completa → 024 → 025 (API real de 008/011; ruta de progreso `/novelas/:novelId/progreso`, de entrevista `/novelas/:novelId/entrevista`) | 022, 008, 011 | `../sm-e` | `carril-e` | en curso |
+| N | 023 completa → 024 → 025 (API real de 008/011; ruta de progreso `/novelas/:novelId/progreso`, de entrevista `/novelas/:novelId/entrevista`) | 022, 008, 011 | `../sm-n` | `carril-n` | en curso |
 | G | 028 (edición manual, frontend, con la API simulada según 019; tras guardar, a `/novelas/:novelId/progreso`) | 026 | `../sm-g` | `carril-g` | en curso |
 | M | 015 (servidor MCP) → 030 (report metrics, desde el patch archivado) | 013, 014 | `../sm-m` | `carril-m` | en curso |
 | Z | errores de la tanda D: `nombres-exactos` marca «Cómo» como variante de «Cobo»; `runs.reason_detail` repite el comentario del juez; 020-C18 (desde `carril-u`) | 012, 020 | `../sm-z` | `carril-z` | en curso |
@@ -646,6 +646,8 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 012-I5 · El veredicto y la atribución los calcula el código solo con campos estructurados
 - [ ] 012-C27 · Una sesión real del juez entrega una evaluación válida (D, al final)
 
+- [ ] 012-bug-D1 · Una ejecución que falla por el gate guarda en su motivo el comentario de cada validador una sola vez (tanda D: la 16 repetía seis veces el del juez)
+
 ### Closing
 - [x] Full suite green, type checks clean — verificador 2026-09-24: `uv run pytest` 1523 passed; `uv run ruff check .` all checks passed; `uv run ruff format --check .` 345 files already formatted; `uv run mypy src` no issues in 144 source files
 - [x] Spec updated, or confirmed still true
@@ -981,7 +983,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 020-I2 · `evals table` es determinista
 - [x] 020-C15 · `example` produce la novela y su PDF (movido desde 013)
 - [x] 020-C17 · Un brief que ya tiene novela del cliente no se repite (añadido 2026-09-25; también identifica la novela de `example` como la de su brief)
-- [ ] 020-C18 · Las prohibidas de nivel user de un brief no alcanzan a los demás briefs (añadido 2026-09-25, tras la ejecución 11; aplazado por el usuario: pendiente)
+- [ ] 020-C18 · Las prohibidas de nivel user de un brief no alcanzan a los demás briefs (añadido 2026-09-25, tras la ejecución 11; aplazado por el usuario y retomado en la segunda tanda, carril Z)
 - [x] 020-C06 (bug de la tanda D) · la tabla lee los nombres y el detail reales de los validadores y la última ejecución de cada brief
 - [ ] 020-C10 · Cinco briefs reales llenan (a) y (b) (D, al final)
 - [ ] 020-C11 · Una iteración de tuning con antes y después (D, al final)
