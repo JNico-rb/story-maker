@@ -448,7 +448,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [ ] 008-C33 · Extracción real de una carta con inyección (D, al final)
 
 ### Closing
-- [x] Full suite green, type checks clean
+- [x] Full suite green, type checks clean; re-verificado 2026-09-25 (carril Z): `uv run pytest` 1680 passed, `ruff check .` y `ruff format --check .` limpios (399 ficheros), `mypy src` sin incidencias en 158 ficheros
 - [x] Spec updated, or confirmed still true
 - [x] Docs updated, or confirmed still true
 
@@ -651,7 +651,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 012-bug-D1 · Una ejecución que falla por el gate guarda en su motivo el comentario de cada validador una sola vez (tanda D: la 16 repetía seis veces el del juez)
 
 ### Closing
-- [x] Full suite green, type checks clean — verificador 2026-09-24: `uv run pytest` 1523 passed; `uv run ruff check .` all checks passed; `uv run ruff format --check .` 345 files already formatted; `uv run mypy src` no issues in 144 source files
+- [x] Full suite green, type checks clean — verificador 2026-09-24: `uv run pytest` 1523 passed; `uv run ruff check .` all checks passed; `uv run ruff format --check .` 345 files already formatted; `uv run mypy src` no issues in 144 source files; re-verificado 2026-09-25 (carril Z): `uv run pytest` 1680 passed, `ruff check .` y `ruff format --check .` limpios (399 ficheros), `mypy src` sin incidencias en 158 ficheros
 - [x] Spec updated, or confirmed still true
 - [x] Docs updated, or confirmed still true
 
@@ -995,7 +995,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [ ] 020-C16 · La novela de ejemplo real: el PDF de la ejecución del brief 1 de 020-C10 (D, al final)
 
 ### Closing
-- [x] Full suite green, type checks clean — verificador 2026-09-25: pasos no D cerrados (C01–C09, C15, C17, I1, I2; C10–C14 y C16 quedan `(D, al final)`); `uv run python -m pytest -q` 1636 passed, `uv run python -m ruff check .` y `uv run python -m ruff format --check .` limpios, `uv run python -m mypy src` sin incidencias
+- [x] Full suite green, type checks clean — verificador 2026-09-25: pasos no D cerrados (C01–C09, C15, C17, I1, I2; C10–C14 y C16 quedan `(D, al final)`); `uv run python -m pytest -q` 1636 passed, `uv run python -m ruff check .` y `uv run python -m ruff format --check .` limpios, `uv run python -m mypy src` sin incidencias; re-verificado 2026-09-25 (carril Z): `uv run pytest` 1680 passed, `ruff check .` y `ruff format --check .` limpios (399 ficheros), `mypy src` sin incidencias en 158 ficheros
 - [x] Spec updated, or confirmed still true
 - [x] Docs updated, or confirmed still true
 
