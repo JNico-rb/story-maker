@@ -11,7 +11,7 @@ from __future__ import annotations
 import asyncio
 import functools
 from collections.abc import AsyncIterator, Callable, Sequence
-from contextlib import asynccontextmanager
+from contextlib import AbstractAsyncContextManager, asynccontextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -239,28 +239,18 @@ def build_mount(
     return Mount(engine, session_factory, policy, agent_port, worker)
 
 
-def build_app(
+def create_mounted_app(
     settings: Settings,
     config: Config,
     telemetry: ObservabilityPort,
-    adapters: Adapters,
+    mount: Mount,
     *,
     clock: Clock = utc_now,
+    lifespan: Callable[[FastAPI], AbstractAsyncContextManager[None]] | None = None,
 ) -> FastAPI:
-    """La API entera sobre la base de `STORY_MAKER_DATA_DIR`, con la SPA si está compilada, y el
-    worker, que vive lo que vive el servidor."""
-    mount = build_mount(settings, config, telemetry, adapters, clock=clock)
-
-    @asynccontextmanager
-    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        task = asyncio.create_task(mount.worker.run_forever())
-        try:
-            yield
-        finally:
-            task.cancel()
-            await asyncio.gather(task, return_exceptions=True)
-            mount.engine.dispose()
-
+    """La API entera sobre las piezas de `mount`, con la SPA si está compilada. Sin `lifespan`,
+    nada vive con el servidor: `example` y `evals run` sirven así la vista mientras el worker del
+    montaje toma la cola, sin un segundo worker (031-C06)."""
     return create_app(
         settings.frontend_dist,
         session_factory=mount.session_factory,
@@ -274,3 +264,28 @@ def build_app(
         policy=mount.policy,
         lifespan=lifespan,
     )
+
+
+def build_app(
+    settings: Settings,
+    config: Config,
+    telemetry: ObservabilityPort,
+    adapters: Adapters,
+    *,
+    clock: Clock = utc_now,
+) -> FastAPI:
+    """La API entera sobre la base de `STORY_MAKER_DATA_DIR` y el worker, que vive lo que vive
+    el servidor."""
+    mount = build_mount(settings, config, telemetry, adapters, clock=clock)
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        task = asyncio.create_task(mount.worker.run_forever())
+        try:
+            yield
+        finally:
+            task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
+            mount.engine.dispose()
+
+    return create_mounted_app(settings, config, telemetry, mount, clock=clock, lifespan=lifespan)
