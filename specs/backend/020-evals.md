@@ -48,6 +48,10 @@ Medir el sistema sobre cinco briefs fijos y dejar la evidencia en el repo: `stor
 - **Entrada:** `evals run --email <A>` cuando A ya tiene la novela de un brief de eval (creada por `example` sobre ese fichero o por un `evals run` anterior), con su ejecución publicada, o en cola o interrumpida.
 - **Salida:** ese brief no crea novela ni ejecución; la salida lo nombra con su novela y su ejecución; si estaba en cola, la procesa el mismo worker hasta `published`, sin relanzarla; los demás, como en 020-C03. `evals table` cuenta esa novela como la del brief.
 
+#### 020-C18 — Las prohibidas de nivel user de un brief no alcanzan a los demás briefs (T)
+- **Entrada:** `evals run --email <A>` con un brief cuyo fichero trae `user_banned_terms` (p. ej. boda) y otro sin ellas (p. ej. ejemplo); o `example` sobre el primero.
+- **Salida:** esos términos quedan como prohibidas de nivel `novel` de la novela de su brief, y no como prohibidas de nivel `user` de A: una entrega del otro brief que contiene uno de ellos pasa la policy, y una del brief que los trae se deniega (`architecture.md` §18).
+
 #### 020-C05 — `evals run` no corre en la CI (T)
 - **Entrada:** `evals run --email <A>` con la variable de entorno `CI` definida.
 - **Salida:** código distinto de 0 y ninguna novela: las evals solo corren en la máquina con sesión de Claude Code (`verification.md` §4.2 método 2).
