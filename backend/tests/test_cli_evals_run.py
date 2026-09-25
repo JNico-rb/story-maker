@@ -33,6 +33,7 @@ from story_maker.composition import Adapters
 from story_maker.config import load_config
 from story_maker.domain.brief import BriefContent, brief_problems
 from story_maker.formal.double import ProgrammedFormalVerifier
+from story_maker.pipeline.gate.visual import expected_structure
 from story_maker.pipeline.planning.plan import (
     Beat,
     OutlineChapterSubmission,
@@ -44,6 +45,7 @@ from story_maker.render.pdf_links import check_pdf_links
 from story_maker.retrieval.fake import FixedVectors
 from story_maker.store import models
 from story_maker.store.session import create_schema, make_engine, make_session_factory
+from story_maker.validators.visual_review import chapter_destination
 
 NOW = dt.datetime(2026, 9, 24, 11, 0)
 CREATED_AT = NOW.date()
@@ -248,6 +250,60 @@ class EvalAgent:
                 .order_by(models.Fact.id)
             )
 
+    def _facts(self, run_id: int | None) -> list[models.Fact]:
+        """Todos los hechos de la candidata, no solo los obligatorios: un allegado sin ninguno
+        obligatorio (§18, spec 009) también necesita salir en algún capítulo para que la ficha
+        (017) lo enlace."""
+        with self._session_factory() as session:
+            run = session.get_one(models.Run, run_id)
+            return list(
+                session.query(models.Fact)
+                .filter(models.Fact.version_id == run.candidate_version_id)
+                .order_by(models.Fact.id)
+            )
+
+    def _places(self, run_id: int | None) -> list[models.Place]:
+        with self._session_factory() as session:
+            run = session.get_one(models.Run, run_id)
+            return list(
+                session.query(models.Place)
+                .filter(models.Place.version_id == run.candidate_version_id)
+                .order_by(models.Place.id)
+            )
+
+    def _visual_review_submission(self, run_id: int | None) -> dict[str, Any]:
+        """Una entrega fiel a la estructura esperada real (013), calculada como la calcula el
+        gate: para cualquiera de los cinco briefs, no solo el `ejemplo` (017-C12, 017-C13)."""
+        with self._session_factory() as session:
+            run = session.get_one(models.Run, run_id)
+            expected = expected_structure(session, run.candidate_version_id)
+        return {
+            "portada": {
+                "title": expected.cover.title,
+                "recipient": expected.cover.recipient,
+                "dedication": expected.cover.dedication,
+            },
+            "indice": [
+                {"text": f"Capítulo {n}", "destination": chapter_destination(n)}
+                for n in expected.index
+            ],
+            "capitulos": [
+                {
+                    "number": c.number,
+                    "title": c.title,
+                    "first_sentence": c.text.split("\n\n", 1)[0],
+                }
+                for c in expected.chapters
+            ],
+            "ficha": [
+                {
+                    "name": e.name,
+                    "links": [{"destination": chapter_destination(n)} for n in sorted(e.chapters)],
+                }
+                for e in expected.ficha
+            ],
+        }
+
     def _script(self, request: SessionRequest) -> Script:
         if request.role == "extractor":
             facts = []
@@ -273,10 +329,26 @@ class EvalAgent:
             )
         if request.role == "editor":
             review = chapter_review()
-            review["fact_usages"] = [f.id for f in self._mandatory_facts(request.run_id)]
+            review["fact_usages"] = [f.id for f in self._facts(request.run_id)]
+            review["events"] = [
+                {
+                    "statement": f"Un momento en {place.canonical_name}.",
+                    "moment": NOW.isoformat(),
+                    "place_id": place.id,
+                    "present": [],
+                    "type": "ordinary",
+                    "analepsis": False,
+                    "beat": 1,
+                }
+                for place in self._places(request.run_id)
+            ]
             return script(Call("submit_review", review))
         if request.role == "judge":
             return script(Call("submit_evaluation", novel_evaluation()))
+        if request.role == "visual_reviewer":
+            return script(
+                Call("submit_visual_review", self._visual_review_submission(request.run_id))
+            )
         raise AssertionError(f"sesión inesperada: {request.role} {request.mode}")
 
 

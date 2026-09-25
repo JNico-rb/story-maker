@@ -55,7 +55,7 @@ from story_maker.store.session import make_engine, make_session_factory, unit_of
 NOW = dt.datetime(2026, 9, 24, 12, 0)
 USAGE = Usage(input_tokens=1000, output_tokens=500, cache_read_tokens=0, cache_write_tokens=0)
 PROMPTS = ROOT / "backend" / "harness_workspace" / "prompts"
-PRODUCTION_ROLES = ("planner", "writer", "editor", "judge")
+PRODUCTION_ROLES = ("planner", "writer", "editor", "judge", "visual_reviewer")
 CHAPTER_CRITERIA = ("fidelidad-canon", "cumple-beats", "personalizacion-natural", "prosa", "tono")
 NOVEL_CRITERIA = (
     "continuidad",
@@ -135,8 +135,35 @@ def script(*steps: Call) -> Script:
     return Script(steps=(*steps, Say("Fin.")), usage=USAGE, sdk_cost_usd=0.1)
 
 
+def visual_review_submission() -> dict[str, Any]:
+    """Una entrega del revisor visual fiel a lo que produce `script_published_novel`: el nombre
+    de la destinataria sale literalmente en el primer renglón de cada capítulo (011, literal
+    match), así que la ficha la enlaza en los diez (017-C12, 017-C13)."""
+    first_sentence = chapter_text().split("\n\n", 1)[0]
+    recipient = str(BRIEF["recipient"]["name"])
+    return {
+        "portada": {
+            "title": plan()["title"],
+            "recipient": recipient,
+            "dedication": BRIEF["dedication"],
+        },
+        "indice": [{"text": f"Capítulo {n}", "destination": f"capitulo-{n}"} for n in range(1, 11)],
+        "capitulos": [
+            {"number": n, "title": "El faro", "first_sentence": first_sentence}
+            for n in range(1, 11)
+        ],
+        "ficha": [
+            {
+                "name": recipient,
+                "links": [{"destination": f"capitulo-{n}"} for n in range(1, 11)],
+            }
+        ],
+    }
+
+
 def script_published_novel(fake: FakeAgent) -> None:
-    """Un plan aceptado, diez capítulos aceptados al primer intento y un juez que aprueba."""
+    """Un plan aceptado, diez capítulos aceptados al primer intento, un juez que aprueba y un
+    revisor visual que confirma exactamente la estructura que ese guion produce (017)."""
     fake.script("planner", "plan", script(Call("submit_plan", plan())))
     for _ in range(10):
         fake.script(
@@ -146,6 +173,9 @@ def script_published_novel(fake: FakeAgent) -> None:
         )
         fake.script("editor", None, script(Call("submit_review", chapter_review())))
     fake.script("judge", None, script(Call("submit_evaluation", novel_evaluation())))
+    fake.script(
+        "visual_reviewer", None, script(Call("submit_visual_review", visual_review_submission()))
+    )
 
 
 def novel_pdf(html: str) -> bytes:
