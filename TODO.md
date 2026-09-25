@@ -17,7 +17,7 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 - **N1 · MVP:** 008, 010, 016 (cerrada recortada), 011, 012 (sin la etapa de revisión visual, recortado), 020, 014, 029-cli; frontend mínimo: 022 (cerrada), 026 y 027. La configuración va por la CLI (`architecture.md` §18, «Alcance del frontend»).
 - **Recortes de casos C:** 011 ninguno (todos hechos; I1, I5, I7, I9, I10, I11 recortados). 012: C6, C8, C12 recortados. 029: C02, C03, C04, C09, C10, C11, C12, C13, C14, I1, I2, I3 recortados (el cambio va por la web). 026: I1, I3, I4, I5 recortados. 027: I1, I2, I3, I5 recortados.
 - **Fuera de N1:** N2 (018 C18–C23, después 017); N3 (019, 015, 021, el resto de 016, 023, 024, 025, 028); congelado 030 (patch en `~/sm-archivo/030-carril-j.patch`).
-- **Alcance completo (usuario, 2026-09-25, segunda decisión: «corregir todos los errores, huecos y puntos a medias»; importa sobre todo poder modificar la novela donde se quiera):** entran N2 y N3 — 018 C18–C23, 019, 028, 023 completa, 024, 025, 015, 017, 021 y 030 — y los errores hallados en la tanda D. Orden: edición manual (018→019→028) y web completa (023→024→025) primero; después 015→021, 017, 030. Los «(recortado)» de specs cerradas siguen igual salvo que bloqueen esto.
+- **Alcance completo (usuario, 2026-09-25, segunda decisión: «corregir todos los errores, huecos y puntos a medias»; importa sobre todo poder modificar la novela donde se quiera):** entran N2 y N3 — 018 C18–C23, 019, 028, 023 completa, 024, 025, 015, 017, 021 y 030 — y los errores hallados en la tanda D. Orden: edición manual (018→019→028) y web completa (023→024→025) primero; después 015→021, 017, 030. Los «(recortado)» de specs cerradas vuelven por carriles sin conflicto: 029 (C, CLI de entrevista y de cambio), las I T de 010, 011 y 014 (I); 012 C6, C8, C12 tras integrar F y Q. El frontend queda congelado (usuario, 2026-09-25): nadie toca `frontend/`.
 
 **Pasos D del lote final:** 020-C16 y 004-C14 (hito primera novela); después 000-C15, 000-C16 (Playwright MCP en Edge, registrado en `docs/verification.md` §9.3), y 020-C10 a C14. El resto de pasos D queda sin marcar.
 
@@ -59,6 +59,8 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 | G | 028 (edición manual, frontend, con la API simulada según 019; tras guardar, a `/novelas/:novelId/progreso`) | 026 | `../sm-g` | `carril-g` | en curso |
 | M | 015 (servidor MCP) → 030 (report metrics, desde el patch archivado) | 013, 014 | `../sm-m` | `carril-m` | en curso |
 | Q | 017 (revisión visual en el gate). Toca `pipeline/gate/`, `composition.py` (la etapa 3), un módulo propio del revisor | 012, 013 | `../sm-q` | `carril-q` | en curso |
+| C | 029 sin recortes: seguir la entrevista guardada, `change` por la CLI (C02–C04, C09–C14, I1–I3). Toca solo los comandos `interview` y `change` de `cli.py` y sus pruebas | 008, 014 | `../sm-c` | `carril-c` | en curso |
+| I | invariantes T recortadas de 010 (I1, I2), 011 (I1, I5, I7, I9–I11) y 014 (I9, I12): pruebas; código solo si una invariante no se cumple | 010, 011, 014 | `../sm-i2` | `carril-i2` | en curso |
 | Z | errores de la tanda D: `nombres-exactos` marca «Cómo» como variante de «Cobo»; `runs.reason_detail` repite el comentario del juez; 020-C18 (desde `carril-u`) | 012, 020 | `../sm-z` | `carril-z` | en curso |
 
 Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas borradas; los nombres F y G se reusan en la segunda.
@@ -536,8 +538,8 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 010-C27 · Reserva inviable en el techo
 - [x] 010-C28 · Una generación nueva tras un fallo tiene su propia candidata
 - [x] 010-C29 · Resultado y score de `outline`
-- [ ] 010-I1 · Ninguna ventana del planner contiene el contenido de un `TextoLibre` ni la cita de un `HechoExtraido` (recortado)
-- [ ] 010-I2 · Planificar no modifica ni borra nada de origen brief o free_text (recortado)
+- [ ] 010-I1 · Ninguna ventana del planner contiene el contenido de un `TextoLibre` ni la cita de un `HechoExtraido`
+- [ ] 010-I2 · Planificar no modifica ni borra nada de origen brief o free_text
 - [x] 010-I3 · Una entrega rechazada (schema, policy, `outline` o sin entrega) no deja nada en la candidata
 - [x] 010-I4 · Los intentos del evaluable `plan` nunca superan 1 + `max_retries.plan`, contando los de antes de una reanudación; el cortado por una caíd…
 - [x] 010-I5 · El punto de control 0 existe si y solo si el plan está aplicado, se escribe una sola vez, y relanzar con él nunca abre el planner
@@ -588,17 +590,17 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 011-C29 · Un error imprevisto del worker falla con `internal_error`
 - [x] 011-C30 · El informe de la ejecución se calcula al pedirlo
 - [x] 011-C31 · Trazas, spans y scores de la producción
-- [ ] 011-I1 · Hay como mucho una ejecución `running` en el servidor, y las `queued` salen en orden de fecha de creación (recortado)
+- [ ] 011-I1 · Hay como mucho una ejecución `running` en el servidor, y las `queued` salen en orden de fecha de creación
 - [x] 011-I2 · `ReanudacionSinDuplicarNiPerder`
 - [x] 011-I3 · `ReintentosAcotados`
 - [x] 011-I4 · La aceptación es atómica
-- [ ] 011-I5 · Ningún rol escribe canon (recortado)
+- [ ] 011-I5 · Ningún rol escribe canon
 - [x] 011-I6 · Ningún capítulo aceptado tiene un defecto bloqueante
-- [ ] 011-I7 · El writer nunca recibe prosa recuperada (recortado)
+- [ ] 011-I7 · El writer nunca recibe prosa recuperada
 - [x] 011-I8 · Writer y editor son sesiones distintas
-- [ ] 011-I9 · Las ventanas solo llevan datos de la candidata de su novela, nunca de otra novela del mismo cliente ni de otro cliente (recortado)
-- [ ] 011-I10 · El tamaño estimado de la ventana entra en la reserva de su sesión (recortado)
-- [ ] 011-I11 · Los usos y los eventos registrados solo citan hechos y entidades de la candidata (recortado)
+- [ ] 011-I9 · Las ventanas solo llevan datos de la candidata de su novela, nunca de otra novela del mismo cliente ni de otro cliente
+- [ ] 011-I10 · El tamaño estimado de la ventana entra en la reserva de su sesión
+- [ ] 011-I11 · Los usos y los eventos registrados solo citan hechos y entidades de la candidata
 - [x] 011-I12 · El `CLAUDE.md` de producto (entrega tardía, carril W; lo lee el `verificador`) — `backend/harness_workspace/CLAUDE.md`
 - [x] 011-I13 · La skill `personalizacion-natural` (entrega tardía, carril W) — `backend/harness_workspace/.claude/skills/personalizacion-natural/SKILL.md`
 - [x] 011-I14 · Los prompts del writer (`write`, `rewrite`) y del editor (entrega tardía, carril W) — `backend/harness_workspace/prompts/writer.md`, `editor.md`
@@ -726,10 +728,10 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 014-I6 · Una petición tiene como mucho 1 + `max_retries.change` intentos (`ReintentosAcotados`)
 - [x] 014-I7 · Un cambio no modifica la versión base ni ninguna otra versión publicada, tanto si publica como si falla (`VersionAnteriorConservada`)
 - [x] 014-I8 · Historia lineal
-- [ ] 014-I9 · En la fase `writing` de una ejecución de cambio, solo los afectados pasan por el writer, en orden ascendente (recortado)
+- [ ] 014-I9 · En la fase `writing` de una ejecución de cambio, solo los afectados pasan por el writer, en orden ascendente
 - [x] 014-I10 · Los puntos de control de una ejecución de cambio son el 0 y un prefijo de sus afectados en orden, sin huecos ni duplicados
 - [x] 014-I11 · Toda decisión del motor sobre la petición y sobre los valores nuevos queda en el audit log con origen `change_request`
-- [ ] 014-I12 · Los capítulos cambiados de la versión nueva son exactamente los de huella distinta de su base (recortado)
+- [ ] 014-I12 · Los capítulos cambiados de la versión nueva son exactamente los de huella distinta de su base
 - [ ] 014-C20 · Un cambio real propagado sobre la novela del brief 1 (D, al final)
 
 ### Closing
@@ -1264,22 +1266,22 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 
 ### Steps
 - [x] 029-C01 · Entrevistar una novela nueva
-- [ ] 029-C02 · Seguir una entrevista guardada (recortado)
-- [ ] 029-C03 · Cliente o novela ajenos (recortado)
-- [ ] 029-C04 · Un turno fallido no se guarda (recortado)
+- [ ] 029-C02 · Seguir una entrevista guardada
+- [ ] 029-C03 · Cliente o novela ajenos
+- [ ] 029-C04 · Un turno fallido no se guarda
 - [x] 029-C05 · Texto libre desde un fichero
 - [x] 029-C06 · Aceptar, rechazar y marcar obligatorio un hecho
 - [x] 029-C07 · Confirmar el brief pide un sí explícito
 - [x] 029-C08 · Lanzar la generación pide un sí explícito
-- [ ] 029-C09 · Pedir un cambio sobre un hecho y confirmarlo (recortado)
-- [ ] 029-C10 · Pedir un cambio sobre un fragmento (recortado)
-- [ ] 029-C11 · Sin un sí, nada se encola (recortado)
-- [ ] 029-C12 · Petición denegada o rechazada (recortado)
-- [ ] 029-C13 · Sin proveedor o sin sitio en el techo (recortado)
-- [ ] 029-C14 · Novela ajena, inexistente o sin versión publicada (recortado)
-- [ ] 029-I1 · La CLI decide como la API (recortado)
-- [ ] 029-I2 · Nada se confirma ni se encola sin una respuesta `s` (recortado)
-- [ ] 029-I3 · El código de confirmación del cambio no aparece nunca en la salida (recortado)
+- [ ] 029-C09 · Pedir un cambio sobre un hecho y confirmarlo
+- [ ] 029-C10 · Pedir un cambio sobre un fragmento
+- [ ] 029-C11 · Sin un sí, nada se encola
+- [ ] 029-C12 · Petición denegada o rechazada
+- [ ] 029-C13 · Sin proveedor o sin sitio en el techo
+- [ ] 029-C14 · Novela ajena, inexistente o sin versión publicada
+- [ ] 029-I1 · La CLI decide como la API
+- [ ] 029-I2 · Nada se confirma ni se encola sin una respuesta `s`
+- [ ] 029-I3 · El código de confirmación del cambio no aparece nunca en la salida
 
 ### Closing
 - [x] Full suite green, type checks clean — verificador 2026-09-24: uv run pytest (1475 passed), ruff check ., ruff format --check . (324 files), mypy src (0 issues)
