@@ -946,17 +946,17 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 019-C26 · Una base obsoleta al arrancar
 - [x] 019-C27 · Reanudar una edición
 - [x] 019-C28 · Una inyección en el texto editado que el editor obedece (RT16)
-- [ ] 019-I1 · El capítulo editado se publica como lo dejó la persona
-- [ ] 019-I2 · El lint en vivo no escribe nada y es determinista
-- [ ] 019-I3 · Lo que el lint marca como bloqueante es lo que bloquea el guardado
-- [ ] 019-I4 · Un guardado rechazado no crea nada
-- [ ] 019-I5 · Toda decisión sobre el texto de una edición queda en el audit log con origen `manual_edit`
-- [ ] 019-I6 · Ninguna edición se publica sin el gate completo con `cronologia-lean`
-- [ ] 019-I7 · En el capítulo editado bloquean los validadores deterministas y el gate, nunca el editor
-- [ ] 019-I8 · El texto editado solo lo interpreta el editor
-- [ ] 019-I10 · Solo cambian el capítulo editado y los afectados
-- [ ] 019-I11 · La `EdicionManual` sigue a su ejecución
-- [ ] 019-I12 · La historia de versiones es lineal
+- [x] 019-I1 · El capítulo editado se publica como lo dejó la persona
+- [x] 019-I2 · El lint en vivo no escribe nada y es determinista
+- [x] 019-I3 · Lo que el lint marca como bloqueante es lo que bloquea el guardado
+- [x] 019-I4 · Un guardado rechazado no crea nada
+- [x] 019-I5 · Toda decisión sobre el texto de una edición queda en el audit log con origen `manual_edit`
+- [x] 019-I6 · Ninguna edición se publica sin el gate completo con `cronologia-lean`
+- [x] 019-I7 · En el capítulo editado bloquean los validadores deterministas y el gate, nunca el editor
+- [x] 019-I8 · El texto editado solo lo interpreta el editor
+- [x] 019-I10 · Solo cambian el capítulo editado y los afectados
+- [x] 019-I11 · La `EdicionManual` sigue a su ejecución
+- [x] 019-I12 · La historia de versiones es lineal
 - [ ] 019-C29 · Edición manual real con Lean (D, al final)
 
 ### Closing
