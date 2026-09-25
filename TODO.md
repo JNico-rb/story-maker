@@ -864,9 +864,9 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [ ] 017-C23 · En la primera generación real, la etapa corre en el gate (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-25: pytest 1760 passed; ruff check All checks passed; ruff format 417 files already formatted; mypy Success (161 files)
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 018 — linters-de-prosa
 
