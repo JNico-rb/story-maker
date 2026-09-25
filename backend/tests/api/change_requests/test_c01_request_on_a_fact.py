@@ -59,7 +59,9 @@ def test_the_request_stays_proposed_on_v1_expiring_after_the_confirmation_minute
         assert row.code_hash is not None
         assert row.code_hash != body["code"]
         assert body["code"] not in row.code_hash
-        assert dt.datetime.fromisoformat(str(body["expires_at"])) == row.expires_at
+        assert dt.datetime.fromisoformat(str(body["expires_at"])) == row.expires_at.replace(
+            tzinfo=dt.UTC
+        )
 
 
 def test_one_planner_session_in_change_mode_without_run_received_selection_request_and_bible(
