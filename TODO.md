@@ -1279,9 +1279,9 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 029-C12 · Petición denegada o rechazada
 - [x] 029-C13 · Sin proveedor o sin sitio en el techo
 - [x] 029-C14 · Novela ajena, inexistente o sin versión publicada
-- [ ] 029-I1 · La CLI decide como la API
-- [ ] 029-I2 · Nada se confirma ni se encola sin una respuesta `s`
-- [ ] 029-I3 · El código de confirmación del cambio no aparece nunca en la salida
+- [x] 029-I1 · La CLI decide como la API
+- [x] 029-I2 · Nada se confirma ni se encola sin una respuesta `s`
+- [x] 029-I3 · El código de confirmación del cambio no aparece nunca en la salida
 
 ### Closing
 - [x] Full suite green, type checks clean — verificador 2026-09-24: uv run pytest (1475 passed), ruff check ., ruff format --check . (324 files), mypy src (0 issues)
