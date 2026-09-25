@@ -622,7 +622,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 012-C3 · Un elemento obligatorio sin uso se atribuye a los capítulos que el outline le asignó
 - [x] 012-C4 · Un nombre no canónico en un capítulo se atribuye a ese capítulo — necesita la regla de variantes de 011 (fuera de alcance de la spec 012, no en V2 todavía)
 - [x] 012-C5 · Una prohibida en un capítulo se atribuye a ese capítulo
-- [ ] 012-C6 · Una prohibida en la portada o en la ficha hace fallar la ejecución (recortado)
+- [x] 012-C6 · Una prohibida en la portada o en la ficha hace fallar la ejecución
 - [x] 012-C7 · Una etapa que falla corta la pasada
 - [ ] 012-C8 · Lean y el juez corren a la vez (recortado)
 - [x] 012-C9 · Un invariante Lean violado se atribuye a los capítulos de los eventos del testigo

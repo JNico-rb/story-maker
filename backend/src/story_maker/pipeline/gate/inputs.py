@@ -106,11 +106,39 @@ def chapter_texts(chapters: Sequence[Chapter]) -> tuple[ChapterText, ...]:
     return tuple(ChapterText(c.number, f"{c.title}\n{c.text}") for c in chapters)
 
 
+def cover_and_sheet_texts(
+    session: Session, version_id: int, novel_id: int
+) -> tuple[tuple[str, str], ...]:
+    """Lo que `palabras-prohibidas` escanea fuera de los capítulos, con su ubicación (012-C6): en
+    la portada, el título, el nombre del destinatario y la dedicatoria; en la ficha, el nombre
+    canónico, la descripción y los valores de los hechos de cada personaje y lugar."""
+    novel = session.get_one(Novel, novel_id)
+    brief = session.query(Brief).filter(Brief.novel_id == novel_id).one_or_none()
+    content = brief.content if brief is not None and isinstance(brief.content, dict) else {}
+    bible = read_story_bible(session, version_id)
+    recipient = [c.canonical_name for c in bible.characters if c.type == "recipient"]
+    cover = [novel.title or "", *recipient, str(content.get("dedication", ""))]
+    sheet = [
+        *(c.canonical_name for c in bible.characters),
+        *(text for p in bible.places for text in (p.canonical_name, p.description)),
+        *(f.value for f in bible.facts if f.subject_type in ("character", "place")),
+    ]
+    return (
+        *(("cover", text) for text in cover if text),
+        *(("sheet", text) for text in sheet if text),
+    )
+
+
 def banned_matches(
-    session: Session, user_id: int, novel_id: int, chapters: Sequence[ChapterText]
+    session: Session,
+    user_id: int,
+    novel_id: int,
+    chapters: Sequence[ChapterText],
+    elsewhere: Sequence[tuple[str, str]] = (),
 ) -> tuple[BannedTermMatch, ...]:
     """Las coincidencias de las tres listas tal como están al correr la pasada (012-C5), con la
-    coincidencia por tokens de 005."""
+    coincidencia por tokens de 005: en los capítulos y en lo de `elsewhere` (ubicación, texto),
+    la portada y la ficha (012-C6)."""
     entries = (
         session.query(BannedTerm)
         .filter(
@@ -121,12 +149,16 @@ def banned_matches(
         .order_by(BannedTerm.id)
         .all()
     )
+    located: list[tuple[str, int | None, str]] = [
+        *(("chapter", c.chapter, c.text) for c in chapters),
+        *((location, None, text) for location, text in elsewhere),
+    ]
     return tuple(
-        BannedTermMatch(entry.term, entry.level, variant, chapter.chapter)
-        for chapter in chapters
+        BannedTermMatch(entry.term, entry.level, variant, chapter, location)
+        for location, chapter, text in located
         for entry in entries
         for needle in _needles(entry)
-        for variant in find_term_matches(chapter.text, needle)
+        for variant in find_term_matches(text, needle)
     )
 
 

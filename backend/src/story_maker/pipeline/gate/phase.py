@@ -228,7 +228,8 @@ class Gate:
             elements, used = inputs.mandatory_elements(session, job.version_id)
             names = inputs.canonical_names(session, job.version_id)
             texts = inputs.chapter_texts(chapters)
-            matches = inputs.banned_matches(session, job.user_id, job.novel_id, texts)
+            elsewhere = inputs.cover_and_sheet_texts(session, job.version_id, job.novel_id)
+            matches = inputs.banned_matches(session, job.user_id, job.novel_id, texts, elsewhere)
         mandatory = mandatory_elements_result(elements, used)
         exact = inputs.exact_names_result(chapters, names)
         banned, decision = banned_terms_in_chapters(texts, matches)
@@ -239,8 +240,14 @@ class Gate:
             job, trace, BANNED_TERMS_VALIDATOR, banned.passed, banned.defects, _banned(banned)
         )
         defects = (*mandatory.defects, *exact.defects, *banned.defects)
-        verdict = gate_precedence(defects=defects, cycles_remaining=job.cycles_remaining)
-        return PassResult(verdict, defects, _messages(defects))
+        # Una prohibida en la portada o la ficha no la corrige ningún capítulo (012-C6).
+        unattributable = [d for d in banned.defects if d.chapter is None]
+        verdict = gate_precedence(
+            unattributable_reason="banned_content" if unattributable else None,
+            defects=defects,
+            cycles_remaining=job.cycles_remaining,
+        )
+        return PassResult(verdict, defects, _messages(unattributable or defects))
 
     async def _stage_2(self, job: GateJob, trace: Trace) -> PassResult:
         """`cronologia-lean` ∥ `juez-novela`: se espera a los dos y se combinan sus defectos."""
