@@ -21,6 +21,7 @@ from tests.pipeline.conftest import (
 from story_maker.agents.fake import Fail, FakeAgent, Script
 from story_maker.api.app import create_app
 from story_maker.api.auth import create_access_token
+from story_maker.lint.chapter import LINTERS
 from story_maker.pipeline.orchestrator import Orchestrator
 from story_maker.pipeline.runs import resume_run
 from story_maker.store.models import RoleSession, Run
@@ -107,7 +108,11 @@ async def test_the_report_is_computed_from_what_is_stored_when_asked(
     assert by_attempt[(3, 3, "rubrica-capitulo")] is False
     assert by_attempt[(3, 3, "longitud-capitulo")] is True
     assert {(c, a) for c, a, _ in by_attempt} == {(1, 1), (2, 1), (3, 1), (3, 2), (3, 3)}
-    unresolved = [(d["chapter"], d["criterion"], d["blocking"]) for d in report["unresolved"]]
+    unresolved = [
+        (d["chapter"], d["criterion"], d["blocking"])
+        for d in report["unresolved"]
+        if d["validator"] not in LINTERS
+    ]
     assert unresolved == [
         (1, "prosa", False),
         (2, "tono", False),

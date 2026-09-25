@@ -16,6 +16,7 @@ from tests.pipeline.conftest import (
 )
 
 from story_maker.agents.fake import Fail, FakeAgent, Script
+from story_maker.lint.chapter import LINTERS
 from story_maker.observability.null import NullObservability
 from story_maker.observability.port import Score, Span, Trace
 from story_maker.pipeline.orchestrator import Orchestrator
@@ -121,10 +122,12 @@ async def test_one_generation_trace_a_span_per_chapter_and_scores_per_validation
     emitted_2 = [
         (name, accepted) for name, span, accepted in telemetry.emitted if span == "capitulo-2"
     ]
-    assert [accepted for _, accepted in emitted_2] == [False] * len(per_run) + [True] * len(per_run)
+    accepted_run = len(per_run) + len(LINTERS)  # los linters, solo con la aceptación (018-C23)
+    assert [accepted for _, accepted in emitted_2] == [False] * len(per_run) + [True] * accepted_run
 
     with session_factory() as session:
         rows = session.query(ValidatorResult).filter_by(run_id=seed.run_id, chapter=2)
+        # Los linters dejan su resultado solo con la aceptación (018-C22).
         assert sorted((r.detail["attempt"], r.validator) for r in rows) == sorted(
-            (attempt, v) for attempt in (1, 2) for v in VALIDATORS
+            [*((attempt, v) for attempt in (1, 2) for v in VALIDATORS), *((2, v) for v in LINTERS)]
         )

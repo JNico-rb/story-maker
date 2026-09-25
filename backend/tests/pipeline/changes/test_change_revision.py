@@ -27,6 +27,7 @@ from tests.pipeline.conftest import (
 from tests.pipeline.gate.conftest import chapter_hashes
 
 from story_maker.agents.fake import FakeAgent
+from story_maker.lint.chapter import LINTERS
 from story_maker.pipeline.changes.run import REVISE_INSTRUCTION
 from story_maker.pipeline.worker import Worker
 
@@ -85,7 +86,8 @@ async def test_only_the_affected_chapters_are_revised_in_order_with_the_change_a
         assert inputs["change"] == CHANGE
         assert inputs["instruction"] == REVISE_INSTRUCTION
     assert "defects" not in _inputs(writers[1].message)
-    assert [d["criterion"] for d in _inputs(writers[2].message)["defects"]] == ["fidelidad-canon"]
+    defects = [d for d in _inputs(writers[2].message)["defects"] if d["validator"] not in LINTERS]
+    assert [d["criterion"] for d in defects] == ["fidelidad-canon"]
     assert all(_inputs(e.message)["change"] == CHANGE for e in editors)
     assert checkpoints(session_factory, confirmed.run_id) == [0, 2, 5, 7]
     base, new = (

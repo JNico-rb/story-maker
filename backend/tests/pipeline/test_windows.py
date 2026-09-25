@@ -9,10 +9,10 @@ from typing import Any
 
 import pytest
 from sqlalchemy.orm import Session, sessionmaker
-from tests.pipeline.conftest import Seed
+from tests.pipeline.conftest import Seed, seed_candidate, seed_novel
 
 from story_maker.pipeline.windows import CandidateWindows
-from story_maker.store.models import Brief, Chapter, Fact, OutlineChapter
+from story_maker.store.models import Brief, Chapter, Fact, OutlineChapter, Place
 
 TOP_K = {"writer": 8, "editor": 8}
 ORIGIN = {"theme": "el origen del faro", "content": "lo levantó un contrabandista arrepentido"}
@@ -147,6 +147,25 @@ def test_the_writer_window_of_chapter_1_has_no_summaries_nor_literal_ending(
     assert window.residents["literal_ending"] is None
 
 
+@pytest.mark.parametrize("chapter", [2, 3, 4])
+def test_no_writer_window_ever_carries_recovered_prose_older_than_the_immediate_previous_chapter(
+    session_factory: sessionmaker[Session], candidate: Seed, chapter: int
+) -> None:
+    """011-I7: del texto de los capítulos anteriores, la ventana solo lleva el final literal del
+    capítulo n-1 (sus últimas 300 palabras); ni una frase de un capítulo más antiguo, ni el resto
+    del propio n-1, llegan por ningún otro camino de la ventana (`summaries`, `outline`...)."""
+    window = writer_window(session_factory, candidate.version_id, chapter, FixedRetriever(()))
+    dumped = json.dumps(window.residents, ensure_ascii=False)
+
+    for earlier in range(1, chapter - 1):  # cualquier capítulo anterior al inmediato precedente
+        assert f"c{earlier}p" not in dumped
+
+    previous = chapter - 1
+    assert f"c{previous}p0700" not in dumped  # nada del capítulo n-1 antes de sus últimas 300
+    assert f"c{previous}p0701" in dumped  # el final literal sí llega
+    assert f"c{previous}p1000" in dumped
+
+
 DELIVERED = "Marta subió al Faro de Cabo Mayor.\n\nToby ladró dos veces."
 
 
@@ -210,3 +229,31 @@ def test_the_editor_window_has_the_chapter_4_outline_entities_rubric_and_the_del
     assert "future_revelations" not in dumped
     assert "beat 1 del capítulo 5" not in dumped
     assert "c3p" not in dumped
+
+
+def test_the_writer_and_editor_windows_never_carry_another_novel_of_the_same_client(
+    session_factory: sessionmaker[Session], candidate: Seed
+) -> None:
+    """011-I9: la ventana solo lleva datos de la candidata de su novela, nunca de otra novela del
+    mismo cliente — aunque comparta el nombre de un personaje, «Marta» (RT5, `verification.md`
+    §4.9)."""
+    with session_factory() as session:
+        other_novel = seed_novel(session, candidate.user_id)
+        _, _, other_places, other_facts = seed_candidate(session, other_novel.id)
+        # Mismo nombre de personaje que la candidata de la fixture, pero otro mundo.
+        session.get_one(
+            Place, other_places["Faro de Cabo Mayor"]
+        ).canonical_name = "Cueva del Viento"
+        session.get_one(Fact, other_facts["rasgo"]).value = "le encantan las tormentas"
+        session.commit()
+
+    retriever = FixedRetriever(())
+    windows = CandidateWindows(retriever=retriever, top_k=TOP_K)
+    writer = writer_window(session_factory, candidate.version_id, 4, retriever)
+    with session_factory() as session:
+        editor = windows.editor(session, candidate.version_id, 4, "La carta", DELIVERED)
+
+    for window in (writer, editor):
+        dumped = json.dumps(window.residents, ensure_ascii=False)
+        assert "Cueva del Viento" not in dumped
+        assert "le encantan las tormentas" not in dumped
