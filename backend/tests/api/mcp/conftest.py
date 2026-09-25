@@ -17,6 +17,7 @@ from fastapi.testclient import TestClient
 from fastmcp.client import Client
 from fastmcp.client.transports import StreamableHttpTransport
 from sqlalchemy.orm import Session, sessionmaker
+from tests.pipeline.gate.conftest import seed_world
 from tests.render.novela_fixture import Novela
 
 from story_maker.api.auth import create_access_token
@@ -190,6 +191,7 @@ def _build_novela_with_real_pdfs(session_factory: sessionmaker[Session], tmp_pat
         session.flush()
         uow.add(models.EventCharacter(event_id=event.id, character_id=ada.id))
         uow.add(models.EventCharacter(event_id=event.id, character_id=toby.id))
+        seed_world(session, v1_id)
 
         ada_name = _name_fact(session, v1_id, ada.id)
         toby_name = _name_fact(session, v1_id, toby.id)
