@@ -77,7 +77,8 @@ def blocking_diagnostics(
     ]
     length = check_chapter_length(text)
     found += [
-        Diagnostic("longitud", d.message, blocking=True, extra={"validator": LENGTH})
+        # La pantalla de 028 solo conoce los tipos del lint; `validator` dice cuál es.
+        Diagnostic("linter", d.message, blocking=True, extra={"validator": LENGTH})
         for d in length.defects
     ]
     found += [

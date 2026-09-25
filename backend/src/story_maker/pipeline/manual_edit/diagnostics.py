@@ -14,7 +14,6 @@ TYPES = (
     "prohibida",
     "linter",
     "cronologia",
-    "longitud",  # solo en el 422 del guardado: el lint no mide la longitud
 )
 
 
