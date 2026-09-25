@@ -6,7 +6,6 @@ Incluye lo que recibe el editor de un defecto Lean en la reescritura (012-C9, `a
 from __future__ import annotations
 
 import asyncio
-import datetime as dt
 import json
 from typing import Any
 
@@ -23,13 +22,14 @@ from tests.pipeline.gate.conftest import (
     run_of,
     script_judges,
     script_rewrites,
+    seed_t1_witness_in_6,
 )
 
 from story_maker.agents.fake import FakeAgent
 from story_maker.formal.result import INVARIANTS, ChronologyResult
 from story_maker.observability.port import Trace
 from story_maker.pipeline.windows import GATE_DEFECTS_NOTE, WriterWindow
-from story_maker.store.models import Event, EventCharacter, Run
+from story_maker.store.models import Run
 
 
 class PhaseSpyWindows(FixedWindows):
@@ -92,30 +92,6 @@ def test_targeted_rewrite_redoes_only_the_attributed_chapters_in_order_and_repea
             assert span.name == f"capitulo-{session.request.chapter}"
 
 
-def _seed_t1_witness_in_6(session_factory: sessionmaker[Session], seed: Seed) -> tuple[int, int]:
-    """Dos eventos registrados del capítulo 6, con Marta presente, narrados en orden inverso."""
-    ids = []
-    with session_factory() as session:
-        for beat, moment in ((1, dt.datetime(2031, 5, 2, 10)), (2, dt.datetime(2031, 5, 1, 10))):
-            event = Event(
-                version_id=seed.version_id,
-                statement=f"Marta en el faro, beat {beat}",
-                moment=moment,
-                place_id=seed.places["Faro de Cabo Mayor"],
-                type="ordinary",
-                analepsis=False,
-                origin="recorded",
-                chapter=6,
-                beat=beat,
-            )
-            session.add(event)
-            session.flush()
-            session.add(EventCharacter(event_id=event.id, character_id=seed.characters["Marta"]))
-            ids.append(event.id)
-        session.commit()
-    return ids[0], ids[1]
-
-
 def test_a_lean_defect_reaches_the_writer_and_the_editor_with_its_precedence_over_beats(
     session_factory: sessionmaker[Session],
     at_gate: Seed,
@@ -123,7 +99,7 @@ def test_a_lean_defect_reaches_the_writer_and_the_editor_with_its_precedence_ove
     kit: GateKit,
     trace: Trace,
 ) -> None:
-    before, after = _seed_t1_witness_in_6(session_factory, at_gate)
+    before, after = seed_t1_witness_in_6(session_factory, at_gate)
     holds = {t: t != "T1" for t in INVARIANTS}
     kit.lean.outcomes.append(ChronologyResult("failed", holds, {"T1": (before, after)}))
     script_judges(fake, evaluation(), evaluation())
