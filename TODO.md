@@ -1176,6 +1176,8 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas.
 
 **N1** (usuario, 2026-09-24): web mínima, lectura y cambio del lector (`architecture.md` §18, «Alcance del frontend»); sus I, recortadas.
 
+**Carril R** (integrador 2026-09-25): pulido visual del panel de cambio sin comportamiento nuevo, bajo 026-C16 (que lo incluye); 027-C01 a C14 siguen verdes, nada que re-marcar.
+
 - [x] Spec `specs/frontend/027-cambio-del-lector.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcada sin 025-progreso (C09 reescrito)
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcado con C09 nuevo
 
