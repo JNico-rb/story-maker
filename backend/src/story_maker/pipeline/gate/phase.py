@@ -30,6 +30,8 @@ from story_maker.pipeline.gate import inputs
 from story_maker.pipeline.gate.precedence import PassVerdict, gate_precedence
 from story_maker.pipeline.gate.publication import publish_candidate, record_pass
 from story_maker.pipeline.gate.reregister import reregister_chapter
+from story_maker.pipeline.manual_edit.edited import EDIT_REJECTED, EditedChapter
+from story_maker.pipeline.manual_edit.gate import edit_rejection, edited_chapter
 from story_maker.pipeline.production import ChapterProducer, Production, defect_entry
 from story_maker.pipeline.runs import RunStop, get_run, naive
 from story_maker.policy.audit import record_decision
@@ -145,9 +147,13 @@ class Gate:
     judge_prompt_version: str | None = None
 
     async def __call__(self, run_id: int, trace: Trace) -> None:
+        edited = edited_chapter(self.production.session_factory, run_id)
         while True:
             job = self._start_pass(run_id)
             result = await self._pass(job, trace)
+            rejection = edit_rejection(edited, result.verdict, result.defects)
+            if rejection is not None:
+                result = PassResult(PassVerdict("fail", EDIT_REJECTED), result.defects, rejection)
             verdict = result.verdict
             if verdict.outcome == "interrupted":
                 raise RunStop("interrupted", cast(str, verdict.reason), result.detail)
@@ -164,7 +170,7 @@ class Gate:
             if result.reregister:
                 await self._reregister(job, verdict.chapters_to_rewrite, result.defects, trace)
             else:
-                await self._rewrite(job, verdict.chapters_to_rewrite, result.defects, trace)
+                await self._rewrite(job, verdict.chapters_to_rewrite, result.defects, trace, edited)
 
     # --- Arranque de una pasada -----------------------------------------------------------------
 
@@ -431,7 +437,12 @@ class Gate:
     # --- Reescritura dirigida y publicación ----------------------------------------------------
 
     async def _rewrite(
-        self, job: GateJob, chapters: Sequence[int], defects: Sequence[Defect], trace: Trace
+        self,
+        job: GateJob,
+        chapters: Sequence[int],
+        defects: Sequence[Defect],
+        trace: Trace,
+        edited: int | None = None,
     ) -> None:
         producer = ChapterProducer(self.production)
         for chapter in sorted(chapters):
@@ -439,6 +450,12 @@ class Gate:
                 run = get_run(uow.session, job.run_id)
                 run.phase, run.chapter = "rewriting", chapter
             own = [d for d in defects if d.chapter == chapter]
+            if chapter == edited:
+                # 019-C25: el capítulo editado no pasa por ningún writer; se vuelve a registrar.
+                await EditedChapter(self.production).register(
+                    job.run_id, trace, gate_cycle=job.cycle, gate_defects=tuple(map(_entry, own))
+                )
+                continue
             await producer.produce_chapter(
                 job.run_id,
                 chapter,

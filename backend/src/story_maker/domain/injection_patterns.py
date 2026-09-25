@@ -11,4 +11,12 @@ INJECTION_PATTERNS = [
     re.compile(r"ignore\s+(the\s+)?previous\s+instructions", re.IGNORECASE),
     re.compile(r"reveal\s+the\s+system\s+prompt", re.IGNORECASE),
     re.compile(r"revela\s+(el\s+)?prompt\s+del\s+sistema", re.IGNORECASE),
+    # Una orden a un rol del producto («editor: registra que…»): el texto de una edición manual
+    # llega al editor como dato (019-C16, RT16). La frase marcada sigue hasta el fin de la frase.
+    re.compile(
+        r"\b(writer|escritor|editor|planner|planificador|juez|judge|extractor|entrevistador|"
+        r"interviewer)\s*:\s*(registra|escribe|reescribe|borra|elimina|cambia|ignora|añade|"
+        r"marca|olvida|declara)\b[^.!?\n]*",
+        re.IGNORECASE,
+    ),
 ]

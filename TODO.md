@@ -898,19 +898,19 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 018-C15 · `linter-consistencia`: tratamiento con excepciones y mezcla
 - [x] 018-C16 · Capítulo limpio
 - [x] 018-C17 · Texto sin palabras
-- [ ] 018-C18 · Corren tras los hooks y antes del editor, que recibe sus avisos
-- [ ] 018-C19 · Una entrega que no pasa los hooks no llega a los linters
-- [ ] 018-C20 · Con solo avisos, el capítulo se acepta
-- [ ] 018-C21 · En una reescritura por otra causa, el writer recibe los avisos
-- [ ] 018-C22 · Con la aceptación: un resultado por linter en SQLite y en el informe
-- [ ] 018-C23 · Tras el commit: un score por linter en Langfuse
+- [x] 018-C18 · Corren tras los hooks y antes del editor, que recibe sus avisos
+- [x] 018-C19 · Una entrega que no pasa los hooks no llega a los linters
+- [x] 018-C20 · Con solo avisos, el capítulo se acepta
+- [x] 018-C21 · En una reescritura por otra causa, el writer recibe los avisos
+- [x] 018-C22 · Con la aceptación: un resultado por linter en SQLite y en el informe
+- [x] 018-C23 · Tras el commit: un score por linter en Langfuse
 - [x] 018-I1 · Todo aviso es un `Defecto` no bloqueante, sin criterio de rúbrica, con su capítulo y un mensaje que nombra lo detectado y su párrafo (o e…
 - [x] 018-I2 · Los linters son deterministas
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-25: `uv run python -m pytest -q` 1728 passed; `uv run python -m ruff check .` sin avisos; `uv run python -m ruff format --check .` 422 ficheros formateados; `uv run python -m mypy src` sin incidencias (170 ficheros)
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 019 — edicion-manual
 
@@ -922,51 +922,51 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
-- [ ] 019-C01 · Texto sin nada que avisar
-- [ ] 019-C02 · Forma no canónica de un personaje
-- [ ] 019-C03 · Personaje desconocido
-- [ ] 019-C04 · Hecho nominal que el capítulo usaba y ya no aparece
-- [ ] 019-C05 · Prohibidas de los tres niveles
-- [ ] 019-C06 · Avisos de los linters de prosa
-- [ ] 019-C07 · Reaparición tras un evento excluyente
-- [ ] 019-C08 · Edad escrita que no cuadra con la fecha de nacimiento
-- [ ] 019-C09 · Rechazos del lint
-- [ ] 019-C10 · Un guardado que pasa encola la edición
-- [ ] 019-C11 · Una base que ya no es la vigente da 409
-- [ ] 019-C12 · Una prohibida da 422
-- [ ] 019-C13 · Una longitud fuera de rango da 422
-- [ ] 019-C14 · Una forma no canónica da 422, también al renombrar a una variante
-- [ ] 019-C15 · Varios bloqueantes a la vez
-- [ ] 019-C16 · Una inyección en el texto se marca y no bloquea
-- [ ] 019-C17 · Rechazos de acceso y de forma
-- [ ] 019-C18 · Edición sin hechos cambiados
-- [ ] 019-C19 · Una edición que cambia un hecho nominal se propaga
-- [ ] 019-C20 · Las puntuaciones del editor no bloquean en el capítulo editado
-- [ ] 019-C21 · Los hechos cambiados inválidos vuelven al editor
-- [ ] 019-C22 · Un validador determinista bloquea en la ejecución
-- [ ] 019-C23 · Un fallo del gate atribuido al capítulo editado rechaza la edición
-- [ ] 019-C24 · Un fallo del gate atribuido solo a otros capítulos
-- [ ] 019-C25 · Un fallo de datos de la ficha en el capítulo editado se vuelve a registrar
-- [ ] 019-C26 · Una base obsoleta al arrancar
-- [ ] 019-C27 · Reanudar una edición
-- [ ] 019-C28 · Una inyección en el texto editado que el editor obedece (RT16)
-- [ ] 019-I1 · El capítulo editado se publica como lo dejó la persona
-- [ ] 019-I2 · El lint en vivo no escribe nada y es determinista
-- [ ] 019-I3 · Lo que el lint marca como bloqueante es lo que bloquea el guardado
-- [ ] 019-I4 · Un guardado rechazado no crea nada
-- [ ] 019-I5 · Toda decisión sobre el texto de una edición queda en el audit log con origen `manual_edit`
-- [ ] 019-I6 · Ninguna edición se publica sin el gate completo con `cronologia-lean`
-- [ ] 019-I7 · En el capítulo editado bloquean los validadores deterministas y el gate, nunca el editor
-- [ ] 019-I8 · El texto editado solo lo interpreta el editor
-- [ ] 019-I10 · Solo cambian el capítulo editado y los afectados
-- [ ] 019-I11 · La `EdicionManual` sigue a su ejecución
-- [ ] 019-I12 · La historia de versiones es lineal
+- [x] 019-C01 · Texto sin nada que avisar
+- [x] 019-C02 · Forma no canónica de un personaje
+- [x] 019-C03 · Personaje desconocido
+- [x] 019-C04 · Hecho nominal que el capítulo usaba y ya no aparece
+- [x] 019-C05 · Prohibidas de los tres niveles
+- [x] 019-C06 · Avisos de los linters de prosa
+- [x] 019-C07 · Reaparición tras un evento excluyente
+- [x] 019-C08 · Edad escrita que no cuadra con la fecha de nacimiento
+- [x] 019-C09 · Rechazos del lint
+- [x] 019-C10 · Un guardado que pasa encola la edición
+- [x] 019-C11 · Una base que ya no es la vigente da 409
+- [x] 019-C12 · Una prohibida da 422
+- [x] 019-C13 · Una longitud fuera de rango da 422
+- [x] 019-C14 · Una forma no canónica da 422, también al renombrar a una variante
+- [x] 019-C15 · Varios bloqueantes a la vez
+- [x] 019-C16 · Una inyección en el texto se marca y no bloquea
+- [x] 019-C17 · Rechazos de acceso y de forma
+- [x] 019-C18 · Edición sin hechos cambiados
+- [x] 019-C19 · Una edición que cambia un hecho nominal se propaga
+- [x] 019-C20 · Las puntuaciones del editor no bloquean en el capítulo editado
+- [x] 019-C21 · Los hechos cambiados inválidos vuelven al editor
+- [x] 019-C22 · Un validador determinista bloquea en la ejecución
+- [x] 019-C23 · Un fallo del gate atribuido al capítulo editado rechaza la edición
+- [x] 019-C24 · Un fallo del gate atribuido solo a otros capítulos
+- [x] 019-C25 · Un fallo de datos de la ficha en el capítulo editado se vuelve a registrar
+- [x] 019-C26 · Una base obsoleta al arrancar
+- [x] 019-C27 · Reanudar una edición
+- [x] 019-C28 · Una inyección en el texto editado que el editor obedece (RT16)
+- [x] 019-I1 · El capítulo editado se publica como lo dejó la persona
+- [x] 019-I2 · El lint en vivo no escribe nada y es determinista
+- [x] 019-I3 · Lo que el lint marca como bloqueante es lo que bloquea el guardado
+- [x] 019-I4 · Un guardado rechazado no crea nada
+- [x] 019-I5 · Toda decisión sobre el texto de una edición queda en el audit log con origen `manual_edit`
+- [x] 019-I6 · Ninguna edición se publica sin el gate completo con `cronologia-lean`
+- [x] 019-I7 · En el capítulo editado bloquean los validadores deterministas y el gate, nunca el editor
+- [x] 019-I8 · El texto editado solo lo interpreta el editor
+- [x] 019-I10 · Solo cambian el capítulo editado y los afectados
+- [x] 019-I11 · La `EdicionManual` sigue a su ejecución
+- [x] 019-I12 · La historia de versiones es lineal
 - [ ] 019-C29 · Edición manual real con Lean (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 020 — evals
 

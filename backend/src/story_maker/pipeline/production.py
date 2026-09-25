@@ -20,6 +20,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from story_maker.agents.port import AgentPort, Defect, SessionRequest, SessionResult, ToolCall
 from story_maker.config import Config
 from story_maker.domain.constants import CHAPTERS_PER_NOVEL
+from story_maker.lint.chapter import chapter_linters
 from story_maker.observability.port import ObservabilityPort, Span, Trace
 from story_maker.pipeline.acceptance import (
     CHAPTER_EVALUABLE,
@@ -28,6 +29,7 @@ from story_maker.pipeline.acceptance import (
     accept_chapter,
     record_closed_attempt,
 )
+from story_maker.pipeline.prose_lint import lint_inputs, lint_run
 from story_maker.pipeline.runs import Clock, RunStop, get_run
 from story_maker.pipeline.submissions import (
     SUBMIT_CHAPTER,
@@ -361,7 +363,9 @@ class ChapterProducer:
                     defects = next((a.defects for a in reversed(written.closed) if a.defects), ())
                     continue
                 delivery = written.delivery
-                review = await self._review(job, delivery, trace, span)
+                lint = self._lint(job, delivery, trace, span)
+                warnings = tuple(d for run in lint for d in run.defects)
+                review = await self._review(job, delivery, warnings, trace, span)
                 if review is None:
                     closed = ClosedAttempt(
                         delivery.number,
@@ -371,13 +375,19 @@ class ChapterProducer:
                     )
                 else:
                     judgement = judge_review(review, self.p.config.thresholds)
-                    runs = (*delivery.runs, rubric_run(judgement))
+                    rubric = rubric_run(judgement)
                     outcome = verdict(judgement.passed, delivery.number, self.p.max_attempts)
                     if outcome == "accept":
+                        runs = (*delivery.runs, *lint, rubric)
                         self._accept(job, delivery, review, runs)
                         self._emit(trace, span, runs)
                         return
-                    closed = ClosedAttempt(delivery.number, outcome, runs, runs[-1].defects)
+                    closed = ClosedAttempt(
+                        delivery.number,
+                        outcome,
+                        (*delivery.runs, rubric),
+                        (*rubric.defects, *warnings),
+                    )
                 self._close(job, (closed,), trace, span)
                 used += 1
                 if closed.outcome == "fail":
@@ -441,8 +451,26 @@ class ChapterProducer:
         result = await self.p.port.run(request)
         return interpret_writer(result, hooks.log, used, self.p.max_attempts)
 
-    async def _review(
+    def _lint(
         self, job: ChapterJob, delivery: Delivery, trace: Trace, span: Span
+    ) -> tuple[ValidatorRun, ...]:
+        """Los cuatro linters sobre la entrega que pasó los hooks, cada uno en su span, antes del
+        editor (018-C18). Sus avisos no bloquean: solo informan al editor y al writer."""
+        with self.p.session_factory() as session:
+            inputs = lint_inputs(session, job.version_id, self.p.config)
+        runs = []
+        for name, linter in chapter_linters(inputs):
+            with self.p.telemetry.span(trace, f"validador:{name}", parent=span):
+                runs.append(lint_run(linter(delivery.submission.text), inputs))
+        return tuple(runs)
+
+    async def _review(
+        self,
+        job: ChapterJob,
+        delivery: Delivery,
+        warnings: Sequence[dict[str, Any]],
+        trace: Trace,
+        span: Span,
     ) -> ChapterReview | None:
         """La primera revisión válida del editor, o ninguna si su sesión termina sin ella."""
         title, text = delivery.submission.title, delivery.submission.text
@@ -460,7 +488,7 @@ class ChapterProducer:
                 window,
                 title,
                 text,
-                lint_defects=(),
+                lint_defects=warnings,
                 gate_defects=job.gate_defects,
                 extra=job.editor_extra,
             ),
@@ -531,7 +559,7 @@ class ChapterProducer:
 
     def _emit(self, trace: Trace, span: Span, runs: Sequence[ValidatorRun]) -> None:
         for run in runs:
-            self.p.telemetry.score(trace, run.validator, 1 if run.passed else 0, run.comment, span)
+            self.p.telemetry.score(trace, run.validator, run.score, run.comment, span)
             for criterion, score, justification in run.parts:
                 self.p.telemetry.score(
                     trace, f"{run.validator}/{criterion}", score, justification, span
