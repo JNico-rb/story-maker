@@ -1095,8 +1095,8 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 024-C02 · Enviar un mensaje añade la respuesta del entrevistador
 - [x] 024-C03 · Fallo al enviar un mensaje
 - [x] 024-C04 · Rechazo de un mensaje vacío antes de enviarlo
-- [ ] 024-C05 · El panel muestra lo fijado, lo que falta y las contradicciones
-- [ ] 024-C06 · Cota de obligatorios
+- [x] 024-C05 · El panel muestra lo fijado, lo que falta y las contradicciones
+- [x] 024-C06 · Cota de obligatorios
 - [ ] 024-C07 · Enviar un texto libre y ver sus hechos verificados
 - [ ] 024-C08 · Aceptar y rechazar un hecho
 - [ ] 024-C09 · Marcar un hecho obligatorio

@@ -19,7 +19,7 @@ function json(status: number, body: unknown): Response {
 const NOVEL = 12;
 const BASE = `/api/novels/${NOVEL}`;
 
-function emptyBrief(overrides: Partial<{ status: "draft" | "confirmed" }> = {}) {
+function emptyBrief(overrides: Record<string, unknown> = {}) {
   return {
     status: "draft",
     content: {
@@ -147,5 +147,48 @@ describe("024 entrevista: chat", () => {
     expect(screen.getByRole("button", { name: "Enviar" })).toBeDisabled();
 
     expect(sent).not.toContain(`POST ${BASE}/interview/messages`);
+  });
+});
+
+describe("024 entrevista: panel del brief", () => {
+  it("024-C05: the panel distinguishes what's fixed from what's missing and shows contradictions", async () => {
+    fakeApi({
+      [`GET ${BASE}/brief`]: () =>
+        json(
+          200,
+          emptyBrief({
+            content: {
+              recipient: { name: "Marta", age: null, birth_date: null, traits: [], relation: null },
+              close_ones: [],
+              recollections: [],
+              occasion: null,
+              genre: null,
+              tone: null,
+              length: null,
+              dedication: "",
+              banned_asked: false,
+              plot_wishes: [],
+            },
+            missing_fields: ["age"],
+            contradictions: [{ rule: "C1", fields: ["recipient.age", "recipient.birth_date"] }],
+          }),
+        ),
+    });
+    renderEntrevista();
+
+    const panel = await screen.findByRole("region", { name: "Brief" });
+    expect(within(panel).getByText("Marta")).toBeInTheDocument();
+    expect(within(panel).getByText(/falta: age/i)).toBeInTheDocument();
+    expect(within(panel).getByText(/contradicción c1/i)).toBeInTheDocument();
+  });
+
+  it("024-C06: shows the mandatory cap as the API gives it", async () => {
+    fakeApi({
+      [`GET ${BASE}/brief`]: () => json(200, emptyBrief({ mandatory_count: 3, max_mandatory_elements: 5 })),
+    });
+    renderEntrevista();
+
+    const panel = await screen.findByRole("region", { name: "Brief" });
+    expect(within(panel).getByText(/3\/5/)).toBeInTheDocument();
   });
 });
