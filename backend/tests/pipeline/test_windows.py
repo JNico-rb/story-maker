@@ -9,10 +9,10 @@ from typing import Any
 
 import pytest
 from sqlalchemy.orm import Session, sessionmaker
-from tests.pipeline.conftest import Seed
+from tests.pipeline.conftest import Seed, seed_candidate, seed_novel
 
 from story_maker.pipeline.windows import CandidateWindows
-from story_maker.store.models import Brief, Chapter, Fact, OutlineChapter
+from story_maker.store.models import Brief, Chapter, Fact, OutlineChapter, Place
 
 TOP_K = {"writer": 8, "editor": 8}
 ORIGIN = {"theme": "el origen del faro", "content": "lo levantó un contrabandista arrepentido"}
@@ -229,3 +229,31 @@ def test_the_editor_window_has_the_chapter_4_outline_entities_rubric_and_the_del
     assert "future_revelations" not in dumped
     assert "beat 1 del capítulo 5" not in dumped
     assert "c3p" not in dumped
+
+
+def test_the_writer_and_editor_windows_never_carry_another_novel_of_the_same_client(
+    session_factory: sessionmaker[Session], candidate: Seed
+) -> None:
+    """011-I9: la ventana solo lleva datos de la candidata de su novela, nunca de otra novela del
+    mismo cliente — aunque comparta el nombre de un personaje, «Marta» (RT5, `verification.md`
+    §4.9)."""
+    with session_factory() as session:
+        other_novel = seed_novel(session, candidate.user_id)
+        _, _, other_places, other_facts = seed_candidate(session, other_novel.id)
+        # Mismo nombre de personaje que la candidata de la fixture, pero otro mundo.
+        session.get_one(Place, other_places["Faro de Cabo Mayor"]).canonical_name = (
+            "Cueva del Viento"
+        )
+        session.get_one(Fact, other_facts["rasgo"]).value = "le encantan las tormentas"
+        session.commit()
+
+    retriever = FixedRetriever(())
+    windows = CandidateWindows(retriever=retriever, top_k=TOP_K)
+    writer = writer_window(session_factory, candidate.version_id, 4, retriever)
+    with session_factory() as session:
+        editor = windows.editor(session, candidate.version_id, 4, "La carta", DELIVERED)
+
+    for window in (writer, editor):
+        dumped = json.dumps(window.residents, ensure_ascii=False)
+        assert "Cueva del Viento" not in dumped
+        assert "le encantan las tormentas" not in dumped

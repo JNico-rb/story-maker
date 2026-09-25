@@ -598,7 +598,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 011-I6 · Ningún capítulo aceptado tiene un defecto bloqueante
 - [x] 011-I7 · El writer nunca recibe prosa recuperada
 - [x] 011-I8 · Writer y editor son sesiones distintas
-- [ ] 011-I9 · Las ventanas solo llevan datos de la candidata de su novela, nunca de otra novela del mismo cliente ni de otro cliente
+- [x] 011-I9 · Las ventanas solo llevan datos de la candidata de su novela, nunca de otra novela del mismo cliente ni de otro cliente
 - [ ] 011-I10 · El tamaño estimado de la ventana entra en la reserva de su sesión
 - [ ] 011-I11 · Los usos y los eventos registrados solo citan hechos y entidades de la candidata
 - [x] 011-I12 · El `CLAUDE.md` de producto (entrega tardía, carril W; lo lee el `verificador`) — `backend/harness_workspace/CLAUDE.md`
