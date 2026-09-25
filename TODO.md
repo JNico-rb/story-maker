@@ -1266,9 +1266,9 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 
 ### Steps
 - [x] 029-C01 · Entrevistar una novela nueva
-- [ ] 029-C02 · Seguir una entrevista guardada
-- [ ] 029-C03 · Cliente o novela ajenos
-- [ ] 029-C04 · Un turno fallido no se guarda
+- [x] 029-C02 · Seguir una entrevista guardada
+- [x] 029-C03 · Cliente o novela ajenos
+- [x] 029-C04 · Un turno fallido no se guarda
 - [x] 029-C05 · Texto libre desde un fichero
 - [x] 029-C06 · Aceptar, rechazar y marcar obligatorio un hecho
 - [x] 029-C07 · Confirmar el brief pide un sí explícito
