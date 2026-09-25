@@ -653,7 +653,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 012-bug-D1 · Una ejecución que falla por el gate guarda en su motivo el comentario de cada validador una sola vez (tanda D: la 16 repetía seis veces el del juez)
 
 ### Closing
-- [x] Full suite green, type checks clean — verificador 2026-09-24: `uv run pytest` 1523 passed; `uv run ruff check .` all checks passed; `uv run ruff format --check .` 345 files already formatted; `uv run mypy src` no issues in 144 source files; re-verificado 2026-09-25 (carril Z): `uv run pytest` 1680 passed, `ruff check .` y `ruff format --check .` limpios (399 ficheros), `mypy src` sin incidencias en 158 ficheros
+- [x] Full suite green, type checks clean — verificador 2026-09-24: `uv run pytest` 1523 passed; `uv run ruff check .` all checks passed; `uv run ruff format --check .` 345 files already formatted; `uv run mypy src` no issues in 144 source files; re-verificado 2026-09-25 (carril Z): `uv run pytest` 1680 passed, `ruff check .` y `ruff format --check .` limpios (399 ficheros), `mypy src` sin incidencias en 158 ficheros; re-verificado 2026-09-25 sin recortes C6, C8, C12 (carril K2): `uv run python -m pytest -q -p no:cacheprovider` 1841 passed (1837 + 4 en lote Edge/Playwright); `ruff check .` y `ruff format --check .` limpios; `mypy src` sin incidencias en 173 ficheros
 - [x] Spec updated, or confirmed still true
 - [x] Docs updated, or confirmed still true
 
