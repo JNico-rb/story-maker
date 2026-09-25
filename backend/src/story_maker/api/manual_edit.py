@@ -47,7 +47,7 @@ def post_lint(
         if current is None:
             raise HTTPException(status_code=409, detail=NO_PUBLISHED_VERSION)
         found = live_lint(session, state.config, novel, current.id, chapter, body.text)
-    return LintOut(diagnostics=[d.to_json() for d in found])
+    return LintOut(diagnostics=[d.to_json(body.text) for d in found])
 
 
 class SaveIn(BaseModel):

@@ -26,12 +26,21 @@ class Diagnostic:
     end: int | None = None
     extra: Mapping[str, Any] = field(default_factory=dict)
 
-    def to_json(self) -> dict[str, Any]:
+    def to_json(self, text: str) -> dict[str, Any]:
+        """`text` es el texto sobre el que se calcularon `start`/`end` (en code points de
+        Python): la posición sale en unidades UTF-16, como las cuenta el navegador (§15.7)."""
         body: dict[str, Any] = {"type": self.type, "message": self.message, **self.extra}
         if self.start is not None and self.end is not None:
-            body["position"] = {"start": self.start, "end": self.end}
+            body["position"] = {
+                "start": _utf16_offset(text, self.start),
+                "end": _utf16_offset(text, self.end),
+            }
         body["blocking"] = self.blocking
         return body
+
+
+def _utf16_offset(text: str, code_point_index: int) -> int:
+    return len(text[:code_point_index].encode("utf-16-le")) // 2
 
 
 def ordered(diagnostics: Iterable[Diagnostic]) -> list[Diagnostic]:

@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import json
 from typing import Any, cast
 
 from sqlalchemy import func
@@ -31,6 +32,14 @@ def _validators(session: Session, run_id: int) -> list[dict[str, Any]]:
     ]
 
 
+def _plain(value: Any) -> Any:
+    """Texto, número o booleano: nunca un objeto anidado (011-bug-C27b; la pantalla de 025 pinta
+    tal cual cada campo del defecto y con un objeto anidado pintaba «[object Object]»)."""
+    if isinstance(value, dict | list):
+        return json.dumps(value, ensure_ascii=False, sort_keys=True)
+    return value
+
+
 def _unresolved(validators: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Los defectos del último intento de cada capítulo: los no bloqueantes de uno aceptado, o
     los que dejó el intento en que se agotó."""
@@ -39,7 +48,11 @@ def _unresolved(validators: list[dict[str, Any]]) -> list[dict[str, Any]]:
         if v["chapter"] is not None and v["attempt"] is not None:
             last[v["chapter"]] = max(last.get(v["chapter"], 0), v["attempt"])
     return [
-        {"chapter": v["chapter"], "attempt": v["attempt"], **d}
+        {
+            "chapter": v["chapter"],
+            "attempt": v["attempt"],
+            **{k: _plain(val) for k, val in d.items()},
+        }
         for v in sorted(validators, key=lambda v: v["chapter"] or 0)
         if v["chapter"] in last and v["attempt"] == last[v["chapter"]]
         for d in v["defects"]

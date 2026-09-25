@@ -56,6 +56,39 @@ def test_a_non_canonical_form_of_a_character_is_marked_as_blocking(
     assert text[24:28] == "TOBY"
 
 
+def utf16_index(text: str, code_point_index: int) -> int:
+    """El índice de `code_point_index` en unidades UTF-16, como lo cuenta el navegador (§15.7)."""
+    return len(text[:code_point_index].encode("utf-16-le")) // 2
+
+
+def test_positions_count_utf16_units_when_an_emoji_precedes_the_match(
+    client: TestClient, n: N, session_factory: sessionmaker[Session]
+) -> None:
+    lead = "🐶 Luego vio Tabacos y Tobi corrió."
+    text = with_lead(session_factory, n, lead)
+
+    found = diagnostics(client, n, 3, text)
+    (canonical,) = of_type(found, "forma_no_canonica")
+    (banned,) = of_type(found, "prohibida")
+
+    tobi_start, tobi_end = text.index("Tobi"), text.index("Tobi") + len("Tobi")
+    tabacos_start = text.index("Tabacos")
+    tabacos_end = tabacos_start + len("Tabacos")
+
+    assert canonical["position"] == {
+        "start": utf16_index(text, tobi_start),
+        "end": utf16_index(text, tobi_end),
+    }
+    assert banned["position"] == {
+        "start": utf16_index(text, tabacos_start),
+        "end": utf16_index(text, tabacos_end),
+    }
+    # El emoji («🐶», fuera del plano básico) cuenta 2 unidades UTF-16 pero 1 code point de
+    # Python: la posición en UTF-16 se adelanta respecto a la posición en code points.
+    assert canonical["position"]["start"] == tobi_start + 1
+    assert banned["position"]["start"] == tabacos_start + 1
+
+
 def test_an_unknown_capitalized_word_is_an_unknown_character_that_does_not_block(
     client: TestClient, n: N, session_factory: sessionmaker[Session]
 ) -> None:

@@ -23,8 +23,9 @@ from story_maker.api.app import create_app
 from story_maker.api.auth import create_access_token
 from story_maker.lint.chapter import LINTERS
 from story_maker.pipeline.orchestrator import Orchestrator
+from story_maker.pipeline.report import build_report
 from story_maker.pipeline.runs import resume_run
-from story_maker.store.models import RoleSession, Run
+from story_maker.store.models import RoleSession, Run, ValidatorResult
 from story_maker.store.session import unit_of_work
 
 JWT_SECRET = "x" * 32
@@ -123,6 +124,49 @@ async def test_the_report_is_computed_from_what_is_stored_when_asked(
 
     again = client.get(f"/api/runs/{seed.run_id}/report", headers=headers(seed.user_id))
     assert again.json() == report
+
+
+def test_an_unresolved_defect_with_a_nested_field_renders_it_as_text(
+    seed: Seed, session_factory: sessionmaker[Session]
+) -> None:
+    nested = {"start": 3, "end": 7}
+    with unit_of_work(session_factory) as uow:
+        uow.add(
+            ValidatorResult(
+                run_id=seed.run_id,
+                version_id=seed.version_id,
+                validator="nombres-exactos",
+                chapter=1,
+                passed=False,
+                score=0.0,
+                detail={
+                    "attempt": 1,
+                    "comment": "",
+                    "defects": [
+                        {
+                            "validator": "nombres-exactos",
+                            "criterion": None,
+                            "blocking": True,
+                            "message": "variante",
+                            "position": nested,
+                        }
+                    ],
+                },
+                created_at=NOW,
+            )
+        )
+
+    with session_factory() as session:
+        run = session.get_one(Run, seed.run_id)
+        report = build_report(session, run)
+
+    (defect,) = report["unresolved"]
+    for value in defect.values():
+        assert not isinstance(value, dict | list)
+    assert isinstance(defect["position"], str)
+    assert "3" in defect["position"]
+    assert "7" in defect["position"]
+    assert defect["message"] == "variante"
 
 
 def test_the_report_of_a_foreign_run_is_404(
