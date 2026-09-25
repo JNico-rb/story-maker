@@ -62,14 +62,14 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 | C | 029 sin recortes: seguir la entrevista guardada, `change` por la CLI (C02–C04, C09–C14, I1–I3). Toca solo los comandos `interview` y `change` de `cli.py` y sus pruebas | 008, 014 | `../sm-c` | `carril-c` | en curso |
 | I | invariantes T recortadas de 010 (I1, I2), 011 (I1, I5, I7, I9–I11) y 014 (I9, I12): pruebas; código solo si una invariante no se cumple | 010, 011, 014 | `../sm-i2` | `carril-i2` | en curso |
 | Z | errores de la tanda D: `nombres-exactos` marca «Cómo» como variante de «Cobo»; `runs.reason_detail` repite el comentario del juez; 020-C18 (desde `carril-u`) | 012, 020 | `../sm-z` | `carril-z` | cerrado e integrado |
-| K2 | 012 sin recortes: C6, C8, C12. Toca `pipeline/gate/` y `validators/novel.py` | 012 | `../sm-k2` | `carril-k2` | verificado |
-| X2 | 031-C06: `example` y `evals run` sirven la vista en `STORY_MAKER_BASE_URL`. Toca `cli.py` y `composition.py` | 031, 017 | `../sm-x2` | `carril-x2` | en curso |
+| K2 | 012 sin recortes: C6, C8, C12. Toca `pipeline/gate/` y `validators/novel.py` | 012 | `../sm-k2` | `carril-k2` | cerrado e integrado (2026-09-25) |
+| X2 | 031-C06: `example` y `evals run` sirven la vista en `STORY_MAKER_BASE_URL`. Toca `cli.py` y `composition.py` | 031, 017 | `../sm-x2` | `carril-x2` | cerrado e integrado (2026-09-25) |
 | S | 008-I4 sin recortar: toda ruta de 008 entra en la prueba parametrizada de 002 (401 y 404 de lo ajeno). Pruebas; código solo si una ruta no cumple | 002, 008 | `../sm-s` | `carril-s` | parado: opcional (usuario 2026-09-25, solo lo obligatorio) |
 | SEC | 021 (auditoría con el subagente `seguridad`): solo `docs/security-report.md` y la columna «Resultado» de `verification.md` §4.9; los arreglos, a su carril dueño | todo el backend | `../sm-sec` | `carril-sec` | parado: opcional (usuario 2026-09-25, solo lo obligatorio) |
 | DOC | README fiel a V2 (flujo web, órdenes nuevas de la CLI, MCP). Solo `README.md` | — | `../sm-doc` | `carril-doc` | cerrado e integrado |
 | W | 001-bug-C18b (la SPA no sirve nada fuera de su compilado) y 008-bug-C02c (fechas con huso). Toca solo `api/app.py` y `interview/novels.py` | 001, 008 | `../sm-w` | `carril-w` | en curso |
 | P | 014-bug-C01b y C01c: la propuesta con la forma que lee 027 y `expires_at` con huso. Toca solo `api/change_requests.py` y `pipeline/changes/request.py` | 014 | `../sm-p` | `carril-p` | en curso |
-| O | 019-bug-pos (posiciones UTF-16) y 011-bug-C27b (informe sin objetos anidados). Toca solo `pipeline/manual_edit/diagnostics.py` y `pipeline/report.py` | 019, 011 | `../sm-o` | `carril-o` | en curso |
+| O | 019-bug-pos (posiciones UTF-16) y 011-bug-C27b (informe sin objetos anidados). Toca solo `pipeline/manual_edit/diagnostics.py` y `pipeline/report.py` | 019, 011 | `../sm-o` | `carril-o` | cerrado e integrado (2026-09-25) |
 
 Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas borradas; los nombres F y G se reusan en la segunda.
 
