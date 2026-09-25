@@ -16,6 +16,7 @@ Tu única tool de entrega es `submit_chapter`. Tienes además la skill `personal
 - **Sigue la StyleSheet**: su narrador, su tiempo verbal, el tratamiento tú o usted entre cada par de personajes, el registro y el léxico a evitar, que incluye los temas que no deben aparecer.
 - **Integra los elementos obligatorios asignados** a tu capítulo de forma natural, como enseña la skill: en acción, moviendo la trama, nunca como una lista.
 - **Usa los nombres canónicos exactos** de personajes y lugares, tal como vienen en tu ventana, sin variantes, diminutivos ni otra grafía.
+- **No inventes fechas, años, edades, cifras ni duraciones**: usa exactamente los que trae tu ventana (eventos de tus beats, hechos, fichas y resúmenes de los capítulos anteriores). Si una escena necesita uno que no está, no lo precises («de niña», «hace mucho»). Lo que un capítulo anterior ya fijó —la edad de un personaje, el año de un suceso, la antigüedad de un objeto— no cambia nunca.
 - **No inventes personajes con nombre propio**: con nombre, solo los de tu ventana. Un secundario que haga falta va sin nombre («el camarero», «una vecina»).
 - **No reveles el contenido de las revelaciones futuras.** Conoces sus temas para no destaparlas antes de tiempo; si un beat tuyo revela algo, revélalo tú.
 - **Continúa donde terminó el capítulo anterior**: enlaza con su final literal y con los resúmenes, sin repetirlos ni contradecirlos.

@@ -8,7 +8,7 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 4. Cada carril edita solo los bloques de sus specs; esta cabecera y sus tablas son del integrador (checkout principal, V2).
 5. Una spec empieza cuando sus dependencias están cerradas en V2, o en la rama de su propio carril.
 
-## Estado (2026-09-24)
+## Estado (2026-09-25)
 
 **Integradas en V2:** 012 (gate), carril W (workspace de producto), 020 parcial (C01, C02, C05, I1), 029 (cli, cerrada recortada), 000 (D al final), 026 (frontend, lectura), presentación (esqueleto del deck en Marp, `presentacion/deck.md`), 001, 002, 003, 004, 005, 006, 007, 008, 009, 010, 011, 013, 020 parcial (C06–C09, I2), 016 (cerrada recortada) y 022 (frontend).
 
@@ -17,6 +17,7 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 - **N1 · MVP:** 008, 010, 016 (cerrada recortada), 011, 012 (sin la etapa de revisión visual, recortado), 020, 014, 029-cli; frontend mínimo: 022 (cerrada), 026 y 027. La configuración va por la CLI (`architecture.md` §18, «Alcance del frontend»).
 - **Recortes de casos C:** 011 ninguno (todos hechos; I1, I5, I7, I9, I10, I11 recortados). 012: C6, C8, C12 recortados. 029: C02, C03, C04, C09, C10, C11, C12, C13, C14, I1, I2, I3 recortados (el cambio va por la web). 026: I1, I3, I4, I5 recortados. 027: I1, I2, I3, I5 recortados.
 - **Fuera de N1:** N2 (018 C18–C23, después 017); N3 (019, 015, 021, el resto de 016, 023, 024, 025, 028); congelado 030 (patch en `~/sm-archivo/030-carril-j.patch`).
+- **Alcance completo (usuario, 2026-09-25, segunda decisión: «corregir todos los errores, huecos y puntos a medias»; importa sobre todo poder modificar la novela donde se quiera):** entran N2 y N3 — 018 C18–C23, 019, 028, 023 completa, 024, 025, 015, 017, 021 y 030 — y los errores hallados en la tanda D. Orden: edición manual (018→019→028) y web completa (023→024→025) primero; después 015→021, 017, 030. Los «(recortado)» de specs cerradas siguen igual salvo que bloqueen esto.
 
 **Pasos D del lote final:** 020-C16 y 004-C14 (hito primera novela); después 000-C15, 000-C16 (Playwright MCP en Edge, registrado en `docs/verification.md` §9.3), y 020-C10 a C14. El resto de pasos D queda sin marcar.
 
@@ -52,8 +53,14 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 | K | 029 (C01, C05–C08); 004-C16 (check-env solo exige los roles con fichero de prompt) | — | `../sm-k` | `carril-k` | cerrada e integrada |
 | W | workspace de producto: 010-I8, 011-I12–I14 (solo `backend/harness_workspace/`) | — | `../sm-w` | `carril-w` | cerrada e integrada |
 | P | presentación (solo `presentacion/`) | — | `../sm-p` | `carril-p` | cerrado: el deck y su PDF los rellena el usuario con los datos de la tanda D |
+| R | 013 C20–C23 (presentación impresa), 023 mínima, 026 C15 | — | `../sm-r` | `carril-r` | cerrado e integrado (2026-09-25) |
+| F | 018 C18–C23 (linters en el bucle) → 019 (edición manual, backend). Toca `pipeline/` (producción, cambios), `api/` (rutas de edición), `store/` si 019 lo pide | 012, 014, 018 | `../sm-f` | `carril-f` | en curso |
+| E | 023 completa → 024 → 025 (API real de 008/011; ruta de progreso `/novelas/:novelId/progreso`, de entrevista `/novelas/:novelId/entrevista`) | 022, 008, 011 | `../sm-e` | `carril-e` | en curso |
+| G | 028 (edición manual, frontend, con la API simulada según 019; tras guardar, a `/novelas/:novelId/progreso`) | 026 | `../sm-g` | `carril-g` | en curso |
+| M | 015 (servidor MCP) → 030 (report metrics, desde el patch archivado) | 013, 014 | `../sm-m` | `carril-m` | en curso |
+| Z | errores de la tanda D: `nombres-exactos` marca «Cómo» como variante de «Cobo»; `runs.reason_detail` repite el comentario del juez; 020-C18 (desde `carril-u`) | 012, 020 | `../sm-z` | `carril-z` | en curso |
 
-Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas.
+Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas borradas; los nombres F y G se reusan en la segunda.
 
 ## Specs
 
@@ -543,8 +550,8 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas.
 
 ## 011 — produccion-de-capitulos
 
-- [x] Spec `specs/backend/011-produccion-de-capitulos.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; C33–C34 añadidos y movidos a 031-arranque
-- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; C33–C34 movidos a 031
+- [x] Spec `specs/backend/011-produccion-de-capitulos.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; C33–C34 añadidos y movidos a 031-arranque; re-marcada — integrador 2026-09-25: sin revisión, decisión del usuario (C12: palabra corriente en minúscula no es variante)
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; C33–C34 movidos a 031; re-marcado — integrador 2026-09-25: sin revisión, decisión del usuario (paso 011-C12b)
 
 ### Steps
 - [x] 011-C01 · Lanzar la generación la encola
@@ -559,6 +566,7 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas.
 - [x] 011-C10 · Una entrega que pasa los hooks llega al editor
 - [x] 011-C11 · `longitud-capitulo` en sus límites
 - [x] 011-C12 · `nombres-exactos` sobre el título y el texto
+- [ ] 011-C12b · Una palabra con mayúscula que el texto escribe también en minúscula no es variante (bug de la tanda D: «Como» por «Cobo»)
 - [x] 011-C13 · Qué cuenta como intento en la sesión del writer
 - [x] 011-C14 · Una sesión del writer que termina sin entrega válida es un intento fallido
 - [x] 011-C15 · La revisión del editor tiene schema y solo cita lo que existe
@@ -1036,9 +1044,9 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas.
 
 ## 023 — mis-novelas
 
-**N1 mínima** (usuario, 2026-09-25, carril R): lista de novelas, enlace a la lectura y destino del acceso; crear novela y prohibidas `user`, recortadas; sus I, recortadas (`architecture.md` §18, «Alcance del frontend»).
+**Alcance completo** (usuario, 2026-09-25, segunda decisión): vuelven crear novela, las prohibidas `user` y sus I; C09 enlaza también a la entrevista y al progreso (`architecture.md` §18, «Alcance del frontend»).
 
-- [x] Spec `specs/frontend/023-mis-novelas.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcada — integrador 2026-09-25: sin revisión, decisión del usuario (N1 mínima, C09 reescrito, C17 nuevo)
+- [x] Spec `specs/frontend/023-mis-novelas.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcada — integrador 2026-09-25: sin revisión, decisión del usuario (N1 mínima, C09 reescrito, C17 nuevo); re-marcada — integrador 2026-09-25: sin revisión, decisión del usuario (alcance completo; C09 con entrevista y progreso)
 - [x] Plan below approved — integrador 2026-09-25: sin revisión, decisión del usuario
 
 ### Steps
@@ -1048,25 +1056,25 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas.
 - [x] 023-C04 · Novela sin título todavía
 - [x] 023-C05 · La lista respeta el orden que entrega la API
 - [x] 023-C06 · Fallo al cargar la lista
-- [x] 023-C09 · Solo las novelas con versión vigente llevan a su lectura
+- [ ] 023-C09 · El destino depende del estado y de la versión vigente
 - [x] 023-C17 · El acceso lleva a «mis novelas»
-- [ ] 023-C07 · Crear una novela lleva a su entrevista (recortado)
-- [ ] 023-C08 · Fallo al crear una novela (recortado)
-- [ ] 023-C10 · Ver la lista prohibida de nivel `user` (recortado)
-- [ ] 023-C11 · Añadir una palabra (recortado)
-- [ ] 023-C12 · Añadir un tema con sus palabras clave (recortado)
-- [ ] 023-C13 · Alta rechazada (recortado)
-- [ ] 023-C14 · Alta de un término repetido (recortado)
-- [ ] 023-C15 · Borrar una entrada (recortado)
-- [ ] 023-I1 · Los cuatro estados derivados de `definitions.md` §3 tienen cada uno su etiqueta, y ningún otro valor cae en un caso por defecto silencioso (recortado)
-- [ ] 023-I3 · Ninguna llamada de esta pantalla a la API real (recortado)
-- [ ] 023-I4 · Un error de cualquier llamada de esta pantalla (lista, alta o borrado prohibido, crear novela) siempre se muestra; nunca se descarta en s… (recortado)
+- [ ] 023-C07 · Crear una novela lleva a su entrevista
+- [ ] 023-C08 · Fallo al crear una novela
+- [ ] 023-C10 · Ver la lista prohibida de nivel `user`
+- [ ] 023-C11 · Añadir una palabra
+- [ ] 023-C12 · Añadir un tema con sus palabras clave
+- [ ] 023-C13 · Alta rechazada
+- [ ] 023-C14 · Alta de un término repetido
+- [ ] 023-C15 · Borrar una entrada
+- [ ] 023-I1 · Los cuatro estados derivados de `definitions.md` §3 tienen cada uno su etiqueta, y ningún otro valor cae en un caso por defecto silencioso
+- [ ] 023-I3 · Ninguna llamada de esta pantalla a la API real
+- [ ] 023-I4 · Un error de cualquier llamada de esta pantalla (lista, alta o borrado prohibido, crear novela) siempre se muestra; nunca se descarta en s…
 - [ ] 023-C16 · Recorrido real de «mis novelas» (D, al final)
 
 ### Closing
-- [x] Full suite green, type checks clean — verificador 2026-09-25: `uv run pytest` 1672 passed; `uv run ruff check .` all checks passed; `uv run ruff format --check .` 399 files already formatted; `uv run mypy src` no issues in 158 source files; frontend `pnpm.cmd lint`, `pnpm.cmd typecheck`, `pnpm.cmd build` limpios, `pnpm.cmd test` 62 passed
-- [x] Spec updated, or confirmed still true
-- [x] Docs updated, or confirmed still true
+- [ ] Full suite green, type checks clean
+- [ ] Spec updated, or confirmed still true
+- [ ] Docs updated, or confirmed still true
 
 ## 024 — entrevista
 

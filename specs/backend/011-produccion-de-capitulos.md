@@ -202,6 +202,7 @@ Del encargo cubre: writer y editor/critic separados; el `CLAUDE.md` de producto;
 - **Regla:**
   - Se miran las palabras del título y del texto que empiezan por mayúscula. Una palabra es un tramo de letras, así que «¿Toby?» es «Toby».
   - Se descartan las que coinciden exactamente con una palabra de algún nombre canónico de personaje.
+  - Se descartan también las que, sin mayúsculas ni acentos, el mismo título o texto escribe en otra parte empezando por minúscula: son una palabra corriente a principio de frase (arq. §11.2, tanda D 2026-09-25).
   - Cada una de las restantes se compara con cada palabra con mayúscula inicial de los nombres canónicos de los personajes de la candidata. Las partículas como «de» no se comparan.
   - Es defecto si, sin mayúsculas ni acentos, es igual a esa palabra canónica (variante de mayúsculas o acentos), o si está a una distancia de edición (inserciones, borrados y sustituciones de una letra) de como mucho 2 cuando la canónica tiene 7 letras o más, de 1 cuando tiene de 4 a 6, y de 0 cuando tiene 3 o menos.
 - **Dado** los personajes canónicos «Toby», «Nala», «Nela», «Ana», «Bernabé» y «Marta López»
@@ -220,7 +221,9 @@ Del encargo cubre: writer y editor/critic separados; el `CLAUDE.md` de producto;
 | «Tomy» | Defecto | Distancia 1; el canónico tiene 4 letras |
 | «Tomi» | Pasa | Distancia 2, mayor que 1 |
 | «Nela» | Pasa | Es canónico, aunque esté a distancia 1 de «Nala» |
-| «Nada», a principio de frase | Defecto | Distancia 1 de «Nala»; riesgo aceptado U10 |
+| «Nada», a principio de frase y sin ningún «nada» en el texto | Defecto | Distancia 1 de «Nala»; riesgo aceptado U10 |
+| «Nada», a principio de frase, y «nada» en minúscula en otra frase del texto | Pasa | Palabra corriente: el texto la escribe en minúscula |
+| «Cómo», a principio de frase, y «como» en otra frase del texto | Pasa | Igual sin acentos a una palabra en minúscula del texto |
 | «ANA» | Defecto | Variante de mayúsculas de un canónico de 3 letras |
 | «Ane» | Pasa | 3 letras: solo se admite distancia 0 |
 | «Vernave» | Defecto | Distancia 2 de «Bernabé», de 7 letras |
