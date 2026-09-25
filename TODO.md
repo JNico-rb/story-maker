@@ -628,7 +628,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 012-C9 · Un invariante Lean violado se atribuye a los capítulos de los eventos del testigo
 - [x] 012-C10 · Un testigo Lean sin capítulo hace fallar la ejecución
 - [x] 012-C11 · Un `FicheroDeCronologia` que no compila hace fallar la ejecución
-- [ ] 012-C12 · Una interrupción en la etapa 2 no gasta la pasada (recortado)
+- [x] 012-C12 · Una interrupción en la etapa 2 no gasta la pasada
 - [x] 012-C13 · Un criterio bloqueante del juez bajo su umbral se atribuye a los capítulos que cita
 - [x] 012-C14 · Ningún criterio compensa a otro
 - [x] 012-C15 · Una entrega inválida del juez se corrige en su sesión, y sin entrega válida la pasada falla
