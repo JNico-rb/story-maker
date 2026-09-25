@@ -95,11 +95,16 @@ def _outcome(verdict: VisualVerdict) -> VisualReviewOutcome:
     """Lo que la etapa entrega al gate: pasa; fallo de datos atribuido; o no atribuible, si una
     entidad sin capítulo no sale en ninguno (solo el cliente puede arreglarlo, §9.4)."""
     defects = tuple(_gate_defect(d) for d in verdict.defects)
-    witnesses = [d.message for d in verdict.defects if d.kind == "datos" and d.chapter is None]
+    witnesses = [
+        f"{d.part}: {d.message}" for d in verdict.defects if d.kind == "datos" and d.chapter is None
+    ]
     if witnesses:
         return VisualReviewOutcome(defects, "unattributable_defect", "; ".join(witnesses))
+    if any(d.kind == "render" for d in verdict.defects):
+        # Es código: ni se reescribe ni se vuelve a registrar nada (§9.4).
+        return VisualReviewOutcome(defects, "render_failure", "; ".join(d.message for d in defects))
     return VisualReviewOutcome(defects=defects, reregister=bool(defects))
 
 
 def _gate_defect(defect: VisualDefect) -> Defect:
-    return Defect(VALIDATOR, defect.part, True, defect.chapter, defect.message)
+    return Defect(VALIDATOR, defect.part, True, defect.chapter, f"{defect.part}: {defect.message}")

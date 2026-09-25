@@ -192,7 +192,7 @@ def data_defects(expected: ExpectedStructure) -> tuple[VisualDefect, ...]:
                 "ficha",
                 "datos",
                 n,
-                f"ficha: la ficha no enlaza «{entity.name}», que sale en el capítulo {n}",
+                f"la ficha no enlaza «{entity.name}», que sale en el capítulo {n}",
             )
             for n in named
         ]
@@ -202,7 +202,7 @@ def data_defects(expected: ExpectedStructure) -> tuple[VisualDefect, ...]:
                     "ficha",
                     "datos",
                     None,
-                    f"ficha: la ficha no enlaza «{entity.name}», que no sale en ningún capítulo",
+                    f"la ficha no enlaza «{entity.name}», que no sale en ningún capítulo",
                 )
             )
     return tuple(defects)
@@ -243,7 +243,7 @@ def _cover(expected: ExpectedCover, observed: CoverObservation) -> tuple[VisualD
         ("la dedicatoria", expected.dedication, observed.dedication),
     )
     return tuple(
-        _render("portada", f"portada: se esperaba {label} «{want}» y se vio «{seen}»")
+        _render("portada", f"se esperaba {label} «{want}» y se vio «{seen}»")
         for label, want, seen in fields
         if not texts_match(seen, want)
     )
@@ -257,7 +257,7 @@ def _index(
         defects.append(
             _render(
                 "indice",
-                f"índice: se esperaban {len(expected)} entradas y se vieron {len(observed)}",
+                f"se esperaban {len(expected)} entradas y se vieron {len(observed)}",
             )
         )
     for position, (chapter, entry) in enumerate(zip(expected, observed, strict=False), start=1):
@@ -265,7 +265,7 @@ def _index(
             defects.append(
                 _render(
                     "indice",
-                    f"índice: la entrada {position} debe llevar al capítulo {chapter} y lleva a "
+                    f"la entrada {position} debe llevar al capítulo {chapter} y lleva a "
                     f"{_where(entry.destination)}",
                 )
             )
@@ -305,7 +305,7 @@ def _chapters(
             )
     numbers = {want.number for want in expected}
     defects += [f"se vio un capítulo {n} que no existe" for n in seen if n not in numbers]
-    return tuple(_render("capitulos", f"capítulos: {message}") for message in defects)
+    return tuple(_render("capitulos", message) for message in defects)
 
 
 def _ficha(
@@ -335,7 +335,7 @@ def _ficha(
         for key, entity in seen.items()
         if key not in known
     ]
-    return tuple(_render("ficha", f"ficha: {message}") for message in defects)
+    return tuple(_render("ficha", message) for message in defects)
 
 
 def _chapter_of(destination: str | None) -> int | None:

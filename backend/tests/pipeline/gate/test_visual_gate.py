@@ -15,7 +15,9 @@ from tests.pipeline.gate.conftest import (
     script_judges,
 )
 from tests.pipeline.gate.visual import (
+    EMPTY,
     faithful,
+    job_of,
     make_settings,
     make_stage,
     reviewer_script,
@@ -47,3 +49,24 @@ def test_a_matching_review_lets_the_gate_go_on_to_the_pdf_and_publish(
     assert kit.log.entries == ["cronologia-lean", "pdf"]
     assert gate_passes(session_factory, at_gate.run_id) == [(1, "accept")]
     assert run_of(session_factory, at_gate.run_id).status == "published"
+
+
+def test_an_empty_view_makes_the_stage_deliver_a_render_failure(
+    session_factory: sessionmaker[Session],
+    at_gate: Seed,
+    fake: FakeAgent,
+    production: Production,
+    trace: Trace,
+    tmp_path: Path,
+) -> None:
+    seed_visual(session_factory, at_gate)
+    fake.script("visual_reviewer", None, reviewer_script(EMPTY))
+
+    outcome = asyncio.run(make_stage(production, make_settings(tmp_path))(job_of(at_gate), trace))
+
+    assert outcome.failure == "render_failure"
+    assert outcome.reregister is False
+    assert {d.criterion for d in outcome.defects} == {"portada", "indice", "capitulos", "ficha"}
+    assert all(d.chapter is None for d in outcome.defects)
+    for part in ("portada", "indice", "capitulos", "ficha"):
+        assert part in outcome.detail

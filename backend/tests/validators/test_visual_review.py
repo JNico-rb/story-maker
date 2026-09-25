@@ -10,6 +10,7 @@ from typing import Any
 import pytest
 from tests.pipeline.gate.visual import (
     DEDICATION,
+    EMPTY,
     EXPECTED,
     TITLE,
     chapter_text,
@@ -236,3 +237,14 @@ def test_a_ficha_with_every_entity_and_exactly_its_link_destinations_passes() ->
 
     assert dict(verdict.parts)["ficha"] is True
     assert verdict.defects == ()
+
+
+# --- 017-C13 -------------------------------------------------------------------------------------
+
+
+def test_an_empty_or_error_view_is_a_render_failure_in_the_four_parts() -> None:
+    verdict = verdict_of(EMPTY)
+
+    assert verdict.parts == tuple((part, False) for part in PARTS)
+    assert {d.part for d in verdict.defects} == set(PARTS)
+    assert {(d.kind, d.chapter) for d in verdict.defects} == {("render", None)}

@@ -845,7 +845,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 017-C10 · Una entidad sin capítulo cuyo nombre sale en el texto es un fallo de datos atribuido, y no se abre el revisor
 - [x] 017-C11 · Una entidad sin capítulo que ningún capítulo nombra es un defecto no atribuible
 - [x] 017-C12 · Una entrega fuera de schema vuelve al revisor
-- [ ] 017-C13 · Una vista vacía o con error es fallo de render en las cuatro partes
+- [x] 017-C13 · Una vista vacía o con error es fallo de render en las cuatro partes
 - [ ] 017-C14 · Una sesión sin entrega válida es un ciclo fallido, no un defecto de la novela
 - [ ] 017-C15 · Sin navegador, la ejecución se interrumpe y no publica
 - [ ] 017-C16 · Cada revisión deja su resultado, su span y sus scores
