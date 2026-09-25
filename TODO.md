@@ -136,7 +136,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 000-C20 · TLC arranca en el portátil sobre Temurin portable
 - [x] 000-C15 · Claude Code conecta los servidores de `.mcp.json` (D; 2026-09-25, `verification.md` §9.2; el caso sin `LANGFUSE_MCP_AUTH` no se probó)
 - [x] 000-C16 · Playwright MCP inspecciona la SPA en Edge: marca, mismo origen y proxy de `/api` (D; 2026-09-25, `verification.md` §9.3)
-- [ ] 000-C17 · En una sesión real, los hooks y los permisos actúan (D, al final)
+- [x] 000-C17 · En una sesión real, los hooks y los permisos actúan (D; 2026-09-25, `verification.md` §9.6; comprobado con las cargas JSON por stdin, no con una sesión interactiva completa)
 - [x] 000-C18 · La primera CI de `V2` sale en verde, con Lean y TLC — CI de 1f4eacd verde: backend, frontend, formal (Lean y TLC), seguridad
 - [ ] 000-C19 · La CI se pone en rojo ante defectos sembrados (D, al final)
 
@@ -300,7 +300,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 004-C12 · Cada resultado de validador se exporta como Score con su nombre canónico
 - [x] 004-C13 · TLC no envía score
 - [x] 004-I7 · Ninguna llamada real a modelo o Langfuse en una prueba T
-- [ ] 004-C14 · Una ejecución real vista en Langfuse (D, al final)
+- [x] 004-C14 · Una ejecución real vista en Langfuse (D; 2026-09-25, `verification.md` §4.1)
 - [ ] 004-C15 · Iteración de tuning con antes y después de un prompt cambiado (D, al final)
 - [x] 004-C16 · check-env no exige prompt a un rol sin fichero en el workspace
 
@@ -405,7 +405,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 007-I7 · El verificador solo escribe en `STORY_MAKER_DATA_DIR`
 - [x] 007-I8 · `GITHUB_TOKEN` nunca aparece en el fichero, el input, el resultado, la fila, un mensaje de error ni un registro
 - [x] 007-I12 · La fila de `chronology_files` solo existe con un resultado (`passed`, `failed` o `error`), y su huella es la del fichero guardado
-- [ ] 007-C25 · Una verificación real por GitHub Actions responde a tiempo (D, al final)
+- [x] 007-C25 · Una verificación real por GitHub Actions responde a tiempo (D; 2026-09-25, `verification.md` §8; comprobado con `validator_results` de la ejecución 18 y la API pública de GitHub, sin `gh` instalado en esta máquina)
 
 ### Closing
 - [x] Full suite green, type checks clean — verificador 2026-09-24: `uv run pytest` 793 passed; `uv run ruff check .` sin avisos; `uv run ruff format --check .` 140 ficheros formateados; `uv run mypy src` sin problemas en 71 ficheros; C20–C24 (Lean) verdes en la CI (ejecución 36003381493)
