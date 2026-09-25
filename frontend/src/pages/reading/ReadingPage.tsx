@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router";
+import { Link, useParams } from "react-router";
 
 import { apiFetch } from "../../shared/api";
 import type { components } from "../../shared/api/schema";
@@ -144,9 +144,15 @@ function paragraphsOf(text: string): string[] {
 }
 
 function Chapter({
+  novelId,
+  version,
+  isCurrent,
   chapter,
   onSelectFragment,
 }: {
+  novelId: string;
+  version: number;
+  isCurrent: boolean;
   chapter: VersionDetail["view"]["chapters"][number];
   onSelectFragment: (chapter: number, quote: string) => void;
 }) {
@@ -161,7 +167,18 @@ function Chapter({
       className="mx-auto mb-12 max-w-prose break-words"
       onMouseUp={handleMouseUp}
     >
-      <h3 className="font-reading text-2xl font-semibold text-secondary">{chapter.title}</h3>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 className="font-reading text-2xl font-semibold text-secondary">{chapter.title}</h3>
+        {/* 028: el editor manual solo se ofrece sobre la versión vigente (028-C02). */}
+        {isCurrent && (
+          <Link
+            to={`/novelas/${novelId}/versiones/${version}/capitulos/${chapter.number}/editar`}
+            className="rounded border border-secondary/30 px-3 py-1 text-sm font-semibold text-secondary"
+          >
+            Editar capítulo
+          </Link>
+        )}
+      </div>
       <div className="mt-4 space-y-4 font-reading text-lg leading-relaxed">
         {paragraphsOf(chapter.text).map((paragraph, index) => (
           <p key={index}>{paragraph}</p>
@@ -305,7 +322,15 @@ function DownloadPdf({ novelId, version }: { novelId: string; version: number })
   );
 }
 
-function VersionContent({ novelId, version }: { novelId: string; version: number }) {
+function VersionContent({
+  novelId,
+  version,
+  isCurrent,
+}: {
+  novelId: string;
+  version: number;
+  isCurrent: boolean;
+}) {
   const [load, retry] = useJson<VersionDetail>(`/api/novels/${novelId}/versions/${version}`);
   const [fragment, setFragment] = useState<{ chapter: number; quote: string } | null>(null);
   if (load.status === "loading") return <Loading>Cargando la versión…</Loading>;
@@ -321,6 +346,9 @@ function VersionContent({ novelId, version }: { novelId: string; version: number
       {view.chapters.map((chapter) => (
         <Chapter
           key={chapter.number}
+          novelId={novelId}
+          version={version}
+          isCurrent={isCurrent}
           chapter={chapter}
           onSelectFragment={(chapterNumber, quote) => setFragment({ chapter: chapterNumber, quote })}
         />
@@ -345,7 +373,8 @@ function Versions({ novelId }: { novelId: string }) {
   }
   const versions = load.data.versions;
   // La vigente es la publicada de número más alto (definitions.md §3); la API las da en orden.
-  const shown = chosen ?? versions.at(-1)?.number;
+  const latest = versions.at(-1)?.number;
+  const shown = chosen ?? latest;
   if (shown === undefined) return <p>Esta novela aún no tiene versiones publicadas.</p>;
   return (
     <>
@@ -369,7 +398,7 @@ function Versions({ novelId }: { novelId: string }) {
         </div>
         <DownloadPdf key={shown} novelId={novelId} version={shown} />
       </div>
-      <VersionContent key={shown} novelId={novelId} version={shown} />
+      <VersionContent key={shown} novelId={novelId} version={shown} isCurrent={shown === latest} />
     </>
   );
 }

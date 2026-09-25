@@ -1227,25 +1227,25 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
-- [ ] 028-C01 · Abrir el editor precarga el texto vigente del capítulo
-- [ ] 028-C02 · El editor solo se ofrece en la versión vigente
-- [ ] 028-C03 · Fallo al cargar el capítulo
-- [ ] 028-C04 · Los diagnósticos llegan tras una pausa de escritura, no en cada pulsación
-- [ ] 028-C05 · Los diagnósticos con posición se resaltan en el texto
-- [ ] 028-C06 · Los diagnósticos sin posición se muestran aparte
-- [ ] 028-C07 · Diagnósticos no bloqueantes se distinguen de los que bloquean
-- [ ] 028-C08 · Cada respuesta de lint sustituye a la anterior, aunque lleguen desordenadas
-- [ ] 028-C09 · Un fallo del lint no impide seguir editando
-- [ ] 028-C10 · Ningún diagnóstico bloquea la escritura
-- [ ] 028-C11 · Guardar aceptado lleva al seguimiento de la ejecución
-- [ ] 028-C12 · Guardar rechazado por diagnósticos bloqueantes
-- [ ] 028-C13 · Guardar con la base obsoleta
-- [ ] 028-C14 · Fallo de red al guardar
-- [ ] 028-I1 · El texto que se envía al guardar es exactamente el que hay en el editor en ese momento, sin que la pantalla lo transforme
-- [ ] 028-I2 · Los diagnósticos mostrados corresponden siempre a la última petición de lint enviada, nunca a una respuesta anterior que llega tarde
-- [ ] 028-I3 · Ningún diagnóstico del lint impide escribir en el editor; solo el guardado queda sujeto a lo que la API rechace
-- [ ] 028-I5 · Un error de cualquier llamada de esta pantalla (cargar el capítulo, lint, guardar) siempre se muestra; nunca se descarta en silencio ni d…
-- [ ] 028-I6 · Ninguna llamada de esta pantalla a la API real
+- [x] 028-C01 · Abrir el editor precarga el texto vigente del capítulo
+- [x] 028-C02 · El editor solo se ofrece en la versión vigente
+- [x] 028-C03 · Fallo al cargar el capítulo
+- [x] 028-C04 · Los diagnósticos llegan tras una pausa de escritura, no en cada pulsación
+- [x] 028-C05 · Los diagnósticos con posición se resaltan en el texto
+- [x] 028-C06 · Los diagnósticos sin posición se muestran aparte
+- [x] 028-C07 · Diagnósticos no bloqueantes se distinguen de los que bloquean
+- [x] 028-C08 · Cada respuesta de lint sustituye a la anterior, aunque lleguen desordenadas
+- [x] 028-C09 · Un fallo del lint no impide seguir editando
+- [x] 028-C10 · Ningún diagnóstico bloquea la escritura
+- [x] 028-C11 · Guardar aceptado lleva al seguimiento de la ejecución
+- [x] 028-C12 · Guardar rechazado por diagnósticos bloqueantes
+- [x] 028-C13 · Guardar con la base obsoleta
+- [x] 028-C14 · Fallo de red al guardar
+- [x] 028-I1 · El texto que se envía al guardar es exactamente el que hay en el editor en ese momento, sin que la pantalla lo transforme
+- [x] 028-I2 · Los diagnósticos mostrados corresponden siempre a la última petición de lint enviada, nunca a una respuesta anterior que llega tarde
+- [x] 028-I3 · Ningún diagnóstico del lint impide escribir en el editor; solo el guardado queda sujeto a lo que la API rechace
+- [x] 028-I5 · Un error de cualquier llamada de esta pantalla (cargar el capítulo, lint, guardar) siempre se muestra; nunca se descarta en silencio ni d…
+- [x] 028-I6 · Ninguna llamada de esta pantalla a la API real
 - [ ] 028-C15 · El recorrido completo se observa en el navegador (D, al final)
 
 ### Closing
