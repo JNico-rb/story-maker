@@ -2,8 +2,13 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+from contextlib import contextmanager
+
+import pytest
 from tests.conftest import FakeLangfuseClient
 
+from story_maker.observability import langfuse_adapter
 from story_maker.observability.langfuse_adapter import LangfuseObservability
 
 LABEL = "produccion"
@@ -50,3 +55,47 @@ def test_the_sdk_cost_is_exported_as_contrast_metadata_and_not_as_the_cost(
     assert generation.cost_details == {"total": 0.08}
     assert generation.metadata is not None
     assert generation.metadata["sdk_cost_usd"] == 20.0
+
+
+# --- 004 §13.1: una sesión por novela — la traza sale con `session_id`, no solo en metadata ----
+
+
+def test_a_trace_with_a_session_is_exported_with_that_langfuse_session_id(
+    fake_langfuse_client: FakeLangfuseClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    propagated: list[str | None] = []
+
+    @contextmanager
+    def fake_propagate(*, session_id: str | None = None) -> Iterator[None]:
+        propagated.append(session_id)
+        yield
+
+    monkeypatch.setattr(langfuse_adapter, "propagate_attributes", fake_propagate)
+    observability = LangfuseObservability(fake_langfuse_client)
+    with (
+        observability.trace("run:1", name="generacion", session="7") as trace,
+        observability.span(trace, "rol:writer"),
+    ):
+        pass
+    observability.flush()
+
+    assert propagated == ["7"]
+
+
+def test_a_trace_without_a_session_is_exported_without_a_session_id(
+    fake_langfuse_client: FakeLangfuseClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    propagated: list[str | None] = []
+
+    @contextmanager
+    def fake_propagate(*, session_id: str | None = None) -> Iterator[None]:
+        propagated.append(session_id)
+        yield
+
+    monkeypatch.setattr(langfuse_adapter, "propagate_attributes", fake_propagate)
+    observability = LangfuseObservability(fake_langfuse_client)
+    with observability.trace("mcp:list_novels"):
+        pass
+    observability.flush()
+
+    assert propagated == []

@@ -7,8 +7,10 @@ Langfuse, con la máscara aplicada antes de exportar (§13.5)."""
 from __future__ import annotations
 
 from collections.abc import Iterator
-from contextlib import contextmanager
+from contextlib import ExitStack, contextmanager
 from pathlib import Path
+
+from langfuse import propagate_attributes
 
 from story_maker.observability.langfuse_client import LangfuseClientPort
 from story_maker.observability.mask import Mask
@@ -117,12 +119,18 @@ class LangfuseObservability:
         trace_id = self._client.create_trace_id(seed=trace.key)
         observation_ids: dict[int, str] = {}
         metadata: dict[str, object] | None = {"session": trace.session} if trace.session else None
-        with self._client.start_as_current_observation(
-            trace_context={"trace_id": trace_id},
-            name=trace.name or trace.key,
-            as_type="span",
-            metadata=metadata,
-        ) as root:
+        with ExitStack() as stack:
+            # La vista Sessions de Langfuse agrupa por `session_id`, no por metadata (§13.1).
+            if trace.session:
+                stack.enter_context(propagate_attributes(session_id=trace.session))
+            root = stack.enter_context(
+                self._client.start_as_current_observation(
+                    trace_context={"trace_id": trace_id},
+                    name=trace.name or trace.key,
+                    as_type="span",
+                    metadata=metadata,
+                )
+            )
             for span in trace.spans:
                 self._export_span(root, span, mask, observation_ids)
         for trace_score in trace.scores:

@@ -4,9 +4,11 @@ Novelas personalizadas de regalo, ambientadas en un presente alternativo **post-
 
 Es el proyecto del examen de Harness Engineering: el encargo está en [project-constraints.md](project-constraints.md) y la spec inicial en [ADR 0006](docs/adr/0006-diseno-lean.md).
 
-## Estado
+## Cómo se usa
 
-El producto se construye spec a spec (estado en [TODO.md](TODO.md) → *Estado*). Alcance de la entrega: web mínima (entrar, leer, versiones y pedir un cambio) y configuración por la CLI (`docs/architecture.md` §18, «Alcance del frontend»). Lo marcado *pendiente* abajo llega con la spec que se indica; lo marcado *fuera de alcance* es opcional en el encargo y no se entrega.
+- **Configuración:** entrevista por la CLI (`interview`), con texto libre del que se extraen hechos, detección de datos que faltan y contradicciones, y un brief validado con schema.
+- **Lectura:** web (entrar, índice, ficha de personajes y lugares, versiones, pedir un cambio) y PDF interactivo con portada, dedicatoria, índice y ficha enlazados.
+- El desarrollo va spec a spec; el estado, en [TODO.md](TODO.md) → *Estado*.
 
 ## Arranque rápido
 
@@ -23,13 +25,38 @@ cd ../backend && uv run story-maker serve     # sin --reload; escucha en STORY_M
 
 Las órdenes que crean novelas reciben `--email` de un cliente ya registrado (en la web, `POST /api/auth/register`), que es su propietario.
 
-Novela de ejemplo de principio a fin (desde `backend/`, con el servidor parado: la orden monta su propio worker sobre la misma base):
+### Brief de ejemplo reproducible
+
+[ejemplos/briefs/01-ejemplo.json](ejemplos/briefs/01-ejemplo.json) → novela publicada → PDF (desde `backend/`, con el servidor parado: la orden monta su propio worker sobre la misma base):
 
 ```sh
 uv run story-maker example ../ejemplos/briefs/01-ejemplo.json --email <cliente registrado>   # → ejemplos/novela-ejemplo.pdf (o --out <ruta>)
 ```
 
-El PDF commiteado en `ejemplos/novela-ejemplo.pdf` es el de la ejecución real del brief 1 en las evals (`specs/backend/020-evals.md`, 020-C16): el mismo brief, sin generarlo dos veces.
+Una novela completa tarda del orden de 1–1,5 h con el login de Claude Code.
+
+### Entrevista con el cliente
+
+```sh
+uv run story-maker interview --email <cliente registrado>
+```
+
+Cada línea es un turno. `/texto <fichero>` manda una carta o anécdota al extractor (contenido no confiable); `/hechos`, `/aceptar`, `/rechazar` y `/obligatorio` gobiernan los hechos extraídos; `/confirmar` cierra el brief y, con una segunda confirmación, lanza la generación; `/salir` termina.
+
+### Pruebas y verificación formal
+
+| Qué | Orden |
+|---|---|
+| Backend (desde `backend/`) | `uv run pytest` · `uv run ruff check .` · `uv run ruff format --check .` · `uv run mypy src` |
+| Frontend (desde `frontend/`) | `pnpm.cmd lint` · `pnpm.cmd typecheck` · `pnpm.cmd test` · `pnpm.cmd build` |
+| TLA+ con TLC (modelo pequeño: 5 capítulos, 2 reintentos) | `bash tla/verificar.sh` — configs en [tla/](tla/), instrucciones en [tla/README.md](tla/README.md) |
+| Lean 4 (cronología, T1–T5) | en GitHub Actions: `.github/workflows/ci.yml` y `verificar-cronologia.yml`; detalle en [lean/README.md](lean/README.md) |
+
+Los contraejemplos de TLC encontrados en el desarrollo y el cambio que provocaron están en `docs/verification.md` §8.
+
+### Langfuse
+
+En `.env`: `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_BASE_URL` (Cloud UE) y `LANGFUSE_PROMPT_LABEL`. Una sesión por novela (entrevista, generación y regeneraciones); spans por rol, tool, validador y capítulo; los validadores, como scores de la traza. Los prompts versionados se suben con `uv run story-maker prompts push`.
 
 ### Órdenes de la CLI
 
@@ -38,7 +65,7 @@ El PDF commiteado en `ejemplos/novela-ejemplo.pdf` es el de la ejecución real d
 | `init-db [--reset]` | Crea la base con el esquema completo; sin `--reset` no toca una existente |
 | `check-env` | Una línea por comprobación: ajustes, config, base y observabilidad |
 | `serve` | La API, la SPA compilada y el worker de la cola, en un proceso (sin `--reload`) |
-| `interview [--novel <id>]` | La entrevista por terminal, con confirmación explícita del brief y de la generación |
+| `interview --email <e>` | La entrevista por terminal, con confirmación explícita del brief y de la generación |
 | `resume <run_id>` | Vuelve a encolar una ejecución `interrupted` en su puesto |
 | `export-pdf <novel> <v>` | Regenera el PDF de una versión publicada |
 | `example <brief.json> --email <e> [--out <ruta>]` | Brief → novela publicada → su PDF |
@@ -56,14 +83,31 @@ El PDF commiteado en `ejemplos/novela-ejemplo.pdf` es el de la ejecución real d
 | Diagramas: arquitectura del harness · máquina de estados · esquema SQLite · validadores con su punto de ejecución | `docs/architecture.md` §1.4 · §9.1 (y `tla/`) · §15.6 · §11.2 |
 | Evals con resultados medibles | [docs/verification.md](docs/verification.md) §4.2 |
 | Registro de iteraciones | `docs/verification.md` §8 |
+| Cinco briefs de prueba (adversarial y temporal incluidos) | [ejemplos/briefs/](ejemplos/briefs/) |
 | Red-team log | `docs/verification.md` §4.9 |
-| Informe de seguridad | *fuera de alcance* (opcional en el encargo, spec 021) |
 | Harness de producto: `CLAUDE.md`, skill y dos hooks | `backend/harness_workspace/`; `docs/architecture.md` §7.3 y §7.5 |
 | Verificación formal: Lean 4 · TLA+ | [lean/](lean/) · [tla/](tla/) |
-| Novela de ejemplo | `ejemplos/novela-ejemplo.pdf` (*pendiente, spec 020*) |
+| Novela de ejemplo | [ejemplos/novela-ejemplo.pdf](ejemplos/novela-ejemplo.pdf), generada con el brief de ejemplo (ejecución real 16); candidatas de los briefs 2 y 3 en [ejemplos/novela/](ejemplos/novela/) |
+| Lean detecta lo que los demás no | [ejemplos/cronologias/](ejemplos/cronologias/): los ficheros reales que generó el gate — el brief 1 falla T2, el editor reescribe y la segunda cronología pasa T1–T5; análisis en `docs/verification.md` §4.2 |
+| Revisión humana frente al juez | [ejemplos/revision-humana-brief1.md](ejemplos/revision-humana-brief1.md), misma rúbrica que `juez-novela` |
 | Presentación y vídeo de demo | [presentacion/](presentacion/) |
 | Claude Code: `CLAUDE.md`, `.claude/` (agentes, comandos, hooks, skills, memoria), `.mcp.json` con browser MCP | [CLAUDE.md](CLAUDE.md), [.claude/](.claude/), [.mcp.json](.mcp.json); su uso, en `docs/verification.md` §9 |
-| Sin claves en el repo | [.env.example](.env.example) |
+| Sin claves en el repo | [.env.example](.env.example); la CI pasa `detect-secrets`, `pip-audit` y `pnpm audit` |
+
+### Opcionales del encargo entregados
+
+| Opcional | Qué hay | Evidencia |
+|---|---|---|
+| Login de usuarios con SQLite | Registro e inicio de sesión con bcrypt y JWT; cada novela, brief y entrada del audit log tiene propietario; lo ajeno responde 404 | spec 002; `backend/tests/api/test_ownership.py`, `test_auth.py`, `test_audit_log.py` |
+| Invariantes adicionales en Lean y demostraciones generales | Cinco invariantes (T1–T5, tres más de los exigidos) y teoremas que prueban cada comprobación correcta y completa **para cualquier cronología** | [lean/Chronology.lean](lean/Chronology.lean), [lean/README.md](lean/README.md) |
+| TLA+ de la concurrencia entre regeneraciones | `Regenerations.tla`: cambios del lector simultáneos sobre la misma novela, invariante `VersionesLineales` | [tla/Regenerations.tla](tla/Regenerations.tla), su prueba en `backend/tests/pipeline/changes/test_change_stale_base.py` |
+| Linters de prosa | Repetición y muletillas, legibilidad según el tono, estilo típico de IA y consistencia de narrador y tiempo verbal, como biblioteca probada | `backend/src/story_maker/lint/`, `backend/tests/lint/` (spec 018) |
+| Seguridad con agentes | Subagente `seguridad` y auditoría de dependencias y secretos en cada push | [.claude/agents/seguridad.md](.claude/agents/seguridad.md), `.github/workflows/ci.yml` |
+
+### Límites del encargo, en código
+
+- **100.000 tokens concurrentes:** `token_ceiling` en `config.json`, con un techo de reservas y una cola FIFO para las sesiones de rol (`backend/src/story_maker/agents/ceiling.py`); un valor por encima se rechaza al arrancar. El pico medido por ejecución sale en `evals table` (entre 11,7k y 28,2k en las evals reales).
+- **Reintentos acotados:** `max_retries` por capítulo, plan, ciclos del gate y cambio, y `max_resumes`; al agotarlos la ejecución termina en `failed` con su motivo (invariante `ReintentosAcotados` de TLA+).
 
 ## Correspondencia TLA+ ↔ código
 
@@ -85,8 +129,6 @@ Cada acción de `tla/Harness.tla` corresponde a una transición del orquestador 
 | `PedirCambio` | → `queued` (change_request o manual_edit, con la vigente como base) | API: confirmar un cambio con su código (la edición manual, 019, queda fuera de alcance) | 014 | `pipeline/changes/confirm.py:confirm_change`, `api/change_requests.py:post_confirm` |
 
 ## Servidores MCP
-
-El servidor MCP de la plataforma (spec 015) es opcional en el encargo y queda *fuera de alcance*.
 
 Para el desarrollo, `.mcp.json` ya trae Playwright MCP (Edge) y el MCP de Langfuse; este último lee la cabecera de la variable de entorno `LANGFUSE_MCP_AUTH` (`Basic <base64 de public_key:secret_key>`), que se define en el entorno del usuario, nunca en el repo.
 

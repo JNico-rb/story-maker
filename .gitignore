@@ -32,3 +32,6 @@ tla2tools.jar
 *.db
 *.db-wal
 *.db-shm
+
+# Ficheros de cronología que genera el gate con STORY_MAKER_DATA_DIR en la raíz; la evidencia vive en ejemplos/cronologias/
+/chronology_files/

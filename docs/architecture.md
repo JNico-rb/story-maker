@@ -7,7 +7,7 @@ Decisiones de diseño de story-maker: capas, flujo, entrevista, story bible, pla
 - Verificación del sistema (CI, evals, riesgos aceptados): `verification.md`.
 - Encargo: `project-constraints.md`.
 
-> Reescrito el 2026-09-24 con el **diseño lean** ([ADR 0006](adr/0006-diseno-lean.md)): el mismo encargo, con la opción más simple que lo cumple. La dificultad deliberada va solo en RAG, Langfuse, MCP, Claude Agent SDK, Lean y TLA+. Todo lo opcional del encargo se hace. Numeración estable: una decisión que se cierra pasa de §17 a §18 sin renumerar lo demás.
+> Reescrito el 2026-09-24 con el **diseño lean** ([ADR 0006](adr/0006-diseno-lean.md)): el mismo encargo, con la opción más simple que lo cumple. La dificultad deliberada va solo en RAG, Langfuse, MCP, Claude Agent SDK, Lean y TLA+. Todo lo opcional del encargo se diseña; en esta entrega, el servidor MCP (§14.4) y la edición manual (§10.3, §14.6) quedan en diseño sin implementar, y `revision-visual` (§11.2) se recorta. Lo demás opcional sí se implementa: login con propiedad (§14.3), `Regenerations.tla` (§11.5) y las demostraciones generales de Lean (§11.4). Numeración estable: una decisión que se cierra pasa de §17 a §18 sin renumerar lo demás.
 
 ---
 
@@ -318,6 +318,8 @@ El encargo fija **un máximo de 100.000 tokens concurrentes**. Es un **contador 
 4. **Si una sesión no cabría ni con el techo entero libre**, no espera: en la API, 422 (por ejemplo, un texto libre demasiado largo); en una ejecución, `failed` con `infeasible_config`, que es un error de config.
 5. **Uso exacto después.** Al cerrar, se guarda el uso del `ResultMessage` (§13.2). La diferencia entre reserva y uso real se ve en SQLite y Langfuse y sirve para ajustar `max_turns` y `max_output_tokens`.
 
+El techo limita lo **reservado** (estimación chars/4 + turnos·`max_output_tokens`), no el uso real, que siempre es menor; la cola es FIFO. El pico real por ejecución lo reporta `evals table` (§11.7): picos medidos entre 11.700 y 28.200 tokens.
+
 Dentro de una ejecución hay como mucho una sesión de rol a la vez (Lean corre en paralelo con el juez, pero no consume tokens). El contador reparte el techo entre esa sesión y las de la API (entrevistas, extracciones y propuestas de cambio de otros clientes).
 
 ---
@@ -623,6 +625,8 @@ Cola global FIFO y **una ejecución activa**. Cada ejecución de cambio o edici�
 
 ### 10.3 Edición manual
 
+**Estado: diseño; no implementado en esta entrega (opcional, specs 019/028).**
+
 El cliente modifica a mano un capítulo de una versión publicada en el editor web (§14.6).
 
 - **Lint en vivo** (`POST /api/novels/{id}/chapters/{n}/lint`, con retardo entre pulsaciones): nombres contra la story bible (formas no canónicas, personajes desconocidos); **hechos**: el valor de un hecho nominal que el capítulo usaba y ya no aparece (aviso de que guardar cambiará la story bible); prohibidas; avisos de los linters de prosa; y **dos avisos ligeros de cronología**: un personaje que reaparece tras su evento excluyente y una edad escrita que no cuadra con su fecha de nacimiento. Son avisos: no registran nada ni sustituyen a Lean.
@@ -666,9 +670,9 @@ Cada validador tiene nombre, corre en un punto concreto del harness y envía su 
 | `nombres-exactos` | programática | Hook de validación; guardado de edición; gate | sí | 0/1 | Destinatario y personajes escritos exactamente como en la story bible; una variante de un nombre canónico es defecto (regla bajo la tabla) |
 | `palabras-prohibidas` | programática | Hook de policy (cada entrega); petición de cambio; guardado de edición; gate | sí | 0/1 con comentario (término, nivel, variante) | Ninguna coincidencia normalizada de los tres niveles |
 | `elementos-obligatorios` | programática | Gate | sí (reescritura dirigida) | 0/1 | Cada elemento obligatorio tiene ≥1 `UsoDeHecho`, comprobado contra la tabla `facts`/`fact_usages` |
-| `revision-visual` | programática (browser MCP) | Gate | sí | 0/1 por portada, índice, capítulos, ficha | Portada, índice, capítulos y ficha renderizan y enlazan; fallo de datos → editor re-registra; de render → `failed` |
+| `revision-visual` | programática (browser MCP) | Gate | sí | 0/1 por portada, índice, capítulos, ficha | Portada, índice, capítulos y ficha renderizan y enlazan; fallo de datos → editor re-registra; de render → `failed`. **Recortado en esta entrega** (spec 012 sin la etapa de revisión visual); la inspección visual se hizo en desarrollo con Playwright MCP (`verification.md` §9.3) |
 | `pdf-enlaces` | programática | Gate, último paso | sí | 0/1 | El PDF tiene 10 capítulos y los enlaces internos de índice, novedades y ficha resuelven |
-| `linter-repeticion`, `linter-legibilidad`, `linter-estilo-ia`, `linter-consistencia` | programática (opcional) | Tras el hook de validación y antes del editor, que recibe sus defectos (y con ellos el veredicto); lint en vivo | no | Métrica medida, con el umbral en el comentario | §14.5 |
+| `linter-repeticion`, `linter-legibilidad`, `linter-estilo-ia`, `linter-consistencia` | programática (opcional) | Diseño: tras el hook de validación y antes del editor, que recibe sus defectos (y con ellos el veredicto); lint en vivo | no | Métrica medida, con el umbral en el comentario | §14.5. **Estado: biblioteca implementada y probada; conexión al bucle y a Langfuse pendiente** |
 | `rubrica-capitulo` | semántica | Editor, cada capítulo | criterios bloqueantes | 0/1 agregado + 1–5 por criterio | §11.3 |
 | `juez-novela` | semántica (LLM-as-judge) | Gate | criterios bloqueantes | 0/1 agregado + 1–5 por criterio | §11.3 |
 | `revision-humana` | semántica (humano) | Evaluación, fuera del flujo | no | 1–5 por criterio, anotado en Langfuse sobre la traza | Misma rúbrica que el juez (§11.6) |
@@ -873,7 +877,7 @@ Muestra cualquier versión publicada:
 - **ficha de personajes y lugares** generada desde la story bible, con enlaces a los capítulos donde aparece cada uno (por `UsoDeHecho` y eventos registrados);
 - **selector de versión**;
 - **seleccionar un fragmento o un hecho → pedir un cambio** (propuesta, afectados, confirmación);
-- el **editor manual** con lint en vivo (§10.3).
+- el **editor manual** con lint en vivo (§10.3) — diseño, no implementado en esta entrega (opcional).
 
 ### 14.2 VistaDeVersion y PDF
 
@@ -882,13 +886,15 @@ La `VistaDeVersion` es **HTML de servidor (Jinja2) de una versión**, candidata 
 - el **revisor visual**, que la navega con Playwright MCP en `http://127.0.0.1` (Playwright MCP bloquea `file://`);
 - el **PDF**: Playwright `page.pdf` (con `outline` y `tagged`) sobre el Edge instalado (`channel="msedge"`; en CI Linux, chromium). `pdf-enlaces` lo comprueba con `pypdf`, porque Chromium descarta sin aviso un enlace a un ancla inexistente.
 
-El PDF se genera en el gate, se guarda por versión en el directorio de datos y se sirve tal cual (`GET .../versions/{v}/pdf`, `download_novel`). La novela de ejemplo se commitea en `ejemplos/novela-ejemplo.pdf`.
+El PDF se genera en el gate, se guarda por versión en el directorio de datos y se sirve tal cual por `GET .../versions/{v}/pdf` (el equivalente por MCP, `download_novel`, es diseño sin implementar, §14.4). La novela de ejemplo se commitea en `ejemplos/novela-ejemplo.pdf`.
 
 ### 14.3 Autenticación y propiedad
 
-Registro e inicio de sesión con email y contraseña (**bcrypt**) en SQLite. `TokenDeAcceso` **JWT** HS256 con `JWT_SECRET`, `exp`, `aud` e `iss`, que caduca a las 24 h (`access_token_hours`). Sin renovación ni recuperación: la gestión de cuentas está fuera de alcance. **Todo recurso** (novela, brief, lista `user`, audit log) pertenece a su usuario. **Lo ajeno responde 404**, igual que lo inexistente, sin revelar que existe. Hay pruebas de que un usuario no accede a las novelas de otro, por la API y por MCP.
+Registro e inicio de sesión con email y contraseña (**bcrypt**) en SQLite. `TokenDeAcceso` **JWT** HS256 con `JWT_SECRET`, `exp`, `aud` e `iss`, que caduca a las 24 h (`access_token_hours`). Sin renovación ni recuperación: la gestión de cuentas está fuera de alcance. **Todo recurso** (novela, brief, lista `user`, audit log) pertenece a su usuario. **Lo ajeno responde 404**, igual que lo inexistente, sin revelar que existe. Hay pruebas de que un usuario no accede a las novelas de otro por la API (`tests/api/test_ownership.py`); el servidor MCP (§14.4) no está implementado en esta entrega, así que esas pruebas no cubren esa vía.
 
 ### 14.4 Servidor MCP
+
+**Estado: diseño; no implementado en esta entrega (opcional, TODO 015).** Los cambios del lector se piden por la web o por la API, no por MCP (§10.1). Lo que sigue es el diseño.
 
 **FastMCP montado en `/mcp`** de la misma aplicación FastAPI (sin infraestructura nueva), con su lifespan. Identidad: el mismo `TokenDeAcceso` en la cabecera de autorización; cada tool lee el usuario del token.
 
@@ -896,7 +902,7 @@ Registro e inicio de sesión con email y contraseña (**bcrypt**) en SQLite. `To
 - **Escritura en dos pasos, con confirmación**: `request_change` hace la misma interpretación que la web (§10.1) y devuelve propuesta, afectados y código; `confirm_change(change_request_id, code)` encola la ejecución. Funciona con cualquier cliente MCP, sin depender de elicitation.
 - Cada tool con **schema validado**; cada llamada, **una traza** en Langfuse; cada escritura, una entrada del audit log (`mcp_write`).
 
-El README explica cómo conectarlo desde MCP Inspector (y Claude Code) con el token.
+El README explicaría cómo conectarlo desde MCP Inspector (y Claude Code) con el token, cuando se implemente.
 
 ### 14.5 Linters de prosa (opcional)
 
@@ -909,9 +915,13 @@ Heurísticas en Python puro, escritas desde cero:
 | `linter-estilo-ia` | Adverbios en -mente por 1.000 palabras; clichés y giros típicos de texto generado, de una lista en `domain` |
 | `linter-consistencia` | Persona del narrador y tratamiento tú/usted contra la StyleSheet; el diálogo no cuenta para el narrador. El tiempo verbal no lo comprueba el linter: sin analizador morfológico (spaCy, fuera) la heurística daría falsos positivos; lo revisa el editor contra la StyleSheet, que tiene en su ventana |
 
-No bloquean. Sus defectos entran en el veredicto como no bloqueantes (llegan al writer si hay reescritura por otra causa) y van a Langfuse como score. También corren en el lint en vivo.
+No bloquean. Diseño: sus defectos entrarían en el veredicto como no bloqueantes (al writer si hay reescritura por otra causa), irían a Langfuse como score y correrían también en el lint en vivo (§10.3).
+
+**Estado: biblioteca implementada y probada** (`backend/src/story_maker/lint/`, `backend/tests/lint/`); conexión al bucle de producción y a Langfuse pendiente.
 
 ### 14.6 Edición manual con linter propio (opcional)
+
+**Estado: diseño; no implementado en esta entrega (opcional).**
 
 Integrado en el editor web de la lectura (§10.3). Comprueba el texto contra la story bible (nombres, hechos, cronología ligera) y las prohibidas mientras se edita; guardar actualiza la story bible y pasa todos los validadores, Lean incluido, antes de publicar.
 
@@ -935,7 +945,7 @@ Vite + React + TypeScript estricto + Tailwind, **FSD pages-first** (`app`, `page
 | Persistencia | SQLite en WAL con `foreign_keys=ON` y `busy_timeout`; esquema con `create_all`; FTS5 y `sqlite-vec`; `fastembed` para los vectores |
 | Harness | `claude-agent-sdk` para todos los roles; modelos Claude por el login de Claude Code (por defecto) o por un endpoint compatible con Anthropic (§15.2) |
 | Observabilidad | `langfuse` v4, Langfuse Cloud UE, plan Hobby |
-| MCP | `fastmcp` dentro de FastAPI; Playwright MCP (`@playwright/mcp@0.0.82`, `--browser msedge`) para el revisor visual y para Claude Code |
+| MCP | `fastmcp` dentro de FastAPI (diseño, no implementado, §14.4); Playwright MCP (`@playwright/mcp@0.0.82`, `--browser msedge`) para Claude Code en desarrollo; para el revisor visual, diseñado pero recortado (§11.2) |
 | PDF | `playwright` sobre el Edge instalado; `pypdf` |
 | Formal | Lean 4 + Lake (GitHub Actions o Linux); TLA+ con TLC sobre JDK Temurin portable |
 | Calidad | Ruff, mypy estricto en `src/`, pytest (+ pytest-asyncio, hypothesis) |
@@ -1144,7 +1154,7 @@ PUT    /api/novels/{id}/chapters/{n} {text, base_version}    -> 202 {run_id}
 GET    /api/novels/{id}/audit-log
 GET    /view/versions/{version_id}?token=...                 VistaDeVersion (interna: PDF y revisor visual)
 GET    /health                                               -> 200, sin token (fuera de /api)
-/mcp                                                         servidor MCP
+/mcp                                                         servidor MCP (diseño, no implementado, §14.4)
 ```
 
 | Código | Cuándo |
@@ -1327,7 +1337,7 @@ Un explainer por concepto del curso aplicado: qué es, cómo se aplica aquí y d
 ### 16.19 MCP (servidor propio y browser MCP)
 
 - **Qué es.** Model Context Protocol: un estándar para exponer tools y recursos a clientes de IA.
-- **Cómo se aplica.** Dos usos. **Servidor propio**: FastMCP dentro de FastAPI expone las novelas del usuario autenticado (lectura) y el cambio del lector en dos pasos con código (escritura). **Browser MCP**: Playwright MCP deja que el revisor visual navegue la vista de la versión en el gate, y que Claude Code inspeccione la lectura web en el desarrollo.
+- **Cómo se aplica.** Dos usos, los dos diseñados; en esta entrega solo el segundo corre. **Servidor propio** (no implementado, §14.4): FastMCP dentro de FastAPI expondría las novelas del usuario autenticado (lectura) y el cambio del lector en dos pasos con código (escritura). **Browser MCP**: Playwright MCP inspecciona la lectura web en el desarrollo; su uso para que el revisor visual navegue la versión en el gate está recortado (§11.2).
 - **Dónde.** §14.4, §11.2 (`revision-visual`), `verification.md` §9.2–§9.3.
 
 ### 16.20 Claude Code en el desarrollo

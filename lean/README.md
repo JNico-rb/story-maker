@@ -8,6 +8,10 @@ El backend genera un `FicheroDeCronologia` por versión (`backend/src/story_make
 
 **No corre en el portátil de desarrollo** (Smart App Control bloquea los binarios de Lean): se construye y se prueba en GitHub Actions.
 
+**Las demostraciones generales, honestamente.** `compruebaTn_decide` no es una prueba ad hoc por cronología: para cada Tn, `compruebaTn c = true ↔ Tn c` vale para **toda** `c : Cronologia`, vía decidibilidad (`decide (Tn c)` con `of_decide_eq_true` y `decide_eq_true`) — el comprobador ejecutable queda demostrado equivalente al invariante `Prop`, no solo comprobado en casos. Son 3 teoremas más de los que pide el encargo (T1–T5 frente a T1–T2 exigidos), y el generador cierra un teorema `cumpleTn` por invariante evaluando ese comprobador, no repitiendo la prueba.
+
+**Evidencia real.** Las cronologías que generó el gate en las evals se conservan en `ejemplos/cronologias/`: tres fallan algún invariante (ejecución 12: T1; 13: T2 y T4; 16: T2) y la cuarta es la de la ejecución 16 después de que el fallo volviera al editor y se reescribiera: pasa T1–T5. Es el bucle completo: Lean bloquea, el editor corrige y Lean deja pasar.
+
 ## Ficheros de la CI — `pruebas/`
 
 Salidas del generador para la cronología de fixture de la spec, con k = 3; `backend/tests/formal/test_lean_files.py` comprueba que son byte a byte lo que el generador escribe hoy. `esperado.json` dice qué debe dar cada uno:

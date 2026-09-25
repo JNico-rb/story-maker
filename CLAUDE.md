@@ -23,7 +23,7 @@ Resumen: cinco capas en orden, sin revisiones (ni autorrevisión ni auditor: el 
 | `lean/`, `tla/` | verificación formal de la historia (Lean 4) y del sistema (TLA+) |
 | `ejemplos/`, `presentacion/`, `images/` | briefs y novela de ejemplo, deck y vídeo, marca |
 | `.env.example` | ajustes y secretos, solo con marcadores |
-| `.claude/`, `.mcp.json` | harness de desarrollo: agentes, comandos, hooks, skills, memoria espejo, MCP |
+| `.claude/`, `.mcp.json` | harness de desarrollo: agentes, comandos, hooks, skills, memoria (copia versionada de la memoria de Claude Code), MCP |
 
 ## Comandos canónicos
 
@@ -39,7 +39,7 @@ Resumen: cinco capas en orden, sin revisiones (ni autorrevisión ni auditor: el 
 
 - `docs/*.md`, las specs y `TODO.md` pesan mucho (`architecture.md` ≈ 36k tokens). Nunca enteros: `grep -n '^## ' <fichero>` para el índice y lee solo la sección que toca, con `offset`/`limit`.
 - `TODO.md`: la cabecera, o tu bloque (`sed -n '/^## NNN /,/^## [0-9]/p' TODO.md`); el estado de todas las specs, con `awk -f .claude/scripts/resumen-todo.awk TODO.md`.
-- Modelos en el frontmatter de cada agente: opus en `redactor-specs` y `seguridad`; sonnet en `implementador` y `verificador`. El `implementador` de 012 y 014 se lanza con `model: opus`. Roles del producto: `config.json`.
+- Modelos en el frontmatter de cada agente: opus en `redactor-specs` y `seguridad`; sonnet en `implementador` y `verificador`. Roles del producto: `config.json`.
 
 ## Harness de desarrollo
 
@@ -49,7 +49,7 @@ Resumen: cinco capas en orden, sin revisiones (ni autorrevisión ni auditor: el 
 | Comandos (`.claude/commands/`) | `/orquestar`, `/carril`, `/spec`, `/plan`, `/implementar`, `/integrar`, `/estado`, `/log-decision` | integrar, llevar un carril, cada capa del flujo, ver el estado, registrar una decisión |
 | Hooks (`.claude/hooks/`) | `guard-secretos`, `guard-plan` | bloquear claves reales en lo escrito; bloquear código sin plan aprobado con pasos pendientes |
 | MCP (`.mcp.json`) | `playwright`, `langfuse` | inspeccionar la lectura web en Edge; consultar trazas y prompts |
-| Skills (`.claude/skills/`) | ver su `README.md` | FastAPI, FSD, React, SQLAlchemy, verificación |
+| Skills (`.claude/skills/`) | ver su `README.md` | FastAPI, FSD, React, SQLAlchemy, verificación, revisión, `grill-me`; la skill de producto está en `backend/harness_workspace/.claude/skills/` |
 
 Cada uso real de un subagente, comando o del browser MCP se registra en `docs/verification.md` §9.
 
