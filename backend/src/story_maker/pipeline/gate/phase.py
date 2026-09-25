@@ -111,7 +111,10 @@ class JudgeRun:
 
 
 def _messages(defects: Sequence[Defect]) -> str:
-    return "; ".join(d.message for d in defects) or "sin defectos"
+    """El comentario de cada validador una sola vez: un defecto bloqueante atribuido a varios
+    capítulos (el juez cita uno por criterio) repite el mismo mensaje, y no debe duplicarse en el
+    detalle (012-bug-D1)."""
+    return "; ".join(dict.fromkeys(d.message for d in defects)) or "sin defectos"
 
 
 def _defect_detail(defect: Defect) -> dict[str, Any]:
