@@ -1,12 +1,14 @@
 # 023 — Mis novelas
 
-> Carril: E · Depende de: 022-acceso, 005-guardarrailes, 008-brief-y-entrevista · Estado: aprobada sin revisión (decisión del usuario, 2026-09-24)
+> Carril: E · Depende de: 022-acceso, 005-guardarrailes, 008-brief-y-entrevista · Estado: aprobada sin revisión (decisión del usuario, 2026-09-24); alcance mínimo en N1 (usuario, 2026-09-25, carril R)
 
 ## Objetivo
 
 La pantalla «mis novelas»: lo primero que ve el cliente tras acceder. Muestra sus novelas con su estado derivado y su versión vigente, deja crear una novela nueva y gestionar su lista de palabras prohibidas de nivel `user`. Cubre la parte de pantalla de `architecture.md` §14.8; los datos que muestra los calcula y los sirve 008-brief-y-entrevista, que esta spec no repite.
 
 ## Alcance
+
+**N1, mínima (usuario, 2026-09-25):** solo la lista de novelas (023-C01 a C06), ir a la lectura de las que tienen versión vigente (023-C09) y llegar aquí tras el acceso (023-C17). Crear novela (C07, C08) y las prohibidas de nivel `user` (C10 a C15) quedan «(recortado)»: la entrevista y las prohibidas van por la CLI (`architecture.md` §18, «Alcance del frontend»).
 
 - Lista de las novelas del cliente: título, nombre del destinatario, estado derivado, versión vigente y fecha de creación, en el orden que entrega la API.
 - Acción «crear novela»: crea una novela vacía y lleva a su entrevista.
@@ -30,7 +32,7 @@ La pantalla «mis novelas»: lo primero que ve el cliente tras acceder. Muestra 
 
 #### 023-C01 — Lista vacía (T)
 - **Entrada:** la API de novelas responde con una lista vacía.
-- **Salida:** la pantalla muestra que el cliente no tiene ninguna novela todavía, y el botón para crear una está disponible. No hay tabla ni filas.
+- **Salida:** la pantalla muestra que el cliente no tiene ninguna novela todavía (en N1, sin botón de crear: la novela nace por la CLI). No hay tabla ni filas.
 
 #### 023-C02 — Cada estado derivado tiene una etiqueta propia (T)
 - **Entrada:** la API responde con una novela por cada estado de `definitions.md` §3: `interview`, `ready`, `in_progress`, `published`.
@@ -54,46 +56,49 @@ La pantalla «mis novelas»: lo primero que ve el cliente tras acceder. Muestra 
 
 ### Crear novela
 
-#### 023-C07 — Crear una novela lleva a su entrevista (T)
+#### 023-C07 — Crear una novela lleva a su entrevista (T, recortado)
 - **Entrada:** el cliente pulsa «crear novela»; la API responde 201 con el id de la novela nueva.
 - **Salida:** la pantalla navega a la entrevista de esa novela (024-entrevista). Mientras la petición está en curso, el botón se deshabilita para no duplicar la creación.
 
-#### 023-C08 — Fallo al crear una novela (T)
+#### 023-C08 — Fallo al crear una novela (T, recortado)
 - **Entrada:** el cliente pulsa «crear novela»; la API responde con un error.
 - **Salida:** la pantalla se queda en «mis novelas», muestra el motivo del fallo, no navega a ninguna entrevista y el botón vuelve a estar disponible.
 
 ### Ir a una novela
 
-#### 023-C09 — El destino depende del estado de la novela (T)
-- **Entrada:** el cliente pulsa sobre una novela de la lista, una vez por cada estado.
+#### 023-C09 — Solo las novelas con versión vigente llevan a su lectura (T)
+- **Entrada:** la lista con una novela con versión vigente (p. ej. `published`, o `in_progress` tras un cambio del lector) y otra sin versión vigente (`interview`, `ready` o `in_progress` de su primera generación).
 - **Salida:**
-  - `interview` o `ready` → navega a su entrevista (024-entrevista);
-  - `in_progress` → navega a su pantalla de progreso;
-  - `published` → navega a su lectura, en la versión vigente.
+  - con versión vigente → la fila enlaza a su lectura (026-lectura), que abre la versión vigente (026-C01);
+  - sin versión vigente → la fila muestra su estado sin enlace (la entrevista y el progreso no tienen pantalla en N1).
+
+#### 023-C17 — El acceso lleva a «mis novelas» (T)
+- **Entrada:** un acceso válido (022-C04).
+- **Salida:** la pantalla que se abre es «mis novelas», con la lista de novelas del cliente.
 
 ### Palabras prohibidas de nivel `user`
 
-#### 023-C10 — Ver la lista prohibida de nivel `user` (T)
+#### 023-C10 — Ver la lista prohibida de nivel `user` (T, recortado)
 - **Entrada:** la API responde con dos entradas: una palabra y un tema con sus palabras clave.
 - **Salida:** la pantalla lista las dos, cada una con su término (y sus palabras clave, si es un tema), separada de la lista de novelas.
 
-#### 023-C11 — Añadir una palabra (T)
+#### 023-C11 — Añadir una palabra (T, recortado)
 - **Entrada:** el cliente escribe «Cristina» y confirma; la API responde 201 con la entrada creada.
 - **Salida:** la entrada nueva aparece en la lista, sin recargar toda la pantalla. El campo queda vacío para la siguiente.
 
-#### 023-C12 — Añadir un tema con sus palabras clave (T)
+#### 023-C12 — Añadir un tema con sus palabras clave (T, recortado)
 - **Entrada:** el cliente da de alta un tema «divorcio» con las palabras clave «separación» y «custodia»; la API responde 201.
 - **Salida:** el tema aparece en la lista con sus dos palabras clave.
 
-#### 023-C13 — Alta rechazada (T)
+#### 023-C13 — Alta rechazada (T, recortado)
 - **Entrada:** el cliente intenta dar de alta un tema sin palabras clave, una palabra con palabras clave, o un término vacío; la API responde 422 en cada caso.
 - **Salida:** ninguna entrada se añade a la lista; la pantalla muestra el motivo del rechazo junto al formulario.
 
-#### 023-C14 — Alta de un término repetido (T)
+#### 023-C14 — Alta de un término repetido (T, recortado)
 - **Entrada:** el cliente da de alta «pedro» cuando ya existe «Pedro»; la API responde 409.
 - **Salida:** ninguna entrada se añade; la pantalla indica que el término ya está en la lista.
 
-#### 023-C15 — Borrar una entrada (T)
+#### 023-C15 — Borrar una entrada (T, recortado)
 - **Entrada:** el cliente borra una entrada de la lista; la API responde 204.
 - **Salida:** la entrada desaparece de la lista, sin recargar toda la pantalla.
 
@@ -107,10 +112,10 @@ La pantalla «mis novelas»: lo primero que ve el cliente tras acceder. Muestra 
 
 | Id | Invariante | Clase | Cómo se verifica |
 |---|---|---|---|
-| 023-I1 | Los cuatro estados derivados de `definitions.md` §3 tienen cada uno su etiqueta, y ningún otro valor cae en un caso por defecto silencioso | T | 023-C02, con los cuatro estados en un solo barrido |
+| 023-I1 | Los cuatro estados derivados de `definitions.md` §3 tienen cada uno su etiqueta, y ningún otro valor cae en un caso por defecto silencioso | T (recortado) | 023-C02, con los cuatro estados en un solo barrido |
 | 023-I2 | La pantalla nunca calcula el estado ni la versión vigente por su cuenta: muestra tal cual lo que entrega la API | A | Revisión de que el componente no combina campos de ejecuciones o versiones; los recibe ya resueltos |
-| 023-I3 | Ninguna llamada de esta pantalla a la API real: las pruebas la sustituyen en el límite de `shared/api` | T | `frontend/AGENTS.md`: ninguna prueba alcanza un backend real |
-| 023-I4 | Un error de cualquier llamada de esta pantalla (lista, alta o borrado prohibido, crear novela) siempre se muestra; nunca se descarta en silencio ni dibuja una lista vacía en su lugar | T | 023-C06, 023-C08, 023-C13, 023-C14 |
+| 023-I3 | Ninguna llamada de esta pantalla a la API real: las pruebas la sustituyen en el límite de `shared/api` | T (recortado) | `frontend/AGENTS.md`: ninguna prueba alcanza un backend real |
+| 023-I4 | Un error de cualquier llamada de esta pantalla (lista, alta o borrado prohibido, crear novela) siempre se muestra; nunca se descarta en silencio ni dibuja una lista vacía en su lugar | T (recortado) | 023-C06, 023-C08, 023-C13, 023-C14 |
 
 ## Docs referenciados
 
