@@ -73,6 +73,28 @@ En `.env`: `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_BASE_URL` (Cl
 | `evals table` | La tabla brief × validador y el resumen por brief, desde SQLite |
 | `prompts push` | Sube a Langfuse el prompt de cada rol cuya huella cambió, con la etiqueta `LANGFUSE_PROMPT_LABEL` |
 
+## Cómo verificar esta entrega
+
+Cada afirmación del proyecto tiene un sitio donde comprobarla. Sin modelo ni cuota: todo lo de esta tabla corre en local o está en el repo.
+
+| Requisito del encargo | Evidencia | Cómo se comprueba |
+|---|---|---|
+| Harness: planner, writer, editor, juez; tools con schema; reintentos acotados | `backend/src/story_maker/pipeline/`, `agents/`; `config.json` → `max_retries` | `cd backend && uv run pytest` (la suite usa el doble falso del puerto de agente) |
+| `CLAUDE.md` de producto, skill y dos hooks (validación y policy) | [backend/harness_workspace/](backend/harness_workspace/) | `docs/architecture.md` §7.3 y §7.5 |
+| Story bible en SQLite con uso de hechos por capítulo y cronología | `backend/src/story_maker/store/models.py` | `docs/architecture.md` §15.6 (esquema) |
+| Palabras prohibidas en tres niveles, normalizadas (acentos, plurales, leetspeak) | `domain/banned_terms.py`, `policy/engine.py` | `uv run pytest tests/domain/test_banned_terms.py tests/policy` |
+| Texto libre no confiable e inyección | `interview/free_text.py`, `policy/injection.py` | `uv run pytest tests/api/test_free_text_injection.py`; caso real: 3 flags del brief 4 (`docs/verification.md` §4.9, RT1) |
+| Audit log del policy engine | `policy/audit.py` | `uv run pytest tests/policy/test_audit_log.py` |
+| Validador formal de la historia (Lean 4, T1–T5 con demostraciones generales) | [lean/](lean/) | CI: `.github/workflows/verificar-cronologia.yml`; caso real en [ejemplos/cronologias/](ejemplos/cronologias/) y `docs/verification.md` §4.2 (e) |
+| Validador formal del sistema (TLA+, TLC con 5 capítulos y 2 reintentos) | [tla/](tla/) | `bash tla/verificar.sh`; correspondencia acción ↔ código en [la tabla de abajo](#correspondencia-tla--código) |
+| Cinco briefs de evals (adversarial y temporal incluidos) y su tabla | [ejemplos/briefs/](ejemplos/briefs/) | `uv run story-maker evals table` (lee SQLite); capturada en `docs/verification.md` §4.2 (a) y (b) |
+| Iteración de tuning con antes y después | prompts `writer` v1 → v2 → v3 en Langfuse | `docs/verification.md` §4.2 (c) y §8 |
+| Tokens, coste y latencia por novela (Langfuse) | `observability/` | `docs/verification.md` §4.2 (b): 3,25–4,83 USD por novela; pico de 21,7k–28,2k tokens concurrentes, bajo el techo de 100k |
+| Login con SQLite y aislamiento entre clientes (opcional) | `api/auth.py` | `uv run pytest tests/api/test_ownership.py tests/api/test_auth.py` |
+| Proceso: specs, plan, TDD, carriles | [specs/](specs/), [TODO.md](TODO.md), [AGENTS.md](AGENTS.md) | `awk -f .claude/scripts/resumen-todo.awk TODO.md` |
+
+**Estado de la generación real.** Cuatro de las cinco evals escriben los 10 capítulos y llegan al gate de publicación; la quinta agota los reintentos de un capítulo antes. El gate no ha publicado ninguna todavía: Lean o el juez encuentran una incoherencia que las reescrituras no resuelven dentro del límite, y el sistema se detiene en lugar de entregar una novela que se contradice. La novela de ejemplo es la candidata de la ejecución 16; el detalle y la siguiente iteración, en `docs/verification.md` §4.2 (b).
+
 ## Mapa de entregables del encargo
 
 | Entregable | Dónde vive |
@@ -87,9 +109,9 @@ En `.env`: `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_BASE_URL` (Cl
 | Red-team log | `docs/verification.md` §4.9 |
 | Harness de producto: `CLAUDE.md`, skill y dos hooks | `backend/harness_workspace/`; `docs/architecture.md` §7.3 y §7.5 |
 | Verificación formal: Lean 4 · TLA+ | [lean/](lean/) · [tla/](tla/) |
-| Novela de ejemplo | [ejemplos/novela-ejemplo.pdf](ejemplos/novela-ejemplo.pdf), generada con el brief de ejemplo (ejecución real 16); candidatas de los briefs 2 y 3 en [ejemplos/novela/](ejemplos/novela/) |
+| Novela de ejemplo | [ejemplos/novela-ejemplo.pdf](ejemplos/novela-ejemplo.pdf): los 10 capítulos generados con el brief de ejemplo (ejecución real 16), candidata que el gate no llegó a publicar (`docs/verification.md` §4.2 b); candidatas de los briefs 2 y 3 en [ejemplos/novela/](ejemplos/novela/) |
 | Lean detecta lo que los demás no | [ejemplos/cronologias/](ejemplos/cronologias/): los ficheros reales que generó el gate — el brief 1 falla T2, el editor reescribe y la segunda cronología pasa T1–T5; análisis en `docs/verification.md` §4.2 |
-| Revisión humana frente al juez | [ejemplos/revision-humana-brief1.md](ejemplos/revision-humana-brief1.md), misma rúbrica que `juez-novela` |
+| Revisión humana frente al juez | [ejemplos/revision-humana-brief1.md](ejemplos/revision-humana-brief1.md), misma rúbrica que `juez-novela`; la comparación, en `docs/verification.md` §4.2 (d) |
 | Presentación y vídeo de demo | [presentacion/](presentacion/) |
 | Claude Code: `CLAUDE.md`, `.claude/` (agentes, comandos, hooks, skills, memoria), `.mcp.json` con browser MCP | [CLAUDE.md](CLAUDE.md), [.claude/](.claude/), [.mcp.json](.mcp.json); su uso, en `docs/verification.md` §9 |
 | Sin claves en el repo | [.env.example](.env.example); la CI pasa `detect-secrets`, `pip-audit` y `pnpm audit` |
@@ -101,8 +123,8 @@ En `.env`: `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_BASE_URL` (Cl
 | Login de usuarios con SQLite | Registro e inicio de sesión con bcrypt y JWT; cada novela, brief y entrada del audit log tiene propietario; lo ajeno responde 404 | spec 002; `backend/tests/api/test_ownership.py`, `test_auth.py`, `test_audit_log.py` |
 | Invariantes adicionales en Lean y demostraciones generales | Cinco invariantes (T1–T5, tres más de los exigidos) y teoremas que prueban cada comprobación correcta y completa **para cualquier cronología** | [lean/Chronology.lean](lean/Chronology.lean), [lean/README.md](lean/README.md) |
 | TLA+ de la concurrencia entre regeneraciones | `Regenerations.tla`: cambios del lector simultáneos sobre la misma novela, invariante `VersionesLineales` | [tla/Regenerations.tla](tla/Regenerations.tla), su prueba en `backend/tests/pipeline/changes/test_change_stale_base.py` |
-| Linters de prosa | Repetición y muletillas, legibilidad según el tono, estilo típico de IA y consistencia de narrador y tiempo verbal, como biblioteca probada | `backend/src/story_maker/lint/`, `backend/tests/lint/` (spec 018) |
-| Seguridad con agentes | Subagente `seguridad` y auditoría de dependencias y secretos en cada push | [.claude/agents/seguridad.md](.claude/agents/seguridad.md), `.github/workflows/ci.yml` |
+| Linters de prosa | Repetición y muletillas, legibilidad según el tono, estilo típico de IA y consistencia de narrador y tiempo verbal, como biblioteca probada; aún sin conectar al bucle de escritura | `backend/src/story_maker/lint/`, `backend/tests/lint/` (spec 018) |
+| Seguridad con agentes (parcial) | Subagente `seguridad` definido; `detect-secrets`, `pip-audit` y `pnpm audit` en cada push. El informe `docs/security-report.md` lo genera la spec 021, pendiente | [.claude/agents/seguridad.md](.claude/agents/seguridad.md), `.github/workflows/ci.yml` |
 
 ### Límites del encargo, en código
 

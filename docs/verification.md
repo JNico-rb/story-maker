@@ -126,7 +126,7 @@ Sin trazas, el resto de §4 es opinión: no hay evals, ni red-team reproducible,
 - linters: número de avisos;
 - `n/a` si el validador no llegó a ejecutarse (la ejecución terminó antes).
 
-**Captura:** 2026-09-25, `bd1a994`, consultando `validator_results`/`runs`/`role_sessions`/`extracted_facts`/`audit_log` (misma lógica que `story-maker evals table`; no se lanzó el comando porque otro proceso tenía una generación real en marcha y la sesión de captura solo abrió la base en modo lectura). Estado en el momento de la captura: **ninguna versión publicada todavía**. Ejecución 16 (brief 1) seguía reescribiendo dentro del gate (ciclo 2: `cronologia-lean` ya pasa tras una reescritura, `juez-novela` todavía encuentra una contradicción distinta — ver nota bajo la tabla (b)); ejecuciones 12, 13 y 15 (briefs 2, 3, 5) terminaron `failed (retries_exhausted)`; la 14 (brief 4) seguía `queued`.
+**Captura:** 2026-09-25, `6850d55`, salida de `story-maker evals table` sobre la base real (solo lectura). Estado: las cinco ejecuciones de evals (12–16) han terminado, todas `failed`; **ninguna versión publicada**. Cuatro de las cinco llegaron al gate de publicación (12, 13, 14, 16); la 15 agotó los reintentos de capítulo antes. Por qué no hay publicación, y por qué es el comportamiento especificado: debajo de la tabla (b).
 
 **(a) Resultados brief × validador**
 
@@ -136,13 +136,13 @@ Sin trazas, el resto de §4 es opinión: no hay evals, ni red-team reproducible,
 | `citas-verificadas` (hechos descartados) | 0 | 0 | 0 | 0 | 0 |
 | `schema-salida` | n/a | n/a | n/a | n/a | n/a |
 | `outline` | pasa · 0 | pasa · 1 | pasa · 0 | pasa · 0 | pasa · 0 |
-| `longitud-capitulo` | pasa · 2 | pasa · 6 | pasa · 2 | pasa · 0 | pasa · 3 |
-| `nombres-exactos` | pasa · 6 | pasa · 14 | pasa · 4 | pasa · 0 | pasa · 0 |
-| `palabras-prohibidas` | pasa · 0 | pasa · 0 | pasa · 0 | n/a | n/a |
-| `elementos-obligatorios` | pasa · 0 | pasa · 0 | pasa · 0 | n/a | n/a |
-| `rubrica-capitulo` | 5.0 (5) | 3.8 (2) | 4.0 (2) | 4.8 (4) | 4.0 (1) |
-| `juez-novela` | 3.9 (2) | 4.4 (2) | 4.0 (2) | n/a | n/a |
-| `cronologia-lean` | pasa · 1 | falla · 1 | falla · 1 | n/a | n/a |
+| `longitud-capitulo` | pasa · 2 | pasa · 6 | pasa · 2 | pasa · 3 | pasa · 3 |
+| `nombres-exactos` | pasa · 7 | pasa · 14 | pasa · 4 | pasa · 0 | pasa · 0 |
+| `palabras-prohibidas` | pasa · 0 | pasa · 0 | pasa · 0 | pasa · 0 | n/a |
+| `elementos-obligatorios` | pasa · 0 | pasa · 0 | pasa · 0 | pasa · 0 | n/a |
+| `rubrica-capitulo` | 5.0 (5) | 3.8 (2) | 4.0 (2) | 4.6 (4) | 4.0 (1) |
+| `juez-novela` | 4.3 (2) | 4.4 (2) | 4.0 (2) | 4.3 (3) | n/a |
+| `cronologia-lean` | pasa · 1 | falla · 1 | falla · 1 | falla · 1 | n/a |
 | `revision-visual` | n/a | n/a | n/a | n/a | n/a |
 | `pdf-enlaces` | n/a | n/a | n/a | n/a | n/a |
 | `linter-repeticion` | n/a | n/a | n/a | n/a | n/a |
@@ -152,25 +152,33 @@ Sin trazas, el resto de §4 es opinión: no hay evals, ni red-team reproducible,
 | Detector de inyección (flags en `audit_log`) | 0 | 0 | 0 | 3 | 0 |
 | Hook de policy (denegaciones en `audit_log`) | 6 | 1 | 13 | 0 | 1 |
 
-`schema-salida`, `revision-visual`, `pdf-enlaces` y los cuatro linters son `n/a` porque ninguna ejecución llegó a esa fase (ninguna se ha publicado todavía); no es un fallo, es alcance no ejercitado aún por la evidencia disponible.
+`schema-brief` y `schema-salida` son `n/a` porque su resultado no está en `validator_results`: el primero va a la traza de la importación (`architecture.md` §11.2) y el segundo se envía como score del span de cada tool en Langfuse. `revision-visual` (spec 017) se integró en el gate después de estas ejecuciones; `pdf-enlaces` es el último paso del gate, al que no llegó ninguna candidata; los cuatro linters son biblioteca probada aún sin conectar al bucle (§11.2).
 
-Positivo medible ya con esta captura, aunque nada esté publicado: el detector de inyección marcó las 3 instrucciones dirigidas al sistema del brief 4 adversarial (§4.2 e/RT1 tienen el detalle); el hook de policy denegó 6+1+13+0+1 = 21 veces entre los cinco briefs; y de las 3 ejecuciones que llegaron al gate con Lean (12, 13, 16), Lean bloqueó la publicación en las 3 — en 16 la reescritura dirigida ya corrigió el defecto que Lean señaló (§4.2 e).
+**Lo que la tabla demuestra:**
+
+- **Los validadores bloqueantes cazan de verdad:** 42 intentos rechazados entre `outline` (1), `longitud-capitulo` (16) y `nombres-exactos` (25), cada uno devuelto con su defecto y corregido dentro del límite: las cinco columnas acaban en `pasa`.
+- **Lean detiene la publicación donde los demás no ven nada:** de las cuatro ejecuciones que llegaron al gate, `cronologia-lean` señaló una incoherencia temporal en las cuatro (T1 en la 12, T2 y T4 en la 13, T1 en la 14, T2 en la 16); en la 16 la reescritura dirigida la corrigió y los ciclos 2 y 3 pasan T1–T5. El caso de la 13, que ni la rúbrica ni el juez detectaron, está en (e).
+- **El juez hace de editor exigente:** un mínimo de 2 en un criterio bloqueante (`continuidad`) basta para no publicar, aunque la media sea 4,3 — la regla no compensatoria de §11.3.
+- **Inyección:** el detector marcó las 3 instrucciones dirigidas al sistema del brief 4, verificadas en `audit_log` (RT1 en §4.9); que nada de lo inyectado llegue al brief lo cubren las pruebas T de RT1.
+- **Policy:** 21 denegaciones en los cinco briefs, todas en `audit_log`.
 
 **(b) Resumen por brief**
 
 | Métrica | 1 ejemplo | 2 infantil | 3 boda | 4 adversarial | 5 temporal |
 |---|---|---|---|---|---|
-| Estado final (`published`/`failed` + motivo) | running (ejecución 16, ciclo de gate 2, sin publicar) | failed (retries_exhausted) | failed (retries_exhausted) | queued | failed (retries_exhausted) |
-| Capítulos aceptados al primer intento | 7 | 2 | 5 | 1 | 4 |
-| Ciclos de gate | 2 | 1 | 1 | 0 | 0 |
-| Tokens (entrada / salida) | 907 / 403.012 | 1.224 / 502.587 | 1.158 / 424.333 | 58 / 61.215 | 792 / 346.471 |
-| Coste USD (Langfuse) | 3,9979 | 4,8250 | 3,9418 | 0,6997 | 3,2501 |
-| Latencia total | 4.379.793 ms | 5.312.293 ms | 4.651.561 ms | 573.530 ms | 3.658.830 ms |
-| Pico de tokens concurrentes reservados | 28.246 | 24.394 | 26.562 | 11.734 | 21.733 |
-| Etiqueta de prompts y commit | 2 · `bd1a994` | 1 · `bd1a994` | 1 · `bd1a994` | 1 · `bd1a994` | 2 · `bd1a994` |
+| Estado final (`published`/`failed` + motivo) | failed (retries_exhausted, gate) | failed (retries_exhausted, gate) | failed (retries_exhausted, gate) | failed (retries_exhausted, gate) | failed (retries_exhausted, capítulo) |
+| Capítulos aceptados al primer intento | 9 | 2 | 5 | 6 | 4 |
+| Ciclos de gate | 3 | 1 | 1 | 1 | 0 |
+| Tokens (entrada / salida) | 1.027 / 462.248 | 1.224 / 502.587 | 1.158 / 424.333 | 868 / 328.047 | 792 / 346.471 |
+| Coste USD (Langfuse) | 4,6361 | 4,8250 | 3,9418 | 3,3126 | 3,2501 |
+| Latencia total | 4.999.196 ms | 5.312.293 ms | 4.651.561 ms | 3.487.286 ms | 3.658.830 ms |
+| Pico de tokens concurrentes reservados | 28.246 | 24.394 | 26.562 | 26.253 | 21.733 |
+| Etiqueta de prompts y commit | 2 · `6850d55` | 1 · `6850d55` | 1 · `6850d55` | 1 · `6850d55` | 2 · `6850d55` |
 | Traza | `run:16` | `run:12` | `run:13` | `run:14` | `run:15` |
 
-Ejecución 16 (brief 1): en el ciclo de gate 1, `cronologia-lean` falló con T2 (edad de Marta incoherente con su fecha de nacimiento); el editor reescribió el capítulo señalado y el ciclo 2 pasa Lean (T1–T5 verdaderos). La ejecución no está publicada porque en ese mismo ciclo 2, `juez-novela` encontró otra contradicción — no temporal en el sentido de Lean, sino de hechos narrados (el roble de la cuaderna se narra a la vez «talado» y «plantado» en 1972) — mínimo 2 en `continuidad`; sigue en reescritura al capturar esta tabla. Evidencia: `chronology_files` filas 3 (`run_id=16`, `failed`, T2 con testigo, 08:28) y 4 (`run_id=16`, `passed`, 08:57); `validator_results` id 422 (`juez-novela`, ciclo 1) e id 443 (ciclo 2, el que falla ahora).
+**Por qué no hay versión publicada.** El encargo pide que no se entregue una novela con capítulos que se contradicen; el gate lo cumple y prefiere no publicar. Ejecución 16 (brief 1), la más cercana: en el ciclo 1, `cronologia-lean` falló con T2 (la edad de la protagonista no casaba con su fecha de nacimiento); el editor reescribió el capítulo señalado y los ciclos 2 y 3 pasan Lean. En los ciclos 2 y 3, `juez-novela` rechazó otra contradicción, esta vez de hechos narrados y no de cronología: la biografía del roble de la cuaderna, eje de la trama, se cuenta de dos formas incompatibles entre los capítulos 4 y el clímax (`continuidad` 2). Las reescrituras dirigidas no la resolvieron dentro de `max_retries.gate_cycles` (2 reintentos: 3 ciclos) y la ejecución terminó `failed` con la candidata descartada y el motivo registrado (`ReintentosAcotados` de TLA+). Evidencia: `chronology_files` filas 3 (`failed`, T2) y 4 (`passed`); `validator_results` 422, 443 y 459 (`juez-novela`, ciclos 1–3) y 444, 460 (`cronologia-lean`, ciclos 2–3). El PDF de `ejemplos/novela-ejemplo.pdf` es la candidata de esta ejecución, no una versión publicada.
+
+**Siguiente iteración identificada.** El cuello de botella ya no es la extensión (resuelto en (c)) sino la continuidad de hechos narrados entre capítulos lejanos. Hipótesis para la iteración 3 (sin ejecutar): llevar a la ventana del writer, al reescribir, los hechos de la story bible que cita el defecto del juez (`architecture.md` §6.3).
 
 **Qué debería ejercitar cada brief** (hipótesis de diseño, no resultado):
 
@@ -219,8 +227,9 @@ Efecto insuficiente: la extensión apenas se mueve.
 | Métrica | Brief(s) | Antes (v2) | Después (v3) | Δ |
 |---|---|---|---|---|
 | Entregas en rango de `longitud-capitulo` | 1 | 0 de 2 (media 858) | 5 de 6 (media 1.375) | +5 (+517 palabras) |
-| Novelas publicadas | 1–5 | 0 | 0 (2026-09-25: 12/13/15 `failed retries_exhausted`, 14 `queued`, 16 llegó al gate — Lean pasa tras reescritura, `juez-novela` aún no — §4.2 a/b) | — |
-| Coste USD por novela | 1 | 0,52 | 3,9979 (ejecución 16, hasta el ciclo de gate 2, sin publicar todavía) | — |
+| Ejecuciones que llegan al gate | 1–5 | 0 | 4 de 5 (12, 13, 14, 16) | +4 |
+| Novelas publicadas | 1–5 | 0 | 0 (el gate las detiene: incoherencia temporal (Lean) o de continuidad (juez), §4.2 b) | 0 |
+| Coste USD por novela | 1 | 0,52 | 4,6361 (ejecución 16, novela completa y 3 ciclos de gate) | — (el antes no llegó a escribir la novela entera) |
 
 **(d) Juez frente a revisión humana** — I
 
