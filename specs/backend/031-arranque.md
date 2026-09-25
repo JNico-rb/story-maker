@@ -58,6 +58,13 @@ Que el servidor real haga lo que las pruebas de cada spec ya hacen por separado.
 - **Entrada:** textos y un nombre de modelo, con la librería de incrustaciones sustituida por un doble en la prueba.
 - **Salida:** un vector por texto, en el orden de entrada. Un modelo que no carga, o que no devuelve un vector por texto, da el fallo de incrustación que ya tratan 016 y 011.
 
+### 031-C06 — `example` y `evals run` sirven la vista mientras procesan la cola (T)
+- **Sostiene:** Arq. §14.2 (la `VistaDeVersion` en `STORY_MAKER_BASE_URL` con token de vista), 017-C02 (el revisor visual recibe esa dirección); añadido 2026-09-25: sin servidor, la etapa 3 del gate no puede navegar la vista y ninguna novela de `example` o `evals run` publica.
+- **Dado** el montaje de `example` o de `evals run`, con el puerto de `STORY_MAKER_BASE_URL` libre
+- **Cuando** el worker del montaje procesa la cola
+- **Entonces** mientras dura, `GET /view/versions/{id}?token=…` en `STORY_MAKER_BASE_URL` responde la vista de esa versión, como con `serve`; ese servidor no arranca un segundo worker (solo toma la cola el del montaje), y al terminar la orden el puerto queda libre.
+- **Rechazo:** con el puerto ocupado (p. ej. un `serve` en marcha), la orden termina con código distinto de 0 y un mensaje que lo nombra, sin crear novela ni ejecución.
+
 ## Invariantes
 
 | ID | Invariante | Clase | Cómo se comprueba |

@@ -1313,8 +1313,8 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 
 ## 031 — arranque
 
-- [x] Spec `specs/backend/031-arranque.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
-- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Spec `specs/backend/031-arranque.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcada — integrador 2026-09-25: sin revisión, decisión del usuario (C06: la vista en base_url durante example y evals run)
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcado — integrador 2026-09-25: sin revisión, decisión del usuario (paso 031-C06)
 
 ### Steps
 - [x] 031-C05 · El adaptador de incrustaciones (carril Y)
@@ -1323,6 +1323,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 031-C02 · Arrancar el servidor pone el worker a tomar la cola
 - [x] 031-C03 · Parar el servidor apaga el worker sin perder nada
 - [x] 031-I2 · Ninguna prueba de esta spec llama a un modelo, a Langfuse ni a GitHub
+- [ ] 031-C06 · `example` y `evals run` sirven la vista mientras procesan la cola (carril V2; sin él, la etapa 3 de 017 no publica)
 - [ ] 031-I1 · El montaje es uno (lo lee el `verificador`) (recortado)
 
 ### Closing
