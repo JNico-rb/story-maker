@@ -6,7 +6,8 @@
 - Con el 10, o caída en `gate` o `rewriting`: fase `gate`, que es de 012 (costura `gate`).
 
 Una ejecución de cambio (014) revalida su base y sigue su propio camino: candidata copiada,
-afectados y gate (`pipeline/changes/run.py`).
+afectados y gate (`pipeline/changes/run.py`); una edición manual (019), el suyo: el capítulo
+editado sin writer, sus afectados y el gate (`pipeline/manual_edit/run.py`).
 
 Una fase termina la ejecución lanzando `RunStop`; el orquestador la deja `failed` (descartando la
 candidata) o `interrupted`. Otra excepción la recibe el worker (`internal_error`)."""
@@ -21,6 +22,7 @@ from sqlalchemy.orm import Session
 from story_maker.agents.ceiling import NeverFits
 from story_maker.observability.port import Trace
 from story_maker.pipeline.changes.run import revalidate_base, revise_affected, start_change
+from story_maker.pipeline.manual_edit.run import revalidate_edit, write_edit
 from story_maker.pipeline.production import ChapterProducer, Production
 from story_maker.pipeline.runs import RunStop, fail_run, get_run, stop_run
 from story_maker.store.models import Checkpoint
@@ -70,6 +72,11 @@ class Orchestrator:
             kind = get_run(session, run_id).type
         if kind == "change_request":
             await self._change(run_id, trace)
+            return
+        if kind == "manual_edit":
+            if revalidate_edit(p, run_id) != "gate":
+                await write_edit(p, run_id, trace)
+            await self.gate(run_id, trace)
             return
         with unit_of_work(p.session_factory) as uow:
             run = get_run(uow.session, run_id)

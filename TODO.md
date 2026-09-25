@@ -935,9 +935,9 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 019-C15 · Varios bloqueantes a la vez
 - [x] 019-C16 · Una inyección en el texto se marca y no bloquea
 - [x] 019-C17 · Rechazos de acceso y de forma
-- [ ] 019-C18 · Edición sin hechos cambiados
-- [ ] 019-C19 · Una edición que cambia un hecho nominal se propaga
-- [ ] 019-C20 · Las puntuaciones del editor no bloquean en el capítulo editado
+- [x] 019-C18 · Edición sin hechos cambiados
+- [x] 019-C19 · Una edición que cambia un hecho nominal se propaga
+- [x] 019-C20 · Las puntuaciones del editor no bloquean en el capítulo editado
 - [ ] 019-C21 · Los hechos cambiados inválidos vuelven al editor
 - [ ] 019-C22 · Un validador determinista bloquea en la ejecución
 - [ ] 019-C23 · Un fallo del gate atribuido al capítulo editado rechaza la edición
