@@ -127,6 +127,30 @@ Con B, un cliente que no posee N:
 
 #### 013-C19 — (movido a 020-C16)
 
+### Presentación impresa (carril R, usuario 2026-09-25)
+
+El estilo de impresión va dentro de la propia `VistaDeVersion`, sin recursos externos (ni fuentes ni hojas de estilo de la red), para que el PDF siga siendo el mismo con los mismos datos (013-I5) y `pdf-enlaces` siga dando 1/1 (013-C09).
+
+#### 013-C20 — La portada ocupa sola la primera página (T)
+- **Entrada:** el PDF de V1.
+- **Salida:** la primera página contiene el título, «Para» seguido del destinatario y la dedicatoria, y nada del índice, de las novedades ni de ningún capítulo.
+
+#### 013-C21 — El índice muestra el número de cada capítulo una sola vez (T)
+- **Entrada:** la `VistaDeVersion` y el PDF de V1.
+- **Salida:** cada entrada del índice muestra su número de capítulo una vez, seguido de su título; ningún texto del tipo «1. 1.» aparece en el índice.
+
+#### 013-C22 — Novedades, índice, cada capítulo y la ficha empiezan en página nueva (T)
+- **Entrada:** el PDF de V2 (con página de novedades).
+- **Salida:** ninguna página contiene texto de dos de esos bloques a la vez: la página de novedades, el índice, cada uno de los 10 capítulos y la ficha empiezan cada uno en una página propia, y cada capítulo empieza con su número y su título.
+
+#### 013-C23 — Números de página al pie, salvo en la portada (T)
+- **Entrada:** el PDF de V1.
+- **Salida:** cada página salvo la primera muestra su número de página al pie; la portada no muestra ninguno.
+
+#### 013-C24 — El aspecto del PDF es el de un libro (D)
+- **Entrada:** el PDF de una versión real de 10 capítulos, abierto por una persona.
+- **Salida:** portada centrada con la dedicatoria destacada; tipografía serif de libro con márgenes amplios y párrafos con sangría; índice y ficha legibles (en la ficha, cada personaje o lugar en su línea, agrupados por tipo). Se anota la ruta de la muestra revisada.
+
 ## Invariantes
 
 | Id | Invariante | Clase | Cómo se verifica |
@@ -165,6 +189,7 @@ No aplica en esta spec: el render y el servicio de PDF no ejecutan sesiones de r
 - **Orden del listado de versiones**: ascendente por número (v1, v2, …), lo más simple, coherente con la historia lineal de 009.
 - **Forma del detalle JSON de `GET /api/novels/{id}/versions/{v}`**: los mismos bloques que la `VistaDeVersion` (portada, índice, capítulos, ficha), como estructura de datos en vez de HTML, porque es lo único que la SPA necesita y evita un segundo modelo.
 - **`export-pdf`**: regenera desde la `VistaDeVersion` guardada (sin repetir el gate ni `pdf-enlaces` como parte del gate), porque exportar de nuevo un PDF ya publicado no debe revalidar una versión que ya pasó.
+- **Presentación impresa** (013-C20 a C24, usuario 2026-09-25): CSS de impresión embebido en la plantilla, fuentes del sistema y ningún recurso de red, para no romper 013-I5; los números de página, con las cajas de margen de `@page`, que Chromium soporta y que dejan fuera la portada.
 - **Candidata con el mismo número que una publicada** (013-C15, última fila): las candidatas no tienen número (009-I1); la ruta de versión publicada por número nunca la alcanza, así que se trata como inexistente. Ninguna decisión nueva, solo la consecuencia de 009.
 
 ## Autorrevisión
