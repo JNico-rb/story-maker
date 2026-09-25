@@ -833,7 +833,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
-- [ ] 017-C01 · La estructura esperada sale de la candidata
+- [x] 017-C01 · La estructura esperada sale de la candidata
 - [ ] 017-C02 · El revisor recibe la dirección de la vista y la forma de lo que entrega, no los valores
 - [ ] 017-C03 · La sesión del revisor solo navega la vista
 - [ ] 017-C04 · Una revisión que coincide pasa
