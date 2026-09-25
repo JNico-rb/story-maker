@@ -835,7 +835,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 ### Steps
 - [x] 017-C01 · La estructura esperada sale de la candidata
 - [x] 017-C02 · El revisor recibe la dirección de la vista y la forma de lo que entrega, no los valores
-- [ ] 017-C03 · La sesión del revisor solo navega la vista
+- [x] 017-C03 · La sesión del revisor solo navega la vista
 - [ ] 017-C04 · Una revisión que coincide pasa
 - [ ] 017-C05 · La comparación tolera espacios y mayúsculas, no letras
 - [ ] 017-C06 · Una portada que no muestra lo suyo es fallo de render
@@ -857,7 +857,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [ ] 017-I3 · `revision-visual` no escribe canon ni capítulos
 - [ ] 017-I4 · Todo defecto de `revision-visual` es de datos o de render
 - [ ] 017-I5 · Si en un ciclo `revision-visual` no pasa (por datos, render, sin entrega o sin navegador), en ese ciclo no se genera el PDF ni se publica
-- [ ] 017-I6 · La sesión del revisor visual solo tiene sus cuatro tools y el servidor Playwright MCP, sin `Skill`, solo navega el origen de la vista y s…
+- [x] 017-I6 · La sesión del revisor visual solo tiene sus cuatro tools y el servidor Playwright MCP, sin `Skill`, solo navega el origen de la vista y s…
 - [ ] 017-C20 · Sonda de la vista con el browser MCP de desarrollo (D, al final)
 - [ ] 017-C21 · El revisor real aprueba una vista correcta (D, al final)
 - [ ] 017-C22 · El revisor real caza un enlace de la ficha sembrado roto (D, al final)
