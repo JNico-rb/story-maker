@@ -49,6 +49,9 @@ from story_maker.observability.langfuse_adapter import auth_check as langfuse_au
 from story_maker.observability.null import NullObservability
 from story_maker.observability.port import ObservabilityPort
 from story_maker.observability.prompts import push_prompts
+from story_maker.pipeline.changes.confirm import ConfirmFailure, confirm_change
+from story_maker.pipeline.changes.request import ProposalOut, RequestFailure, request_change
+from story_maker.pipeline.changes.selection import FactSelection, FragmentSelection, Selection
 from story_maker.pipeline.gate.phase import PDF_LINKS
 from story_maker.pipeline.planning.attempts import OUTLINE_VALIDATOR
 from story_maker.pipeline.queue import enqueue_generation
@@ -63,6 +66,8 @@ from story_maker.store.models import (
     AuditLog,
     ExtractedFact,
     FreeText,
+    Interview,
+    InterviewMessage,
     Novel,
     RoleSession,
     Run,
@@ -79,7 +84,7 @@ from story_maker.store.session import (
     unit_of_work,
 )
 from story_maker.store.users import get_user_by_email
-from story_maker.store.versions import published_version
+from story_maker.store.versions import current_version, published_version
 from story_maker.validators.chapter_length import LENGTH
 from story_maker.validators.chapter_rubric import RUBRIC
 from story_maker.validators.exact_names import EXACT_NAMES
@@ -592,15 +597,40 @@ async def _interview_loop(services: _InterviewServices, novel_id: int, user_id: 
             await _handle_turn(services, novel_id, user_id, line)
 
 
+def _owned_novel_or_none(session: Session, novel_id: int, user_id: int) -> Novel | None:
+    novel = session.get(Novel, novel_id)
+    return novel if novel is not None and novel.user_id == user_id else None
+
+
+def _print_interview_history(session_factory: sessionmaker[Session], novel_id: int) -> None:
+    """El historial guardado de la entrevista, antes de seguir con el siguiente turno
+    (029-C02)."""
+    with session_factory() as session:
+        interview = session.query(Interview).filter(Interview.novel_id == novel_id).one()
+        messages = (
+            session.query(InterviewMessage)
+            .filter(InterviewMessage.interview_id == interview.id)
+            .order_by(InterviewMessage.id)
+            .all()
+        )
+    for message in messages:
+        typer.echo(f"{message.author}: {message.text}")
+
+
 @app.command(name="interview")
 def interview_command(
     email: Annotated[str, typer.Option("--email", help="Email del cliente registrado.")],
+    novel: Annotated[
+        int | None, typer.Option("--novel", help="Id de una entrevista guardada, propia.")
+    ] = None,
 ) -> None:
     """Entrevista por terminal sobre los servicios de la 008: cada línea es un turno; `/texto
     <fichero>` manda una carta al extractor; `/hechos`, `/aceptar`, `/rechazar` y `/obligatorio`
     gobiernan los hechos extraídos; `/confirmar` cierra el brief con un `s` explícito y, tras
     confirmarlo, lanza la generación con otro `s` explícito; `/salir` o el fin de la entrada
-    terminan con 0 (029-C01, C05, C06, C07, C08)."""
+    terminan con 0 (029-C01, C05, C06, C07, C08). Sin `--novel`, crea una entrevista nueva
+    (029-C01); con ella, sigue una guardada del mismo cliente, con su historial (029-C02). Un
+    cliente sin registrar o una novela ajena o inexistente salen con 1 y no crean nada (029-C03)."""
     try:
         settings = load_settings()
     except SettingsError as exc:
@@ -630,14 +660,176 @@ def interview_command(
             raise typer.Exit(1)
 
         services = _build_interview_services(settings, config, session_factory, observability)
-        novel_id = create_interview_novel(
-            session_factory,
-            user_id=user.id,
-            embedding_model=config.embedding_model,
-            created_at=utc_now().replace(tzinfo=None),
-        )
-        typer.echo(str(novel_id))
+        if novel is None:
+            novel_id = create_interview_novel(
+                session_factory,
+                user_id=user.id,
+                embedding_model=config.embedding_model,
+                created_at=utc_now().replace(tzinfo=None),
+            )
+            typer.echo(str(novel_id))
+        else:
+            with session_factory() as session:
+                owned = _owned_novel_or_none(session, novel, user.id)
+            if owned is None:
+                typer.echo("novela no encontrada")
+                raise typer.Exit(1)
+            novel_id = owned.id
+            typer.echo(str(novel_id))
+            _print_interview_history(session_factory, novel_id)
         asyncio.run(_interview_loop(services, novel_id, user.id))
+    finally:
+        engine.dispose()
+
+
+# --- `change` (029-C09 a C14) ------------------------------------------------------------------
+#
+# La orden usa los servicios de la 014 en el mismo proceso, sin reglas propias: `request_change`
+# decide si la petición se admite, la deniega o la interpreta, y `confirm_change` encola la
+# ejecución. La CLI solo arma la selección (029-I1) y nunca imprime el código de confirmación
+# (029-I3): lo guarda en memoria entre la propuesta y la pregunta.
+
+CHANGE_PLANNER_PROMPT_FILE = "prompts/planner-change.md"
+_REPEAT_LATER = "repítelo más tarde"
+_NO_ROOM_DETAILS = ("no_room_in_time", "never_fits")
+
+
+def _change_failure_text(detail: Any) -> str:
+    """El motivo de una `RequestFailure` de la 014, en una línea (029-C12, C14)."""
+    if isinstance(detail, dict) and "defects" in detail:
+        return "; ".join(str(d) for d in detail["defects"])
+    if isinstance(detail, dict):
+        return "; ".join(f"{k}={v}" for k, v in detail.items())
+    return str(detail)
+
+
+def _print_change_proposal(outcome: ProposalOut) -> None:
+    changes = cast(list[dict[str, Any]], outcome.proposal["changes"])
+    for change in changes:
+        typer.echo(f"hecho {change['fact_id']}: {change['old_value']} → {change['new_value']}")
+    new_fact = cast(dict[str, Any] | None, outcome.proposal["new_fact"])
+    if new_fact is not None:
+        typer.echo(
+            f"hecho nuevo: {new_fact['subject_type']} {new_fact['subject_id']} "
+            f"{new_fact['attribute']}={new_fact['value']}"
+        )
+    typer.echo("capítulos afectados: " + ", ".join(str(c) for c in outcome.affected_chapters))
+
+
+async def _run_change(
+    services: _InterviewServices,
+    novel_id: int,
+    user_id: int,
+    selection: Selection,
+    request_text: str,
+    base_number: int,
+) -> None:
+    prompt = (services.workspace / CHANGE_PLANNER_PROMPT_FILE).read_text(encoding="utf-8")
+    outcome = await request_change(
+        agent_port=services.agent_port,
+        telemetry=services.telemetry,
+        session_factory=services.session_factory,
+        config=services.config,
+        prompt=prompt,
+        novel_id=novel_id,
+        user_id=user_id,
+        selection=selection,
+        request=request_text,
+        now=utc_now(),
+    )
+    if isinstance(outcome, RequestFailure):
+        if outcome.status == 503 or (outcome.status, outcome.detail) == (422, "never_fits"):
+            typer.echo(_REPEAT_LATER)
+            raise typer.Exit(2)
+        typer.echo(_change_failure_text(outcome.detail))
+        raise typer.Exit(1)
+
+    _print_change_proposal(outcome)
+    typer.echo("¿Confirmar el cambio? [s/N]")
+    answer = _read_line()
+    if answer is None or answer.strip() != "s":
+        typer.echo("el cambio no se ha confirmado")
+        return
+
+    confirmed = confirm_change(
+        services.session_factory, request_id=outcome.id, code=outcome.code, now=utc_now()
+    )
+    if isinstance(confirmed, ConfirmFailure):  # pragma: no cover - recién propuesta, sin caducar
+        typer.echo(confirmed.detail)
+        raise typer.Exit(1)
+    typer.echo(f"ejecución {confirmed} en cola, versión base {base_number}")
+
+
+@app.command(name="change")
+def change_command(
+    novel_id: Annotated[int, typer.Argument(help="Id de la novela.")],
+    request_text: Annotated[str, typer.Argument(help="La petición del cliente.")],
+    email: Annotated[str, typer.Option("--email", help="Email del cliente registrado.")],
+    fact: Annotated[int | None, typer.Option("--fact", help="Id del hecho a cambiar.")] = None,
+    chapter: Annotated[
+        int | None, typer.Option("--chapter", help="Capítulo del fragmento.")
+    ] = None,
+    fragment: Annotated[
+        str | None, typer.Option("--fragment", help="Cita literal del fragmento.")
+    ] = None,
+) -> None:
+    """Pide un cambio sobre un hecho (`--fact`) o un fragmento (`--chapter` y `--fragment`) de la
+    novela vigente, con los servicios de la 014; confirma solo con un `s` explícito a la pregunta
+    (029-C09 a C14, I1-I3)."""
+    if fact is None and (chapter is None or fragment is None):
+        typer.echo("indica --fact, o --chapter y --fragment")
+        raise typer.Exit(1)
+
+    try:
+        settings = load_settings()
+    except SettingsError as exc:
+        for error in exc.errors:
+            typer.echo(error)
+        raise typer.Exit(1) from None
+
+    try:
+        config = load_config(settings.config_path)
+    except ConfigError as exc:
+        for error in exc.errors:
+            typer.echo(error)
+        raise typer.Exit(1) from None
+
+    observability, observability_line = _check_observability(settings)
+    if observability is None:
+        typer.echo(observability_line)
+        raise typer.Exit(1)
+
+    engine = make_engine(_db_path(settings.data_dir))
+    try:
+        session_factory = make_session_factory(engine)
+        with session_factory() as session:
+            user = get_user_by_email(session, normalize_email(email))
+        if user is None:
+            typer.echo("novela no encontrada")
+            raise typer.Exit(1)
+
+        with session_factory() as session:
+            owned = _owned_novel_or_none(session, novel_id, user.id)
+            if owned is None:
+                typer.echo("novela no encontrada")
+                raise typer.Exit(1)
+            base = current_version(session, owned.id)
+        base_number = base.number or 0 if base is not None else 0
+
+        selection: Selection
+        if fact is not None:
+            selection = FactSelection(type="fact", fact_id=fact)
+        else:
+            # Validado al principio de la orden: sin `--fact`, llegan los dos juntos.
+            selection = FragmentSelection(
+                type="fragment",
+                version=base_number,
+                chapter=cast(int, chapter),
+                quote=cast(str, fragment),
+            )
+
+        services = _build_interview_services(settings, config, session_factory, observability)
+        asyncio.run(_run_change(services, novel_id, user.id, selection, request_text, base_number))
     finally:
         engine.dispose()
 
