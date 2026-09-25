@@ -985,7 +985,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 020-I2 · `evals table` es determinista
 - [x] 020-C15 · `example` produce la novela y su PDF (movido desde 013)
 - [x] 020-C17 · Un brief que ya tiene novela del cliente no se repite (añadido 2026-09-25; también identifica la novela de `example` como la de su brief)
-- [ ] 020-C18 · Las prohibidas de nivel user de un brief no alcanzan a los demás briefs (añadido 2026-09-25, tras la ejecución 11; aplazado por el usuario y retomado en la segunda tanda, carril Z)
+- [x] 020-C18 · Las prohibidas de nivel user de un brief no alcanzan a los demás briefs (añadido 2026-09-25, tras la ejecución 11; aplazado por el usuario y retomado en la segunda tanda, carril Z)
 - [x] 020-C06 (bug de la tanda D) · la tabla lee los nombres y el detail reales de los validadores y la última ejecución de cada brief
 - [ ] 020-C10 · Cinco briefs reales llenan (a) y (b) (D, al final)
 - [ ] 020-C11 · Una iteración de tuning con antes y después (D, al final)
