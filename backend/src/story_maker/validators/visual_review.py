@@ -193,7 +193,7 @@ def compare(expected: ExpectedStructure, observed: VisualReviewSubmission) -> Vi
         "portada": _cover(expected.cover, observed.portada),
         "indice": _index(expected.index, observed.indice),
         "capitulos": _chapters(expected.chapters, observed.capitulos),
-        "ficha": (),
+        "ficha": _ficha(expected.ficha, observed.ficha),
     }
     return VisualVerdict(
         tuple((part, not by_part[part]) for part in PARTS),
@@ -275,3 +275,39 @@ def _chapters(
     numbers = {want.number for want in expected}
     defects += [f"se vio un capítulo {n} que no existe" for n in seen if n not in numbers]
     return tuple(_render("capitulos", f"capítulos: {message}") for message in defects)
+
+
+def _ficha(
+    expected: tuple[ExpectedEntity, ...], observed: list[EntityObservation]
+) -> tuple[VisualDefect, ...]:
+    seen: dict[str, EntityObservation] = {}
+    for entity in observed:
+        seen.setdefault(normalized(entity.name), entity)
+    defects: list[str] = []
+    for want in expected:
+        got = seen.get(normalized(want.name))
+        if got is None:
+            defects.append(f"no se vio «{want.name}»")
+            continue
+        chapters = [_chapter_of(link.destination) for link in got.links]
+        if None in chapters:
+            defects.append(f"un enlace de «{want.name}» no lleva a ningún capítulo")
+        linked = {n for n in chapters if n is not None}
+        if linked != want.chapters:
+            defects.append(
+                f"«{want.name}» debe enlazar los capítulos {sorted(want.chapters)} y enlaza "
+                f"{sorted(linked)}"
+            )
+    known = {normalized(want.name) for want in expected}
+    defects += [
+        f"se vio «{entity.name}», que no está en la story bible"
+        for key, entity in seen.items()
+        if key not in known
+    ]
+    return tuple(_render("ficha", f"ficha: {message}") for message in defects)
+
+
+def _chapter_of(destination: str | None) -> int | None:
+    if destination is None or not destination.startswith("capitulo-"):
+        return None
+    return int(destination.removeprefix("capitulo-"))

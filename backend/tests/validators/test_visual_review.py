@@ -191,3 +191,48 @@ def test_a_chapter_not_seen_whole_is_a_render_failure_naming_it_without_attribut
     assert (defect.part, defect.kind, defect.chapter) == ("capitulos", "render", None)
     assert f"capítulo {chapter}" in defect.message
     assert dict(verdict.parts)["capitulos"] is False
+
+
+# --- 017-C09 -------------------------------------------------------------------------------------
+
+
+def with_entity(name: str, links: list[str | None] | None) -> dict[str, Any]:
+    """La entrega fiel con la entidad `name` quitada (`links` None) o con esos enlaces."""
+    delivery = faithful()
+    ficha = [e for e in delivery["ficha"] if e["name"] != name]
+    if links is not None:
+        ficha.append({"name": name, "links": [{"destination": d} for d in links]})
+    delivery["ficha"] = ficha
+    return delivery
+
+
+@pytest.mark.parametrize(
+    ("delivery", "entity"),
+    [
+        (with_entity("Villaverde", None), "Villaverde"),
+        (with_entity("Toby", to(2)), "Toby"),
+        (with_entity("Toby", to(3, 5)), "Toby"),
+        (with_entity("Toby", to(2, 5, 7)), "Toby"),
+        (with_entity("Toby", [*to(2, 5), None]), "Toby"),
+        (with_entity("Nala", to(2)), "Nala"),
+    ],
+    ids=["sin-villaverde", "toby-sin-el-5", "toby-al-3", "toby-de-mas", "sin-destino", "ajena"],
+)
+def test_a_ficha_that_does_not_link_what_it_should_is_a_render_failure_naming_the_entity(
+    delivery: dict[str, Any], entity: str
+) -> None:
+    verdict = verdict_of(delivery)
+
+    [defect] = verdict.defects
+    assert (defect.part, defect.kind, defect.chapter) == ("ficha", "render", None)
+    assert f"«{entity}»" in defect.message
+    assert dict(verdict.parts)["ficha"] is False
+
+
+def test_a_ficha_with_every_entity_and_exactly_its_link_destinations_passes() -> None:
+    delivery = with_entity("Toby", to(5, 2))
+
+    verdict = verdict_of(delivery)
+
+    assert dict(verdict.parts)["ficha"] is True
+    assert verdict.defects == ()
