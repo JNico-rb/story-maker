@@ -38,6 +38,7 @@ from story_maker.composition import (
 )
 from story_maker.config import Config, ConfigError, load_config
 from story_maker.domain.brief import BannedEntry, BriefContent
+from story_maker.formal.defects import VALIDATOR as LEAN
 from story_maker.interview.banned_terms import add_banned_term
 from story_maker.interview.brief import TurnFailure, confirm_brief_status, run_turn
 from story_maker.interview.free_text import FreeTextFailure, run_free_text
@@ -49,6 +50,8 @@ from story_maker.observability.langfuse_adapter import auth_check as langfuse_au
 from story_maker.observability.null import NullObservability
 from story_maker.observability.port import ObservabilityPort
 from story_maker.observability.prompts import push_prompts
+from story_maker.pipeline.gate.phase import PDF_LINKS
+from story_maker.pipeline.planning.attempts import OUTLINE_VALIDATOR
 from story_maker.pipeline.queue import enqueue_generation
 from story_maker.pipeline.runs import ResumeRejected, resume_run
 from story_maker.policy.real_engine import RealPolicyEngine
@@ -78,6 +81,11 @@ from story_maker.store.session import (
 )
 from story_maker.store.users import get_user_by_email
 from story_maker.store.versions import published_version
+from story_maker.validators.chapter_length import LENGTH
+from story_maker.validators.chapter_rubric import RUBRIC
+from story_maker.validators.exact_names import EXACT_NAMES
+from story_maker.validators.judge import VALIDATOR as JUDGE
+from story_maker.validators.novel import BANNED_TERMS_VALIDATOR, MANDATORY_ELEMENTS_VALIDATOR
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
 
@@ -1015,27 +1023,28 @@ _FACTS_DISCARDED = "facts_discarded"
 _AUDIT_FLAG = "audit_flag"
 _AUDIT_DENY = "audit_deny"
 
-# Orden y leyenda: `verification.md` §4.2 (a).
-_VALIDATOR_ROWS: tuple[tuple[str, str], ...] = (
-    ("`schema-brief`", _BLOCKING),
-    ("`citas-verificadas` (hechos descartados)", _FACTS_DISCARDED),
-    ("`schema-salida`", _BLOCKING),
-    ("`outline`", _BLOCKING),
-    ("`longitud-capitulo`", _BLOCKING),
-    ("`nombres-exactos`", _BLOCKING),
-    ("`palabras-prohibidas`", _BLOCKING),
-    ("`elementos-obligatorios`", _BLOCKING),
-    ("`rubrica-capitulo`", _SEMANTIC),
-    ("`juez-novela`", _SEMANTIC),
-    ("`cronologia-lean`", _BLOCKING),
-    ("`revision-visual`", _BLOCKING),
-    ("`pdf-enlaces`", _BLOCKING),
-    ("`linter-repeticion`", _LINTER),
-    ("`linter-legibilidad`", _LINTER),
-    ("`linter-estilo-ia`", _LINTER),
-    ("`linter-consistencia`", _LINTER),
-    ("Detector de inyección (flags en `audit_log`)", _AUDIT_FLAG),
-    ("Hook de policy (denegaciones en `audit_log`)", _AUDIT_DENY),
+# Orden y leyenda: `verification.md` §4.2 (a): etiqueta de la fila, nombre con el que el
+# productor guarda el `ResultadoDeValidador` y tipo de celda.
+_VALIDATOR_ROWS: tuple[tuple[str, str | None, str], ...] = (
+    ("`schema-brief`", "schema-brief", _BLOCKING),
+    ("`citas-verificadas` (hechos descartados)", None, _FACTS_DISCARDED),
+    ("`schema-salida`", "schema-salida", _BLOCKING),
+    ("`outline`", OUTLINE_VALIDATOR, _BLOCKING),
+    ("`longitud-capitulo`", LENGTH, _BLOCKING),
+    ("`nombres-exactos`", EXACT_NAMES, _BLOCKING),
+    ("`palabras-prohibidas`", BANNED_TERMS_VALIDATOR, _BLOCKING),
+    ("`elementos-obligatorios`", MANDATORY_ELEMENTS_VALIDATOR, _BLOCKING),
+    ("`rubrica-capitulo`", RUBRIC, _SEMANTIC),
+    ("`juez-novela`", JUDGE, _SEMANTIC),
+    ("`cronologia-lean`", LEAN, _BLOCKING),
+    ("`revision-visual`", "revision-visual", _BLOCKING),
+    ("`pdf-enlaces`", PDF_LINKS, _BLOCKING),
+    ("`linter-repeticion`", "linter-repeticion", _LINTER),
+    ("`linter-legibilidad`", "linter-legibilidad", _LINTER),
+    ("`linter-estilo-ia`", "linter-estilo-ia", _LINTER),
+    ("`linter-consistencia`", "linter-consistencia", _LINTER),
+    ("Detector de inyección (flags en `audit_log`)", None, _AUDIT_FLAG),
+    ("Hook de policy (denegaciones en `audit_log`)", None, _AUDIT_DENY),
 )
 
 
@@ -1044,8 +1053,11 @@ def _eval_novel(session: Session, slug: str) -> Novel | None:
 
 
 def _eval_run(session: Session, novel_id: int) -> Run | None:
+    """La última ejecución de generación: la tabla muestra el estado actual del brief."""
     return session.scalar(
-        select(Run).where(Run.novel_id == novel_id, Run.type == "generation").order_by(Run.id)
+        select(Run)
+        .where(Run.novel_id == novel_id, Run.type == "generation")
+        .order_by(Run.id.desc())
     )
 
 
@@ -1067,21 +1079,37 @@ def _cell_blocking(results: list[ValidatorResult]) -> str:
     return f"{final} · {rejected}"
 
 
+def _detail_list(result: ValidatorResult, key: str) -> list[dict[str, Any]]:
+    detail = result.detail
+    if not isinstance(detail, dict):
+        return []
+    return cast(list[dict[str, Any]], detail.get(key) or [])
+
+
+def _criteria_scores(result: ValidatorResult) -> list[float]:
+    """Las puntuaciones por criterio: `criteria` en la rúbrica de capítulo (011), `parts` en el
+    juez de novela (012)."""
+    entries = _detail_list(result, "criteria") or _detail_list(result, "parts")
+    return [float(entry["score"]) for entry in entries]
+
+
 def _cell_semantic(results: list[ValidatorResult]) -> str:
     if not results:
         return "n/a"
-    criteria = cast(list[float], results[-1].detail)
+    criteria = _criteria_scores(results[-1])
+    if not criteria:
+        return "n/a"
     average = sum(criteria) / len(criteria)
     minimum = min(criteria)
-    minimum_text = str(int(minimum)) if float(minimum).is_integer() else str(minimum)
+    minimum_text = str(int(minimum)) if minimum.is_integer() else str(minimum)
     return f"{average:.1f} ({minimum_text})"
 
 
 def _cell_linter(results: list[ValidatorResult]) -> str:
     if not results:
         return "n/a"
-    score = results[-1].score
-    return "n/a" if score is None else str(int(score))
+    warnings = [d for d in _detail_list(results[-1], "defects") if not d.get("blocking")]
+    return str(len(warnings))
 
 
 def _cell_facts_discarded(session: Session, novel_id: int) -> str:
@@ -1104,7 +1132,9 @@ def _cell_audit(session: Session, novel_id: int, origin: str, decision: str) -> 
     return str(count or 0)
 
 
-def _cell(session: Session, novel: Novel | None, run: Run | None, validator: str, kind: str) -> str:
+def _cell(
+    session: Session, novel: Novel | None, run: Run | None, validator: str | None, kind: str
+) -> str:
     if novel is None:
         return "n/a"
     if kind == _FACTS_DISCARDED:
@@ -1113,7 +1143,7 @@ def _cell(session: Session, novel: Novel | None, run: Run | None, validator: str
         return _cell_audit(session, novel.id, "free_text", "flag")
     if kind == _AUDIT_DENY:
         return _cell_audit(session, novel.id, "policy_hook", "deny")
-    if run is None:
+    if run is None or validator is None:
         return "n/a"
     results = _validator_results(session, run.id, validator)
     if kind == _BLOCKING:
@@ -1134,9 +1164,9 @@ def _table_a(session: Session, briefs: dict[str, EvalBrief]) -> str:
     )
     separator = "|" + "---|" * (len(EVAL_BRIEF_SLUGS) + 1)
     lines = [header, separator]
-    for validator, kind in _VALIDATOR_ROWS:
+    for label, validator, kind in _VALIDATOR_ROWS:
         cells = [_cell(session, *briefs[slug], validator, kind) for slug in EVAL_BRIEF_SLUGS]
-        lines.append(f"| {validator} | " + " | ".join(cells) + " |")
+        lines.append(f"| {label} | " + " | ".join(cells) + " |")
     return "\n".join(lines)
 
 
