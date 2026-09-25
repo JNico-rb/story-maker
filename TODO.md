@@ -1130,21 +1130,21 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcado — integrador 2026-09-25: sin revisión, decisión del usuario (C00 nuevo)
 
 ### Steps
-- [ ] 025-C00 · La pantalla sigue la ejecución más reciente de la novela
-- [ ] 025-C01 · El sondeo refleja fase y capítulo mientras la ejecución avanza
-- [ ] 025-C02 · En cola, se muestra la posición sin fase ni capítulo
-- [ ] 025-C03 · Un fallo al sondear se muestra sin detener el sondeo
-- [ ] 025-C04 · Publicada, el sondeo se detiene y navega a la lectura
-- [ ] 025-C05 · Fallida, el sondeo se detiene y muestra el informe
-- [ ] 025-C06 · Fallo al pedir el informe
-- [ ] 025-C07 · Interrumpida, se ofrece reanudar con su motivo
-- [ ] 025-C08 · Reanudar vuelve a mostrar el progreso en curso
-- [ ] 025-C09 · Reanudar rechazada
-- [ ] 025-C10 · Ejecución ajena o inexistente
-- [ ] 025-I1 · El sondeo pide `GET /api/runs/{id}` al mismo intervalo fijo mientras la ejecución no está en un estado terminal, y nunca deja de pedirlo…
-- [ ] 025-I2 · Tras `published` o `failed`, la pantalla no vuelve a pedir `GET /api/runs/{id}`
-- [ ] 025-I3 · La pantalla nunca reanuda una ejecución sin que la persona pulse el botón
-- [ ] 025-I4 · Un error de cualquier llamada de esta pantalla (sondeo, informe, reanudar) siempre se muestra; nunca se descarta en silencio ni deja la p…
+- [x] 025-C00 · La pantalla sigue la ejecución más reciente de la novela
+- [x] 025-C01 · El sondeo refleja fase y capítulo mientras la ejecución avanza
+- [x] 025-C02 · En cola, se muestra la posición sin fase ni capítulo
+- [x] 025-C03 · Un fallo al sondear se muestra sin detener el sondeo
+- [x] 025-C04 · Publicada, el sondeo se detiene y navega a la lectura
+- [x] 025-C05 · Fallida, el sondeo se detiene y muestra el informe
+- [x] 025-C06 · Fallo al pedir el informe
+- [x] 025-C07 · Interrumpida, se ofrece reanudar con su motivo
+- [x] 025-C08 · Reanudar vuelve a mostrar el progreso en curso
+- [x] 025-C09 · Reanudar rechazada
+- [x] 025-C10 · Ejecución ajena o inexistente
+- [x] 025-I1 · El sondeo pide `GET /api/runs/{id}` al mismo intervalo fijo mientras la ejecución no está en un estado terminal, y nunca deja de pedirlo…
+- [x] 025-I2 · Tras `published` o `failed`, la pantalla no vuelve a pedir `GET /api/runs/{id}`
+- [x] 025-I3 · La pantalla nunca reanuda una ejecución sin que la persona pulse el botón
+- [x] 025-I4 · Un error de cualquier llamada de esta pantalla (sondeo, informe, reanudar) siempre se muestra; nunca se descarta en silencio ni deja la p…
 - [ ] 025-C11 · Recorrido real de una ejecución hasta publicar o fallar (D, al final)
 
 ### Closing
