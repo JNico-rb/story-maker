@@ -856,7 +856,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 017-I2 · El revisor nunca recibe los valores que el código compara (título, nombre del destinatario, dedicatoria, títulos y textos de capítulo, no…
 - [x] 017-I3 · `revision-visual` no escribe canon ni capítulos
 - [x] 017-I4 · Todo defecto de `revision-visual` es de datos o de render
-- [ ] 017-I5 · Si en un ciclo `revision-visual` no pasa (por datos, render, sin entrega o sin navegador), en ese ciclo no se genera el PDF ni se publica
+- [x] 017-I5 · Si en un ciclo `revision-visual` no pasa (por datos, render, sin entrega o sin navegador), en ese ciclo no se genera el PDF ni se publica
 - [x] 017-I6 · La sesión del revisor visual solo tiene sus cuatro tools y el servidor Playwright MCP, sin `Skill`, solo navega el origen de la vista y s…
 - [ ] 017-C20 · Sonda de la vista con el browser MCP de desarrollo (D, al final)
 - [ ] 017-C21 · El revisor real aprueba una vista correcta (D, al final)
