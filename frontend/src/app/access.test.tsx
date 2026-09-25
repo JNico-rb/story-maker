@@ -200,6 +200,8 @@ describe("022 acceso", () => {
   it("022-C04: a valid login stores the session with the token and leaves the access screen for the main screen", async () => {
     const sent = fakeApi({
       "POST /api/auth/login": () => ({ status: 200, body: { access_token: TOKEN } }),
+      // "/" es «mis novelas» (023): la pide al llegar.
+      "GET /api/novels": () => ({ status: 200, body: [] }),
     });
     const user = userEvent.setup();
     const router = renderAt("/acceso");
@@ -292,16 +294,21 @@ describe("022 rutas protegidas", () => {
 describe("022 cierre de sesión", () => {
   it("022-C09: logging out from the main screen clears the stored session and shows the access screen without calling the API", async () => {
     saveSession(TOKEN);
-    const sent = fakeApi({});
+    // "/" es «mis novelas» (023): carga su lista al montar, antes de que la persona cierre sesión.
+    const sent = fakeApi({ "GET /api/novels": () => ({ status: 200, body: [] }) });
     const user = userEvent.setup();
     const router = renderAt("/");
 
-    await user.click(await screen.findByRole("button", { name: "Cerrar sesión" }));
+    await screen.findByText(/aún no tienes ninguna novela/i);
+    const before = sent.length;
+
+    await user.click(screen.getByRole("button", { name: "Cerrar sesión" }));
 
     await vi.waitFor(() => expect(router.state.location.pathname).toBe("/acceso"));
     expect(await screen.findByRole("heading", { name: "Entrar" })).toBeInTheDocument();
     expectNoSession();
-    expect(sent).toEqual([]);
+    // El propio cierre de sesión no llama a la API: nada nuevo desde antes de pulsarlo.
+    expect(sent.slice(before)).toEqual([]);
   });
 });
 
@@ -323,11 +330,14 @@ describe("022 invariantes", () => {
     const router = renderAt("/acceso");
 
     await logIn(user);
+    // Al entrar, "/" ya es «mis novelas» (023) y pide su lista; la sonda pide dos más al navegar.
+    const beforeSonda = sent.length;
     await router.navigate("/sonda");
     expect(await screen.findByText("datos cargados")).toBeInTheDocument();
 
     const protectedRequests = sent.filter((request) => !request.url.startsWith("/api/auth/"));
-    expect(protectedRequests).toHaveLength(2);
+    const sondaRequests = sent.slice(beforeSonda).filter((request) => !request.url.startsWith("/api/auth/"));
+    expect(sondaRequests).toHaveLength(2);
     for (const request of protectedRequests) {
       expect(request.headers.get("Authorization")).toBe(`Bearer ${TOKEN}`);
     }

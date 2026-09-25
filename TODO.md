@@ -1042,14 +1042,14 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas.
 - [x] Plan below approved — integrador 2026-09-25: sin revisión, decisión del usuario
 
 ### Steps
-- [ ] 023-C01 · Lista vacía
-- [ ] 023-C02 · Cada estado derivado tiene una etiqueta propia
-- [ ] 023-C03 · Versión vigente, con número o vacía
-- [ ] 023-C04 · Novela sin título todavía
-- [ ] 023-C05 · La lista respeta el orden que entrega la API
-- [ ] 023-C06 · Fallo al cargar la lista
-- [ ] 023-C09 · Solo las novelas con versión vigente llevan a su lectura
-- [ ] 023-C17 · El acceso lleva a «mis novelas»
+- [x] 023-C01 · Lista vacía
+- [x] 023-C02 · Cada estado derivado tiene una etiqueta propia
+- [x] 023-C03 · Versión vigente, con número o vacía
+- [x] 023-C04 · Novela sin título todavía
+- [x] 023-C05 · La lista respeta el orden que entrega la API
+- [x] 023-C06 · Fallo al cargar la lista
+- [x] 023-C09 · Solo las novelas con versión vigente llevan a su lectura
+- [x] 023-C17 · El acceso lleva a «mis novelas»
 - [ ] 023-C07 · Crear una novela lleva a su entrevista (recortado)
 - [ ] 023-C08 · Fallo al crear una novela (recortado)
 - [ ] 023-C10 · Ver la lista prohibida de nivel `user` (recortado)
