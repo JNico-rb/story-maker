@@ -11,8 +11,19 @@ from typer.testing import CliRunner
 
 import story_maker.settings as settings_module
 from story_maker.cli import app
+from story_maker.domain.constants import MIN_WORDS_PER_CHAPTER
+from story_maker.observability.null import NullObservability
+from story_maker.pipeline.acceptance import (
+    ValidatorRun,
+    record_closed_attempt,
+    record_validator_results,
+)
+from story_maker.pipeline.planning.attempts import record_outline_result
+from story_maker.pipeline.production import check_run
 from story_maker.store import models
 from story_maker.store.session import create_schema, make_engine, make_session_factory, unit_of_work
+from story_maker.validators.chapter_length import check_chapter_length
+from story_maker.validators.outline import OutlineDefect, OutlineResult
 
 NOW = dt.datetime(2026, 9, 24, 11, 0)
 runner = CliRunner()
@@ -122,16 +133,24 @@ class _Seed:
             uow.session.flush()
             return version.id
 
-    def validator_result(
+    def gate_result(
         self,
         slug: str,
         version_id: int,
         validator: str,
         *,
         passed: bool,
-        score: float | None = None,
-        detail: object = None,
+        defects: list[dict[str, object]] | None = None,
+        parts: list[tuple[str, int]] | None = None,
     ) -> None:
+        """Un `ResultadoDeValidador` de novela con la forma que guarda el gate (012-C24)."""
+        detail: dict[str, object] = {
+            "gate_cycle": 1,
+            "comment": "c",
+            "defects": defects or [],
+        }
+        if parts:
+            detail["parts"] = [{"name": n, "score": sc, "comment": None} for n, sc in parts]
         with unit_of_work(self.session_factory) as uow:
             uow.add(
                 models.ValidatorResult(
@@ -140,10 +159,63 @@ class _Seed:
                     validator=validator,
                     chapter=None,
                     passed=passed,
-                    score=score,
-                    detail=detail if detail is not None else [],
+                    score=1.0 if passed else 0.0,
+                    detail=detail,
                     created_at=NOW,
                 )
+            )
+
+    def outline_result(self, slug: str, version_id: int, outline: OutlineResult) -> None:
+        """Un juicio de `outline`, escrito por el productor real (010-C29)."""
+        with unit_of_work(self.session_factory) as uow:
+            run = uow.session.get(models.Run, self.runs[slug])
+            assert run is not None
+            telemetry = NullObservability()
+            with telemetry.trace(f"run:{run.id}") as trace:
+                record_outline_result(uow, telemetry, trace, run, version_id, outline)
+
+    def chapter_accepted(
+        self,
+        slug: str,
+        version_id: int,
+        *,
+        chapter: int,
+        number: int,
+        runs: tuple[ValidatorRun, ...],
+    ) -> None:
+        """Los resultados del intento que acepta el capítulo, escritos por el productor real."""
+        with unit_of_work(self.session_factory) as uow:
+            record_validator_results(
+                uow,
+                run_id=self.runs[slug],
+                version_id=version_id,
+                chapter=chapter,
+                attempt=number,
+                runs=runs,
+                now=NOW,
+            )
+
+    def chapter_attempt(
+        self,
+        slug: str,
+        version_id: int,
+        *,
+        chapter: int,
+        number: int,
+        outcome: str,
+        runs: tuple[ValidatorRun, ...],
+    ) -> None:
+        """Un intento de capítulo cerrado sin aceptar, escrito por el productor real (011)."""
+        with unit_of_work(self.session_factory) as uow:
+            record_closed_attempt(
+                uow,
+                run_id=self.runs[slug],
+                version_id=version_id,
+                chapter=chapter,
+                number=number,
+                outcome=outcome,
+                runs=runs,
+                now=NOW,
             )
 
     def audit(self, slug: str, *, origin: str, decision: str) -> None:
@@ -215,6 +287,29 @@ class _Seed:
         self.engine.dispose()
 
 
+TOO_SHORT = (check_run(check_chapter_length("demasiado corto")),)
+RIGHT_LENGTH = (check_run(check_chapter_length("palabra " * MIN_WORDS_PER_CHAPTER)),)
+
+
+def _rubric(*scores: int) -> ValidatorRun:
+    return ValidatorRun(
+        validator="rubrica-capitulo",
+        passed=True,
+        comment="sin defectos",
+        parts=tuple((f"criterio-{i}", score, "j") for i, score in enumerate(scores)),
+    )
+
+
+def _warning(message: str) -> dict[str, object]:
+    return {
+        "validator": "linter-repeticion",
+        "criterion": None,
+        "blocking": False,
+        "chapter": 1,
+        "message": message,
+    }
+
+
 def _seed_all_five(db_path: Path) -> _Seed:
     seed = _Seed(db_path)
     for slug in ("ejemplo", "infantil", "boda", "adversarial", "temporal"):
@@ -232,23 +327,41 @@ def test_evals_table_cell_legend_for_each_validator_situation(base_env: Path) ->
     seed.run("ejemplo", status="published")
     version_ejemplo = seed.version("ejemplo")
     # bloqueante por capítulo, pasa al final, 2 intentos rechazados por él
-    seed.validator_result("ejemplo", version_ejemplo, "`schema-salida`", passed=False)
-    seed.validator_result("ejemplo", version_ejemplo, "`schema-salida`", passed=False)
-    seed.validator_result("ejemplo", version_ejemplo, "`schema-salida`", passed=True)
-    # semántico con criterios 4, 3 y 5
-    seed.validator_result(
-        "ejemplo", version_ejemplo, "`rubrica-capitulo`", passed=True, detail=[4, 3, 5]
+    for number in (1, 2):
+        seed.chapter_attempt(
+            "ejemplo", version_ejemplo, chapter=1, number=number, outcome="rewrite", runs=TOO_SHORT
+        )
+    seed.chapter_accepted(
+        "ejemplo", version_ejemplo, chapter=1, number=3, runs=(*RIGHT_LENGTH, _rubric(4, 3, 5))
+    )
+    # semántico con criterios 4, 3 y 5: la rúbrica de capítulo, arriba; el juez, con sus partes
+    seed.gate_result(
+        "ejemplo",
+        version_ejemplo,
+        "juez-novela",
+        passed=True,
+        parts=[("coherencia", 5), ("voz", 3), ("ritmo", 4)],
     )
     # linter con 7 avisos
-    seed.validator_result("ejemplo", version_ejemplo, "`linter-repeticion`", passed=True, score=7)
+    seed.gate_result(
+        "ejemplo",
+        version_ejemplo,
+        "linter-repeticion",
+        passed=True,
+        defects=[_warning(f"aviso {i}") for i in range(7)],
+    )
     # `cronologia-lean` no llegó a ejecutarse: sin filas
 
     seed.run("boda", status="failed", reason="retries_exhausted")
     version_boda = seed.version("boda")
     # bloqueante por capítulo, la ejecución terminó `failed` por él, 3 rechazos
-    seed.validator_result("boda", version_boda, "`outline`", passed=False)
-    seed.validator_result("boda", version_boda, "`outline`", passed=False)
-    seed.validator_result("boda", version_boda, "`outline`", passed=False)
+    for number, outcome in ((1, "rewrite"), (2, "rewrite"), (3, "fail")):
+        seed.chapter_attempt(
+            "boda", version_boda, chapter=4, number=number, outcome=outcome, runs=TOO_SHORT
+        )
+    # el plan: el mismo formato de celda con la forma que guarda la planificación
+    for _ in range(3):
+        seed.outline_result("boda", version_boda, OutlineResult(False, (OutlineDefect("m", 2),)))
 
     # detector de inyección con 2 marcas en `audit_log`
     seed.audit("adversarial", origin="free_text", decision="flag")
@@ -261,13 +374,17 @@ def test_evals_table_cell_legend_for_each_validator_situation(base_env: Path) ->
     seed.dispose()
 
     assert result.exit_code == 0, result.stdout
-    row = _row(result.stdout, "`schema-salida`")
+    row = _row(result.stdout, "`longitud-capitulo`")
     assert row[0] == "pasa · 2"
+    assert row[2] == "falla · 3"
 
     row = _row(result.stdout, "`outline`")
     assert row[2] == "falla · 3"
 
     row = _row(result.stdout, "`rubrica-capitulo`")
+    assert row[0] == "4.0 (3)"
+
+    row = _row(result.stdout, "`juez-novela`")
     assert row[0] == "4.0 (3)"
 
     row = _row(result.stdout, "`linter-repeticion`")
@@ -281,6 +398,47 @@ def test_evals_table_cell_legend_for_each_validator_situation(base_env: Path) ->
 
     row = _row(result.stdout, "Hook de policy (denegaciones en `audit_log`)")
     assert row[4] == "1"
+
+
+def test_evals_table_marks_fails_with_rejections_for_a_run_failed_by_chapter_length(
+    base_env: Path,
+) -> None:
+    db_path = _db_path(base_env)
+    seed = _seed_all_five(db_path)
+    seed.run("infantil", status="failed", reason="retries_exhausted")
+    version = seed.version("infantil")
+    too_short = (check_run(check_chapter_length("demasiado corto")),)
+    for number, outcome in ((1, "rewrite"), (2, "rewrite"), (3, "fail")):
+        seed.chapter_attempt(
+            "infantil", version, chapter=1, number=number, outcome=outcome, runs=too_short
+        )
+    seed.dispose()
+
+    result = runner.invoke(app, ["evals", "table"])
+
+    assert result.exit_code == 0, result.stdout
+    assert _row(result.stdout, "`longitud-capitulo`")[1] == "falla · 3"
+
+
+def test_evals_table_shows_the_latest_generation_run_of_each_brief(base_env: Path) -> None:
+    db_path = _db_path(base_env)
+    seed = _seed_all_five(db_path)
+    seed.run("ejemplo", status="failed", reason="retries_exhausted")
+    first_version = seed.version("ejemplo")
+    for number, outcome in ((1, "rewrite"), (2, "rewrite"), (3, "fail")):
+        seed.chapter_attempt(
+            "ejemplo", first_version, chapter=1, number=number, outcome=outcome, runs=TOO_SHORT
+        )
+    seed.run("ejemplo", status="published")
+    latest_version = seed.version("ejemplo")
+    seed.chapter_accepted("ejemplo", latest_version, chapter=1, number=1, runs=RIGHT_LENGTH)
+    seed.dispose()
+
+    result = runner.invoke(app, ["evals", "table"])
+
+    assert result.exit_code == 0, result.stdout
+    assert _row(result.stdout, "`longitud-capitulo`")[0] == "pasa · 0"
+    assert _row(result.stdout, "Estado final (`published`/`failed` + motivo)")[0] == "published"
 
 
 # --- 020-C07: resumen por brief ------------------------------------------------------------------
@@ -398,9 +556,7 @@ def test_evals_table_is_deterministic_byte_for_byte(base_env: Path) -> None:
     seed = _seed_all_five(db_path)
     seed.run("ejemplo", status="published")
     version_ejemplo = seed.version("ejemplo")
-    seed.validator_result(
-        "ejemplo", version_ejemplo, "`rubrica-capitulo`", passed=True, detail=[4, 5]
-    )
+    seed.chapter_accepted("ejemplo", version_ejemplo, chapter=1, number=1, runs=(_rubric(4, 5),))
     seed.dispose()
 
     first = runner.invoke(app, ["evals", "table"])
