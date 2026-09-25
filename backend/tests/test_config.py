@@ -33,9 +33,9 @@ def test_the_repository_config_json_is_valid_and_carries_the_section_15_4_values
     assert config.max_mandatory_elements == 8
     assert config.access_token_hours == 24
     assert config.confirmation_minutes == 15
-    assert config.roles["planner"].model == "claude-sonnet-5"
+    assert config.roles["planner"].model == "claude-haiku-4-5"
     assert config.roles["writer"].model == "claude-haiku-4-5"
-    assert config.roles["judge"].model == "claude-sonnet-5"
+    assert config.roles["judge"].model == "claude-haiku-4-5"
     assert config.roles["interviewer"].model == "claude-haiku-4-5"
     assert config.roles["extractor"].model == "claude-haiku-4-5"
     assert config.roles["editor"].model == "claude-haiku-4-5"

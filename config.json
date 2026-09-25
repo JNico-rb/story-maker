@@ -26,7 +26,7 @@
         "max_output_tokens": 2000
       },
       "planner": {
-        "model": "claude-sonnet-5",
+        "model": "claude-haiku-4-5",
         "max_turns": 4,
         "max_output_tokens": 2000
       },
@@ -41,7 +41,7 @@
         "max_output_tokens": 2000
       },
       "judge": {
-        "model": "claude-sonnet-5",
+        "model": "claude-haiku-4-5",
         "max_turns": 4,
         "max_output_tokens": 2000
       },
