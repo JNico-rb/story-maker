@@ -671,10 +671,10 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas.
 - [x] 013-C17 · export-pdf regenera el PDF de una versión publicada
 - [x] 013-C18 · export-pdf sobre lo que no existe o no está publicado
 - [x] 013-I5 · Con los mismos datos de versión, la VistaDeVersion y el PDF que produce son iguales
-- [ ] 013-C20 · La portada ocupa sola la primera página
-- [ ] 013-C21 · El índice muestra el número de cada capítulo una sola vez
-- [ ] 013-C22 · Novedades, índice, cada capítulo y la ficha empiezan en página nueva
-- [ ] 013-C23 · Números de página al pie, salvo en la portada
+- [x] 013-C20 · La portada ocupa sola la primera página
+- [x] 013-C21 · El índice muestra el número de cada capítulo una sola vez
+- [x] 013-C22 · Novedades, índice, cada capítulo y la ficha empiezan en página nueva
+- [x] 013-C23 · Números de página al pie, salvo en la portada
 - [ ] 013-C24 · El aspecto del PDF es el de un libro (D, al final)
 
 ### Closing

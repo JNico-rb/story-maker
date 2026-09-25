@@ -117,9 +117,18 @@ def _view(client: TestClient, version_id: int, clock: FakeClock) -> str:
 
 def _li_for(html: str, name: str) -> str:
     """El `<li>...</li>` de la ficha que nombra a `name` (013-C03: sin `<a>` si no aparece)."""
-    match = re.search(rf"<li>\s*{re.escape(name)}:.*?</li>", html, re.DOTALL)
+    match = re.search(
+        rf'<li>\s*<span class="nombre">{re.escape(name)}</span>:.*?</li>', html, re.DOTALL
+    )
     assert match is not None, f"{name} no aparece en la ficha"
     return match.group(0)
+
+
+def _body(html: str) -> str:
+    """El HTML servido, sin el `<head>` (013-C20 a 013-C23: el CSS embebido menciona los mismos
+    ids `novedades`/`indice`/`ficha` que el propio contenido, así que las pruebas que buscan esas
+    palabras como marca de contenido deben mirar solo el cuerpo)."""
+    return html.split("<body>", 1)[1]
 
 
 def test_c01_cover_index_and_ficha_of_a_version_without_changed_chapters(
@@ -130,7 +139,7 @@ def test_c01_cover_index_and_ficha_of_a_version_without_changed_chapters(
     assert TITLE in html
     assert "Ada" in html
     assert DEDICATION in html
-    assert "novedades" not in html.lower()
+    assert "novedades" not in _body(html).lower()
     for n in range(1, 11):
         assert f'href="#cap-{n}"' in html
         assert f'id="cap-{n}"' in html
@@ -145,9 +154,10 @@ def test_c02_whats_new_page_and_changed_mark(
 ) -> None:
     html = _view(client, novela.v2_id, clock)
 
-    assert "novedades" in html.lower()
-    novedades_start = html.lower().index("novedades")
-    novedades_section = html[novedades_start : novedades_start + 500]
+    body = _body(html)
+    assert "novedades" in body.lower()
+    novedades_start = body.lower().index("novedades")
+    novedades_section = body[novedades_start : novedades_start + 500]
     assert 'href="#cap-3"' in novedades_section
     assert 'href="#cap-7"' in novedades_section
 
@@ -174,7 +184,7 @@ def test_c04_the_version_view_also_serves_a_candidate(
     html = _view(client, novela.k_id, clock)
 
     assert TITLE in html
-    assert "novedades" not in html.lower()  # K es copia de V2 sin cambios propios todavía
+    assert "novedades" not in _body(html).lower()  # K es copia de V2 sin cambios propios todavía
     for n in range(1, 11):
         assert f'href="#cap-{n}"' in html
         assert f'id="cap-{n}"' in html
