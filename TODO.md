@@ -179,7 +179,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 001-I3 · Ni el doble nulo ni las órdenes de esta spec abren una conexión fuera de la máquina
 - [ ] 001-C22 · Primera generación de los tipos del frontend (D, al final)
 - [ ] 001-C23 · Un clon limpio arranca siguiendo el README (D, al final)
-- [ ] 001-bug-C18b · Una ruta que sale del compilado de la SPA (`..`, codificado o no) da 404 y nunca ese fichero (carril W; auditoría de contrato 2026-09-25: `/..%2f..%2f.env` servía el `.env` sin token)
+- [x] 001-bug-C18b · Una ruta que sale del compilado de la SPA (`..`, codificado o no) da 404 y nunca ese fichero (carril W; auditoría de contrato 2026-09-25: `/..%2f..%2f.env` servía el `.env` sin token)
 
 ### Closing
 - [x] Full suite green, type checks clean — verificador 2026-09-24: `uv run pytest` 278 passed; `uv run ruff check .` All checks passed; `uv run ruff format --check .` 38 files already formatted; `uv run mypy src` Success, no issues found in 23 source files
@@ -457,7 +457,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 008-I5 · Un turno, una extracción, una confirmación y una importación se guardan enteros o no se guardan
 - [ ] 008-C32 · Entrevista real con el login de Claude Code (D, al final)
 - [ ] 008-C33 · Extracción real de una carta con inyección (D, al final)
-- [ ] 008-bug-C02c · La fecha de creación de la lista y el detalle sale en UTC con huso (carril W; §15.7)
+- [x] 008-bug-C02c · La fecha de creación de la lista y el detalle sale en UTC con huso (carril W; §15.7)
 
 ### Closing
 - [x] Full suite green, type checks clean; re-verificado 2026-09-25 (carril Z): `uv run pytest` 1680 passed, `ruff check .` y `ruff format --check .` limpios (399 ficheros), `mypy src` sin incidencias en 158 ficheros
