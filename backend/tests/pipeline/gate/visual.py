@@ -241,3 +241,14 @@ def reviewer_sessions(fake: FakeAgent) -> list[FakeSession]:
 def with_stage(kit: GateKit, stage: VisualReviewStage) -> Gate:
     """El gate del kit con la etapa 3 real en lugar del doble."""
     return dataclasses.replace(kit.gate, visual_review=stage)
+
+
+ZAHARA = "Zahara"
+
+
+def name_in_chapters(
+    session_factory: sessionmaker[Session], seed: Seed, name: str, chapters: tuple[int, ...]
+) -> None:
+    for number in chapters:
+        text = f"{chapter_text(number)} Al anochecer llegaron a {name} por el camino viejo."
+        set_chapter_text(session_factory, seed.version_id, number, text)

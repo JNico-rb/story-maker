@@ -10,15 +10,15 @@ from sqlalchemy.orm import Session, sessionmaker
 from tests.pipeline.conftest import Seed
 from tests.pipeline.gate.conftest import GateKit, evaluation, gate_passes, script_judges
 from tests.pipeline.gate.visual import (
+    ZAHARA,
     add_place,
-    chapter_text,
     drop_usages,
     job_of,
     make_settings,
     make_stage,
+    name_in_chapters,
     reviewer_sessions,
     seed_visual,
-    set_chapter_text,
     with_stage,
 )
 
@@ -26,16 +26,6 @@ from story_maker.agents.fake import FakeAgent
 from story_maker.observability.port import Trace
 from story_maker.pipeline.production import Production
 from story_maker.pipeline.runs import RunStop
-
-ZAHARA = "Zahara"
-
-
-def name_in_chapters(
-    session_factory: sessionmaker[Session], seed: Seed, name: str, chapters: tuple[int, ...]
-) -> None:
-    for number in chapters:
-        text = f"{chapter_text(number)} Al anochecer llegaron a {name} por el camino viejo."
-        set_chapter_text(session_factory, seed.version_id, number, text)
 
 
 def test_an_entity_without_chapter_named_in_the_text_is_an_attributed_data_failure_no_reviewer(

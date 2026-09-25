@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import cast
+from typing import Any, cast
 
 from sqlalchemy.orm import Session
 
@@ -14,8 +14,10 @@ from story_maker.formal.defects import Defect
 from story_maker.observability.port import Span, Trace
 from story_maker.pipeline.gate.phase import GateJob, VisualReviewOutcome
 from story_maker.pipeline.production import Production
+from story_maker.pipeline.runs import naive
 from story_maker.render.view_data import load_version_view_data
-from story_maker.store.models import Version
+from story_maker.store.models import ValidatorResult, Version
+from story_maker.store.session import unit_of_work
 from story_maker.validators.visual_review import (
     VALIDATOR,
     ExpectedChapter,
@@ -66,7 +68,9 @@ class VisualReviewStage:
             data = data_defects(expected)
             if data:
                 # Es código y va antes: no se abre el revisor en este ciclo (017-C10).
-                return _outcome(VisualVerdict((("ficha", False),), data))
+                verdict = VisualVerdict((("ficha", False),), data)
+                self._record(job, trace, span, verdict)
+                return _outcome(verdict)
             result = await self._review(job, expected, trace, span)
             if result.outcome == "infrastructure_failure":
                 # Infraestructura, no un intento (§7.6): no se compara nada (017-C15).
@@ -82,7 +86,50 @@ class VisualReviewStage:
                 )
             observed = cast(VisualReviewSubmission, result.deliveries[0].value)
             verdict = compare(expected, observed)
+            self._record(job, trace, span, verdict)
         return _outcome(verdict)
+
+    def _record(self, job: GateJob, trace: Trace, span: Span, verdict: VisualVerdict) -> None:
+        """Primero el `ResultadoDeValidador`; una vez guardado, el score `revision-visual` y uno
+        por parte evaluada, en el span del validador (017-C16)."""
+        p = self.production
+        by_part = {
+            part: [d.message for d in verdict.defects if d.part == part]
+            for part, _ in verdict.parts
+        }
+        comment = _messages([f"{d.part}: {d.message}" for d in verdict.defects])
+        detail: dict[str, Any] = {
+            "gate_cycle": job.cycle,
+            "comment": comment,
+            "parts": [{"name": part, "score": int(ok)} for part, ok in verdict.parts],
+            "defects": [
+                {
+                    "validator": VALIDATOR,
+                    "part": d.part,
+                    "kind": d.kind,
+                    "blocking": True,
+                    "chapter": d.chapter,
+                    "message": d.message,
+                }
+                for d in verdict.defects
+            ],
+        }
+        with unit_of_work(p.session_factory) as uow:
+            uow.add(
+                ValidatorResult(
+                    run_id=job.run_id,
+                    version_id=job.version_id,
+                    validator=VALIDATOR,
+                    chapter=None,
+                    passed=verdict.passed,
+                    score=1.0 if verdict.passed else 0.0,
+                    detail=detail,
+                    created_at=naive(p.clock()),
+                )
+            )
+        p.telemetry.score(trace, VALIDATOR, int(verdict.passed), comment, span)
+        for part, ok in verdict.parts:
+            p.telemetry.score(trace, f"{VALIDATOR}/{part}", int(ok), _messages(by_part[part]), span)
 
     async def _review(
         self, job: GateJob, expected: ExpectedStructure, trace: Trace, span: Span
@@ -120,3 +167,7 @@ def _outcome(verdict: VisualVerdict) -> VisualReviewOutcome:
 
 def _gate_defect(defect: VisualDefect) -> Defect:
     return Defect(VALIDATOR, defect.part, True, defect.chapter, f"{defect.part}: {defect.message}")
+
+
+def _messages(messages: list[str]) -> str:
+    return "; ".join(messages) or "sin defectos"

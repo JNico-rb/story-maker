@@ -848,7 +848,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 017-C13 · Una vista vacía o con error es fallo de render en las cuatro partes
 - [x] 017-C14 · Una sesión sin entrega válida es un ciclo fallido, no un defecto de la novela
 - [x] 017-C15 · Sin navegador, la ejecución se interrumpe y no publica
-- [ ] 017-C16 · Cada revisión deja su resultado, su span y sus scores
+- [x] 017-C16 · Cada revisión deja su resultado, su span y sus scores
 - [ ] 017-C17 · Integración: un fallo de datos vuelve al editor y el ciclo siguiente publica
 - [ ] 017-C18 · Integración: un fallo de render hace fallar la ejecución
 - [ ] 017-C19 · La revisión visual corre en el gate de un cambio y de una edición manual
