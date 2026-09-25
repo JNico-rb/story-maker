@@ -1273,12 +1273,12 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 029-C06 · Aceptar, rechazar y marcar obligatorio un hecho
 - [x] 029-C07 · Confirmar el brief pide un sí explícito
 - [x] 029-C08 · Lanzar la generación pide un sí explícito
-- [ ] 029-C09 · Pedir un cambio sobre un hecho y confirmarlo
-- [ ] 029-C10 · Pedir un cambio sobre un fragmento
-- [ ] 029-C11 · Sin un sí, nada se encola
-- [ ] 029-C12 · Petición denegada o rechazada
-- [ ] 029-C13 · Sin proveedor o sin sitio en el techo
-- [ ] 029-C14 · Novela ajena, inexistente o sin versión publicada
+- [x] 029-C09 · Pedir un cambio sobre un hecho y confirmarlo
+- [x] 029-C10 · Pedir un cambio sobre un fragmento
+- [x] 029-C11 · Sin un sí, nada se encola
+- [x] 029-C12 · Petición denegada o rechazada
+- [x] 029-C13 · Sin proveedor o sin sitio en el techo
+- [x] 029-C14 · Novela ajena, inexistente o sin versión publicada
 - [ ] 029-I1 · La CLI decide como la API
 - [ ] 029-I2 · Nada se confirma ni se encola sin una respuesta `s`
 - [ ] 029-I3 · El código de confirmación del cambio no aparece nunca en la salida
