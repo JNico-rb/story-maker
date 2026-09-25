@@ -20,10 +20,12 @@ from tests.pipeline.gate.visual import (
 
 from story_maker.validators.visual_review import (
     PARTS,
+    ExpectedEntity,
     ExpectedStructure,
     VisualReviewSubmission,
     VisualVerdict,
     compare,
+    data_defects,
     sentence_in,
     submit_visual_review_tool,
     texts_match,
@@ -285,3 +287,32 @@ def test_the_delivery_has_no_verdict_field(verdict: str) -> None:
     assert value is None
     assert errors
     assert verdict not in VisualReviewSubmission.model_fields
+
+
+def _data_structure() -> ExpectedStructure:
+    """La de 017-C01 con «Zahara» (nombrada en el 3 y el 7) y «Toby» (no nombrado) sin capítulo."""
+    chapters = tuple(
+        dataclasses.replace(c, text=f"{c.text} Llegaron a Zahara.") if c.number in (3, 7) else c
+        for c in EXPECTED.chapters
+    )
+    ficha = tuple(
+        dataclasses.replace(e, chapters=frozenset()) if e.name == "Toby" else e
+        for e in EXPECTED.ficha
+    )
+    zahara = ExpectedEntity("Zahara", "lugar", frozenset())
+    return dataclasses.replace(EXPECTED, chapters=chapters, ficha=(*ficha, zahara))
+
+
+def test_every_defect_is_of_data_in_the_ficha_with_its_chapter_or_of_render_without_one() -> None:
+    defects = [d for delivery in DELIVERIES for d in verdict_of(delivery).defects]
+    data = data_defects(_data_structure())
+
+    assert {d.kind for d in defects} == {"render"}
+    assert all(d.chapter is None for d in defects)
+    assert {d.kind for d in data} == {"datos"}
+    assert {d.part for d in data} == {"ficha"}
+    assert sorted((d.chapter or 0, "Zahara" in d.message) for d in data) == [
+        (0, False),
+        (3, True),
+        (7, True),
+    ]
