@@ -781,7 +781,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 015-I8 · Cada llamada a una tool de escritura que supera el schema deja exactamente una fila `mcp_write`
 - [x] 015-I9 · El código de confirmación solo sale en claro en la respuesta de `request_change`
 - [x] 015-I10 · Nada de un brief llega a Langfuse sin pasar por la máscara
-- [ ] 015-C18 · Siguiendo el README, un cliente real se conecta y pide un cambio (D, al final)
+- [ ] 015-C18 · Siguiendo el README, un cliente real se conecta y pide un cambio (D, recortado: opcional del encargo, usuario 2026-09-25)
 
 ### Closing
 - [x] Full suite green, type checks clean — verificador 2026-09-25: `pytest` 1742 passed, `ruff check` sin hallazgos, `ruff format --check` 424 ficheros formateados, `mypy src` sin problemas en 170 ficheros
@@ -966,7 +966,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 019-I10 · Solo cambian el capítulo editado y los afectados
 - [x] 019-I11 · La `EdicionManual` sigue a su ejecución
 - [x] 019-I12 · La historia de versiones es lineal
-- [ ] 019-C29 · Edición manual real con Lean (D, al final)
+- [ ] 019-C29 · Edición manual real con Lean (D, recortado: opcional del encargo, usuario 2026-09-25)
 
 ### Closing
 - [x] Full suite green, type checks clean
@@ -1016,11 +1016,11 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
-- [ ] 021-C05 · El informe dice qué se hizo con cada hallazgo (I, al final)
-- [ ] 021-C01 · Inyección de prompts por cada vía de texto no confiable (D, al final)
-- [ ] 021-C02 · Exfiltración entre clientes y novelas (D, al final)
-- [ ] 021-C03 · Dependencias con vulnerabilidades conocidas (D, al final)
-- [ ] 021-C04 · Secretos en todo el historial (D, al final)
+- [ ] 021-C05 · El informe dice qué se hizo con cada hallazgo (I, recortado: opcional del encargo, usuario 2026-09-25)
+- [ ] 021-C01 · Inyección de prompts por cada vía de texto no confiable (D, recortado: opcional del encargo, usuario 2026-09-25)
+- [ ] 021-C02 · Exfiltración entre clientes y novelas (D, recortado: opcional del encargo, usuario 2026-09-25)
+- [ ] 021-C03 · Dependencias con vulnerabilidades conocidas (D, recortado: opcional del encargo, usuario 2026-09-25)
+- [ ] 021-C04 · Secretos en todo el historial (D, recortado: opcional del encargo, usuario 2026-09-25)
 
 ### Closing
 - [ ] Full suite green, type checks clean
@@ -1257,7 +1257,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 028-I3 · Ningún diagnóstico del lint impide escribir en el editor; solo el guardado queda sujeto a lo que la API rechace
 - [x] 028-I5 · Un error de cualquier llamada de esta pantalla (cargar el capítulo, lint, guardar) siempre se muestra; nunca se descarta en silencio ni d…
 - [x] 028-I6 · Ninguna llamada de esta pantalla a la API real
-- [ ] 028-C15 · El recorrido completo se observa en el navegador (D, al final)
+- [ ] 028-C15 · El recorrido completo se observa en el navegador (D, recortado: opcional del encargo, usuario 2026-09-25)
 
 ### Closing
 - [x] Full suite green, type checks clean — verificador 2026-09-25: lint, typecheck, test (76 pasan, 8 ficheros), build, todos verdes
