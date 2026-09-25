@@ -9,7 +9,7 @@ import json
 from dataclasses import dataclass
 from typing import Any, Literal, cast
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from sqlalchemy.orm import Session, sessionmaker
 
 from story_maker.agents.ceiling import NeverFits, NoRoomInTime
@@ -44,6 +44,18 @@ class BannedEntryPatch(BaseModel):
     term: str
     type: Literal["word", "topic"]
     keywords: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _well_formed(self) -> BannedEntryPatch:
+        # Las reglas de 008-C25, en el schema: una entrada mal formada vuelve al modelo como
+        # error (008-C05) en vez de reventar el turno al guardarla.
+        if not self.term.strip():
+            raise ValueError("el término no puede estar vacío")
+        if self.type == "topic" and not self.keywords:
+            raise ValueError("un tema necesita al menos una palabra clave")
+        if self.type == "word" and self.keywords:
+            raise ValueError("una palabra no lleva palabras clave")
+        return self
 
 
 class UpdateBriefInput(BaseModel):

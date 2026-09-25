@@ -18,6 +18,9 @@ _FORBIDDEN_DELIVERIES = (
     {"user_banned_entries": [{"term": "algo", "type": "word"}]},
     {"global_banned_entries": [{"term": "algo", "type": "word"}]},
     {"genre": "ciencia ficción"},
+    {"banned_entries": [{"term": "divorcio", "type": "topic"}]},
+    {"banned_entries": [{"term": "pedro", "type": "word", "keywords": ["pedro"]}]},
+    {"banned_entries": [{"term": "  ", "type": "word"}]},
 )
 
 
