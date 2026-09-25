@@ -27,6 +27,10 @@ La pantalla de progreso de una ejecución: mientras una novela tiene una ejecuci
 
 ### Sondeo
 
+#### 025-C00 — La pantalla sigue la ejecución más reciente de la novela (T)
+- **Entrada:** se abre el progreso de una novela; la API del detalle de la novela (008-C02) responde con el id de su ejecución más reciente; por separado, sin ninguna ejecución.
+- **Salida:** la pantalla sondea esa ejecución (025-C01). Sin ninguna, muestra que la novela no tiene ninguna ejecución y enlaza a su entrevista, sin sondear. Añadido 2026-09-25: el progreso se abre por la novela, desde «mis novelas», la entrevista o la edición manual.
+
 #### 025-C01 — El sondeo refleja fase y capítulo mientras la ejecución avanza (T)
 - **Entrada:** la ejecución de la novela está `running`. Sucesivas respuestas del sondeo: fase `planning` sin capítulo; fase `writing` con capítulo 1; fase `writing` con capítulo 4; fase `gate` sin capítulo.
 - **Salida:** en cada sondeo, la pantalla actualiza la fase y el capítulo mostrados a los de la última respuesta, y muestra el coste acumulado que llega en ella. Cada sondeo pide `GET /api/runs/{id}` a un intervalo fijo, siempre el mismo.

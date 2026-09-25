@@ -402,10 +402,11 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 
 ## 008 — brief-y-entrevista
 
-- [x] Spec `specs/backend/008-brief-y-entrevista.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
-- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Spec `specs/backend/008-brief-y-entrevista.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcada — integrador 2026-09-25: sin revisión, decisión del usuario (C02: id de la ejecución más reciente)
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcado — integrador 2026-09-25: sin revisión, decisión del usuario (C02: id de la ejecución más reciente)
 
 ### Steps
+- [ ] 008-C02b · La novela lleva el id de su ejecución más reciente, vacío sin ninguna (carril Z; lo usa 025-C00)
 - [x] 008-C01 · Crear una novela para entrevistarla
 - [x] 008-C02 · Lista y detalle de las novelas con su estado derivado
 - [x] 008-C03 · Un turno aplica lo que entrega el entrevistador
@@ -1084,10 +1085,11 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 
 **Fuera de alcance** (usuario, 2026-09-24): no se implementa.
 
-- [x] Spec `specs/frontend/024-entrevista.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
-- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Spec `specs/frontend/024-entrevista.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcada — integrador 2026-09-25: sin revisión, decisión del usuario (C17 ofrece escribir la novela; C21 nuevo)
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcado — integrador 2026-09-25: sin revisión, decisión del usuario (C17 ofrece escribir la novela; C21 nuevo)
 
 ### Steps
+- [ ] 024-C21 · Escribir la novela desde el brief confirmado
 - [ ] 024-C01 · Historial vacío al entrar en una entrevista nueva
 - [ ] 024-C02 · Enviar un mensaje añade la respuesta del entrevistador
 - [ ] 024-C03 · Fallo al enviar un mensaje
@@ -1123,10 +1125,11 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 
 **Fuera de alcance** (usuario, 2026-09-24): no se implementa.
 
-- [x] Spec `specs/frontend/025-progreso.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario
-- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
+- [x] Spec `specs/frontend/025-progreso.md` approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcada — integrador 2026-09-25: sin revisión, decisión del usuario (C00 nuevo)
+- [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcado — integrador 2026-09-25: sin revisión, decisión del usuario (C00 nuevo)
 
 ### Steps
+- [ ] 025-C00 · La pantalla sigue la ejecución más reciente de la novela
 - [ ] 025-C01 · El sondeo refleja fase y capítulo mientras la ejecución avanza
 - [ ] 025-C02 · En cola, se muestra la posición sin fase ni capítulo
 - [ ] 025-C03 · Un fallo al sondear se muestra sin detener el sondeo

@@ -24,7 +24,7 @@ La pantalla de entrevista: el chat con el entrevistador, el panel del brief en c
 - Normalización y coincidencia de las prohibidas → 005-guardarrailes.
 - Lista prohibida de nivel `user` → 023-mis-novelas.
 - Pantalla de progreso (tras lanzar la generación) y pantalla de lectura → sus propias specs.
-- Lanzar la generación (`POST .../runs`) → no es parte de esta pantalla.
+- Forma y reglas de `POST /api/novels/{id}/runs` en el servidor → 011-produccion-de-capitulos; aquí solo el botón que lo llama (024-C21, añadido 2026-09-25: la web lanza la generación).
 - Marca corporativa (tokens de tema, logotipo) → `specs/000-scaffolding.md`.
 
 ## Comportamiento observable
@@ -107,7 +107,7 @@ La pantalla de entrevista: el chat con el entrevistador, el panel del brief en c
 
 #### 024-C17 — Confirmar un brief válido lleva a la pantalla que sigue (T)
 - **Entrada:** la persona pulsa confirmar; la API responde 200 con el brief confirmado.
-- **Salida:** la pantalla deja de admitir cambios (chat, texto libre, hechos y lista prohibida quedan en solo lectura) y navega a la pantalla que sigue a un brief confirmado.
+- **Salida:** la pantalla deja de admitir cambios (chat, texto libre, hechos y lista prohibida quedan en solo lectura) y ofrece la acción «escribir la novela» (024-C21).
 
 #### 024-C18 — Confirmación rechazada (T)
 - **Entrada:** la persona pulsa confirmar; la API responde 422 con los problemas del brief.
@@ -116,6 +116,10 @@ La pantalla de entrevista: el chat con el entrevistador, el panel del brief en c
 #### 024-C19 — Entrada en una novela con el brief ya confirmado (T)
 - **Entrada:** la API responde, al abrir la pantalla, con un brief en estado confirmado.
 - **Salida:** la pantalla se muestra en solo lectura desde el principio: se ve el historial, el brief, los hechos y la lista prohibida, pero no hay forma de enviar un mensaje, un texto libre, aceptar o rechazar un hecho, ni editar la lista prohibida.
+
+#### 024-C21 — Escribir la novela desde el brief confirmado (T)
+- **Entrada:** con el brief confirmado (024-C17 o 024-C19), la persona pulsa «escribir la novela»; la API de `POST /api/novels/{id}/runs` responde 202 con el id de la ejecución y su posición; por separado, responde 409 con un motivo (p. ej. ya hay una ejecución en curso).
+- **Salida:** con 202, navega a la pantalla de progreso de la novela (025-progreso). Mientras la petición está en curso, el botón se deshabilita para no lanzar dos. Con 409, se queda en la entrevista y muestra el motivo; con la novela ya en marcha, ofrece ir a su progreso.
 
 ### Recorrido visual (D, al final de la spec)
 
