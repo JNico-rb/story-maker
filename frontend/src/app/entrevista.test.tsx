@@ -386,3 +386,90 @@ describe("024 entrevista: lista prohibida de nivel novel", () => {
     await vi.waitFor(() => expect(screen.queryByText("Cristina")).not.toBeInTheDocument());
   });
 });
+
+describe("024 entrevista: confirmación del brief", () => {
+  it("024-C16: confirming is only available without problems", async () => {
+    fakeApi({
+      [`GET ${BASE}/brief`]: () => json(200, emptyBrief({ missing_fields: ["age"] })),
+    });
+    renderEntrevista();
+
+    expect(await screen.findByRole("button", { name: "Confirmar" })).toBeDisabled();
+  });
+
+  it("024-C16b: confirming is available with no missing fields or contradictions", async () => {
+    fakeApi({});
+    renderEntrevista();
+
+    expect(await screen.findByRole("button", { name: "Confirmar" })).not.toBeDisabled();
+  });
+
+  it("024-C17: confirming a valid brief goes read-only and offers writing the novel", async () => {
+    const user = userEvent.setup();
+    fakeApi({
+      [`POST ${BASE}/brief/confirm`]: () => json(200, emptyBrief({ status: "confirmed" })),
+    });
+    const router = renderEntrevista();
+    await user.click(await screen.findByRole("button", { name: "Confirmar" }));
+
+    expect(await screen.findByRole("button", { name: "Escribir la novela" })).toBeInTheDocument();
+    expect(screen.queryByRole("form", { name: "Entrevista" })).not.toBeInTheDocument();
+    expect(router.state.location.pathname).toBe(`/novelas/${NOVEL}/entrevista`);
+  });
+
+  it("024-C18: a rejected confirmation stays editable and shows the problems", async () => {
+    const user = userEvent.setup();
+    fakeApi({
+      [`POST ${BASE}/brief/confirm`]: () =>
+        json(422, {
+          detail: [{ loc: ["body", "brief", "missing_fields", "age"], msg: "falta: age", type: "missing_field" }],
+        }),
+    });
+    renderEntrevista();
+    await user.click(await screen.findByRole("button", { name: "Confirmar" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/falta: age/i);
+    expect(screen.getByRole("form", { name: "Entrevista" })).toBeInTheDocument();
+  });
+
+  it("024-C19: entering a novel with an already-confirmed brief is read-only from the start", async () => {
+    fakeApi({
+      [`GET ${BASE}/brief`]: () => json(200, emptyBrief({ status: "confirmed" })),
+      [`GET ${BASE}/interview/messages`]: () => json(200, [{ author: "user", text: "hola" }]),
+    });
+    renderEntrevista();
+
+    expect(await screen.findByText("hola")).toBeInTheDocument();
+    expect(screen.queryByRole("form", { name: "Entrevista" })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Texto libre")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Término")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Escribir la novela" })).toBeInTheDocument();
+  });
+
+  it("024-C21: writing the novel launches the generation and navigates to its progress", async () => {
+    const user = userEvent.setup();
+    fakeApi({
+      [`GET ${BASE}/brief`]: () => json(200, emptyBrief({ status: "confirmed" })),
+      [`POST ${BASE}/runs`]: () => json(202, { run_id: 9, position: 1 }),
+    });
+    const router = renderEntrevista();
+    const button = await screen.findByRole("button", { name: "Escribir la novela" });
+    await user.click(button);
+
+    expect(button).toBeDisabled();
+    await vi.waitFor(() => expect(router.state.location.pathname).toBe(`/novelas/${NOVEL}/progreso`));
+  });
+
+  it("024-C21b: writing the novela rejected shows the reason and a link to its progress", async () => {
+    const user = userEvent.setup();
+    fakeApi({
+      [`GET ${BASE}/brief`]: () => json(200, emptyBrief({ status: "confirmed" })),
+      [`POST ${BASE}/runs`]: () => new Response(JSON.stringify({ detail: "ya hay una ejecución en curso" }), { status: 409, headers: { "Content-Type": "application/json" } }),
+    });
+    renderEntrevista();
+    await user.click(await screen.findByRole("button", { name: "Escribir la novela" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/ya hay una ejecución en curso/i);
+    expect(screen.getByRole("link", { name: /progreso/i })).toHaveAttribute("href", `/novelas/${NOVEL}/progreso`);
+  });
+});

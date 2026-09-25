@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 
 import { apiFetch, errorMessage } from "../../shared/api";
 
@@ -530,6 +530,100 @@ function NovelBannedTermsPanel({ novelId, readOnly }: { novelId: string; readOnl
   );
 }
 
+// «Escribir la novela» (024-C21): lanza la generación desde el brief ya confirmado y navega a su
+// progreso; un 409 (p. ej. ya en marcha) deja un enlace a ese mismo progreso.
+function WriteNovelButton({ novelId }: { novelId: string }) {
+  const navigate = useNavigate();
+  const [state, setState] = useState<{ submitting: boolean; error?: string; alreadyRunning?: boolean }>({
+    submitting: false,
+  });
+
+  async function handleClick() {
+    setState({ submitting: true });
+    const response = await apiFetch(`/api/novels/${novelId}/runs`, { method: "POST" });
+    if (response.status === 202) {
+      await navigate(`/novelas/${novelId}/progreso`);
+      return;
+    }
+    setState({ submitting: false, error: await errorMessage(response), alreadyRunning: response.status === 409 });
+  }
+
+  return (
+    <div className="mb-10">
+      <button
+        type="button"
+        disabled={state.submitting}
+        onClick={() => void handleClick()}
+        className="rounded bg-primary px-4 py-2 text-sm font-semibold text-secondary disabled:opacity-50"
+      >
+        Escribir la novela
+      </button>
+      {state.error && (
+        <p role="alert" className="mt-3 rounded bg-accent px-3 py-2 text-sm">
+          {state.error}{" "}
+          {state.alreadyRunning && (
+            <Link to={`/novelas/${novelId}/progreso`} className="underline">
+              Ir al progreso
+            </Link>
+          )}
+        </p>
+      )}
+    </div>
+  );
+}
+
+// Confirmar (024-C16 a 024-C19): solo disponible sin faltantes ni contradicciones (024-I1: la
+// pantalla no recalcula esas reglas, solo mira lo que ya trae el brief); confirmado, deja de
+// admitir cambios y ofrece escribir la novela.
+function ConfirmPanel({
+  novelId,
+  brief,
+  updateBrief,
+}: {
+  novelId: string;
+  brief: BriefOut;
+  updateBrief: (updater: (brief: BriefOut) => BriefOut) => void;
+}) {
+  const [error, setError] = useState<string>();
+  const [submitting, setSubmitting] = useState(false);
+
+  if (brief.status === "confirmed") return <WriteNovelButton novelId={novelId} />;
+
+  const blocked = brief.missing_fields.length > 0 || brief.contradictions.length > 0;
+
+  async function handleConfirm() {
+    setSubmitting(true);
+    setError(undefined);
+    const response = await apiFetch(`/api/novels/${novelId}/brief/confirm`, { method: "POST" });
+    if (response.ok) {
+      const confirmed = (await response.json()) as BriefOut;
+      updateBrief(() => confirmed);
+      setSubmitting(false);
+      return;
+    }
+    setSubmitting(false);
+    setError(await errorMessage(response));
+  }
+
+  return (
+    <div className="mb-10">
+      <button
+        type="button"
+        disabled={blocked || submitting}
+        onClick={() => void handleConfirm()}
+        className="rounded bg-primary px-4 py-2 text-sm font-semibold text-secondary disabled:opacity-50"
+      >
+        Confirmar
+      </button>
+      {error && (
+        <p role="alert" className="mt-3 rounded bg-accent px-3 py-2 text-sm">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export function EntrevistaPage() {
   const { novelId = "" } = useParams();
   const [messagesLoad, addMessages] = useJson<InterviewMessage[]>(`/api/novels/${novelId}/interview/messages`);
@@ -566,6 +660,7 @@ export function EntrevistaPage() {
         readOnly={readOnly}
         onBrief={(newBrief) => updateBrief(() => newBrief)}
       />
+      <ConfirmPanel novelId={novelId} brief={brief} updateBrief={updateBrief} />
     </main>
   );
 }

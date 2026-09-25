@@ -1090,7 +1090,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcado — integrador 2026-09-25: sin revisión, decisión del usuario (C17 ofrece escribir la novela; C21 nuevo)
 
 ### Steps
-- [ ] 024-C21 · Escribir la novela desde el brief confirmado
+- [x] 024-C21 · Escribir la novela desde el brief confirmado
 - [x] 024-C01 · Historial vacío al entrar en una entrevista nueva
 - [x] 024-C02 · Enviar un mensaje añade la respuesta del entrevistador
 - [x] 024-C03 · Fallo al enviar un mensaje
@@ -1106,13 +1106,13 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 024-C13 · Añadir una palabra o un tema
 - [x] 024-C14 · Alta rechazada o repetida
 - [x] 024-C15 · Borrar una entrada prohibida
-- [ ] 024-C16 · Confirmar disponible solo sin problemas
-- [ ] 024-C17 · Confirmar un brief válido lleva a la pantalla que sigue
-- [ ] 024-C18 · Confirmación rechazada
-- [ ] 024-C19 · Entrada en una novela con el brief ya confirmado
-- [ ] 024-I2 · Ninguna llamada de esta pantalla a la API real fuera de 024-C20
-- [ ] 024-I3 · Un error de cualquier llamada de esta pantalla (mensaje, texto libre, aceptar o rechazar un hecho, alta o borrado prohibido, confirmar) s…
-- [ ] 024-I5 · Con el brief confirmado, ninguna acción de escritura de esta pantalla (mensaje, texto libre, hecho, prohibida) queda disponible
+- [x] 024-C16 · Confirmar disponible solo sin problemas
+- [x] 024-C17 · Confirmar un brief válido ofrece escribir la novela
+- [x] 024-C18 · Confirmación rechazada
+- [x] 024-C19 · Entrada en una novela con el brief ya confirmado
+- [x] 024-I2 · Ninguna llamada de esta pantalla a la API real fuera de 024-C20
+- [x] 024-I3 · Un error de cualquier llamada de esta pantalla (mensaje, texto libre, aceptar o rechazar un hecho, alta o borrado prohibido, confirmar) s…
+- [x] 024-I5 · Con el brief confirmado, ninguna acción de escritura de esta pantalla (mensaje, texto libre, hecho, prohibida) queda disponible
 - [ ] 024-C20 · Recorrido real de la entrevista (D, al final)
 
 ### Closing
