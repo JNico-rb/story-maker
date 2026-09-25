@@ -36,6 +36,7 @@ from tests.pipeline.gate.visual import (
 from story_maker.agents.fake import FakeAgent
 from story_maker.observability.port import Trace
 from story_maker.pipeline.production import Production
+from story_maker.pipeline.report import build_report
 from story_maker.pipeline.runs import RunStop
 
 
@@ -141,3 +142,39 @@ def test_if_the_editor_never_registers_it_every_cycle_repeats_the_failure_until_
     ]
     assert [r.passed for r in visual] == [False, False, False]
     assert kit.pdf.calls == []
+
+
+def test_a_render_failure_fails_the_run_without_rewriting_reregistering_or_a_pdf(
+    session_factory: sessionmaker[Session],
+    at_gate: Seed,
+    fake: FakeAgent,
+    production: Production,
+    kit: GateKit,
+    trace: Trace,
+    tmp_path: Path,
+) -> None:
+    seed_visual(session_factory, at_gate)
+    hashes = chapter_hashes(session_factory, at_gate.version_id)
+    script_judges(fake, evaluation(4))
+    delivery = faithful()
+    delivery["portada"]["dedication"] = ""
+    fake.script("visual_reviewer", None, reviewer_script(delivery))
+    gate = with_stage(kit, make_stage(production, make_settings(tmp_path)))
+
+    with pytest.raises(RunStop) as stop:
+        asyncio.run(gate(at_gate.run_id, trace))
+
+    assert (stop.value.status, stop.value.reason) == ("failed", "render_failure")
+    assert stop.value.detail.startswith("portada: ")
+    assert {s.request.role for s in fake.sessions} == {"judge", "visual_reviewer"}
+    assert chapter_hashes(session_factory, at_gate.version_id) == hashes
+    assert kit.pdf.calls == []
+    assert gate_passes(session_factory, at_gate.run_id) == [(1, "fail")]
+    with session_factory() as session:
+        report = build_report(session, run_of(session_factory, at_gate.run_id))
+    [row] = [v for v in report["validators"] if v["validator"] == "revision-visual"]
+    assert row["passed"] is False
+    [visual] = [
+        r for r in results(session_factory, at_gate.run_id) if r.validator == "revision-visual"
+    ]
+    assert [(d["part"], d["kind"]) for d in visual.detail["defects"]] == [("portada", "render")]

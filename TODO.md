@@ -850,7 +850,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 017-C15 · Sin navegador, la ejecución se interrumpe y no publica
 - [x] 017-C16 · Cada revisión deja su resultado, su span y sus scores
 - [x] 017-C17 · Integración: un fallo de datos vuelve al editor y el ciclo siguiente publica
-- [ ] 017-C18 · Integración: un fallo de render hace fallar la ejecución
+- [x] 017-C18 · Integración: un fallo de render hace fallar la ejecución
 - [ ] 017-C19 · La revisión visual corre en el gate de un cambio y de una edición manual
 - [ ] 017-I1 · El resultado lo decide el código
 - [x] 017-I2 · El revisor nunca recibe los valores que el código compara (título, nombre del destinatario, dedicatoria, títulos y textos de capítulo, no…
