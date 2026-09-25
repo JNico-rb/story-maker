@@ -17,11 +17,165 @@ _ENV = Environment(autoescape=True)
 _TEMPLATE = _ENV.from_string(
     """<!doctype html>
 <html lang="es">
-<head><meta charset="utf-8"><title>{{ data.title }}</title></head>
+<head>
+<meta charset="utf-8">
+<title>{{ data.title }}</title>
+<style>
+  @page {
+    size: A5;
+    margin: 20mm 17mm 22mm;
+    @bottom-center {
+      content: counter(page);
+      font-family: Georgia, serif;
+      font-size: 9pt;
+    }
+  }
+  @page :first {
+    @bottom-center { content: none; }
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    font-size: 11pt;
+    line-height: 1.45;
+    color: #1a1a1a;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  h2 {
+    font-weight: normal;
+    font-size: 16pt;
+    text-align: center;
+    margin: 12mm 0 1.4em;
+  }
+
+  p {
+    margin: 0 0 0.6em;
+    text-align: justify;
+    hyphens: auto;
+    orphans: 2;
+    widows: 2;
+  }
+
+  #capitulos article p {
+    margin: 0;
+    text-indent: 1.4em;
+  }
+  #capitulos article p:first-of-type {
+    text-indent: 0;
+  }
+
+  #portada {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    min-height: 100vh;
+    break-after: page;
+  }
+  #portada h1 {
+    font-size: 22pt;
+    font-weight: normal;
+    margin: 0 0 1.4em;
+  }
+  #destinatario {
+    font-variant: small-caps;
+    letter-spacing: 0.12em;
+    font-size: 13pt;
+    margin: 0 0 1em;
+  }
+  #portada hr {
+    width: 35%;
+    border: none;
+    border-top: 1px solid #999;
+    margin: 1.2em 0;
+  }
+  #dedicatoria {
+    font-style: italic;
+    font-size: 12.5pt;
+    max-width: 26em;
+    margin: 0;
+    text-align: center;
+    hyphens: manual;
+  }
+
+  #novedades, #indice, #ficha, #capitulos article {
+    break-before: page;
+  }
+
+  #indice ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  #indice li {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.6em;
+    align-items: baseline;
+    padding: 0.35em 0;
+    border-bottom: 1px dotted #bbb;
+  }
+  #indice .cambiado {
+    font-size: 0.8em;
+    font-style: italic;
+    color: #666;
+    white-space: nowrap;
+  }
+
+  #capitulos h2 {
+    margin: 22mm 0 2em;
+  }
+  #capitulos .cap-numero {
+    display: block;
+    font-size: 10pt;
+    font-style: italic;
+    color: #555;
+    margin-bottom: 0.5em;
+  }
+  #capitulos .cap-titulo {
+    display: block;
+    font-size: 16pt;
+  }
+
+  #ficha .ficha-grupo { margin-bottom: 1.5em; }
+  #ficha .ficha-grupo:last-child { margin-bottom: 0; }
+  #ficha h3 {
+    font-weight: normal;
+    font-variant: small-caps;
+    font-size: 12pt;
+    margin: 0 0 0.6em;
+    border-bottom: 1px solid #ccc;
+  }
+  #ficha ul { margin: 0; padding: 0; list-style: none; }
+  #ficha li { margin-bottom: 0.45em; }
+  #ficha a { white-space: nowrap; }
+  #novedades ul { list-style: none; padding: 0; text-align: center; }
+  #novedades li { margin-bottom: 0.4em; }
+  #ficha .nombre { font-weight: bold; }
+
+  @media screen {
+    body {
+      max-width: 40rem;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+  }
+</style>
+</head>
 <body>
 <section id="portada">
   <h1>{{ data.title }}</h1>
   <p id="destinatario">Para {{ data.recipient }}</p>
+  <hr>
   <p id="dedicatoria">{{ data.dedication }}</p>
 </section>
 
@@ -53,7 +207,10 @@ _TEMPLATE = _ENV.from_string(
 <section id="capitulos">
   {% for chapter in chapters %}
   <article id="cap-{{ chapter.number }}">
-    <h2>{{ chapter.number }}. {{ chapter.title }}</h2>
+    <h2>
+      <span class="cap-numero">Capítulo {{ chapter.number }}</span>
+      <span class="cap-titulo">{{ chapter.title }}</span>
+    </h2>
     {% for paragraph in chapter.paragraphs %}
     <p>{{ paragraph }}</p>
     {% endfor %}
@@ -69,7 +226,7 @@ _TEMPLATE = _ENV.from_string(
     <ul>
       {% for entity in entities %}
       <li>
-        {{ entity.name }}:
+        <span class="nombre">{{ entity.name }}</span>:
         {% if entity.chapters %}
         {% for n in entity.chapters %}
         <a href="#cap-{{ n }}">Cap. {{ n }}</a>{% if not loop.last %}, {% endif %}

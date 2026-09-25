@@ -57,6 +57,11 @@ def render_pdf(html: str) -> bytes:
         try:
             page = browser.new_page()
             page.goto(url)
-            return page.pdf(tagged=True, outline=True)
+            return page.pdf(
+                tagged=True,
+                outline=True,
+                prefer_css_page_size=True,
+                print_background=True,
+            )
         finally:
             browser.close()
