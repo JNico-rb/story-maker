@@ -67,8 +67,8 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 | S | 008-I4 sin recortar: toda ruta de 008 entra en la prueba parametrizada de 002 (401 y 404 de lo ajeno). Pruebas; código solo si una ruta no cumple | 002, 008 | `../sm-s` | `carril-s` | parado: opcional (usuario 2026-09-25, solo lo obligatorio) |
 | SEC | 021 (auditoría con el subagente `seguridad`): solo `docs/security-report.md` y la columna «Resultado» de `verification.md` §4.9; los arreglos, a su carril dueño | todo el backend | `../sm-sec` | `carril-sec` | parado: opcional (usuario 2026-09-25, solo lo obligatorio) |
 | DOC | README fiel a V2 (flujo web, órdenes nuevas de la CLI, MCP). Solo `README.md` | — | `../sm-doc` | `carril-doc` | cerrado e integrado |
-| W | 001-bug-C18b (la SPA no sirve nada fuera de su compilado) y 008-bug-C02c (fechas con huso). Toca solo `api/app.py` y `interview/novels.py` | 001, 008 | `../sm-w` | `carril-w` | en curso |
-| P | 014-bug-C01b y C01c: la propuesta con la forma que lee 027 y `expires_at` con huso. Toca solo `api/change_requests.py` y `pipeline/changes/request.py` | 014 | `../sm-p` | `carril-p` | en curso |
+| W | 001-bug-C18b (la SPA no sirve nada fuera de su compilado) y 008-bug-C02c (fechas con huso). Toca solo `api/app.py` y `interview/novels.py` | 001, 008 | `../sm-w` | `carril-w` | cerrado e integrado (2026-09-25) |
+| P | 014-bug-C01b y C01c: la propuesta con la forma que lee 027 y `expires_at` con huso. Toca solo `api/change_requests.py` y `pipeline/changes/request.py` | 014 | `../sm-p` | `carril-p` | cerrado e integrado (2026-09-25) |
 | O | 019-bug-pos (posiciones UTF-16) y 011-bug-C27b (informe sin objetos anidados). Toca solo `pipeline/manual_edit/diagnostics.py` y `pipeline/report.py` | 019, 011 | `../sm-o` | `carril-o` | cerrado e integrado (2026-09-25) |
 
 Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas borradas; los nombres F y G se reusan en la segunda.
