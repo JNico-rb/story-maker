@@ -147,6 +147,25 @@ def test_the_writer_window_of_chapter_1_has_no_summaries_nor_literal_ending(
     assert window.residents["literal_ending"] is None
 
 
+@pytest.mark.parametrize("chapter", [2, 3, 4])
+def test_no_writer_window_ever_carries_recovered_prose_older_than_the_immediate_previous_chapter(
+    session_factory: sessionmaker[Session], candidate: Seed, chapter: int
+) -> None:
+    """011-I7: del texto de los capítulos anteriores, la ventana solo lleva el final literal del
+    capítulo n-1 (sus últimas 300 palabras); ni una frase de un capítulo más antiguo, ni el resto
+    del propio n-1, llegan por ningún otro camino de la ventana (`summaries`, `outline`...)."""
+    window = writer_window(session_factory, candidate.version_id, chapter, FixedRetriever(()))
+    dumped = json.dumps(window.residents, ensure_ascii=False)
+
+    for earlier in range(1, chapter - 1):  # cualquier capítulo anterior al inmediato precedente
+        assert f"c{earlier}p" not in dumped
+
+    previous = chapter - 1
+    assert f"c{previous}p0700" not in dumped  # nada del capítulo n-1 antes de sus últimas 300
+    assert f"c{previous}p0701" in dumped  # el final literal sí llega
+    assert f"c{previous}p1000" in dumped
+
+
 DELIVERED = "Marta subió al Faro de Cabo Mayor.\n\nToby ladró dos veces."
 
 
