@@ -189,9 +189,30 @@ def sentence_in(observed: str, text: str) -> bool:
 
 def compare(expected: ExpectedStructure, observed: VisualReviewSubmission) -> VisualVerdict:
     """Cada parte por separado: una que no pasa no impide evaluar las otras (017-C06)."""
-    del expected, observed
-    by_part: dict[Part, tuple[VisualDefect, ...]] = dict.fromkeys(PARTS, ())
+    by_part: dict[Part, tuple[VisualDefect, ...]] = {
+        "portada": _cover(expected.cover, observed.portada),
+        "indice": (),
+        "capitulos": (),
+        "ficha": (),
+    }
     return VisualVerdict(
         tuple((part, not by_part[part]) for part in PARTS),
         tuple(d for part in PARTS for d in by_part[part]),
+    )
+
+
+def _render(part: Part, message: str) -> VisualDefect:
+    return VisualDefect(part, "render", None, message)
+
+
+def _cover(expected: ExpectedCover, observed: CoverObservation) -> tuple[VisualDefect, ...]:
+    fields = (
+        ("el título", expected.title, observed.title),
+        ("el destinatario", expected.recipient, observed.recipient),
+        ("la dedicatoria", expected.dedication, observed.dedication),
+    )
+    return tuple(
+        _render("portada", f"portada: se esperaba {label} «{want}» y se vio «{seen}»")
+        for label, want, seen in fields
+        if not texts_match(seen, want)
     )
