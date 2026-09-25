@@ -731,7 +731,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 014-I9 · En la fase `writing` de una ejecución de cambio, solo los afectados pasan por el writer, en orden ascendente
 - [x] 014-I10 · Los puntos de control de una ejecución de cambio son el 0 y un prefijo de sus afectados en orden, sin huecos ni duplicados
 - [x] 014-I11 · Toda decisión del motor sobre la petición y sobre los valores nuevos queda en el audit log con origen `change_request`
-- [ ] 014-I12 · Los capítulos cambiados de la versión nueva son exactamente los de huella distinta de su base
+- [x] 014-I12 · Los capítulos cambiados de la versión nueva son exactamente los de huella distinta de su base
 - [ ] 014-C20 · Un cambio real propagado sobre la novela del brief 1 (D, al final)
 
 ### Closing
