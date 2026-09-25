@@ -14,7 +14,7 @@ Reglas (detalle en `AGENTS.md`, procesos 2–4 y *Parallel lanes*):
 
 ### Alcance
 
-- **N1 · MVP:** 008, 010, 016 (cerrada recortada), 011, 012 (sin la etapa de revisión visual, recortado), 020, 014, 029-cli; frontend mínimo: 022 (cerrada), 026 y 027. La configuración va por la CLI (`architecture.md` §18, «Alcance del frontend»).
+- **N1 · MVP:** 008, 010, 016 (cerrada recortada), 011, 012 (con la etapa de revisión visual desde la segunda tanda, 017), 020, 014, 029-cli; frontend mínimo: 022 (cerrada), 026 y 027. La configuración va por la CLI (`architecture.md` §18, «Alcance del frontend»).
 - **Recortes de casos C:** 011 ninguno (todos hechos; I1, I5, I7, I9, I10, I11 recortados). 012: C6, C8, C12 recortados. 029: C02, C03, C04, C09, C10, C11, C12, C13, C14, I1, I2, I3 recortados (el cambio va por la web). 026: I1, I3, I4, I5 recortados. 027: I1, I2, I3, I5 recortados.
 - **Fuera de N1:** N2 (018 C18–C23, después 017); N3 (019, 015, 021, el resto de 016, 023, 024, 025, 028); congelado 030 (patch en `~/sm-archivo/030-carril-j.patch`).
 - **Alcance completo (usuario, 2026-09-25, segunda decisión: «corregir todos los errores, huecos y puntos a medias»; importa sobre todo poder modificar la novela donde se quiera):** entran N2 y N3 — 018 C18–C23, 019, 028, 023 completa, 024, 025, 015, 017, 021 y 030 — y los errores hallados en la tanda D. Orden: edición manual (018→019→028) y web completa (023→024→025) primero; después 015→021, 017, 030. Los «(recortado)» de specs cerradas vuelven por carriles sin conflicto: 029 (C, CLI de entrevista y de cambio), las I T de 010, 011 y 014 (I); 012 C6, C8, C12 tras integrar F y Q. El frontend queda congelado (usuario, 2026-09-25): nadie toca `frontend/`.
