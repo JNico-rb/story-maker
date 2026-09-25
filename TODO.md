@@ -678,9 +678,9 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas.
 - [ ] 013-C24 · El aspecto del PDF es el de un libro (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-25: `uv run pytest` 1672 passed; `uv run ruff check .` all checks passed; `uv run ruff format --check .` 399 files already formatted; `uv run mypy src` no issues in 158 source files; frontend `pnpm.cmd lint`, `pnpm.cmd typecheck`, `pnpm.cmd build` limpios, `pnpm.cmd test` 62 passed
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 014 — cambios-del-lector
 
@@ -1064,9 +1064,9 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas.
 - [ ] 023-C16 · Recorrido real de «mis novelas» (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-25: `uv run pytest` 1672 passed; `uv run ruff check .` all checks passed; `uv run ruff format --check .` 399 files already formatted; `uv run mypy src` no issues in 158 source files; frontend `pnpm.cmd lint`, `pnpm.cmd typecheck`, `pnpm.cmd build` limpios, `pnpm.cmd test` 62 passed
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 024 — entrevista
 
@@ -1168,9 +1168,9 @@ Los carriles B, C, F, G, H y J están cerrados y sus ramas borradas.
 - [ ] 026-C14 · El recorrido completo se observa en el navegador (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-25: `uv run pytest` 1672 passed; `uv run ruff check .` all checks passed; `uv run ruff format --check .` 399 files already formatted; `uv run mypy src` no issues in 158 source files; frontend `pnpm.cmd lint`, `pnpm.cmd typecheck`, `pnpm.cmd build` limpios, `pnpm.cmd test` 62 passed
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 027 — cambio-del-lector
 
