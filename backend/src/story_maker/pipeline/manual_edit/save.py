@@ -121,7 +121,7 @@ def save_edit(
         record_decision(uow, edit_policy_request(novel.user_id, novel_id, text), decision)
         diagnostics = blocking_diagnostics(session, novel, current.id, text)
         if diagnostics:
-            rejected = SaveRejected(422, {"diagnostics": [d.to_json() for d in diagnostics]})
+            rejected = SaveRejected(422, {"diagnostics": [d.to_json(text) for d in diagnostics]})
         else:
             run = Run(
                 novel_id=novel_id,
