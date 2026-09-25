@@ -513,3 +513,67 @@ def test_a_fact_not_in_the_current_version_exits_with_1(
     assert result.exit_code == 1, result.stdout
     assert "novela no encontrada" not in result.stdout
     assert _change_requests(db_path) == []
+
+
+# --- 029-I3: el código de confirmación no aparece nunca en la salida -----------------------------
+
+
+@pytest.fixture
+def fixed_code(monkeypatch: pytest.MonkeyPatch) -> str:
+    """Fija el código de confirmación (`secrets.token_urlsafe`) para poder buscarlo en la salida
+    y comprobar que no está (029-I3)."""
+    code = "CODIGO-SECRETO-DE-PRUEBA"
+    monkeypatch.setattr(
+        "story_maker.pipeline.changes.request.secrets.token_urlsafe", lambda _n: code
+    )
+    return code
+
+
+def test_the_confirmation_code_never_appears_in_the_output_when_confirmed(
+    db_path: Path, f: F, fake_agent: FakeAgent, fixed_code: str
+) -> None:
+    propose(fake_agent, rename(f.toby_name_fact, "Nala"))
+
+    result = runner.invoke(
+        app,
+        [
+            "change",
+            str(f.novel_id),
+            str(REQUEST),
+            "--email",
+            f.email_a,
+            "--fact",
+            str(f.toby_name_fact),
+        ],
+        input="s\n",
+    )
+
+    assert result.exit_code == 0, result.stdout
+    assert fixed_code not in result.stdout
+    (row,) = _change_requests(db_path)
+    assert row.status == "confirmed"
+
+
+def test_the_confirmation_code_never_appears_in_the_output_without_confirming(
+    db_path: Path, f: F, fake_agent: FakeAgent, fixed_code: str
+) -> None:
+    propose(fake_agent, rename(f.toby_name_fact, "Nala"))
+
+    result = runner.invoke(
+        app,
+        [
+            "change",
+            str(f.novel_id),
+            str(REQUEST),
+            "--email",
+            f.email_a,
+            "--fact",
+            str(f.toby_name_fact),
+        ],
+        input="n\n",
+    )
+
+    assert result.exit_code == 0, result.stdout
+    assert fixed_code not in result.stdout
+    (row,) = _change_requests(db_path)
+    assert row.status == "proposed"
