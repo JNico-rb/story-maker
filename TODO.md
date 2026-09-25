@@ -1284,7 +1284,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 029-I3 · El código de confirmación del cambio no aparece nunca en la salida
 
 ### Closing
-- [x] Full suite green, type checks clean — verificador 2026-09-24: uv run pytest (1475 passed), ruff check ., ruff format --check . (324 files), mypy src (0 issues)
+- [x] Full suite green, type checks clean — verificador 2026-09-24: uv run pytest (1475 passed), ruff check ., ruff format --check . (324 files), mypy src (0 issues); re-verificado 2026-09-25 sin recortes (carril C): uv run pytest (1702 passed), ruff check . (ok), ruff format --check . (401 files), mypy src (0 issues)
 - [x] Spec updated, or confirmed still true
 - [x] Docs updated, or confirmed still true
 
