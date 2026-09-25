@@ -775,9 +775,9 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [ ] 015-C18 · Siguiendo el README, un cliente real se conecta y pide un cambio (D, al final)
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-25: `pytest` 1742 passed, `ruff check` sin hallazgos, `ruff format --check` 424 ficheros formateados, `mypy src` sin problemas en 170 ficheros
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 016 — recuperacion-hibrida
 
@@ -1301,9 +1301,9 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 030-I3 · El fichero no contiene texto de capítulos, prompts, briefs ni el detalle JSON de los validadores
 
 ### Closing
-- [ ] Full suite green, type checks clean
-- [ ] Spec updated, or confirmed still true
-- [ ] Docs updated, or confirmed still true
+- [x] Full suite green, type checks clean — verificador 2026-09-25: `pytest` 1742 passed, `ruff check` sin hallazgos, `ruff format --check` 424 ficheros formateados, `mypy src` sin problemas en 170 ficheros
+- [x] Spec updated, or confirmed still true
+- [x] Docs updated, or confirmed still true
 
 ## 031 — arranque
 
