@@ -19,7 +19,7 @@ from tests.api.change_requests.conftest import (
 )
 from tests.pipeline.changes.conftest import version_fingerprint
 
-from story_maker.agents.fake import FakeAgent
+from story_maker.agents.fake import Call, Fail, FakeAgent, Script
 from story_maker.store.models import AuditLog, ChangeRequest, Run
 
 
@@ -148,6 +148,72 @@ async def test_request_change_with_a_banned_entry_is_422_and_leaves_the_request_
     (row,) = rows
     assert row.status == "rejected"
     assert version_fingerprint(session_factory, f.v1_id) == before
+
+
+async def test_request_change_without_any_proposal_after_max_retries_is_422_and_stays_rejected(
+    client: TestClient,
+    f: F,
+    fake: FakeAgent,
+    session_factory: sessionmaker[Session],
+    mcp_session,
+) -> None:
+    before = version_fingerprint(session_factory, f.v1_id)
+    for _ in range(5):
+        fake.script("planner", "change", Script(steps=(Call("propose_change", {}),)))
+
+    async with mcp_session(headers(f.user_a)) as session:
+        with pytest.raises(ToolError) as excinfo:
+            await session.call_tool(
+                "request_change",
+                {
+                    "novel_id": f.novel_id,
+                    "selection": fact_selection(f.toby_name_fact),
+                    "request": "el perro se llama Luna",
+                },
+            )
+    assert _status(excinfo.value) == 422
+
+    with session_factory() as session:
+        rows = session.query(ChangeRequest).filter(ChangeRequest.novel_id == f.novel_id).all()
+    (row,) = rows
+    assert row.status == "rejected"
+    assert version_fingerprint(session_factory, f.v1_id) == before
+
+    deny_rows = _mcp_write_rows(session_factory, "request_change")
+    (deny,) = [r for r in deny_rows if r.novel_id == f.novel_id]
+    assert deny.decision == "deny"
+
+
+async def test_request_change_with_a_provider_failure_is_503_and_leaves_no_request(
+    client: TestClient,
+    f: F,
+    fake: FakeAgent,
+    session_factory: sessionmaker[Session],
+    mcp_session,
+) -> None:
+    before = version_fingerprint(session_factory, f.v1_id)
+    fake.script("planner", "change", Script(steps=(Fail(),)))
+
+    async with mcp_session(headers(f.user_a)) as session:
+        with pytest.raises(ToolError) as excinfo:
+            await session.call_tool(
+                "request_change",
+                {
+                    "novel_id": f.novel_id,
+                    "selection": fact_selection(f.toby_name_fact),
+                    "request": "el perro se llama Luna",
+                },
+            )
+    assert _status(excinfo.value) == 503
+
+    with session_factory() as session:
+        count = session.query(ChangeRequest).filter(ChangeRequest.novel_id == f.novel_id).count()
+    assert count == 0
+    assert version_fingerprint(session_factory, f.v1_id) == before
+
+    deny_rows = _mcp_write_rows(session_factory, "request_change")
+    (deny,) = [r for r in deny_rows if r.novel_id == f.novel_id]
+    assert deny.decision == "deny"
 
 
 # --- 015-C13 -------------------------------------------------------------------------------

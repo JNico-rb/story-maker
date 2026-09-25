@@ -19,9 +19,16 @@ async def test_server_answers_at_mcp_and_publishes_exactly_its_seven_tools(
 ) -> None:
     async with mcp_session(auth_headers) as session:
         tools = await session.list_tools()
+        resources = await session.list_resources()
+        resource_templates = await session.list_resource_templates()
+        prompts = await session.list_prompts()
 
         assert session.server_info is not None
         assert session.server_info.name == "story-maker"
+
+    assert resources == []
+    assert resource_templates == []
+    assert prompts == []
 
     names = {tool.name for tool in tools}
     assert names == READ_ONLY_TOOLS | WRITE_TOOLS
