@@ -918,23 +918,23 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario
 
 ### Steps
-- [ ] 019-C01 · Texto sin nada que avisar
-- [ ] 019-C02 · Forma no canónica de un personaje
-- [ ] 019-C03 · Personaje desconocido
-- [ ] 019-C04 · Hecho nominal que el capítulo usaba y ya no aparece
-- [ ] 019-C05 · Prohibidas de los tres niveles
-- [ ] 019-C06 · Avisos de los linters de prosa
-- [ ] 019-C07 · Reaparición tras un evento excluyente
-- [ ] 019-C08 · Edad escrita que no cuadra con la fecha de nacimiento
-- [ ] 019-C09 · Rechazos del lint
-- [ ] 019-C10 · Un guardado que pasa encola la edición
-- [ ] 019-C11 · Una base que ya no es la vigente da 409
-- [ ] 019-C12 · Una prohibida da 422
-- [ ] 019-C13 · Una longitud fuera de rango da 422
-- [ ] 019-C14 · Una forma no canónica da 422, también al renombrar a una variante
-- [ ] 019-C15 · Varios bloqueantes a la vez
-- [ ] 019-C16 · Una inyección en el texto se marca y no bloquea
-- [ ] 019-C17 · Rechazos de acceso y de forma
+- [x] 019-C01 · Texto sin nada que avisar
+- [x] 019-C02 · Forma no canónica de un personaje
+- [x] 019-C03 · Personaje desconocido
+- [x] 019-C04 · Hecho nominal que el capítulo usaba y ya no aparece
+- [x] 019-C05 · Prohibidas de los tres niveles
+- [x] 019-C06 · Avisos de los linters de prosa
+- [x] 019-C07 · Reaparición tras un evento excluyente
+- [x] 019-C08 · Edad escrita que no cuadra con la fecha de nacimiento
+- [x] 019-C09 · Rechazos del lint
+- [x] 019-C10 · Un guardado que pasa encola la edición
+- [x] 019-C11 · Una base que ya no es la vigente da 409
+- [x] 019-C12 · Una prohibida da 422
+- [x] 019-C13 · Una longitud fuera de rango da 422
+- [x] 019-C14 · Una forma no canónica da 422, también al renombrar a una variante
+- [x] 019-C15 · Varios bloqueantes a la vez
+- [x] 019-C16 · Una inyección en el texto se marca y no bloquea
+- [x] 019-C17 · Rechazos de acceso y de forma
 - [ ] 019-C18 · Edición sin hechos cambiados
 - [ ] 019-C19 · Una edición que cambia un hecho nominal se propaga
 - [ ] 019-C20 · Las puntuaciones del editor no bloquean en el capítulo editado

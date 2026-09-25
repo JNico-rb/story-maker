@@ -113,6 +113,7 @@ def _include_interview_routers(app: FastAPI) -> None:
     from story_maker.api.change_requests import router as change_requests_router
     from story_maker.api.free_texts import router as free_texts_router
     from story_maker.api.interview import router as interview_router
+    from story_maker.api.manual_edit import router as manual_edit_router
     from story_maker.api.novels import router as novels_router
 
     app.include_router(novels_router)
@@ -122,3 +123,4 @@ def _include_interview_routers(app: FastAPI) -> None:
     app.include_router(free_texts_router)
     app.include_router(audit_log_router)
     app.include_router(change_requests_router)
+    app.include_router(manual_edit_router)
