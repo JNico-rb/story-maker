@@ -93,6 +93,14 @@ def _latest_run_id(session: Session, novel_id: int) -> int | None:
     return run.id if run is not None else None
 
 
+def _as_utc(moment: dt.datetime) -> dt.datetime:
+    """Lo guardado es UTC sin huso (`pipeline/runs.py`); la salida al cliente lleva el huso
+    siempre (008-bug-C02c, `architecture.md` §15.7): el navegador lee sin huso como hora local."""
+    if moment.tzinfo is None:
+        return moment.replace(tzinfo=dt.UTC)
+    return moment.astimezone(dt.UTC)
+
+
 def novel_summary(session: Session, novel: Novel) -> NovelSummary:
     brief = brief_of(session, novel.id)
     status, current_version = _status(session, novel, brief)
@@ -104,7 +112,7 @@ def novel_summary(session: Session, novel: Novel) -> NovelSummary:
         status=status,
         current_version=current_version,
         latest_run_id=_latest_run_id(session, novel.id),
-        created_at=novel.created_at,
+        created_at=_as_utc(novel.created_at),
     )
 
 

@@ -457,7 +457,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] 008-I5 · Un turno, una extracción, una confirmación y una importación se guardan enteros o no se guardan
 - [ ] 008-C32 · Entrevista real con el login de Claude Code (D, al final)
 - [ ] 008-C33 · Extracción real de una carta con inyección (D, al final)
-- [ ] 008-bug-C02c · La fecha de creación de la lista y el detalle sale en UTC con huso (carril W; §15.7)
+- [x] 008-bug-C02c · La fecha de creación de la lista y el detalle sale en UTC con huso (carril W; §15.7)
 
 ### Closing
 - [x] Full suite green, type checks clean; re-verificado 2026-09-25 (carril Z): `uv run pytest` 1680 passed, `ruff check .` y `ruff format --check .` limpios (399 ficheros), `mypy src` sin incidencias en 158 ficheros

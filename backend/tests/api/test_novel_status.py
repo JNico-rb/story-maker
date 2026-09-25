@@ -152,6 +152,28 @@ def test_latest_run_id_is_the_most_recent_run_of_any_type_and_status_or_null_wit
     assert row["latest_run_id"] == newer_id
 
 
+def test_created_at_comes_back_in_utc_with_a_timezone_offset(
+    client: TestClient, auth_headers: dict[str, str], session_factory: sessionmaker[Session]
+) -> None:
+    """008-bug-C02c: `NovelSummary.created_at` salía sin huso; el navegador lo lee sin huso como
+    hora local (`architecture.md` §15.7)."""
+    client.get("/api/novels", headers=auth_headers)  # asegura que el cliente ya existe
+
+    with session_factory() as session:
+        user_id = _user_id(session)
+        novel_id = _make_novel(session, user_id, brief_status="draft")
+        session.commit()
+
+    detail = client.get(f"/api/novels/{novel_id}", headers=auth_headers)
+    detail_value = detail.json()["created_at"]
+    assert detail_value.endswith("Z") or detail_value[-6] in "+-"
+    assert dt.datetime.fromisoformat(detail_value).tzinfo is not None
+
+    listing = client.get("/api/novels", headers=auth_headers)
+    row = next(row for row in listing.json() if row["id"] == novel_id)
+    assert dt.datetime.fromisoformat(row["created_at"]).tzinfo is not None
+
+
 def test_the_recipient_name_shows_once_the_brief_has_one(
     client: TestClient, auth_headers: dict[str, str], session_factory: sessionmaker[Session]
 ) -> None:
