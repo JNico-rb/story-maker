@@ -21,6 +21,7 @@ from story_maker.store.models import (
     FreeText,
     Interview,
     InterviewMessage,
+    Novel,
     Run,
     User,
 )
@@ -121,6 +122,161 @@ def test_interview_creates_a_novel_and_prints_its_id_and_reply(
         assert [m.author for m in messages] == ["user", "interviewer"]
         assert messages[0].text == "Hola"
         assert messages[1].text == "¿Cómo se llama?"
+    finally:
+        session.close()
+        engine.dispose()
+
+
+# --- 029-C02: seguir una entrevista guardada ---------------------------------------------------
+
+
+def test_following_a_saved_interview_prints_its_history_and_continues_it(
+    registered_client: Path, fake_agent: FakeAgent
+) -> None:
+    fake_agent.script("interviewer", None, Script(steps=(Say("¿Cómo se llama?"),)))
+    fake_agent.script("interviewer", None, Script(steps=(Say("Vale."),)))
+
+    first = runner.invoke(app, ["interview", "--email", EMAIL], input="Hola\n/salir\n")
+    novel_id = int(first.stdout.strip().splitlines()[0])
+
+    second = runner.invoke(
+        app, ["interview", "--email", EMAIL, "--novel", str(novel_id)], input="Marta\n/salir\n"
+    )
+
+    assert second.exit_code == 0, second.stdout
+    lines = second.stdout.strip().splitlines()
+    assert lines[0] == str(novel_id)
+    assert "user: Hola" in lines
+    assert "interviewer: ¿Cómo se llama?" in lines
+    assert lines[-1] == "Vale."
+
+    session, engine = _session(registered_client)
+    try:
+        interview = session.query(Interview).filter(Interview.novel_id == novel_id).one()
+        messages = (
+            session.query(InterviewMessage)
+            .filter(InterviewMessage.interview_id == interview.id)
+            .order_by(InterviewMessage.id)
+            .all()
+        )
+        assert [m.text for m in messages] == ["Hola", "¿Cómo se llama?", "Marta", "Vale."]
+    finally:
+        session.close()
+        engine.dispose()
+
+
+def test_eof_ends_a_followed_interview_like_leave(
+    registered_client: Path, fake_agent: FakeAgent
+) -> None:
+    fake_agent.script("interviewer", None, Script(steps=(Say("¿Cómo se llama?"),)))
+    first = runner.invoke(app, ["interview", "--email", EMAIL], input="Hola\n/salir\n")
+    novel_id = int(first.stdout.strip().splitlines()[0])
+
+    second = runner.invoke(app, ["interview", "--email", EMAIL, "--novel", str(novel_id)], input="")
+
+    assert second.exit_code == 0, second.stdout
+
+
+# --- 029-C03: cliente o novela ajenos ------------------------------------------------------------
+
+
+def test_an_unregistered_email_exits_with_1_and_creates_nothing(
+    db_path: Path, fake_agent: FakeAgent
+) -> None:
+    result = runner.invoke(app, ["interview", "--email", "nadie@example.com"], input="/salir\n")
+
+    assert result.exit_code == 1
+    assert "cliente no registrado" in result.stdout
+    session, engine = _session(db_path)
+    try:
+        assert session.query(Novel).count() == 0
+    finally:
+        session.close()
+        engine.dispose()
+
+
+def test_a_novel_of_another_client_exits_with_1_and_creates_nothing(
+    registered_client: Path, fake_agent: FakeAgent
+) -> None:
+    other_email = "otro@example.com"
+    session, engine = _session(registered_client)
+    try:
+        session.add(User(email=other_email, password_hash="h", created_at=dt.datetime(2026, 1, 1)))
+        session.commit()
+    finally:
+        session.close()
+        engine.dispose()
+    fake_agent.script("interviewer", None, Script(steps=(Say("¿Cómo se llama?"),)))
+    owner = runner.invoke(app, ["interview", "--email", EMAIL], input="Hola\n/salir\n")
+    novel_id = int(owner.stdout.strip().splitlines()[0])
+
+    result = runner.invoke(
+        app,
+        ["interview", "--email", other_email, "--novel", str(novel_id)],
+        input="/salir\n",
+    )
+
+    assert result.exit_code == 1
+    assert "novela no encontrada" in result.stdout
+    session, engine = _session(registered_client)
+    try:
+        interview = session.query(Interview).filter(Interview.novel_id == novel_id).one()
+        assert (
+            session.query(InterviewMessage)
+            .filter(InterviewMessage.interview_id == interview.id)
+            .count()
+            == 2
+        )
+    finally:
+        session.close()
+        engine.dispose()
+
+
+def test_a_missing_novel_id_exits_with_1_and_creates_nothing(
+    registered_client: Path, fake_agent: FakeAgent
+) -> None:
+    result = runner.invoke(
+        app, ["interview", "--email", EMAIL, "--novel", "999999"], input="/salir\n"
+    )
+
+    assert result.exit_code == 1
+    assert "novela no encontrada" in result.stdout
+    session, engine = _session(registered_client)
+    try:
+        assert session.query(Novel).count() == 0
+    finally:
+        session.close()
+        engine.dispose()
+
+
+# --- 029-C04: un turno fallido no se guarda -------------------------------------------------------
+
+
+def test_a_failed_turn_is_not_saved_and_the_loop_goes_on(
+    registered_client: Path, fake_agent: FakeAgent
+) -> None:
+    fake_agent.script("interviewer", None, Script(steps=(Fail(),)))
+    fake_agent.script("interviewer", None, Script(steps=(Say("¿Cómo se llama?"),)))
+
+    result = runner.invoke(
+        app, ["interview", "--email", EMAIL], input="Hola\nMarta\n/salir\n"
+    )
+
+    assert result.exit_code == 0, result.stdout
+    assert "el turno no se guardó; repítelo" in result.stdout
+    assert "¿Cómo se llama?" in result.stdout
+
+    novel_id = int(result.stdout.strip().splitlines()[0])
+    session, engine = _session(registered_client)
+    try:
+        interview = session.query(Interview).filter(Interview.novel_id == novel_id).one()
+        messages = (
+            session.query(InterviewMessage)
+            .filter(InterviewMessage.interview_id == interview.id)
+            .order_by(InterviewMessage.id)
+            .all()
+        )
+        assert [m.text for m in messages] == ["Marta", "¿Cómo se llama?"]
     finally:
         session.close()
         engine.dispose()

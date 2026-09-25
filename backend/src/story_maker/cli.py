@@ -63,6 +63,8 @@ from story_maker.store.models import (
     AuditLog,
     ExtractedFact,
     FreeText,
+    Interview,
+    InterviewMessage,
     Novel,
     RoleSession,
     Run,
@@ -592,15 +594,40 @@ async def _interview_loop(services: _InterviewServices, novel_id: int, user_id: 
             await _handle_turn(services, novel_id, user_id, line)
 
 
+def _owned_novel_or_none(session: Session, novel_id: int, user_id: int) -> Novel | None:
+    novel = session.get(Novel, novel_id)
+    return novel if novel is not None and novel.user_id == user_id else None
+
+
+def _print_interview_history(session_factory: sessionmaker[Session], novel_id: int) -> None:
+    """El historial guardado de la entrevista, antes de seguir con el siguiente turno
+    (029-C02)."""
+    with session_factory() as session:
+        interview = session.query(Interview).filter(Interview.novel_id == novel_id).one()
+        messages = (
+            session.query(InterviewMessage)
+            .filter(InterviewMessage.interview_id == interview.id)
+            .order_by(InterviewMessage.id)
+            .all()
+        )
+    for message in messages:
+        typer.echo(f"{message.author}: {message.text}")
+
+
 @app.command(name="interview")
 def interview_command(
     email: Annotated[str, typer.Option("--email", help="Email del cliente registrado.")],
+    novel: Annotated[
+        int | None, typer.Option("--novel", help="Id de una entrevista guardada, propia.")
+    ] = None,
 ) -> None:
     """Entrevista por terminal sobre los servicios de la 008: cada línea es un turno; `/texto
     <fichero>` manda una carta al extractor; `/hechos`, `/aceptar`, `/rechazar` y `/obligatorio`
     gobiernan los hechos extraídos; `/confirmar` cierra el brief con un `s` explícito y, tras
     confirmarlo, lanza la generación con otro `s` explícito; `/salir` o el fin de la entrada
-    terminan con 0 (029-C01, C05, C06, C07, C08)."""
+    terminan con 0 (029-C01, C05, C06, C07, C08). Sin `--novel`, crea una entrevista nueva
+    (029-C01); con ella, sigue una guardada del mismo cliente, con su historial (029-C02). Un
+    cliente sin registrar o una novela ajena o inexistente salen con 1 y no crean nada (029-C03)."""
     try:
         settings = load_settings()
     except SettingsError as exc:
@@ -630,13 +657,23 @@ def interview_command(
             raise typer.Exit(1)
 
         services = _build_interview_services(settings, config, session_factory, observability)
-        novel_id = create_interview_novel(
-            session_factory,
-            user_id=user.id,
-            embedding_model=config.embedding_model,
-            created_at=utc_now().replace(tzinfo=None),
-        )
-        typer.echo(str(novel_id))
+        if novel is None:
+            novel_id = create_interview_novel(
+                session_factory,
+                user_id=user.id,
+                embedding_model=config.embedding_model,
+                created_at=utc_now().replace(tzinfo=None),
+            )
+            typer.echo(str(novel_id))
+        else:
+            with session_factory() as session:
+                owned = _owned_novel_or_none(session, novel, user.id)
+            if owned is None:
+                typer.echo("novela no encontrada")
+                raise typer.Exit(1)
+            novel_id = owned.id
+            typer.echo(str(novel_id))
+            _print_interview_history(session_factory, novel_id)
         asyncio.run(_interview_loop(services, novel_id, user.id))
     finally:
         engine.dispose()
