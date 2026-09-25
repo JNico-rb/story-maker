@@ -258,9 +258,7 @@ def test_a_failed_turn_is_not_saved_and_the_loop_goes_on(
     fake_agent.script("interviewer", None, Script(steps=(Fail(),)))
     fake_agent.script("interviewer", None, Script(steps=(Say("¿Cómo se llama?"),)))
 
-    result = runner.invoke(
-        app, ["interview", "--email", EMAIL], input="Hola\nMarta\n/salir\n"
-    )
+    result = runner.invoke(app, ["interview", "--email", EMAIL], input="Hola\nMarta\n/salir\n")
 
     assert result.exit_code == 0, result.stdout
     assert "el turno no se guardó; repítelo" in result.stdout
