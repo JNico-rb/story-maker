@@ -407,7 +407,7 @@ Los carriles B, C, F, G, H y J de la primera tanda están cerrados y sus ramas b
 - [x] Plan below approved — integrador 2026-09-24: sin revisión, decisión del usuario; re-marcado — integrador 2026-09-25: sin revisión, decisión del usuario (C02: id de la ejecución más reciente)
 
 ### Steps
-- [ ] 008-C02b · La novela lleva el id de su ejecución más reciente, vacío sin ninguna (carril Z; lo usa 025-C00)
+- [x] 008-C02b · La novela lleva el id de su ejecución más reciente, vacío sin ninguna (carril Z; lo usa 025-C00)
 - [x] 008-C01 · Crear una novela para entrevistarla
 - [x] 008-C02 · Lista y detalle de las novelas con su estado derivado
 - [x] 008-C03 · Un turno aplica lo que entrega el entrevistador

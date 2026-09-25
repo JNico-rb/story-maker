@@ -31,6 +31,7 @@ class NovelSummary(BaseModel):
     recipient_name: str
     status: NovelStatus
     current_version: int | None
+    latest_run_id: int | None
     created_at: dt.datetime
 
 
@@ -80,6 +81,18 @@ def _status(session: Session, novel: Novel, brief: Brief) -> tuple[NovelStatus, 
     return "ready", None
 
 
+def _latest_run_id(session: Session, novel_id: int) -> int | None:
+    """El id de la ejecución más reciente de la novela, de cualquier tipo y estado; ninguno si no
+    tiene ninguna (008-C02b, la usa la pantalla de progreso, 025)."""
+    run = (
+        session.query(Run)
+        .filter(Run.novel_id == novel_id)
+        .order_by(Run.created_at.desc(), Run.id.desc())
+        .first()
+    )
+    return run.id if run is not None else None
+
+
 def novel_summary(session: Session, novel: Novel) -> NovelSummary:
     brief = brief_of(session, novel.id)
     status, current_version = _status(session, novel, brief)
@@ -90,6 +103,7 @@ def novel_summary(session: Session, novel: Novel) -> NovelSummary:
         recipient_name=content.recipient.name,
         status=status,
         current_version=current_version,
+        latest_run_id=_latest_run_id(session, novel.id),
         created_at=novel.created_at,
     )
 

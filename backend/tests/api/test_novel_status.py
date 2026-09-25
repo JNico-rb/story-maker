@@ -114,6 +114,44 @@ def test_the_list_goes_from_newest_to_oldest_and_only_shows_the_clients_own_nove
     assert ids == [newer_id, first]
 
 
+def test_latest_run_id_is_the_most_recent_run_of_any_type_and_status_or_null_without_one(
+    client: TestClient, auth_headers: dict[str, str], session_factory: sessionmaker[Session]
+) -> None:
+    client.get("/api/novels", headers=auth_headers)  # asegura que el cliente ya existe
+
+    with session_factory() as session:
+        user_id = _user_id(session)
+        novel_id = _make_novel(session, user_id, brief_status="confirmed")
+        session.commit()
+
+    detail = client.get(f"/api/novels/{novel_id}", headers=auth_headers)
+    assert detail.json()["latest_run_id"] is None
+
+    with session_factory() as session:
+        older = Run(
+            novel_id=novel_id, type="generation", status="failed", resumes=0, created_at=NOW
+        )
+        session.add(older)
+        session.flush()
+        newer = Run(
+            novel_id=novel_id,
+            type="change_request",
+            status="queued",
+            resumes=0,
+            created_at=NOW + dt.timedelta(minutes=5),
+        )
+        session.add(newer)
+        session.commit()
+        newer_id = newer.id
+
+    detail = client.get(f"/api/novels/{novel_id}", headers=auth_headers)
+    assert detail.json()["latest_run_id"] == newer_id
+
+    listing = client.get("/api/novels", headers=auth_headers)
+    row = next(row for row in listing.json() if row["id"] == novel_id)
+    assert row["latest_run_id"] == newer_id
+
+
 def test_the_recipient_name_shows_once_the_brief_has_one(
     client: TestClient, auth_headers: dict[str, str], session_factory: sessionmaker[Session]
 ) -> None:
