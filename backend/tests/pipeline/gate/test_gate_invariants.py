@@ -89,7 +89,9 @@ def _script(
     passes = min(failing + 1, 3)
     for number in range(1, passes + 1):
         fails = number <= failing
-        if not fails or stage >= 2:
+        # Sin ciclos (la pasada 3), un defecto atribuible ya no falla: la pasada sigue hasta
+        # publicar (cambio de producto de 2026-09-26), así que también hace falta un juez ahí.
+        if not fails or stage >= 2 or number == 3:
             low = fails and stage == 2
             judged = evaluation({"continuidad": 2}, {"continuidad": (4,)}) if low else evaluation()
             script_judges(fake, judged)
@@ -105,7 +107,7 @@ CASES = [(stage, failing) for stage in (1, 2, 3) for failing in (1, 2, 3)] + [(4
 
 
 @pytest.mark.parametrize(("stage", "failing"), CASES)
-def test_no_version_is_published_unless_the_last_pass_on_it_cleared_the_four_stages(
+def test_the_version_publishes_unless_its_last_pass_hits_a_render_failure(
     session_factory: sessionmaker[Session],
     at_gate: Seed,
     fake: FakeAgent,
@@ -114,6 +116,9 @@ def test_no_version_is_published_unless_the_last_pass_on_it_cleared_the_four_sta
     stage: int,
     failing: int,
 ) -> None:
+    """Cambio de producto (2026-09-26): agotados los ciclos, un defecto atribuible en las etapas 1
+    a 3 ya no falla — la pasada sigue y publica con él. Solo la etapa 4 (`render_failure`, no
+    atribuible) sigue bloqueando siempre la publicación, con o sin ciclos."""
     pdf = SnapshotPdf(kit.log, kit.pdf.path, session_factory=session_factory)
     kit.pdf = pdf
     gate = dataclasses.replace(kit.gate, pdf=pdf)
@@ -126,14 +131,23 @@ def test_no_version_is_published_unless_the_last_pass_on_it_cleared_the_four_sta
         version = session.get_one(Version, at_gate.version_id)
         status = version.status
     passes = gate_passes(session_factory, at_gate.run_id)
-    published = stage != 4 and failing < 3
+    published = stage != 4
     assert (status == "published") is published
     if not published:
         assert passes[-1][1] == "fail"
         return
     last, outcome = passes[-1]
-    assert (last, outcome) == (failing + 1, "accept")
+    assert (last, outcome) == (min(failing + 1, 3), "accept")
     last_results = results_of_pass(session_factory, at_gate.run_id, last)
     assert {r.validator for r in last_results} == ALL_VALIDATORS
-    assert all(r.passed for r in last_results)
+    if failing < 3:
+        # Una pasada que de verdad limpió las cuatro etapas: todo pasó.
+        assert all(r.passed for r in last_results)
+    else:
+        # Los ciclos se agotaron con el defecto de la etapa `stage` sin corregir: la pasada
+        # publica de todos modos, pero ese validador sigue en falso (la etapa 3, `revision-visual`,
+        # no deja fila en este doble simplificado, así que ahí no hay nada que quede en falso).
+        failing_validator = {1: "palabras-prohibidas", 2: "juez-novela"}.get(stage)
+        not_passed = {r.validator for r in last_results if not r.passed}
+        assert not_passed == ({failing_validator} if failing_validator else set())
     assert pdf.snapshots[-1] == chapter_hashes(session_factory, at_gate.version_id)

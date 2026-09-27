@@ -54,22 +54,27 @@ def _chapter_attempts(
         return [(a.gate_cycle, a.number, a.outcome) for a in rows.order_by(Attempt.id)]
 
 
-def test_two_rejections_of_a_rewritten_chapter_in_one_cycle_fail_with_retries_exhausted(
+def test_two_rejections_of_a_rewritten_chapter_in_one_cycle_accept_the_least_blocking_attempt(
     session_factory: sessionmaker[Session],
     at_gate: Seed,
     fake: FakeAgent,
     kit: GateKit,
     trace: Trace,
 ) -> None:
-    script_judges(fake, CITES_5)
+    """Cambio de producto (2026-09-26): agotados los intentos del capítulo dentro del ciclo, se
+    acepta el revisado con menos bloqueantes (aquí, empate: el último) en vez de fallar; el ciclo
+    siguiente ya no lo cita y la candidata se publica."""
+    script_judges(fake, CITES_5, evaluation())
     _rejected(fake)
     _rejected(fake)
 
-    with pytest.raises(RunStop) as stop:
-        asyncio.run(kit.gate(at_gate.run_id, trace))
+    asyncio.run(kit.gate(at_gate.run_id, trace))
 
-    assert (stop.value.status, stop.value.reason) == ("failed", "retries_exhausted")
-    assert _chapter_attempts(session_factory, at_gate.run_id) == [(1, 1, "rewrite"), (1, 2, "fail")]
+    assert gate_passes(session_factory, at_gate.run_id) == [(1, "rewrite"), (2, "accept")]
+    assert _chapter_attempts(session_factory, at_gate.run_id) == [
+        (1, 1, "rewrite"),
+        (1, 2, "accept"),
+    ]
 
 
 def test_a_last_rejection_for_a_banned_term_fails_with_banned_content(

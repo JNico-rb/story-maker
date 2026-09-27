@@ -19,9 +19,8 @@ from story_maker.agents.fake import FakeAgent
 from story_maker.config import Config
 from story_maker.observability.null import NullObservability
 from story_maker.observability.port import Trace
-from story_maker.pipeline.orchestrator import Orchestrator
 from story_maker.pipeline.production import ChapterProducer, verdict
-from story_maker.store.models import Run, ValidatorResult
+from story_maker.store.models import Attempt, ValidatorResult
 from story_maker.validators.chapter_rubric import ChapterReview, judge_review
 
 
@@ -137,12 +136,15 @@ async def test_non_blocking_defects_of_an_accepted_chapter_go_to_the_report_and_
     assert "justificación de prosa" in score.comment
 
 
-async def test_the_third_attempt_with_blocking_defects_fails_with_retries_exhausted(
-    orchestrator: Orchestrator,
+async def test_the_third_attempt_with_blocking_defects_is_accepted_as_the_least_blocking_attempt(
+    producer: ChapterProducer,
     fake: FakeAgent,
     seed: Seed,
+    trace: Trace,
     session_factory: sessionmaker[Session],
 ) -> None:
+    """Agotados los intentos con bloqueantes en los tres, se acepta el revisado con menos
+    bloqueantes (aquí, empate: el último) en vez de fallar (cambio de producto, 2026-09-26)."""
     low = review(scores(fidelidad_canon=2))
     fake.script("writer", "write", writer_script(chapter_call()))
     fake.script("writer", "rewrite", writer_script(chapter_call()))
@@ -150,9 +152,21 @@ async def test_the_third_attempt_with_blocking_defects_fails_with_retries_exhaus
     for _ in range(3):
         fake.script("editor", None, editor_script(low))
 
-    await orchestrator.execute(seed.run_id)
+    await producer.produce_chapter(seed.run_id, 4, trace)
 
     with session_factory() as session:
-        run = session.get(Run, seed.run_id)
-        assert run is not None
-        assert (run.status, run.reason) == ("failed", "retries_exhausted")
+        rows = session.query(Attempt).filter_by(run_id=seed.run_id, chapter=4).order_by(Attempt.id)
+        assert [(a.number, a.outcome) for a in rows] == [
+            (1, "rewrite"),
+            (2, "rewrite"),
+            (3, "accept"),
+        ]
+        rubric = (
+            session.query(ValidatorResult)
+            .filter_by(run_id=seed.run_id, validator="rubrica-capitulo")
+            .order_by(ValidatorResult.id.desc())
+            .first()
+        )
+        assert rubric is not None
+        assert rubric.passed is False
+        assert any(d["blocking"] for d in rubric.detail["defects"])

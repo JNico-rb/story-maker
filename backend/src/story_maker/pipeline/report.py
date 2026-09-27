@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import json
-from typing import Any, cast
+from typing import Any
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -18,17 +18,23 @@ def run_cost(session: Session, run_id: int) -> float:
     return float(total.scalar() or 0.0)
 
 
+def _as_mapping(detail: dict[str, Any] | list[Any]) -> dict[str, Any]:
+    """El juicio del `outline` (010-C29) guarda solo la lista de defectos, sin `attempt`."""
+    return detail if isinstance(detail, dict) else {"defects": detail}
+
+
 def _validators(session: Session, run_id: int) -> list[dict[str, Any]]:
     rows = session.query(ValidatorResult).filter(ValidatorResult.run_id == run_id)
     return [
         {
             "chapter": r.chapter,
-            "attempt": cast(dict[str, Any], r.detail).get("attempt"),
+            "attempt": detail.get("attempt"),
             "validator": r.validator,
             "passed": r.passed,
-            "defects": cast(dict[str, Any], r.detail).get("defects", []),
+            "defects": detail.get("defects", []),
         }
         for r in rows.order_by(ValidatorResult.id)
+        for detail in (_as_mapping(r.detail),)
     ]
 
 

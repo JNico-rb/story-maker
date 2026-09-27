@@ -123,7 +123,7 @@ def _prepare(
         fake.script("visual_reviewer", None, Script(steps=(Fail(),), usage=USAGE))
 
 
-@pytest.mark.parametrize("case", ["datos", "render", "sin-entrega", "sin-navegador"])
+@pytest.mark.parametrize("case", ["render", "sin-navegador"])
 def test_a_cycle_where_the_visual_review_does_not_pass_generates_no_pdf_and_publishes_nothing(
     session_factory: sessionmaker[Session],
     at_gate: Seed,
@@ -134,6 +134,8 @@ def test_a_cycle_where_the_visual_review_does_not_pass_generates_no_pdf_and_publ
     tmp_path: Path,
     case: str,
 ) -> None:
+    """`render` (no atribuible) y `sin-navegador` (interrupción) siguen fallando siempre, con o sin
+    ciclos: el cambio de producto de 2026-09-26 solo relaja los defectos atribuibles."""
     seed_visual(session_factory, at_gate)
     _prepare(case, session_factory, at_gate, fake)
     script_judges(fake, evaluation(4))
@@ -147,3 +149,30 @@ def test_a_cycle_where_the_visual_review_does_not_pass_generates_no_pdf_and_publ
     assert kit.pdf.calls == []
     with session_factory() as session:
         assert session.get_one(Version, at_gate.version_id).status == "candidate"
+
+
+@pytest.mark.parametrize("case", ["datos", "sin-entrega"])
+def test_a_cycle_with_an_attributable_visual_defect_still_publishes_once_cycles_run_out(
+    session_factory: sessionmaker[Session],
+    at_gate: Seed,
+    fake: FakeAgent,
+    production: Production,
+    kit: GateKit,
+    trace: Trace,
+    tmp_path: Path,
+    case: str,
+) -> None:
+    """Cambio de producto (2026-09-26): `datos` (defecto atribuible) y `sin-entrega` (como el juez
+    sin evaluación válida) ya no fallan sin ciclos; la pasada sigue y publica."""
+    seed_visual(session_factory, at_gate)
+    _prepare(case, session_factory, at_gate, fake)
+    script_judges(fake, evaluation(4))
+    gate = dataclasses.replace(
+        with_gate_cycles(kit, 0), visual_review=make_stage(production, make_settings(tmp_path))
+    )
+
+    asyncio.run(gate(at_gate.run_id, trace))
+
+    assert kit.pdf.calls == [at_gate.version_id]
+    with session_factory() as session:
+        assert session.get_one(Version, at_gate.version_id).status == "published"

@@ -106,7 +106,7 @@ def test_a_data_failure_goes_back_to_the_editor_without_writer_and_the_next_cycl
     assert run_of(session_factory, at_gate.run_id).status == "published"
 
 
-def test_if_the_editor_never_registers_it_every_cycle_repeats_the_failure_until_retries_exhausted(
+def test_if_the_editor_never_registers_it_every_cycle_repeats_the_failure_until_it_publishes_anyway(
     session_factory: sessionmaker[Session],
     at_gate: Seed,
     fake: FakeAgent,
@@ -115,6 +115,9 @@ def test_if_the_editor_never_registers_it_every_cycle_repeats_the_failure_until_
     trace: Trace,
     tmp_path: Path,
 ) -> None:
+    """Cambio de producto (2026-09-26): agotados los ciclos, la pasada con el defecto de datos
+    sigue en vez de fallar, y la candidata se publica con él (sin volver a registrar, al no
+    reescribir)."""
     villaverde = seed_visual(session_factory, at_gate)
     add_place(session_factory, at_gate.version_id, ZAHARA)
     name_in_chapters(session_factory, at_gate, ZAHARA, (3,))
@@ -125,15 +128,12 @@ def test_if_the_editor_never_registers_it_every_cycle_repeats_the_failure_until_
         with_gate_cycles(kit, 2), visual_review=make_stage(production, make_settings(tmp_path))
     )
 
-    with pytest.raises(RunStop) as stop:
-        asyncio.run(gate(at_gate.run_id, trace))
+    asyncio.run(gate(at_gate.run_id, trace))
 
-    assert (stop.value.status, stop.value.reason) == ("failed", "retries_exhausted")
-    assert f"«{ZAHARA}»" in stop.value.detail
     assert gate_passes(session_factory, at_gate.run_id) == [
         (1, "rewrite"),
         (2, "rewrite"),
-        (3, "fail"),
+        (3, "accept"),
     ]
     assert [s.request.role for s in fake.sessions].count("editor") == 2
     assert all(s.request.role != "writer" for s in fake.sessions)
@@ -141,7 +141,9 @@ def test_if_the_editor_never_registers_it_every_cycle_repeats_the_failure_until_
         r for r in results(session_factory, at_gate.run_id) if r.validator == "revision-visual"
     ]
     assert [r.passed for r in visual] == [False, False, False]
-    assert kit.pdf.calls == []
+    assert f"«{ZAHARA}»" in visual[-1].detail["comment"]
+    assert kit.pdf.calls == [at_gate.version_id]
+    assert run_of(session_factory, at_gate.run_id).status == "published"
 
 
 def test_a_render_failure_fails_the_run_without_rewriting_reregistering_or_a_pdf(

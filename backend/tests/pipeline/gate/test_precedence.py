@@ -84,11 +84,12 @@ def test_no_valid_judge_delivery_with_no_lean_defect_still_fails_the_pass_if_it_
     assert verdict.chapters_to_rewrite == ()
 
 
-def test_exhausted_cycles_with_attributable_defects_fails_with_retries_exhausted() -> None:
+def test_exhausted_cycles_with_attributable_defects_let_the_pass_continue() -> None:
+    """Cambio de producto (2026-09-26): sin ciclos, la pasada sigue y la candidata se publica con
+    sus defectos, en vez de fallar."""
     verdict = gate_precedence(defects=(_blocking(JUDGE, 4),), cycles_remaining=False)
 
-    assert verdict.outcome == "fail"
-    assert verdict.reason == "retries_exhausted"
+    assert verdict.outcome == "continue"
 
 
 def test_non_blocking_defects_alone_do_not_trigger_a_rewrite() -> None:

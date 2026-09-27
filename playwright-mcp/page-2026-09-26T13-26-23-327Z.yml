@@ -1,0 +1,413 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - heading "El reloj que esperaba su hora" [level=1] [ref=e3]
+    - paragraph [ref=e4]: Para Anselmo
+    - separator [ref=e5]
+    - paragraph [ref=e6]: Para papá, que siempre supo qué hora era de verdad.
+  - navigation [ref=e7]:
+    - heading "Índice" [level=2] [ref=e8]
+    - list [ref=e9]:
+      - listitem [ref=e10]:
+        - link "1. El escaparate vacío" [ref=e11] [cursor=pointer]:
+          - /url: "#cap-1"
+      - listitem [ref=e12]:
+        - link "2. Treinta años de socio" [ref=e13] [cursor=pointer]:
+          - /url: "#cap-2"
+      - listitem [ref=e14]:
+        - link "3. El vendedor de lecturas" [ref=e15] [cursor=pointer]:
+          - /url: "#cap-3"
+      - listitem [ref=e16]:
+        - link "4. El cajón" [ref=e17] [cursor=pointer]:
+          - /url: "#cap-4"
+      - listitem [ref=e18]:
+        - link "5. Relojería Roldán" [ref=e19] [cursor=pointer]:
+          - /url: "#cap-5"
+      - listitem [ref=e20]:
+        - link "6. Lo que no se puede desmontar" [ref=e21] [cursor=pointer]:
+          - /url: "#cap-6"
+      - listitem [ref=e22]:
+        - link "7. La lectura" [ref=e23] [cursor=pointer]:
+          - /url: "#cap-7"
+      - listitem [ref=e24]:
+        - link "8. El muelle en la maceta" [ref=e25] [cursor=pointer]:
+          - /url: "#cap-8"
+      - listitem [ref=e26]:
+        - link "9. La fiesta" [ref=e27] [cursor=pointer]:
+          - /url: "#cap-9"
+      - listitem [ref=e28]:
+        - link "10. La hora exacta" [ref=e29] [cursor=pointer]:
+          - /url: "#cap-10"
+  - generic [ref=e30]:
+    - article [ref=e31]:
+      - heading "Capítulo 1 El escaparate vacío" [level=2] [ref=e32]:
+        - generic [ref=e33]: Capítulo 1
+        - generic [ref=e34]: El escaparate vacío
+      - paragraph [ref=e35]: Anselmo abrió la relojería antes de que sonaran las campanas de la Plaza Mayor, cuando la luz todavía era gris y las persianas de los comercios vecinos seguían bajadas. Encendió la lámpara del banco de trabajo, se puso las gafas de aumento sobre la frente y empezó a sacar las bandejas de piezas de los cajones bajos, una por una, para anotar en un cuaderno lo que quedaba por vender y lo que había que guardar. Le quedaban los últimos días de septiembre antes del cierre, y cada mañana se le hacía un poco más extraña la costumbre de contar lo que durante cuarenta años no había necesitado contar.
+      - paragraph [ref=e36]: Mientras clasificaba muelles, coronas y esferas sueltas, silbó un bolero entre dientes, el mismo que llevaba silbando desde que se hizo cargo del negocio, cuando el escaparate todavía decía «Relojería Roldán» en letras doradas y él era el aprendiz que heredaba un oficio y un rótulo ajeno. Cambió el rótulo al poco de empezar, pero se quedó con la costumbre de silbar, porque el silencio del taller a esas horas le parecía un lujo que había que llenar con algo, y un bolero ocupaba justo el espacio que dejaba libre la cabeza cuando las manos ya sabían lo que tenían que hacer.
+      - paragraph [ref=e37]: "Se detuvo un momento con un engranaje diminuto entre los dedos y pensó, sin necesidad de pensarlo del todo, en el reloj de la torre de su pueblo, parado diez años hasta que él lo dejó dando las horas otra vez y todo el mundo salió a la plaza a escucharlo como si fuera una fiesta. Aquella tarde había entendido que un reloj no era solo un mecanismo: era una promesa que alguien tenía que sostener. Volvió a la bandeja, anotó el número de piezas y siguió silbando, porque catalogar el taller para cerrarlo no era tan distinto de catalogarlo para abrirlo, salvo que esta vez no habría una fecha después."
+      - paragraph [ref=e38]: Lucía llegó pasadas las nueve y media con dos cajas de cartón vacías bajo el brazo y el pelo recogido de cualquier manera, como cuando tenía prisa por hacer algo bien. Las dejó en el suelo, junto al mostrador, y se quedó mirando las bandejas destapadas con una mezcla de ternura y de urgencia que Anselmo conocía de sobra.
+      - paragraph [ref=e39]: —Estas son para lo que no se vende —dijo, dándoles una palmada—. Y he confirmado el salón para la fiesta. Treinta personas, más los que se apunten cuando corra la voz.
+      - paragraph [ref=e40]: —No hace falta fiesta ninguna —contestó él, sin levantar la vista del engranaje—. Un taller que cierra no se celebra, se despide.
+      - paragraph [ref=e41]: —Pues yo lo voy a celebrar igual, papá. Cuarenta años dando la hora a todo Almagro no se despiden con una escoba y un candado.
+      - paragraph [ref=e42]: "Anselmo sonrió a su manera, que era casi no sonreír, y dejó la pieza en su sitio antes de coger otra. Lucía empezó a envolver relojes de pared en papel de periódico y a meterlos en las cajas, y mientras lo hacía le contó los detalles que a él no le interesaban demasiado pero que escuchaba con paciencia: el catering, las sillas, la lista de invitados que crecía cada día. Él iba respondiendo con monosílabos, más pendiente del mecanismo que tenía entre manos, aunque de vez en cuando levantaba la cabeza para comprobar que ella seguía allí, ocupando el taller con el mismo desorden alegre con que de niña había ocupado la cocina de la casa familiar."
+      - paragraph [ref=e43]: Canela dormía enroscada encima del banco, entre un reloj despertador desmontado y un montón de tornillos clasificados por tamaño, ajena a las cajas y al ruido de papel de periódico. Llevaba así toda la mañana, y Anselmo la dejaba, porque una gata que duerme sobre el trabajo de uno no molesta, solo lo acompaña. Fue el timbre de la puerta el que la hizo levantar una oreja sin abrir del todo los ojos.
+      - paragraph [ref=e44]: Entró un hombre joven, con una tableta bajo el brazo y una carpeta de plástico transparente que llevaba impreso el nombre de un Gabinete de Peritaje Digital de Almagro. Saludó con una sonrisa demasiado uniforme y explicó, sin que nadie se lo pidiera, que ofrecían un servicio de lectura de desgaste capaz de catalogar cualquier taller pieza por pieza, con fotografía, tasación y certificado de antigüedad incluidos, todo antes de que se echara el cierre definitivo.
+      - paragraph [ref=e45]: —Solo necesito pasar el lector por el mostrador y por las vitrinas —dijo, ya sacando el aparato de la carpeta—. En media hora tiene usted un inventario completo, con el historial de reparaciones de cada pieza.
+      - paragraph [ref=e46]: —Yo ya sé lo que hay en cada vitrina —respondió Anselmo, sin apartar las manos del engranaje—. Lo he montado y desmontado tantas veces que podría catalogarlo con los ojos cerrados, y sin que ningún aparato me diga lo que ha vivido cada reloj.
+      - paragraph [ref=e47]: El hombre insistió, con esa paciencia entrenada que a Anselmo le resultaba más irritante que cualquier grosería, explicando ventajas, precios y plazos, mientras Canela, ya despierta del todo, observaba desde el banco con las orejas hacia delante. Anselmo escuchó hasta el final, porque era paciente hasta la exasperación y no le gustaba interrumpir a nadie a media frase, pero cuando el joven terminó, negó con la cabeza sin levantar la voz.
+      - paragraph [ref=e48]: —Le agradezco la visita, pero no. Yo desconfío de todo lo que no se puede desmontar con un destornillador. Su aparato me dirá el desgaste, y yo ya sé la historia, que es distinto.
+      - paragraph [ref=e49]: El hombre se despidió con la misma sonrisa uniforme con la que había entrado, y Lucía, que había seguido la escena desde detrás de una caja, esperó a que la puerta se cerrara para volver a lo suyo sin decir nada, aunque a Anselmo no se le escapó la sonrisa breve que se le escapó a ella.
+      - paragraph [ref=e50]: Terminada la mañana, con las cajas ya medio llenas y el sol entrando de lleno por el escaparate, Lucía se acercó a la trastienda buscando más cinta de embalar y se detuvo frente al mueble bajo, cerrado con una llave que Anselmo llevaba siempre en el bolsillo del chaleco.
+      - paragraph [ref=e51]: —¿Y este cajón? Llevas ahí guardado no sé cuántos relojes que nadie ha venido a recoger. ¿No lo vaciamos también?
+      - paragraph [ref=e52]: —Ese lo dejamos para el final —dijo Anselmo, cogiendo otra caja del suelo como si no la hubiera oído del todo—. Anda, tráeme mejor la cinta ancha, que esta se ha terminado y todavía nos queda media vitrina por embalar.
+      - paragraph [ref=e53]: Lucía lo miró un segundo más de lo necesario, como si esperara algo que no llegó, y luego fue a buscar la cinta sin volver a preguntar. Anselmo se quedó de pie junto al mueble, con la llave pesándole en el bolsillo más de lo que pesaba un trozo de metal, y siguió embalando relojes que sí tenían dueño, mientras el bolero volvía a asomarle entre los labios, más bajo que antes.
+    - article [ref=e54]:
+      - heading "Capítulo 2 Treinta años de socio" [level=2] [ref=e55]:
+        - generic [ref=e56]: Capítulo 2
+        - generic [ref=e57]: Treinta años de socio
+      - paragraph [ref=e58]: "A las cinco de la tarde, la campanilla de la puerta sonó exactamente como sonaba todos los días desde que Tomás se había jubilado, un año atrás, y había decidido que su nueva ocupación consistía en no dejar de visitar el taller. Anselmo ni siquiera levantó la vista de la lupa binocular: sabía, por la forma de arrastrar los pies y por el carraspeo previo, quién entraba. Tomás colgó la chaqueta en el mismo gancho de siempre, apartó una caja de embalaje del taburete alto y se sentó donde llevaba sentándose treinta años, aunque ya no tuviera ninguna obligación de estar allí más que la costumbre."
+      - paragraph [ref=e59]: —Con las cajas por todas partes esto ya no parece un taller, parece una mudanza —dijo, mirando alrededor con el gesto de quien inspecciona algo que fue suyo.
+      - paragraph [ref=e60]: —Es que es una mudanza. Solo que el destino es ninguna parte —contestó Anselmo, sin dejar el destornillador, y le señaló con la barbilla la cafetera—. Sírvete, que yo tengo las manos ocupadas.
+      - paragraph [ref=e61]: "Tomás se sirvió el café que llevaba haciendo él mismo desde que dejó de trabajar allí, porque a Anselmo el café siempre le quedaba flojo, y se quedó de pie junto al banco, viendo trabajar a su antiguo socio con la misma atención con que lo había visto trabajar durante décadas. No hacía falta hablar para que la tarde funcionara: bastaba con que uno desmontara y el otro mirara, como en los viejos tiempos, cuando el taller olía a aceite fino y no a cinta de embalar."
+      - paragraph [ref=e62]: —¿Sabes qué me ha venido hoy a la cabeza? —dijo Tomás al fin, removiendo el café sin necesidad—. El reloj de la torre. Aquella Nochevieja.
+      - paragraph [ref=e63]: Anselmo levantó la cabeza por primera vez desde que Tomás había entrado, y algo en su cara, que hasta entonces solo había sido concentración, se aflojó en una sonrisa.
+      - paragraph [ref=e64]: —Diez años llevaba parado ese reloj cuando me metí ahí arriba —dijo—. Diez años enteros dando la misma hora falsa, y nadie en el pueblo levantando ya la vista para mirarlo, porque para qué, si mentía. Me subí con la caja de herramientas de mi padre y bajé cuatro horas después con las manos negras y sin saber muy bien si aquello iba a funcionar.
+      - paragraph [ref=e65]: —Y funcionó —dijo Tomás, que ya se sabía la historia de memoria y aun así la pedía cada pocos meses, como quien pide una canción.
+      - paragraph [ref=e66]: —Funcionó. Dieron las doce campanadas justas, y todo el pueblo salió a la Plaza Mayor a oírlas como si fuera el fin de año otra vez, aunque llevábamos ya varios días de enero. La gente aplaudía a un reloj, Tomás. Nunca he vuelto a ver algo así.
+      - paragraph [ref=e67]: Tomás sonrió detrás de la taza, porque él también había estado esa noche en la plaza, más joven y más flaco, viendo a Anselmo bajar de la torre con la cara pálida de frío y de nervios y la satisfacción tranquila de quien ha devuelto algo que no sabía que se hubiera echado tanto de menos. Se quedaron un rato así, cada uno con su recuerdo de la misma escena, hasta que el silencio empezó a parecerse demasiado a una despedida, y Tomás, que llevaba toda la tarde dándole vueltas a otra cosa, decidió que ya era buen momento para decirla.
+      - paragraph [ref=e68]: —¿Y el cajón? —preguntó, señalando con la cabeza hacia la trastienda—. ¿Ese también lo vacías antes de cerrar, o piensas dejárselo a la próxima persona que alquile esto?
+      - paragraph [ref=e69]: —Ese lo dejo para el final —dijo Anselmo, y volvió a inclinarse sobre la lupa con una prisa que no tenía nada que ver con el trabajo que tenía delante.
+      - paragraph [ref=e70]: —Eso mismo me dijiste hace un mes.
+      - paragraph [ref=e71]: —Y sigue siendo verdad.
+      - paragraph [ref=e72]: "Tomás no insistió, pero se quedó mirando la nuca de Anselmo un segundo de más, el tiempo justo para notar que la respuesta le había salido demasiado seguida, demasiado igual a la anterior, como esas frases que uno ensaya en la ducha por si alguien vuelve a preguntar. En treinta años de socio había aprendido a distinguir cuándo Anselmo callaba porque no tenía nada que decir y cuándo callaba porque tenía mucho, y aquello se parecía más a lo segundo. No dijo nada, sin embargo: sabía también que empujar a Anselmo era la forma más segura de que se cerrara del todo, así que dejó la taza vacía en el banco y cambió de postura en el taburete, como quien cambia de tema sin cambiar de tema."
+      - paragraph [ref=e73]: —¿Y qué vas a hacer tú, a partir de octubre, sin cajón que vaciar y sin escaparate que abrir?
+      - paragraph [ref=e74]: Anselmo dejó por fin el destornillador y se frotó los ojos con el dorso de la mano, un gesto que Tomás conocía tan bien como el de la lupa.
+      - paragraph [ref=e75]: —Lo que llevo haciendo toda la vida, solo que sin clientes —dijo—. Un reloj parado acierta dos veces al día, Tomás. Eso ya es más de lo que hace mucha gente en su vida entera, así que no me preocupa demasiado quedarme quieto una temporada.
+      - paragraph [ref=e76]: —Eso lo dices para no responder a lo que te he preguntado.
+      - paragraph [ref=e77]: —Lo digo porque es verdad y porque me hace gracia decirlo —contestó Anselmo, y la sonrisa que le salió esta vez ya no tenía nada de evasiva, sino esa calma suya de siempre, la que había hecho que medio Almagro le llevara sus relojes durante cuarenta años en lugar de tirarlos—. Tú llevas un año jubilado y aquí sigues, todas las tardes a la misma hora, así que no me des lecciones de qué hacer con el tiempo libre.
+      - paragraph [ref=e78]: Tomás soltó una carcajada corta, porque no tenía forma de rebatir aquello, y los dos se quedaron un rato más en el silencio de siempre, con la luz de la tarde entrando ya más baja por el escaparate medio vacío y dibujando en el suelo el hueco de las vitrinas que ya no estaban. Anselmo volvió a coger el destornillador; Tomás volvió a mirar hacia la trastienda, hacia la puerta cerrada del mueble bajo, con la sensación de que algún día tendría que preguntar de otra manera, con otras palabras, porque aquellas no habían servido de nada, igual que no habían servido las del mes pasado. Por ahora, sin embargo, dejó que la tarde siguiera su curso de siempre, con el bolero bajito de Anselmo de fondo y el café ya frío en la taza, y no volvió a mencionar el cajón.
+    - article [ref=e79]:
+      - heading "Capítulo 3 El vendedor de lecturas" [level=2] [ref=e80]:
+        - generic [ref=e81]: Capítulo 3
+        - generic [ref=e82]: El vendedor de lecturas
+      - paragraph [ref=e83]: La carta llegó el sábado trece de septiembre, doblada en tres partes dentro de un sobre con el membrete del Gabinete de Peritaje Digital de Almagro, y Anselmo la dejó sobre el mostrador sin abrirla del todo, como quien deja reposar un café demasiado caliente. Lucía se la quitó de las manos antes de que él terminara de decidir si merecía la pena leerla esa misma mañana. La desplegó con el mismo gesto rápido con que abría las cajas de embalaje, y fue leyendo en voz alta mientras Canela, enroscada sobre el banco de trabajo, apenas movía una oreja. El gabinete pedía catalogar el género de la relojería antes del cierre, por los trámites de herencia fiscal que acompañaban a todo negocio que echaba el cierre después de tantos años.
+      - paragraph [ref=e84]: —Dice que pueden hacerlo en una tarde —dijo Lucía, sin levantar la vista del papel—. Con la lectura de desgaste. Pasan un lector por cada pieza y les dice la edad, el estado, hasta quién la reparó la última vez, si hay muestras de ese relojero registradas.
+      - paragraph [ref=e85]: —Ya lo sé —contestó Anselmo, sin apartar los ojos del reloj que tenía abierto delante—. Ya vinieron a ofrecérmelo la semana pasada.
+      - paragraph [ref=e86]: —Pero esto es distinto, es para el papeleo del cierre, no para vender nada. —Lucía dejó la carta encima del cristal del mostrador y se acercó al banco, con la curiosidad de quien de verdad quiere entender cómo funciona algo—. ¿Cómo sabe la máquina quién arregló una pieza si nadie se lo dijo?
+      - paragraph [ref=e87]: —Compara el desgaste con muestras que ya tiene guardadas de otros relojeros. Si tu estilo está registrado, te reconoce. Si no, no dice nada, se queda muda. —Anselmo lo explicó con la misma calma con que explicaba cualquier otra cosa del oficio, sin que se le notara si aquello le parecía prodigioso o simplemente ajeno—. Es un truco curioso. Pero no es lo mismo que saber.
+      - paragraph [ref=e88]: Lucía se apoyó en el borde del banco, apartando sin querer la cola de Canela, y esperó a que su padre completara la idea, porque sabía que detrás de esa frase corta había siempre una más larga que él tardaba en soltar. Anselmo dejó el destornillador sobre el paño, se frotó los dedos como si quisiera quitarse el aceite que no tenía, y la miró con esa expresión suya de quien va a repetir algo que ha pensado muchas veces sin necesitar ensayarlo. No era la primera vez que alguien le preguntaba por qué desconfiaba de esas máquinas que prometían tanto, y no sería la última, pero con Lucía siempre le apetecía contestar con más calma que con cualquier cliente.
+      - paragraph [ref=e89]: —Yo no confío en nada que no pueda desmontar con las manos —dijo—. Da igual lo lista que sea la máquina. Si no puedo abrirla, quitarle las piezas una a una y volver a montarla, no sé qué hay dentro de verdad, solo lo que ella me quiere contar. Y hay una diferencia entre saber la historia de un reloj y saber cuánto se ha desgastado. La lectura te da lo segundo. Lo primero solo te lo puede dar quien estuvo delante.
+      - paragraph [ref=e90]: Lucía se rio un poco, no porque le pareciera gracioso, sino porque reconocía la frase de otras veces, dicha con las mismas palabras casi exactas, como una pieza que encajaba siempre en el mismo sitio. Iba a preguntarle si aquello no era simple terquedad disfrazada de principio, cuando Anselmo cogió el destornillador de nuevo y, sin previo aviso, dijo que aquello se lo había enseñado su propio aprendizaje, el primero de todos, el que ella misma había vivido sin saber entonces que era una lección. Y entonces, mientras giraba un tornillo diminuto bajo la lupa, se le fue la mirada a otro sitio, a otro tiempo, y la voz se le quedó un momento colgada entre el taller y la memoria.
+      - paragraph [ref=e91]: Fue en 2001, en la cocina de la casa familiar, con el hule de flores todavía puesto sobre la mesa y un despertador de esfera amarilla que llevaba meses sin sonar. Anselmo había extendido un paño limpio para que las piezas no rodaran, y le había dado a Lucía un destornillador pequeño, de los que usaba para los relojes de pulsera, diciéndole que antes de arreglar nada había que aprender a deshacerlo. Ella tenía las manos torpes de niña impaciente, y él le sujetaba la muñeca cuando el tornillo se resistía, sin quitárselo nunca del todo, solo corrigiendo el ángulo. Fueron sacando la tapa trasera, luego el engranaje, luego el muelle principal, enrollado como una serpiente dormida, y Lucía quiso tocarlo antes de que él terminara de explicarle cómo sujetarlo.
+      - paragraph [ref=e92]: "El muelle saltó de la mesa con un chasquido seco y rodó por el suelo de la cocina hasta perderse debajo del aparador, y por más que buscaron esa tarde con una linterna y con las manos llenas de polvo, no volvió a aparecer. Anselmo no se enfadó, solo dijo que las piezas perdidas siempre encontraban su sitio tarde o temprano, y que ya volvería a salir cuando menos lo esperasen. Y así fue, aunque tardó años: aquel mismo muelle terminó apareciendo dentro de una maceta, enroscado entre la tierra y las raíces de una planta que nadie recordaba haber cambiado de lugar. Anselmo no dijo entonces, ni lo dijo ahora en el taller, qué le había parecido encontrarlo así, solo que lo guardó."
+      - paragraph [ref=e93]: —Por eso no me fío de las máquinas —dijo, ya de vuelta en el presente, como si no hubiera dejado de hablar en ningún momento—. Porque aquel despertador, cuando lo volví a montar, funcionaba igual que antes, pero ninguna lectura de desgaste habría sabido nunca que le faltó un muelle una tarde entera, ni que apareció dentro de una maceta cinco años después. Eso solo lo sé yo. Y ahora tú.
+      - paragraph [ref=e94]: Lucía se quedó callada un momento, no por la anécdota en sí, que ya conocía a medias, sino por cómo se la había contado, distinta de como se cuentan las cosas graciosas de familia. Después, doblando otra vez la carta del gabinete, volvió a lo que la había llevado hasta el mostrador esa mañana, porque sabía que si no insistía entonces, su padre dejaría pasar el asunto como dejaba pasar tantos otros.
+      - paragraph [ref=e95]: —Pues si van a catalogar todo antes del cierre, hay que abrir también el cajón —dijo, señalando con la barbilla hacia la trastienda—. No pueden hacer el inventario fiscal dejando fuera lo que hay ahí dentro, papá. Tarde o temprano alguien lo va a preguntar, y prefiero que sea yo antes que un funcionario del gabinete.
+      - paragraph [ref=e96]: Anselmo no contestó enseguida. Miró hacia la puerta cerrada del mueble bajo como si calculara cuántas veces más podría esquivar aquella conversación antes de que dejara de servirle de algo, y se dio cuenta de que esta vez el argumento de Lucía no tenía la grieta por la que solía escaparse. No era Tomás preguntando por curiosidad de socio viejo, era el papeleo del cierre, con fecha y con nombre de funcionario, y contra eso no tenía forma esquiva que le sirviera. Suspiró, se quitó las gafas de aumento y las dejó sobre el cristal, junto a la carta.
+      - paragraph [ref=e97]: —El sábado —dijo por fin—. Lo abrimos el sábado, antes de que venga nadie del gabinete a meter las narices. Pero lo abro yo, y catalogamos solo lo que yo diga que hay que catalogar.
+      - paragraph [ref=e98]: Lucía asintió, aunque sabía que aquella última condición no iba a durar entera, y no insistió más por esa mañana. Guardó la carta en una carpeta nueva, de las que había comprado para el cierre, y dejó que su padre volviera al reloj abierto sobre el paño, con Canela todavía dormida encima del banco, ajena a todo, como si el taller entero pudiera seguir funcionando igual aunque uno de sus cajones llevara años cerrado.
+    - article [ref=e99]:
+      - heading "Capítulo 4 El cajón" [level=2] [ref=e100]:
+        - generic [ref=e101]: Capítulo 4
+        - generic [ref=e102]: El cajón
+      - paragraph [ref=e103]: "El sábado amaneció con esa luz plana de mediados de septiembre que entraba por el escaparate vacío y se quedaba a medio camino del mostrador. Anselmo llegó antes que Lucía, como siempre, pero esta vez no encendió el soldador ni sacó el paño de fieltro: se quedó de pie frente al mueble bajo de la trastienda, con el manojo de llaves en la mano, esperando. Cuando Lucía entró con la carpeta nueva bajo el brazo y Canela pisándole los talones, él ya había elegido la llave correcta, la más pequeña y oscurecida de todas, aunque no lo dijo. Se limitó a agacharse junto al cajón y a mirarla, como pidiéndole que fuera ella quien decidiera el momento exacto de girarla."
+      - paragraph [ref=e104]: —Vamos allá —dijo Lucía, y apoyó la carpeta en el banco, junto a donde Canela ya empezaba a desperezarse sobre un trapo.
+      - paragraph [ref=e105]: "La llave giró con un chasquido seco, sin oxidarse ni resistirse, como si alguien la hubiera engrasado hacía poco sin que Lucía lo supiera. Anselmo tiró del cajón despacio, y dentro, ordenados en filas que no parecían casuales, aparecieron decenas de relojes envueltos en papel de seda amarillento, cada uno con una etiqueta manuscrita atada con un hilo fino: un nombre, a veces dos apellidos, alguna fecha borrosa por el roce de los años. Lucía cogió el primero sin pensarlo, leyó el nombre en voz alta y preguntó quién era. Anselmo tardó en contestar, y cuando lo hizo, su voz sonó más baja de lo habitual, casi de inventario forzado."
+      - paragraph [ref=e106]: —Gente que dejó el reloj para arreglar y nunca volvió a por él —dijo, sin levantar la vista del cajón—. Algunos se mudaron, otros se murieron, y algunos simplemente decidieron que ya no lo necesitaban. Yo no tiro lo que no es mío, Lucía, aunque lleve aquí treinta años esperando a nadie.
+      - paragraph [ref=e107]: "Lucía fue sacando piezas una a una y anotando los nombres en su carpeta, con la letra apretada de quien intenta no dejar traslucir que aquello le remueve algo. Había relojes de pulsera con correas resecas, despertadores de viaje sin cuerda, un cronómetro con la esfera picada de humedad. Cada etiqueta era una historia que Anselmo conocía de memoria y que no contaba entera, solo lo justo para que su hija pudiera anotar una referencia fiscal: fecha aproximada de entrada, tipo de mecanismo, estado. Canela, ya despierta del todo, se acercó al borde del cajón abierto y metió el hocico entre el papel de seda, como si también ella quisiera participar del inventario de lo que nadie había venido a reclamar."
+      - paragraph [ref=e108]: "Fue Lucía quien encontró la caja distinta, hacia el fondo, sin etiqueta ni hilo ni nombre escrito por ninguna parte: una caja de cartón reforzado, más pequeña que las demás, cerrada con una goma que se deshizo entre sus dedos en cuanto tiró de ella. Dentro, envuelto en un paño que ya no tenía color, había un reloj de bolsillo con la esfera de esmalte azul, sin agujas, con el mecanismo a la vista y claramente inacabado, como si a alguien lo hubieran interrumpido a media tarea y nunca hubiera vuelto a retomarla. Lucía lo levantó hacia la luz del escaparate para verlo mejor y se lo tendió a su padre."
+      - paragraph [ref=e109]: Anselmo lo cogió con las dos manos y se quedó quieto de una manera que Lucía no le había visto en toda la semana, ni siquiera cuando llegó la carta del gabinete. No dijo nada. Giró la caja despacio, pasó el pulgar por el borde de la esfera azul, y algo en su cara se cerró como se cierra una puerta que no quiere dar explicaciones. Lucía esperó una respuesta, la etiqueta que faltaba, el nombre del cliente, cualquier cosa que ordenara aquel objeto dentro del sistema que llevaban construyendo toda la mañana, pero su padre solo depositó el reloj sobre el banco, junto al resto, y siguió mirándolo como si el resto del cajón hubiera dejado de existir.
+      - paragraph [ref=e110]: Canela aprovechó el silencio para subirse al banco de un salto y tumbarse encima de la caja abierta, ovillada exactamente sobre el paño descolorido, con la misma quietud confiada de siempre. Lucía la observó un momento y sonrió, porque aquella postura le trajo un recuerdo que no había vuelto a contar en voz alta desde hacía años.
+      - paragraph [ref=e111]: —Igual que cuando la encontraste —dijo—. Recién nacida, dentro de la caja de un reloj de pared que alguien había dejado en la puerta, ¿te acuerdas? Yo no había nacido para verlo, pero me lo has contado tantas veces que a veces creo que sí.
+      - paragraph [ref=e112]: "Anselmo asintió sin apartar los ojos del reloj de bolsillo, y Lucía, siguiendo el hilo de su propio recuerdo, se dio cuenta de algo que nunca había pensado con esas palabras exactas: su padre guardaba lo que llegaba sin dueño conocido, fuera un gato recién nacido o un mecanismo sin terminar, y con ambos hacía lo mismo, que era no preguntar y quedárselos de todas formas. Lo dijo así, en voz baja, más para sí misma que para él, y Anselmo no lo negó ni lo confirmó, se limitó a sacar la lupa de aumento del cajón del banco y a inclinarse sobre el escape del reloj de bolsillo con una concentración que a Lucía le pareció excesiva para una pieza que ni siquiera iban a poder identificar."
+      - paragraph [ref=e113]: Pasó el dedo, con mucho cuidado, por el borde del áncora, siguiendo el trazo minúsculo de una lima que había dejado marcas particulares, casi una firma, en el metal. Anselmo conocía ese trazo. Lo reconoció en el momento exacto en que su dedo tocó el filo, con la misma certeza con la que reconocía el sonido de una campana bien templada, y murmuró algo entre dientes que Lucía no llegó a entender del todo, dos sílabas apenas, como si estuviera confirmando en voz baja algo que llevaba mucho tiempo temiendo o esperando, no supo decir cuál de las dos cosas.
+      - paragraph [ref=e114]: —¿Qué has dicho? —preguntó Lucía, dejando la carpeta a un lado.
+      - paragraph [ref=e115]: —Nada —respondió Anselmo, y guardó la lupa demasiado deprisa para que sonara convincente—. Un vicio de relojero viejo, hablar solo delante de las piezas difíciles.
+      - paragraph [ref=e116]: Lucía no insistió, pero tampoco le creyó, porque conocía de sobra esa forma suya de cerrar una frase justo antes de que dijera algo importante, la misma que Tomás llevaba treinta años señalándole sin conseguir nunca que Anselmo la abandonara del todo. Envolvió el reloj de bolsillo otra vez en el paño descolorido, con más cuidado del que había puesto en cualquier otra pieza del cajón, y lo dejó aparte, sin etiqueta ni número de inventario, como si necesitara decidir algo antes de convertirlo en una línea más de la carpeta de su hija. Canela, desalojada de su sitio, se acomodó al lado, vigilando la caja con los ojos entornados, y el resto de la mañana transcurrió con el cajón medio vacío entre los dos y aquella caja aparte, todavía sin nombre.
+    - article [ref=e117]:
+      - heading "Capítulo 5 Relojería Roldán" [level=2] [ref=e118]:
+        - generic [ref=e119]: Capítulo 5
+        - generic [ref=e120]: Relojería Roldán
+      - paragraph [ref=e121]: Tomás llegó al taller a la hora de siempre, con el periódico doblado bajo el brazo y la misma broma a medio hacer que llevaba veinte años repitiendo antes de cruzar la puerta. La broma se le quedó en la garganta. Sobre el banco de trabajo, fuera de su caja y bajo la lupa articulada, estaba el reloj de bolsillo de esfera de esmalte azul, con el escape a la vista y las agujas todavía ausentes. Tomás se paró en el umbral con una mano apoyada en el marco, y el color le desapareció de la cara con la misma rapidez con la que un mecanismo se para cuando se le agota la cuerda.
+      - paragraph [ref=e122]: Anselmo levantó la vista de las pinzas y observó a su socio de treinta años quedarse plantado sin cruzar el resto de la tienda, sin sentarse en su silla de siempre, sin siquiera dejar el periódico sobre el mostrador. No hacía falta preguntar dos veces para saber que Tomás había reconocido la pieza. Cerró la lupa con un chasquido seco y clavó en él una mirada que no dejaba sitio a la evasiva de otras veces.
+      - paragraph [ref=e123]: —¿Qué sabes tú de este reloj, Tomás?
+      - paragraph [ref=e124]: —Nada —dijo Tomás, y hasta a él le sonó mal—. ¿De dónde lo has sacado?
+      - paragraph [ref=e125]: —Estaba en el cajón. Llevaba ahí treinta años, según parece. —Anselmo dejó las pinzas junto a la lupa, despacio, como quien no quiere asustar a un animal—. Y tú acabas de mirarlo como si hubieras visto un fantasma.
+      - paragraph [ref=e126]: En 1986, cuando Vicente Roldán decidió que el corazón ya no le daba para pasarse las jornadas encorvado sobre un banco, llamó a Anselmo a la trastienda una mañana de junio y le puso en las manos un juego de llaves sin ceremonia ninguna, como quien devuelve un préstamo. Anselmo tenía veinticinco años y llevaba desde la adolescencia de aprendiz a su lado, aprendiendo a leer un escape antes que a conducir. El rótulo de la fachada seguía diciendo «Relojería Roldán», y Vicente lo señaló con la barbilla antes de sentarse, ya cansado, en la silla que hasta entonces había sido suya.
+      - paragraph [ref=e127]: —Este taller va a ser tuyo los próximos cuarenta años, si tienes la paciencia que yo tuve —le dijo, y no sonaba a advertencia sino a promesa—. Cámbiale el nombre cuando quieras. Yo ya no voy a estar aquí para verlo.
+      - paragraph [ref=e128]: Anselmo protestó, como era de esperar de un muchacho que todavía se sentía aprendiz, pero Vicente cortó la discusión cerrándole los dedos alrededor de las llaves y no volvió a abrir el tema. Se marchó esa misma tarde con su caja de herramientas personales bajo el brazo, dejando atrás las que había usado toda la vida en el banco, y durante años solo pasó por la relojería de visita, a tomar café y a comprobar, con una mirada rápida y satisfecha, que el trazo de Anselmo sobre las piezas se le parecía cada vez más al suyo.
+      - paragraph [ref=e129]: "En noviembre de 1995, ya retirado y con las manos menos firmes de lo que él mismo quería reconocer, Vicente empezó a trabajar a escondidas en un reloj de bolsillo con esfera de esmalte azul. No se lo dijo a nadie, ni siquiera a Anselmo, que por entonces llevaba ya nueve años al frente del negocio y jamás había recibido de su maestro un título, un diploma, una ceremonia que cerrase formalmente su aprendizaje. Vicente había decidido que aquel reloj sería eso: la graduación que nunca le dio, tarde pero suya, grabada con sus propias manos en la tapa antes de que ya no pudiera sostener la lima."
+      - paragraph [ref=e130]: "Trabajaba de noche, cuando nadie podía sorprenderlo, ajustando el escape de áncora con esa lima muy fina que era, entre todos los relojeros de la comarca, su firma silenciosa. Grabó las iniciales «A.R.» en la tapa interior y empezó la fecha: «19 de...», dos palabras y un espacio en blanco que pensaba completar cuando decidiera el día exacto de la entrega. Esa noche del 10 de noviembre, con la buril todavía entre los dedos, el corazón le falló de golpe, sin avisos previos que él hubiera sabido reconocer, y el reloj quedó donde estaba, con la fecha a medias y las agujas por poner, esperando una mano que ya no volvería."
+      - paragraph [ref=e131]: De vuelta en el presente, Tomás se sentó por fin, pero en el borde de la silla, como si no confiara del todo en quedarse. Se pasó la mano por la cara antes de hablar, y cuando lo hizo, la voz le salió más baja de lo habitual.
+      - paragraph [ref=e132]: —Lo encontré yo. En 1996, cuando empecé aquí contigo, entre unas cajas que nadie había tocado desde que Vicente murió. Reconocí enseguida de quién era el trazo, porque tú me lo habías enseñado tú mismo sin darte cuenta, señalándome piezas antiguas y diciendo «esto es de mi maestro, mira qué lima». Lo abrí, vi las iniciales, até cabos. Y decidí guardarlo.
+      - paragraph [ref=e133]: —¿Por qué no me lo dijiste entonces?
+      - paragraph [ref=e134]: —Porque acababas de perderlo, Anselmo. Llevabas apenas un año sin él, todavía te oía nombrarlo en pasado con la voz rota, y pensé que enseñarte un regalo sin terminar, con tu nombre a medio grabar, iba a ser peor que no enseñarte nada. Lo metí en el cajón de lo no reclamado, donde nadie iba a preguntar por él, y me dije que ya buscaría el momento. Treinta años después sigo sin haber encontrado ese momento mejor que este.
+      - paragraph [ref=e135]: Anselmo no dijo nada enseguida. Miró el reloj bajo la lupa, la fecha inconclusa, el hueco donde deberían ir las agujas, y sintió que la explicación de Tomás encajaba con demasiada exactitud en todo lo que llevaba treinta años sin entender de aquel cajón cerrado. No era enfado lo que le subía por el pecho, sino algo más parecido al reconocimiento tardío de una lealtad que había tomado la forma equivocada del silencio. Tomás lo observaba esperando un reproche que no llegó, solo la mano de Anselmo posándose, firme, sobre su brazo.
+      - paragraph [ref=e136]: —Treinta años cargando tú solo con esto —dijo Anselmo al fin—. Y yo pensando que el cajón guardaba solo relojes de desconocidos.
+      - paragraph [ref=e137]: —Guardaba uno tuyo, sin que tú lo supieras. Lo siento.
+      - paragraph [ref=e138]: —No lo sientas —respondió Anselmo, y volvió a mirar la esfera azul, todavía muda, todavía sin fecha completa—. Sabías callar cuando había que callar. Eso también es un oficio, Tomás, aunque no lo enseñen en ningún taller.
+    - article [ref=e139]:
+      - heading "Capítulo 6 Lo que no se puede desmontar" [level=2] [ref=e140]:
+        - generic [ref=e141]: Capítulo 6
+        - generic [ref=e142]: Lo que no se puede desmontar
+      - paragraph [ref=e143]: Anselmo no había dormido bien. Se había quedado despierto dando vueltas a la misma frase, «lo siento», hasta que el techo de su dormitorio dejó de tener sentido y solo quedó la esfera azul flotando detrás de sus párpados cerrados. A las nueve menos cuarto ya estaba en el taller, con la persiana a medio subir y la lupa articulada todavía en la posición donde Tomás la había dejado la tarde anterior. Se sentó frente al banco, cogió el reloj de bolsillo con las dos manos, y por primera vez en cuarenta años sintió que el oficio que tanto le había enseñado a esperar no le servía de nada frente a lo que ya había pasado sin que él lo supiera.
+      - paragraph [ref=e144]: Tomás llegó puntual, como siempre, y encontró a Anselmo de pie, no sentado, con la caja abierta sobre el banco y una tensión en los hombros que no era la habitual. No dijo nada al entrar, esperando el silencio cómodo de otras mañanas, pero Anselmo habló antes de que él pudiera sentarse.
+      - paragraph [ref=e145]: —Cuarenta años en este taller, Tomás. Cuarenta años pensando que lo sabía todo de lo que pasaba entre estas cuatro paredes, y resulta que había un regalo mío guardado a diez metros de donde yo trabajaba cada día.
+      - paragraph [ref=e146]: —Anselmo…
+      - paragraph [ref=e147]: —Déjame terminar. No es contigo. —Se pasó la mano por la cara, y la voz, que en treinta años Tomás solo le había oído firme o serena, le salió quebrada—. Es con el tiempo. Con no haberlo sabido. Con haber pasado por delante de ese cajón mil veces sin que nada me avisara de lo que había dentro.
+      - paragraph [ref=e148]: "Tomás lo dejó hablar. Sabía, por los mismos treinta años de sociedad, que aquello no pedía respuesta sino espacio, y que la paciencia que todo el pueblo le reconocía a Anselmo no era ausencia de rabia, sino la costumbre de tardar en soltarla. Cuando Anselmo calló, se sentó despacio en el taburete de siempre y dejó pasar el silencio hasta que la respiración de su amigo volvió a su ritmo de trabajo. No hicieron falta más palabras esa mañana: Anselmo cogió un paño y empezó a limpiar la lupa que no necesitaba limpieza, y con ese gesto quedó dicho que la tormenta, la única que Tomás recordaba haberle visto, ya había pasado."
+      - paragraph [ref=e149]: Media hora más tarde llegó Lucía con el correo del día y encontró a su padre todavía frente al reloj de bolsillo, más calmado pero con la mandíbula apretada de quien ha estado mordiendo algo toda la mañana. Dejó las cartas sobre el mostrador y se acercó al banco, mirando la esfera azul bajo la luz de la ventana.
+      - paragraph [ref=e150]: —Deberíamos llevarlo al Gabinete de Peritaje Digital —dijo, sin rodeos—. Tienen la lectura de desgaste. Si de verdad es de Vicente Roldán, el escape lo va a confirmar comparando el trazo con lo que tengan registrado de él. No hace falta que sea solo lo que tú reconoces a ojo.
+      - paragraph [ref=e151]: Anselmo levantó la vista con una expresión que Lucía conocía bien, la misma que ponía cuando alguien le sugería sustituir un muelle en vez de repararlo.
+      - paragraph [ref=e152]: —A ojo lo reconocí hace tres días y no me hizo falta ninguna máquina.
+      - paragraph [ref=e153]: —Ya lo sé, papá. Pero esto no es para ti. Es para que quede constancia, para el gabinete, para cuando cierres el taller y alguien pregunte algún día qué pasó con ese reloj. Una máquina no discute, no se emociona, no calla treinta años una cosa para protegerte.
+      - paragraph [ref=e154]: Anselmo no contestó enseguida. Dejó la lupa sobre el paño y miró el reloj como si la propuesta de su hija fuera otra pieza más que había que desmontar antes de aceptar que encajaba.
+      - paragraph [ref=e155]: —No confío en lo que no puedo abrir con mis propias manos, Lucía. Lo sabes desde que eras pequeña. Un informe de desgaste te dice cuánto se ha limado un escape, pero no te dice por qué alguien decidió guardarlo en un cajón durante treinta años en vez de dártelo. Eso solo te lo dice una persona, mirándote a la cara, como hizo Tomás ayer.
+      - paragraph [ref=e156]: —Nadie te está pidiendo que cambies de opinión sobre las personas. Solo que confirmes el nombre.
+      - paragraph [ref=e157]: —El nombre ya lo sé.
+      - paragraph [ref=e158]: —Pues confírmalo para los demás, entonces. Para mí. —Lucía se cruzó de brazos, y en su tono había menos súplica que la determinación tranquila que había heredado de él sin proponérselo—. Vas a jubilarte este mes, papá. Este es el último trabajo que sale de tus manos con el nombre de Relojería Roldán detrás. Déjame acompañarte a comprobarlo bien, aunque sea a tu manera.
+      - paragraph [ref=e159]: Anselmo resopló, y por un momento pareció que iba a repetir, palabra por palabra, la misma negativa que llevaba dando desde que el representante del gabinete había cruzado la puerta la semana anterior. Miró el reloj de bolsillo, la esfera intacta bajo la costra de polvo, y sintió que la resistencia de siempre, la de toda una vida desconfiando de lo que no se puede desmontar con los dedos, se le había vuelto más pesada de lo habitual esa mañana, como si el peso no fuera del reloj sino de los cuarenta años enteros que llevaba cargando el oficio.
+      - paragraph [ref=e160]: Fue Canela quien decidió el resto de la tarde. Subió al banco de trabajo poco antes de las ocho, cuando Anselmo ya recogía las herramientas y Lucía cerraba las persianas, y clavó las uñas en el borde de la caja del reloj con la insistencia de quien lleva un rato reclamando algo que nadie le ha dado. Anselmo la apartó una vez, dos veces, y a la tercera la gata volvió a arañar la madera con un maullido tan indignado que él soltó una carcajada que llevaba días sin soltar.
+      - paragraph [ref=e161]: —Está bien, está bien —le dijo a la gata, y luego a Lucía, que se había asomado a ver el escándalo—. Iremos al gabinete. No porque confíe en la máquina, que conste, sino porque quiero estar seguro del todo antes de que ese reloj lleve mi nombre a ningún sitio. Y porque esta —señaló a Canela, que ya se acomodaba encima de la caja como si hubiera ganado algo— no me va a dejar trabajar tranquilo hasta que yo ceda.
+      - paragraph [ref=e162]: Lucía sonrió, guardó las llaves y no dijo nada más, dejando que la victoria fuera silenciosa. Anselmo cerró el taller esa noche con el mismo gesto de siempre, la persiana, el pestillo, la luz del escaparate apagándose la última, pero silbó un bolero distinto al de costumbre, uno más lento, con pausas donde antes no las había, como si también su costumbre de cerrar necesitara, por una vez, tomarse su tiempo antes de decidir que todo estaba en su sitio.
+    - article [ref=e163]:
+      - heading "Capítulo 7 La lectura" [level=2] [ref=e164]:
+        - generic [ref=e165]: Capítulo 7
+        - generic [ref=e166]: La lectura
+      - paragraph [ref=e167]: El Gabinete de Peritaje Digital de Almagro ocupaba una antigua casa de indianos reconvertida, con la fachada de piedra intacta y, detrás de ella, una sala blanca donde ni un solo mueble recordaba al resto del edificio. Anselmo entró con el reloj de bolsillo envuelto en un paño, sujetándolo contra el pecho como quien lleva algo que pesa más de lo que pesa. Lucía caminaba dos pasos por delante, ya familiarizada con el sitio por la carta que habían recibido semanas atrás. Los cuiden de este mundo nuevo no le quitaban a Anselmo la sensación de estar entrando en territorio ajeno, un lugar donde las máquinas opinaban sobre oficios que él había aprendido con las manos.
+      - paragraph [ref=e168]: Nieves Solá los recibió en la puerta de la sala principal, con una bata clara y un gesto que a Anselmo le pareció más de médico que de perita. Le tendió la mano a él primero, y luego a Lucía, y los invitó a sentarse frente a una mesa donde ya esperaba, bajo una cúpula de cristal, un brazo articulado con una lente diminuta en la punta.
+      - paragraph [ref=e169]: "—Lo que hacemos aquí es leer el desgaste —explicó, colocando el reloj bajo la lente con un cuidado que Anselmo agradeció sin decirlo—. Cada persona que ajusta un mecanismo deja un trazo propio: la presión de la lima, el ángulo del destornillador, la forma de rematar un escape. Si esa persona tiene muestras registradas de trabajos anteriores, el sistema puede comparar y decir quién estuvo aquí."
+      - paragraph [ref=e170]: Anselmo escuchaba con los brazos cruzados, más atento a la lente que a la voz de la perita, como si pudiera desmontar la explicación igual que desmontaba un reloj. Lucía, en cambio, se inclinó hacia la pantalla que empezaba a llenarse de líneas y curvas, fascinada por algo que a su padre seguía pareciéndole un truco de feria. Usted no necesita creer en la máquina, le dijo Nieves Solá cuando notó su gesto, solo necesita esperar a que termine de leer lo que ya está escrito en el metal, y esa frase, dicha con calma, fue lo único que consiguió que Anselmo dejara de cruzar los brazos.
+      - paragraph [ref=e171]: El análisis tardó veinte minutos, durante los cuales Nieves Solá les habló de otros casos, relojes de familia que habían aparecido en herencias sin firma ni certeza, y de cómo la lectura de desgaste a veces devolvía nombres que nadie recordaba haber mencionado. Anselmo la escuchaba a medias, mirando el paño vacío sobre sus rodillas, y Lucía le apretó el brazo una vez, sin palabras, cuando la pantalla emitió un aviso sonoro y el informe empezó a componerse línea a línea frente a los tres.
+      - paragraph [ref=e172]: "—Aquí está —dijo Nieves Solá, girando la pantalla hacia ellos—. El ajuste del escape coincide con un estilo ya registrado en nuestra base: un relojero de esta comarca que trabajó hasta mediados de los noventa. La firma técnica es suya, sin margen de duda razonable."
+      - paragraph [ref=e173]: Anselmo leyó el nombre en la pantalla antes de que nadie lo dijera en voz alta, y algo en el pecho se le aflojó y se le tensó a la vez, como una cuerda que por fin encuentra su tensión correcta. Vicente Roldán. El sistema fechaba la pieza entre 1994 y 1995, un margen que a Lucía le pareció amplio hasta que Anselmo, con la voz más baja de lo habitual, dijo que ese margen coincidía exactamente con los últimos meses de vida de su maestro, los mismos en que él ya lo daba por retirado del oficio y no por trabajando a escondidas en un regalo.
+      - paragraph [ref=e174]: "Nieves Solá dejó pasar un silencio antes de señalar, con la punta de un lápiz óptico, la tapa interior del reloj proyectada en la pantalla ampliada varias veces su tamaño. Había una inscripción incompleta, apenas legible a simple vista, que la lente sí conseguía descifrar: dos letras seguidas de un guion y una cifra cortada a mitad de trazo."
+      - paragraph [ref=e175]: —«A.R. — 19 de...» —leyó Lucía en voz alta, y miró a su padre buscando una explicación que él tardó unos segundos en darle.
+      - paragraph [ref=e176]: Anselmo Roldán, dijo entonces, aunque el apellido no lo llevara ya nadie del taller salvo en la memoria de quien lo grabó, y Lucía entendió antes de que él terminara la frase que esas dos letras eran las iniciales que Vicente había querido dejar en la tapa, las de un aprendiz al que consideraba, a todos los efectos, su continuación. La fecha, sin embargo, se cortaba después del diecinueve, sin mes ni año, como si la mano que la grababa se hubiera detenido a media línea sin saber que no volvería a retomarla.
+      - paragraph [ref=e177]: —Se quedó sin terminar la fecha —dijo Anselmo, y no hacía falta que añadiera por qué, porque Lucía ya conocía, desde el relato de Tomás, la noche de noviembre en que el corazón de Vicente se detuvo con la lima todavía en la mano.
+      - paragraph [ref=e178]: Nieves Solá no dijo nada más; entendió, por el modo en que ambos se quedaron mirando la pantalla, que aquello ya no era un dato técnico sino algo que debía terminar de leerse en otro sitio, y les entregó el informe impreso junto con el reloj envuelto de nuevo en su paño.
+      - paragraph [ref=e179]: De vuelta en el taller, Anselmo colocó el reloj sobre el banco de trabajo, bajo la lupa articulada, y se quedó de pie un momento antes de sentarse, algo que Lucía no le había visto hacer nunca. Canela dormía en su rincón de siempre, ajena al informe que su padre sostenía todavía doblado en la mano, y el silencio del taller a esa hora de la mañana le pareció a Lucía distinto del silencio de otros días, más lleno.
+      - paragraph [ref=e180]: —Cuarenta años —dijo Anselmo por fin, sin dirigirse del todo a Lucía, como quien piensa en voz alta porque llevar el pensamiento por dentro ya no le cabe—. Vicente me dijo que el taller sería mío durante los próximos cuarenta años si tenía la paciencia. Yo pensé que hablaba del negocio. Y todo este tiempo, este reloj ha estado esperando el día exacto en que yo estuviera listo para graduarme del oficio, no antes.
+      - paragraph [ref=e181]: Lucía se sentó a su lado, sin apresurar la respuesta, dejando que su padre llegara solo hasta donde tenía que llegar, y fue entonces cuando Anselmo dijo, casi para sí, que un reloj parado acierta dos veces al día, y que eso ya es más de lo que hacen muchas personas en su vida entera, la misma frase que llevaba repitiendo desde antes de que Lucía naciera, pero pronunciada esa mañana con un peso distinto, como si por primera vez entendiera de quién era el consuelo que llevaba años ofreciendo a los demás sin dárselo a sí mismo.
+      - paragraph [ref=e182]: —Siempre pensé que ese reloj estaba roto, ahí guardado en el cajón sin nadie que lo reclamara —dijo, pasando el dedo por el cristal de la esfera azul sin llegar a tocarla—. Y no estaba roto. Estaba parado a propósito, esperando su hora, igual que yo llevo cuarenta años esperando la mía sin saber que la estaba esperando.
+      - paragraph [ref=e183]: Lucía no dijo nada, pero apoyó la mano sobre la de su padre, encima del banco de trabajo, y se quedaron así un rato, mientras la luz de la mañana entraba por el escaparate vacío y Canela se desperezaba despacio, sin prisa, como si también ella supiera que aquella hora, por fin, había llegado a su sitio.
+    - article [ref=e184]:
+      - heading "Capítulo 8 El muelle en la maceta" [level=2] [ref=e185]:
+        - generic [ref=e186]: Capítulo 8
+        - generic [ref=e187]: El muelle en la maceta
+      - paragraph [ref=e188]: Anselmo llegó al taller antes de que sonaran las ocho, como llevaba haciendo cuarenta años, aunque ya solo quedaban diez días para que la persiana no volviera a subir. Sobre el banco, bajo la lupa articulada, seguía el reloj de bolsillo de esfera azul, con el escape ajustado por Vicente Roldán tres décadas atrás y las agujas todavía ausentes, como si el tiempo dentro de la caja llevara treinta años esperando a que alguien le diera permiso para volver a contar. Anselmo se sentó, encendió el flexo y apartó a un lado la lista de piezas que faltaba catalogar para el Gabinete de Peritaje Digital. Había otras cosas pendientes antes del cierre, pero ninguna con la urgencia de aquella. Decidió, sin decírselo a nadie todavía, que ese reloj sería el último trabajo que saliera de sus manos en la relojería.
+      - paragraph [ref=e189]: No lo anunció como una decisión solemne. Simplemente cogió el destornillador más fino, el que usaba para los mecanismos que no perdonaban un temblor, y empezó a limpiar el polvo acumulado en el puente del volante. Llevaba toda la vida terminando relojes ajenos para que otros supieran la hora, y ahora, a diez días de jubilarse, le tocaba terminar uno para sí mismo. Pensó que había una diferencia entre reparar y terminar, y que ese reloj llevaba treinta años necesitando lo segundo, no lo primero. El escape estaba intacto, la esfera de esmalte azul conservaba el color, pero le faltaban las agujas y el ajuste final del muelle real, la pieza que hace que un mecanismo deje de ser una promesa y empiece a ser un reloj.
+      - paragraph [ref=e190]: Lucía llegó a media mañana con dos cajas más vacías, dispuesta a seguir con el embalaje, pero se detuvo al ver a su padre inclinado sobre el banco con una concentración que no era la de catalogar. Se acercó despacio, sin interrumpir, y se sentó en el taburete de siempre, el que llevaba usando desde niña cuando venía a ver trabajar a su padre las tardes de verano. Anselmo, sin levantar la vista del mecanismo, empezó a hablar como quien piensa en voz alta porque el silencio ya no le alcanza para pensar solo.
+      - paragraph [ref=e191]: —¿Te acuerdas del muelle de aquel despertador? —preguntó, sujetando entre dos pinzas una pieza diminuta—. El que perdiste en la cocina, cuando tenías la mesa llena de tornillos y no sabías por dónde volver a montarlo.
+      - paragraph [ref=e192]: —Me acuerdo de que lloré —dijo Lucía—. Creía que lo había roto todo.
+      - paragraph [ref=e193]: "—No lo habías roto. Se te escapó de entre los dedos y salió rodando hacia algún sitio que ninguno de los dos vimos. Estuvimos media tarde buscándolo debajo de los muebles, y al final decidimos que se lo había tragado la casa. —Anselmo sonrió sin dejar la pinza quieta—. Y apareció años después, dentro de una maceta, cuando tu madre cambió la tierra de los geranios. Nadie sabe cómo llegó hasta allí. Solo sé que este reloj es igual: llevaba treinta años en un cajón, esperando a que alguien removiera la tierra correcta para encontrarlo."
+      - paragraph [ref=e194]: "Lucía se quedó mirando el mecanismo abierto sobre el paño, las ruedas diminutas alineadas como si llevaran toda la vida esperando ese orden exacto. Le pareció que su padre no hablaba del reloj, o no solo del reloj, sino de todo lo que se pierde sin romperse, de todo lo que sigue existiendo en algún lugar aunque nadie lo busque. Pensó en decir algo sobre la lectura de desgaste, sobre cómo la tecnología del gabinete habría encontrado el muelle en la maceta en cuestión de minutos, pero se calló, porque entendió que su padre no estaba resolviendo un misterio: estaba cerrando algo que llevaba treinta años abierto, y eso no lo hacía ninguna máquina."
+      - paragraph [ref=e195]: "Pasada la media mañana, Anselmo cogió el buril más fino y acercó la tapa interior del reloj a la luz del flexo. Ahí seguía la inscripción que Vicente Roldán había dejado a medias la noche de su muerte: las iniciales «A.R.» y, debajo, una fecha que nunca llegó a completar, «19 de...», cortada en seco como si la mano que la grababa hubiera tenido que soltar la herramienta de golpe. Anselmo la miró largo rato, pasando el pulgar por el borde sin tocar el grabado, y decidió que no iba a inventarle a Vicente el final de esa frase. No sabía qué día pensaba escribir su maestro, y fingir que lo sabía habría sido otra forma de no dejarlo descansar."
+      - paragraph [ref=e196]: —Sujétame esto —le dijo a Lucía, tendiéndole la tapa y las agujas ya montadas, mientras él sostenía el buril con la mano firme de siempre.
+      - paragraph [ref=e197]: "Lucía sostuvo las piezas sin apenas respirar, notando el peso liviano del metal, mientras su padre grababa debajo de la fecha inacabada de Vicente una línea nueva: el día de hoy, veinte de septiembre de dos mil veintiséis. No completó la frase de su maestro; la dejó donde Vicente la había dejado, como una firma que no le correspondía terminar a él. Simplemente añadió la suya, la fecha en que el reloj, por fin, quedaba hecho. El trazo salió limpio, sin temblor, y cuando Anselmo levantó la vista hacia Lucía, tenía en los ojos algo que no era orgullo ni tristeza, sino las dos cosas mezcladas de una forma que ella no había visto nunca en él."
+      - paragraph [ref=e198]: —No hacía falta adivinar lo que iba a escribir —dijo Anselmo, devolviendo el buril a su sitio en el tablero de herramientas—. Bastaba con escribir lo que era verdad hoy.
+      - paragraph [ref=e199]: Canela, que llevaba toda la mañana enroscada en el banco de trabajo, levantó la cabeza cuando Anselmo montó las agujas sobre la esfera de esmalte azul y ajustó el muelle real con un giro exacto de la corona. No se subió encima de la caja, como había hecho el día en que apareció en el cajón, ni la arañó como cuando exigía que Anselmo la llevara al gabinete; se quedó quieta en el borde del banco, observando con esa atención rara que solo tienen los animales cuando saben que algo está a punto de terminar. Anselmo lo notó y pensó que hasta la gata parecía entender que aquel reloj ya no necesitaba que nadie lo empujara.
+      - paragraph [ref=e200]: "El segundero se movió por primera vez en cuarenta años con un tictac apenas audible, tan tenue que Lucía tuvo que contener la respiración para asegurarse de que no lo imaginaba. Anselmo dejó el reloj sobre el paño, sin tocarlo más, y se quedó mirando cómo la aguja avanzaba su primer minuto entero. No sintió que recuperara nada de Vicente, ni los años que llevaba sin él, ni la tarde en que se hizo cargo del taller con veinticinco años y toda la vida por delante. Sintió, en cambio, que por fin podía dejarlo ir: que terminar aquel reloj no era traer de vuelta al maestro que lo empezó, sino soltarlo del todo, dejarlo marchar con la hora ya dada y el trabajo ya cerrado."
+      - paragraph [ref=e201]: —Cuarenta años —dijo, y esta vez la frase no le pesó como en otras mañanas—. Y resulta que terminar algo no es quedarse con ello. Es justo lo contrario.
+      - paragraph [ref=e202]: Lucía no preguntó nada. Dejó el reloj entre los dos, sobre el banco, con la esfera azul reflejando la luz de la mañana, y se quedaron así un rato, escuchando el tictac diminuto que llenaba el taller vacío de una manera que ningún silencio anterior había llenado, mientras Canela, satisfecha, volvía a enroscarse junto a la caja sin necesidad de dormirse encima de ella.
+    - article [ref=e203]:
+      - heading "Capítulo 9 La fiesta" [level=2] [ref=e204]:
+        - generic [ref=e205]: Capítulo 9
+        - generic [ref=e206]: La fiesta
+      - paragraph [ref=e207]: "La Plaza Mayor de Almagro se llenó esa tarde de sillas plegables, guirnaldas de papel y mesas cubiertas con manteles blancos que alguien había prendido con pinzas para que el viento no las levantara. A las siete ya no cabía un alfiler: vecinos que habían pasado por el taller alguna vez en cuarenta años, otros que solo conocían a Anselmo de vista, todos reunidos bajo los soportales mientras las farolas empezaban a encenderse. Encima de todos, la torre del reloj marcaba la hora con la misma exactitud que llevaba marcándola desde 1989, cuando Anselmo la devolvió a la vida después de una década de silencio. Nadie lo mencionó en voz alta esa noche, pero más de uno levantó la vista hacia las agujas antes de servirse una copa, como si el propio reloj fuera también un invitado de honor."
+      - paragraph [ref=e208]: Anselmo se dejó llevar de mesa en mesa con la incomodidad de quien no está acostumbrado a que le feliciten por algo tan simple como haber trabajado toda la vida. Lucía lo seguía de cerca, repartiendo servilletas y presentaciones, orgullosa de cada abrazo que su padre recibía y que él aceptaba con la cabeza gacha y una media sonrisa. Tomás esperaba junto a la fuente, con dos copas ya servidas, observando la escena con la misma paciencia con que había esperado treinta años a que llegara este momento sin saber exactamente cuál sería. Cuando Anselmo se acercó, Tomás le tendió una de las copas sin decir nada todavía, dejando que fuera el propio silencio el que abriera la conversación que ambos sabían pendiente.
+      - paragraph [ref=e209]: —Llevo días pensando qué decirte —empezó Tomás, girando la copa entre los dedos— y no me sale nada que no suene ensayado.
+      - paragraph [ref=e210]: —Pues no lo ensayes —respondió Anselmo—. Bastante ensayadas fueron ya tus respuestas sobre el cajón.
+      - paragraph [ref=e211]: "Tomás bajó la vista, pero Anselmo no dejó que el silencio se instalara esta vez. Le puso una mano en el hombro, algo que no había hecho en los treinta años que llevaban de socios, y dijo que había pensado mucho en aquello desde que se enteró: en lo fácil que habría sido para Tomás entregarle el reloj en 1996 y quitarse el peso de encima, y en lo difícil que debió de ser cargar con él cada día, a diez metros de su banco de trabajo, sabiendo lo que sabía. Entendía, le dijo, que callar treinta años no había sido cobardía sino cuidado, la misma clase de cuidado que él mismo había puesto siempre en cada reparación: la de no tocar nada hasta que estuviera seguro de no hacer daño."
+      - paragraph [ref=e212]: —Un socio de verdad no es el que te dice lo que quieres oír —añadió Anselmo—, sino el que sabe cuándo callarse algo para protegerte. Eso también es un oficio, Tomás. Puede que el más difícil de todos.
+      - paragraph [ref=e213]: Tomás levantó por fin la mirada y chocaron las copas sin necesidad de brindis solemne, como habían hecho tantas tardes de trabajo terminado, solo que esta vez el gesto cerraba algo que llevaba diez días abierto. Bebieron despacio, sin prisa, mientras la música de la plaza subía un poco de volumen y alguien encendía las primeras luces colgadas entre los soportales. Por un instante volvieron a ser los dos socios de siempre, el maestro y el aprendiz que con los años había dejado de serlo, unidos otra vez por algo que ya no necesitaba explicación.
+      - paragraph [ref=e214]: Fue entonces cuando Lucía se abrió paso entre la gente con un paquete envuelto en papel azul, del mismo tono que la esfera del reloj de Vicente, aunque ella no lo hubiera pensado así al elegirlo. Se plantó delante de su padre con las manos algo temblorosas, más nerviosa de lo que había estado organizando toda la fiesta, y le dijo que aquello no era un regalo cualquiera de jubilación, que lo había preparado con calma, pensando en él, en el taller, en todo lo que habían vivido esas últimas semanas.
+      - paragraph [ref=e215]: —Es una novela —le explicó—. La escribieron para ti. Con lo tuyo, con Tomás, con Canela, con todo.
+      - paragraph [ref=e216]: Anselmo desenvolvió el papel despacio, con esa misma paciencia con la que abría siempre las cajas que llegaban al taller, sin rasgar nunca de golpe. Cuando descubrió la cubierta y pasó las primeras páginas por encima, sin leer todavía, la torre del reloj empezó a dar las ocho justo en ese momento, ocho campanadas limpias que se extendieron por toda la plaza y silenciaron durante unos segundos las conversaciones de las mesas. Anselmo levantó la cabeza hacia la torre, luego hacia el libro, luego hacia Lucía, y por primera vez esa noche no supo qué decir. Se quedó así, quieto, escuchando la última campanada apagarse en el aire mientras sostenía entre las manos algo que no había pedido y que sin embargo parecía llevar esperando también su propio momento.
+      - paragraph [ref=e217]: —Treinta y siete años arreglando esa torre —murmuró Anselmo cuando el silencio volvió— y nunca me había parado a pensar que algún día daría la hora justo para algo así.
+      - paragraph [ref=e218]: Lucía se sentó a su lado en cuanto pudo escaparse de los últimos invitados que aún querían despedirse, y fue entonces cuando Anselmo sacó del bolsillo interior de la chaqueta la caja pequeña que llevaba guardando desde la mañana, sin que ella lo hubiera notado. Dentro estaba el reloj de bolsillo de esfera azul, terminado, con la inscripción completa en la tapa y el segundero avanzando con su tictac tenue, el mismo que había empezado a moverse una semana atrás sobre el banco del taller. Se lo puso en la mano sin ceremonia, como quien entrega algo que pesa menos de lo que parece.
+      - paragraph [ref=e219]: —Esto es tuyo ahora —le dijo—. Iba a quedármelo, pensé que era lo justo después de cuarenta años esperándolo. Pero llevo toda la fiesta dándole vueltas y no es eso lo que Vicente quería dejarme, ni lo que yo quiero dejarte a ti.
+      - paragraph [ref=e220]: Lucía cerró los dedos alrededor del reloj sin atreverse todavía a preguntar, y Anselmo continuó, más para sí mismo que para ella, diciendo que durante años había creído que lo importante era saber desmontar un mecanismo, conocer cada muelle y cada rueda, el oficio que Vicente le había enseñado con tanta paciencia. Pero el reloj no había esperado treinta años por falta de manos capaces de terminarlo. Había esperado porque alguien —Tomás, él mismo, hasta la propia Lucía sin saberlo— tuvo el cuidado de no forzarlo antes de tiempo. Eso era lo que quería dejarle, no la destreza de las manos sino la paciencia de esperar a que las cosas encontraran su hora.
+      - paragraph [ref=e221]: —Guárdalo tú —remató—, y cuando llegue tu momento de esperar algo, ya sabrás reconocerlo.
+      - paragraph [ref=e222]: Lucía no dijo nada; se limitó a sostener el reloj contra el pecho mientras, a lo lejos, la torre seguía marcando los minutos con la misma exactitud de siempre, indiferente a la fiesta que se apagaba poco a poco a su alrededor.
+    - article [ref=e223]:
+      - heading "Capítulo 10 La hora exacta" [level=2] [ref=e224]:
+        - generic [ref=e225]: Capítulo 10
+        - generic [ref=e226]: La hora exacta
+      - paragraph [ref=e227]: Días después de la fiesta, el treinta de septiembre por la mañana, Anselmo entró en el taller por última vez y encontró un silencio distinto al de siempre. Las estanterías estaban desnudas, los cajones vacíos, hasta el banco de trabajo aparecía despejado de herramientas, todo embalado ya en las cajas que Lucía había llevado semana tras semana. Cuarenta años de relojería en Almagro cabían, al final, en media docena de bultos apilados junto a la puerta. Anselmo recorrió el local sin prisa, tocando el marco de la ventana, el mostrador, el hueco donde antes estuvo el cajón cerrado que durante treinta años guardó lo que nadie vino a recoger.
+      - paragraph [ref=e228]: Canela no estaba sobre el banco, como había estado cada mañana de esos cuarenta años. Anselmo la llevaba en brazos, quieta contra su pecho, con esa forma que tienen los gatos de saber cuándo un lugar deja de ser suyo. Él la sujetó un momento más de lo necesario, notando el peso tibio que tantas veces había ignorado por estar inclinado sobre un mecanismo, y pensó que era la primera vez en años que la sostenía sin que hubiera un reloj de por medio esperando su turno sobre la mesa. Se acordó, sin decirlo en voz alta, de que la había encontrado recién nacida dentro de una caja abandonada en esa misma puerta.
+      - paragraph [ref=e229]: "Se acercó a la entrada, giró la llave en la cerradura por dentro para comprobar que corría bien —cuarenta años dando cuerda a mecanismos ajenos no le habían quitado la costumbre de revisar hasta las cosas simples— y salió al fin a la calle con Canela todavía en brazos. Cerró la puerta despacio, sin el gesto brusco con que se cierra lo que sobra, sino con el cuidado de quien deja algo bien colocado en su sitio. El escaparate, vacío desde hacía días, devolvía su propio reflejo: un hombre que se jubilaba ese mes con una gata dormida contra el hombro."
+      - paragraph [ref=e230]: A las nueve y media llegó el joven que se haría cargo del local, un relojero recién llegado de fuera al que el gremio de Almagro había recomendado sin reservas. Anselmo le entregó las llaves con las dos manos, como quien pasa algo que pesa más de lo que parece, y le explicó dónde estaba la luz de la trastienda y qué tabla del suelo crujía al fondo. No dijo gran cosa más. Recordó, sin necesidad de contarlo entero, la mañana de 1986 en que Vicente Roldán le había puesto estas mismas llaves en la palma, prometiéndole que el taller sería suyo si tenía paciencia para los próximos cuarenta años.
+      - paragraph [ref=e231]: —Un reloj parado acierta dos veces al día —le dijo al joven, casi de broma, viendo que este fruncía el ceño sin entender del todo—, y eso ya es más de lo que hacen muchas personas en su vida entera. No tenga prisa por arreglarlo todo el primer mes.
+      - paragraph [ref=e232]: El joven sonrió sin saber muy bien qué contestar y prometió cuidar el sitio. Anselmo asintió, satisfecho de haber dicho lo que quería decir sin necesidad de explicarlo más, y dio un paso atrás para dejar que la puerta de lo que ya no era su relojería se cerrara sola, como se cierra cualquier puerta cuando a uno ya no le corresponde sostenerla.
+      - paragraph [ref=e233]: Lucía lo esperaba fuera, y llevaba puesto el reloj de bolsillo de esfera azul prendido de una presilla del abrigo, visible, no guardado en un bolsillo como quien esconde algo frágil. Se lo había puesto esa misma mañana, dijo, para que su padre lo viera funcionar un rato antes de que él se fuera del todo del oficio. Anselmo se acercó y observó el segundero, aquel tictac tenue que él mismo había devuelto a la vida diez días atrás, y sintió una calma parecida a la que sintió cuando el reloj de la torre volvió a dar las doce después de diez años callado.
+      - paragraph [ref=e234]: —Si algún día se para —le dijo Lucía, tocando la esfera con dos dedos—, sabré desmontarlo yo sola. No hace falta que me lo enseñes otra vez.
+      - paragraph [ref=e235]: "Anselmo la miró con una ceja levantada, mitad orgullo, mitad sorpresa fingida, y ella se rió antes de que él pudiera preguntar cómo estaba tan segura. Le recordó aquella tarde en la cocina de la casa familiar, con el despertador desmontado sobre el hule y las piezas desperdigadas, y el muelle que perdió entonces y que no reapareció hasta años después dentro de una maceta del patio. Aquello, dijo, le había enseñado más de paciencia que de mecánica: que las piezas que se pierden no desaparecen, solo tardan en encontrar su sitio. Anselmo no dijo nada, pero le apretó el hombro un segundo."
+      - paragraph [ref=e236]: Caminaron juntos hacia la Plaza Mayor sin ninguna prisa, Canela otra vez en brazos de Anselmo, negándose a bajar al suelo esa mañana. Faltaban pocos minutos para las doce y algunos vecinos, de camino a sus recados, se giraban a saludarlo, sabiendo ya que aquel día cerraba el taller para siempre. Anselmo respondía con la cabeza, sin detenerse, mientras miraba hacia la torre que dominaba la plaza desde hacía siglos y que él mismo había devuelto a la vida en una Nochevieja de hace muchos años, cuando todo el pueblo salió a oírla dar la hora exacta después de una década de silencio.
+      - paragraph [ref=e237]: "Las campanas empezaron a sonar cuando ya estaban junto a la fuente, y Anselmo contó las doce campanadas en silencio, como había hecho toda su vida sin darse cuenta de que las contaba. Lucía se quedó quieta a su lado, con la mano sobre la esfera azul que llevaba prendida al pecho, y Canela levantó la cabeza hacia el sonido como si también ella entendiera que aquello marcaba algo. Cuando terminó la última campanada, Anselmo sintió que no le quedaba nada pendiente por resolver, ni un mecanismo a medio ajustar, ni una pregunta sin responder: solo la plaza, el mediodía y la gente de siempre."
+      - paragraph [ref=e238]: "Entonces silbó el bolero entero, de principio a fin, sin las pausas que había ido dejando en las últimas semanas, sin detenerse a pensar en el compás ni en lo que vendría después. Lo silbó como lo silbaba antes de que el cajón cerrado empezara a pesarle, antes de saber lo que Vicente había dejado sin terminar, con la misma soltura de sus primeros años de aprendiz. Comprendió, mientras la melodía salía entera y sin tropiezos, que jubilarse no era que su reloj se hubiera parado: era que, por primera vez en cuarenta años, daba exactamente la hora que llevaba dentro desde siempre."
+  - generic [ref=e239]:
+    - heading "Ficha de personajes y lugares" [level=2] [ref=e240]
+    - generic [ref=e241]:
+      - heading "Personajes" [level=3] [ref=e242]
+      - list [ref=e243]:
+        - listitem [ref=e244]:
+          - text: "Anselmo:"
+          - link "Cap. 1" [ref=e245] [cursor=pointer]:
+            - /url: "#cap-1"
+          - text: ","
+          - link "Cap. 2" [ref=e246] [cursor=pointer]:
+            - /url: "#cap-2"
+          - text: ","
+          - link "Cap. 3" [ref=e247] [cursor=pointer]:
+            - /url: "#cap-3"
+          - text: ","
+          - link "Cap. 4" [ref=e248] [cursor=pointer]:
+            - /url: "#cap-4"
+          - text: ","
+          - link "Cap. 5" [ref=e249] [cursor=pointer]:
+            - /url: "#cap-5"
+          - text: ","
+          - link "Cap. 6" [ref=e250] [cursor=pointer]:
+            - /url: "#cap-6"
+          - text: ","
+          - link "Cap. 7" [ref=e251] [cursor=pointer]:
+            - /url: "#cap-7"
+          - text: ","
+          - link "Cap. 8" [ref=e252] [cursor=pointer]:
+            - /url: "#cap-8"
+          - text: ","
+          - link "Cap. 9" [ref=e253] [cursor=pointer]:
+            - /url: "#cap-9"
+          - text: ","
+          - link "Cap. 10" [ref=e254] [cursor=pointer]:
+            - /url: "#cap-10"
+        - listitem [ref=e255]:
+          - text: "Lucía:"
+          - link "Cap. 1" [ref=e256] [cursor=pointer]:
+            - /url: "#cap-1"
+          - text: ","
+          - link "Cap. 3" [ref=e257] [cursor=pointer]:
+            - /url: "#cap-3"
+          - text: ","
+          - link "Cap. 4" [ref=e258] [cursor=pointer]:
+            - /url: "#cap-4"
+          - text: ","
+          - link "Cap. 6" [ref=e259] [cursor=pointer]:
+            - /url: "#cap-6"
+          - text: ","
+          - link "Cap. 7" [ref=e260] [cursor=pointer]:
+            - /url: "#cap-7"
+          - text: ","
+          - link "Cap. 8" [ref=e261] [cursor=pointer]:
+            - /url: "#cap-8"
+          - text: ","
+          - link "Cap. 9" [ref=e262] [cursor=pointer]:
+            - /url: "#cap-9"
+          - text: ","
+          - link "Cap. 10" [ref=e263] [cursor=pointer]:
+            - /url: "#cap-10"
+        - listitem [ref=e264]:
+          - text: "Canela:"
+          - link "Cap. 1" [ref=e265] [cursor=pointer]:
+            - /url: "#cap-1"
+          - text: ","
+          - link "Cap. 3" [ref=e266] [cursor=pointer]:
+            - /url: "#cap-3"
+          - text: ","
+          - link "Cap. 4" [ref=e267] [cursor=pointer]:
+            - /url: "#cap-4"
+          - text: ","
+          - link "Cap. 6" [ref=e268] [cursor=pointer]:
+            - /url: "#cap-6"
+          - text: ","
+          - link "Cap. 7" [ref=e269] [cursor=pointer]:
+            - /url: "#cap-7"
+          - text: ","
+          - link "Cap. 8" [ref=e270] [cursor=pointer]:
+            - /url: "#cap-8"
+          - text: ","
+          - link "Cap. 9" [ref=e271] [cursor=pointer]:
+            - /url: "#cap-9"
+          - text: ","
+          - link "Cap. 10" [ref=e272] [cursor=pointer]:
+            - /url: "#cap-10"
+        - listitem [ref=e273]:
+          - text: "Tomás:"
+          - link "Cap. 2" [ref=e274] [cursor=pointer]:
+            - /url: "#cap-2"
+          - text: ","
+          - link "Cap. 3" [ref=e275] [cursor=pointer]:
+            - /url: "#cap-3"
+          - text: ","
+          - link "Cap. 4" [ref=e276] [cursor=pointer]:
+            - /url: "#cap-4"
+          - text: ","
+          - link "Cap. 5" [ref=e277] [cursor=pointer]:
+            - /url: "#cap-5"
+          - text: ","
+          - link "Cap. 6" [ref=e278] [cursor=pointer]:
+            - /url: "#cap-6"
+          - text: ","
+          - link "Cap. 7" [ref=e279] [cursor=pointer]:
+            - /url: "#cap-7"
+          - text: ","
+          - link "Cap. 9" [ref=e280] [cursor=pointer]:
+            - /url: "#cap-9"
+        - listitem [ref=e281]:
+          - text: "Vicente Roldán:"
+          - link "Cap. 5" [ref=e282] [cursor=pointer]:
+            - /url: "#cap-5"
+        - listitem [ref=e283]:
+          - text: "Nieves Solá:"
+          - link "Cap. 7" [ref=e284] [cursor=pointer]:
+            - /url: "#cap-7"
+    - generic [ref=e285]:
+      - heading "Lugares" [level=3] [ref=e286]
+      - list [ref=e287]:
+        - listitem [ref=e288]:
+          - text: "Plaza Mayor de Almagro:"
+          - link "Cap. 2" [ref=e289] [cursor=pointer]:
+            - /url: "#cap-2"
+          - text: ","
+          - link "Cap. 9" [ref=e290] [cursor=pointer]:
+            - /url: "#cap-9"
+          - text: ","
+          - link "Cap. 10" [ref=e291] [cursor=pointer]:
+            - /url: "#cap-10"
+        - listitem [ref=e292]:
+          - text: "Cocina de la casa familiar:"
+          - link "Cap. 3" [ref=e293] [cursor=pointer]:
+            - /url: "#cap-3"
+        - listitem [ref=e294]:
+          - text: "Taller de relojería:"
+          - link "Cap. 1" [ref=e295] [cursor=pointer]:
+            - /url: "#cap-1"
+          - text: ","
+          - link "Cap. 2" [ref=e296] [cursor=pointer]:
+            - /url: "#cap-2"
+          - text: ","
+          - link "Cap. 3" [ref=e297] [cursor=pointer]:
+            - /url: "#cap-3"
+          - text: ","
+          - link "Cap. 4" [ref=e298] [cursor=pointer]:
+            - /url: "#cap-4"
+          - text: ","
+          - link "Cap. 5" [ref=e299] [cursor=pointer]:
+            - /url: "#cap-5"
+          - text: ","
+          - link "Cap. 6" [ref=e300] [cursor=pointer]:
+            - /url: "#cap-6"
+          - text: ","
+          - link "Cap. 7" [ref=e301] [cursor=pointer]:
+            - /url: "#cap-7"
+          - text: ","
+          - link "Cap. 8" [ref=e302] [cursor=pointer]:
+            - /url: "#cap-8"
+          - text: ","
+          - link "Cap. 10" [ref=e303] [cursor=pointer]:
+            - /url: "#cap-10"
+        - listitem [ref=e304]:
+          - text: "Gabinete de Peritaje Digital de Almagro:"
+          - link "Cap. 7" [ref=e305] [cursor=pointer]:
+            - /url: "#cap-7"

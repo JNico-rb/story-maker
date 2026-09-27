@@ -15,6 +15,7 @@ from tests.pipeline.gate.conftest import (
     evaluation,
     gate_passes,
     results,
+    run_of,
     script_judges,
 )
 from tests.pipeline.gate.visual import (
@@ -31,7 +32,6 @@ from story_maker.agents.fake import Call, FakeAgent, Hang, Say, Script
 from story_maker.config import Config
 from story_maker.observability.port import Trace
 from story_maker.pipeline.production import Production
-from story_maker.pipeline.runs import RunStop
 from story_maker.store.models import RoleSession
 
 
@@ -96,7 +96,7 @@ def test_with_cycles_left_another_cycle_starts_without_rewriting_or_reregisterin
     assert kit.pdf.calls == [at_gate.version_id]
 
 
-def test_with_the_cycles_exhausted_the_run_fails_with_retries_exhausted_and_never_a_pdf(
+def test_with_the_cycles_exhausted_the_run_continues_and_publishes_without_a_valid_review(
     session_factory: sessionmaker[Session],
     at_gate: Seed,
     fake: FakeAgent,
@@ -105,20 +105,21 @@ def test_with_the_cycles_exhausted_the_run_fails_with_retries_exhausted_and_neve
     trace: Trace,
     tmp_path: Path,
 ) -> None:
+    """Cambio de producto (2026-09-26): como el juez sin evaluación válida (012-C15), agotados los
+    ciclos la pasada sigue en vez de fallar, y la candidata se publica."""
     seed_visual(session_factory, at_gate)
     script_judges(fake, *(evaluation(4) for _ in range(3)))
     for _ in range(3):
         fake.script("visual_reviewer", None, NO_DELIVERY["completed"])
     gate = with_stage(kit, make_stage(production, make_settings(tmp_path)))
 
-    with pytest.raises(RunStop) as stop:
-        asyncio.run(gate(at_gate.run_id, trace))
+    asyncio.run(gate(at_gate.run_id, trace))
 
-    assert (stop.value.status, stop.value.reason) == ("failed", "retries_exhausted")
     assert gate_passes(session_factory, at_gate.run_id) == [
         (1, "rewrite"),
         (2, "rewrite"),
-        (3, "fail"),
+        (3, "accept"),
     ]
-    assert kit.pdf.calls == []
+    assert kit.pdf.calls == [at_gate.version_id]
     assert {s.request.role for s in fake.sessions} == {"judge", "visual_reviewer"}
+    assert run_of(session_factory, at_gate.run_id).status == "published"

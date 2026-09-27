@@ -1,9 +1,10 @@
 """011-I5: ningún rol escribe canon. Las sesiones del writer y del editor no cambian la
 candidata; solo la transacción de aceptación escribe (`Production._accept`,
 `pipeline/acceptance.py`). Se compara la candidata entera antes y después de un capítulo cuyo
-único intento se rechaza (`max_retries.chapter` = 0: un intento agota el capítulo), así que
-nunca llega a aceptarse — cualquier diferencia solo podría venir de la sesión misma, no de la
-transacción de aceptación, que no corre."""
+único intento nunca llega a revisarse (el editor no entrega una revisión válida, así que no hay
+revisado con el que aceptar por defecto y el capítulo agota sus intentos sin aceptarse) — cualquier
+diferencia solo podría venir de la sesión misma, no de la transacción de aceptación, que no
+corre."""
 
 from __future__ import annotations
 
@@ -12,9 +13,9 @@ import dataclasses
 import pytest
 from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
-from tests.pipeline.conftest import Seed, chapter_call, editor_script, review, writer_script
+from tests.pipeline.conftest import USAGE, Seed, chapter_call, writer_script
 
-from story_maker.agents.fake import FakeAgent
+from story_maker.agents.fake import FakeAgent, Say, Script
 from story_maker.config import Config, load_config
 from story_maker.observability.port import Trace
 from story_maker.pipeline.production import ChapterProducer
@@ -75,9 +76,8 @@ async def test_the_candidate_is_unchanged_after_a_chapter_attempt_that_never_get
     before = _fingerprint(session_factory, seed.version_id)
 
     fake.script("writer", "write", writer_script(chapter_call()))
-    fake.script(
-        "editor", None, editor_script(review(scores=2))
-    )  # bloqueante: por debajo del umbral
+    # El editor no entrega una revisión válida: sin revisado, no hay aceptación por defecto.
+    fake.script("editor", None, Script(steps=(Say("No he podido revisarlo."),), usage=USAGE))
 
     with pytest.raises(RunStop) as excinfo:
         await producer.produce_chapter(seed.run_id, 1, trace)

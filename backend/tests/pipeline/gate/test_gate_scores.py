@@ -22,7 +22,6 @@ from tests.pipeline.gate.conftest import (
 from story_maker.agents.fake import FakeAgent
 from story_maker.observability.null import NullObservability
 from story_maker.observability.port import Score, Span, Trace
-from story_maker.pipeline.runs import RunStop
 from story_maker.store.models import BannedTerm, ValidatorResult
 
 GATE_VALIDATORS = {*STAGE_1, "cronologia-lean", "juez-novela", "pdf-enlaces"}
@@ -104,18 +103,19 @@ def test_each_gate_validator_leaves_its_result_and_then_its_score_in_its_span(
     assert all(telemetry.stored_before.values())
 
 
-def test_a_failing_pass_also_sends_its_scores_with_the_chapter_of_each_defect_in_the_detail(
+def test_a_pass_with_blocking_defects_still_sends_scores_with_the_chapter_of_each_defect(
     session_factory: sessionmaker[Session],
     at_gate: Seed,
     fake: FakeAgent,
     kit: GateKit,
     trace: Trace,
 ) -> None:
+    """Sin ciclos, la pasada con bloqueantes sigue y publica (2026-09-26), pero sus scores y su
+    detalle por capítulo se guardan igual."""
     low = evaluation({"continuidad": 2, "ritmo": 2}, {"continuidad": (4, 7), "ritmo": (9,)})
     script_judges(fake, low)
 
-    with pytest.raises(RunStop):
-        asyncio.run(with_gate_cycles(kit, 0)(at_gate.run_id, trace))
+    asyncio.run(with_gate_cycles(kit, 0)(at_gate.run_id, trace))
 
     judge = next(
         r for r in results(session_factory, at_gate.run_id) if r.validator == "juez-novela"
@@ -152,9 +152,9 @@ def test_the_banned_terms_score_names_the_term_the_level_and_the_variant(
         )
         session.commit()
     append_to_chapter(session_factory, at_gate.version_id, 4, "Hubo tormentas.")
+    script_judges(fake, evaluation())
 
-    with pytest.raises(RunStop):
-        asyncio.run(with_gate_cycles(kit, 0)(at_gate.run_id, trace))
+    asyncio.run(with_gate_cycles(kit, 0)(at_gate.run_id, trace))
 
     score = _scores(trace)["palabras-prohibidas"]
     assert score.value == 0

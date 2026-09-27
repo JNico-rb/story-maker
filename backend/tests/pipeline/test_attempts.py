@@ -33,7 +33,7 @@ from story_maker.observability.null import NullObservability
 from story_maker.observability.port import Trace
 from story_maker.pipeline.orchestrator import Orchestrator
 from story_maker.pipeline.production import ChapterProducer, Production
-from story_maker.store.models import Attempt, Checkpoint, RoleSession, Run
+from story_maker.store.models import Attempt, Chapter, Checkpoint, RoleSession, Run, ValidatorResult
 
 SKILL = Call("Skill", {"skill": "personalizacion-natural"})
 
@@ -213,7 +213,6 @@ async def test_three_attempts_rewrite_rewrite_accept_accept_the_chapter_in_the_t
 
 
 EXHAUSTED = {
-    "rewrite, rewrite y bloqueantes": "retries_exhausted",
     "tres prohibidas en la misma sesión": "banned_content",
     "prohibida, prohibida y 1.501": "retries_exhausted",
     "1.501, 1.501 y prohibida": "banned_content",
@@ -223,14 +222,6 @@ EXHAUSTED = {
 def script_exhaustion(fake: FakeAgent, row: str) -> None:
     banned = chapter_call(text=text_of(1249) + f" {BANNED}")
     long = chapter_call(1501)
-    if row == "rewrite, rewrite y bloqueantes":
-        low = review({**dict.fromkeys(CRITERIA, 4), "fidelidad-canon": 2})
-        fake.script("writer", "write", writer_script(chapter_call()))
-        fake.script("writer", "rewrite", writer_script(chapter_call()))
-        fake.script("writer", "rewrite", writer_script(chapter_call()))
-        for _ in range(3):
-            fake.script("editor", None, editor_script(low))
-        return
     calls = {
         "tres prohibidas en la misma sesión": (banned, banned, banned),
         "prohibida, prohibida y 1.501": (banned, banned, long),
@@ -260,6 +251,49 @@ async def test_the_attempts_of_a_chapter_run_out_with_a_reason_and_never_a_fourt
         assert numbers == [1, 2, 3]
         assert [o for _, o in attempts(session_factory, seed.run_id, 5)][-1] == "fail"
         writers = session.query(RoleSession).filter_by(role="writer")
-    if row != "rewrite, rewrite y bloqueantes":
-        assert [s.request.role for s in fake.sessions] == ["writer"]
-        assert [w.outcome for w in writers] == ["cut"]
+    assert [s.request.role for s in fake.sessions] == ["writer"]
+    assert [w.outcome for w in writers] == ["cut"]
+
+
+async def test_the_attempts_of_a_chapter_run_out_and_accept_the_least_blocking_reviewed_attempt(
+    producer: ChapterProducer,
+    fake: FakeAgent,
+    seed: Seed,
+    trace: Trace,
+    session_factory: sessionmaker[Session],
+) -> None:
+    """Agotados los tres intentos, todos revisados y todos con algún bloqueante, se acepta el
+    texto del que tenga menos bloqueantes en vez de fallar (cambio de producto, 2026-09-26): aquí,
+    el primero, con solo `fidelidad-canon` bajo el umbral, frente al segundo y el tercero, con
+    `fidelidad-canon` y `cumple-beats` los dos."""
+    set_chapter(session_factory, seed, 5)
+    best_text = text_of(1250, word="mejor")
+    least_blocking = review({**dict.fromkeys(CRITERIA, 4), "fidelidad-canon": 2})
+    most_blocking = review({**dict.fromkeys(CRITERIA, 4), "fidelidad-canon": 2, "cumple-beats": 2})
+    fake.script("writer", "write", writer_script(chapter_call(text=best_text)))
+    fake.script("writer", "rewrite", writer_script(chapter_call()))
+    fake.script("writer", "rewrite", writer_script(chapter_call()))
+    fake.script("editor", None, editor_script(least_blocking))
+    fake.script("editor", None, editor_script(most_blocking))
+    fake.script("editor", None, editor_script(most_blocking))
+
+    await producer.produce_chapter(seed.run_id, 5, trace)
+
+    assert attempts(session_factory, seed.run_id, 5) == [
+        (1, "rewrite"),
+        (2, "rewrite"),
+        (3, "accept"),
+    ]
+    with session_factory() as session:
+        chapter = session.query(Chapter).filter_by(version_id=seed.version_id, number=5).one()
+        rubric = (
+            session.query(ValidatorResult)
+            .filter_by(run_id=seed.run_id, validator="rubrica-capitulo")
+            .order_by(ValidatorResult.id.desc())
+            .first()
+        )
+        assert rubric is not None
+    # El texto aceptado es el del primer intento (el menos bloqueante); sus resultados, los del
+    # último (011: «Its validator results are the last attempt's»).
+    assert chapter.text == best_text
+    assert sum(1 for d in rubric.detail["defects"] if d["blocking"]) == 2

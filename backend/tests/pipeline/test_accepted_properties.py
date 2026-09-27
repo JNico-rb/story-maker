@@ -1,6 +1,12 @@
 """Ningún capítulo aceptado tiene un defecto bloqueante (011-I6): sobre entregas generadas, todo
 lo aceptado tiene de 1.000 a 1.500 palabras, ninguna variante de nombre, ninguna coincidencia
-prohibida y una revisión sin bloqueantes."""
+prohibida y una revisión sin bloqueantes.
+
+Los criterios bloqueantes (`fidelidad-canon`, `cumple-beats`) se generan siempre por encima del
+umbral: si se agotaran los tres intentos con un bloqueante en todos, el capítulo se acepta ahora
+con el revisado que tenga menos en vez de fallar (cambio de producto de 2026-09-26, cubierto en
+`test_verdict.py`), lo que dejaría esta propiedad sin sentido — aquí se prueba el resto de la
+invariante, que sigue en pie: mientras nada bloquea, lo aceptado nunca lleva un bloqueante."""
 
 from __future__ import annotations
 
@@ -43,12 +49,23 @@ PROPERTY = settings(
 
 # Sesgadas hacia lo que se acepta y hacia los límites, para que la propiedad no sea vacía.
 rarely = st.sampled_from([False, False, False, True])
+BLOCKING_CRITERIA = {"fidelidad-canon", "cumple-beats"}
+
+
+def _scores_for(criterion: str) -> st.SearchStrategy[int]:
+    # Los criterios bloqueantes se generan siempre por encima del umbral (ver docstring del
+    # módulo): de lo contrario el agotamiento de los tres intentos podría acabar aceptando un
+    # capítulo con un bloqueante (por diseño, desde 2026-09-26), y esta propiedad prueba lo
+    # contrario: que mientras nada bloquea, nunca se acepta un bloqueante.
+    return st.sampled_from([3, 4, 5, 5] if criterion in BLOCKING_CRITERIA else [2, 3, 4, 5, 5])
+
+
 delivery = st.fixed_dictionaries(
     {
         "words": st.one_of(st.integers(950, 1050), st.integers(1450, 1550), st.integers(950, 1550)),
         "variant": rarely,
         "banned": rarely,
-        "scores": st.fixed_dictionaries({c: st.sampled_from([2, 3, 4, 5, 5]) for c in CRITERIA}),
+        "scores": st.fixed_dictionaries({c: _scores_for(c) for c in CRITERIA}),
         "blocking_defect": rarely,
     }
 )

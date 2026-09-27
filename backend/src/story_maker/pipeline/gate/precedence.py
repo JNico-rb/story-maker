@@ -37,15 +37,14 @@ def gate_precedence(
     1. Un fallo no atribuible (`unattributable_reason`) manda sobre todo lo demás.
     2. Si no hay ninguno, una interrupción (`interruption_reason`).
     3. Si no hay ninguna, los capítulos con algún defecto bloqueante atribuible, más el juez sin
-       entrega válida (012-C15): reescritura si quedan ciclos, o `retries_exhausted` si no.
+       entrega válida (012-C15): reescritura si quedan ciclos; si no, la pasada sigue y la
+       candidata se publica con sus defectos.
     4. Si no hay nada de lo anterior, la pasada sigue (a la etapa siguiente o a publicar)."""
     if unattributable_reason is not None:
         return PassVerdict("fail", unattributable_reason)
     if interruption_reason is not None:
         return PassVerdict("interrupted", interruption_reason)
     chapters = tuple(sorted({d.chapter for d in defects if d.blocking and d.chapter is not None}))
-    if chapters or judge_no_valid_delivery:
-        if cycles_remaining:
-            return PassVerdict("rewrite", chapters_to_rewrite=chapters)
-        return PassVerdict("fail", "retries_exhausted")
+    if (chapters or judge_no_valid_delivery) and cycles_remaining:
+        return PassVerdict("rewrite", chapters_to_rewrite=chapters)
     return PassVerdict("continue")

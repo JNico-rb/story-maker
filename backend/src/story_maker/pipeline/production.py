@@ -133,6 +133,16 @@ class ClosedAttempt:
 
 
 @dataclass(frozen=True)
+class Reviewed:
+    """Un intento que el editor llegó a revisar: el candidato a aceptarse si se agotan los
+    intentos sin ninguno limpio."""
+
+    delivery: Delivery
+    review: ChapterReview
+    blocking: int
+
+
+@dataclass(frozen=True)
 class WriterOutcome:
     closed: tuple[ClosedAttempt, ...]
     delivery: Delivery | None
@@ -348,8 +358,20 @@ class ChapterProducer:
             mode = "rewrite" if gate_cycle is not None else "write"
             if revision is not None:
                 mode = "revise"
+            best: Reviewed | None = None
             while True:
                 written = await self._write(job, window, mode, defects, used, trace, span)
+                last = written.closed[-1] if written.closed else None
+                if (
+                    written.delivery is None
+                    and last is not None
+                    and last.outcome == "fail"
+                    and not last.banned
+                    and best is not None
+                ):
+                    self._close(job, written.closed[:-1], trace, span)
+                    self._settle(job, best, last, trace, span)
+                    return
                 self._close(job, written.closed, trace, span)
                 used += len(written.closed)
                 if written.provider_error:
@@ -388,11 +410,27 @@ class ChapterProducer:
                         (*delivery.runs, rubric),
                         (*rubric.defects, *warnings),
                     )
+                    blocking = sum(1 for d in rubric.defects if d["blocking"])
+                    # Solo al generar: un cambio que no pasa se rechaza y la base queda intacta.
+                    if revision is None and (best is None or blocking <= best.blocking):
+                        best = Reviewed(delivery, review, blocking)
+                if closed.outcome == "fail" and best is not None:
+                    self._settle(job, best, closed, trace, span)
+                    return
                 self._close(job, (closed,), trace, span)
                 used += 1
                 if closed.outcome == "fail":
                     raise RunStop("failed", "retries_exhausted", self._exhausted(job, closed))
                 mode, defects = retry, closed.defects
+
+    def _settle(
+        self, job: ChapterJob, best: Reviewed, last: ClosedAttempt, trace: Trace, span: Span
+    ) -> None:
+        """Agotados los intentos, se acepta el revisado con menos bloqueantes en el número del
+        último intento, que no se cierra: los intentos del capítulo siguen acotados."""
+        delivery = dataclasses.replace(best.delivery, number=last.number)
+        self._accept(job, delivery, best.review, last.runs)
+        self._emit(trace, span, last.runs)
 
     def _revising(self, job: ChapterJob, revision: Revision) -> ChapterJob:
         """El capítulo actual es el de la candidata: el copiado de la base, hasta aceptarlo."""

@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session, sessionmaker
 from tests.pipeline.conftest import (
     CRITERIA,
+    USAGE,
     Seed,
     chapter_call,
     editor_script,
@@ -18,7 +19,7 @@ from tests.pipeline.conftest import (
     writer_script,
 )
 
-from story_maker.agents.fake import Fail, FakeAgent, Script
+from story_maker.agents.fake import Fail, FakeAgent, Say, Script
 from story_maker.api.app import create_app
 from story_maker.api.auth import create_access_token
 from story_maker.lint.chapter import LINTERS
@@ -60,9 +61,11 @@ def script_run(fake: FakeAgent) -> None:
 
 
 def script_resumed(fake: FakeAgent) -> None:
+    """El editor nunca entrega una revisión válida: sin revisado, el capítulo agota sus tres
+    intentos sin aceptarse por defecto (2026-09-26; ver `production.Reviewed`)."""
     for mode in ("write", "rewrite", "rewrite"):
         fake.script("writer", mode, writer_script(chapter_call()))
-        fake.script("editor", None, editor_script(review(scores(fidelidad_canon=1))))
+        fake.script("editor", None, Script(steps=(Say("No he podido revisarlo."),), usage=USAGE))
 
 
 async def test_the_report_is_computed_from_what_is_stored_when_asked(
@@ -106,7 +109,8 @@ async def test_the_report_is_computed_from_what_is_stored_when_asked(
         (v["chapter"], v["attempt"], v["validator"]): v["passed"] for v in report["validators"]
     }
     assert by_attempt[(1, 1, "rubrica-capitulo")] is True
-    assert by_attempt[(3, 3, "rubrica-capitulo")] is False
+    # El capítulo 3 nunca llega a revisarse: sin revisado, ningún intento deja `rubrica-capitulo`.
+    assert (3, 3, "rubrica-capitulo") not in by_attempt
     assert by_attempt[(3, 3, "longitud-capitulo")] is True
     assert {(c, a) for c, a, _ in by_attempt} == {(1, 1), (2, 1), (3, 1), (3, 2), (3, 3)}
     unresolved = [
@@ -117,7 +121,6 @@ async def test_the_report_is_computed_from_what_is_stored_when_asked(
     assert unresolved == [
         (1, "prosa", False),
         (2, "tono", False),
-        (3, "fidelidad-canon", True),
     ]
     assert report["policy_decisions"]
     assert all(d["decision"] in ("allow", "deny", "flag") for d in report["policy_decisions"])
@@ -167,6 +170,36 @@ def test_an_unresolved_defect_with_a_nested_field_renders_it_as_text(
     assert "3" in defect["position"]
     assert "7" in defect["position"]
     assert defect["message"] == "variante"
+
+
+def test_a_whole_novel_validator_stored_as_a_list_of_defects_reaches_the_report(
+    seed: Seed, session_factory: sessionmaker[Session]
+) -> None:
+    """011-bug-C30c: el juicio del `outline` (010-C29) guarda sus defectos como lista, sin
+    `attempt`; el informe reventaba con `AttributeError` al pedirle `.get`."""
+    with unit_of_work(session_factory) as uow:
+        uow.add(
+            ValidatorResult(
+                run_id=seed.run_id,
+                version_id=seed.version_id,
+                validator="outline",
+                chapter=None,
+                passed=False,
+                score=0.0,
+                detail=[{"message": "falta el capítulo 3", "chapter": 3}],
+                created_at=NOW,
+            )
+        )
+
+    with session_factory() as session:
+        report = build_report(session, session.get_one(Run, seed.run_id))
+
+    (validator,) = report["validators"]
+    assert (validator["validator"], validator["attempt"], validator["passed"]) == (
+        "outline",
+        None,
+        False,
+    )
 
 
 def test_the_report_of_a_foreign_run_is_404(
