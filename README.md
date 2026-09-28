@@ -22,6 +22,8 @@
 
 ---
 
+**Vídeo**: https://www.loom.com/share/f6eb751e40124bb2ae5c9e42a03e90ac
+
 ## Qué es
 
 El cliente cuenta en una entrevista quién es el destinatario, sus allegados, sus recuerdos, la ocasión, el tono y lo que **no** quiere que aparezca. Un harness de roles (planner, writer, editor, juez) escribe la novela capítulo a capítulo sobre una **story bible en SQLite**; los validadores —deterministas, semánticos, **Lean 4** para la cronología y **TLA+** para el propio harness— deciden si una versión se publica. Se lee en **web** y en **PDF interactivo**, y el lector puede pedir un cambio («el perro se llama Nala»): solo se reescriben los capítulos afectados y la versión anterior se conserva.
